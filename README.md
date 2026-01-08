@@ -17,4 +17,5 @@ pnpm install
 pnpm -C packages/db prisma:generate
 pnpm -C packages/db prisma:migrate
 pnpm dev
+pnpm turbo dev --filter @excelcare/web --filter @excelcare/core-api
 ```
