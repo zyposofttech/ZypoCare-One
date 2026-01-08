@@ -1,35 +1,53 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
+// services/core-api/src/modules/auth/auth.guard.ts
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { createRemoteJWKSet, jwtVerify } from "jose";
+import { JwtService } from "@nestjs/jwt"; // <--- Key change: Use JwtService
 import { IS_PUBLIC_KEY } from "./public.decorator";
-
-function getBearer(req: any): string | null {
-  const h = req.headers?.authorization || req.headers?.Authorization;
-  if (!h || typeof h !== "string") return null;
-  const m = /^Bearer\s+(.+)$/i.exec(h.trim());
-  return m ? m[1] : null;
-}
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  private jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
-  constructor(private reflector: Reflector) {}
-  async canActivate(ctx: ExecutionContext): Promise<boolean> {
-    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [ctx.getHandler(), ctx.getClass()]);
-    if (isPublic) return true;
+  constructor(
+    private readonly jwtService: JwtService, // <--- Inject JwtService
+    private readonly reflector: Reflector
+  ) {}
 
-    const req = ctx.switchToHttp().getRequest();
-    const token = getBearer(req);
-    if (!token) throw new UnauthorizedException("Missing Bearer token");
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    // 1. Check for @Public() decorator
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (isPublic) {
+      return true;
+    }
 
-    const jwksUrl = process.env.AUTH_JWKS_URL;
-    const issuer = process.env.AUTH_ISSUER;
-    const audience = process.env.AUTH_AUDIENCE;
-    if (!jwksUrl || !issuer || !audience) throw new UnauthorizedException("Auth not configured");
+    // 2. Extract Token
+    const request = context.switchToHttp().getRequest();
+    const token = this.extractTokenFromHeader(request);
 
-    if (!this.jwks) this.jwks = createRemoteJWKSet(new URL(jwksUrl));
-    const { payload } = await jwtVerify(token, this.jwks, { issuer, audience });
-    req.user = payload;
+    if (!token) {
+      throw new UnauthorizedException("Missing Bearer token");
+    }
+
+    // 3. Verify Token Locally
+    try {
+      const payload = await this.jwtService.verifyAsync(token);
+      // 💡 We assign the payload to the request object so we can access it in route handlers
+      request.user = payload;
+    } catch {
+      throw new UnauthorizedException("Invalid or Expired Token");
+    }
+
     return true;
+  }
+
+  private extractTokenFromHeader(request: any): string | undefined {
+    const [type, token] = request.headers.authorization?.split(" ") ?? [];
+    return type === "Bearer" ? token : undefined;
   }
 }
