@@ -269,10 +269,91 @@ export class IamService {
       entityId: id,
       meta: { email: existing.email },
     });
-
+    
     const returnTemp =
       process.env.IAM_RETURN_TEMP_PASSWORD === "true" || process.env.NODE_ENV !== "production";
 
     return { ok: true, tempPassword: returnTemp ? tempPassword : undefined };
+  }
+  async listPermissions(principal: Principal) {
+    // Fetches all available permissions from the database
+    // "permission" model is implied by your listRoles relation
+    return this.prisma.permission.findMany({
+      orderBy: { code: "asc" },
+    });
+  }
+  async getUser(principal: Principal, id: string) {
+    if (!principal.permissions.includes(PERM.IAM_USER_READ)) {
+      throw new ForbiddenException("Missing IAM_USER_READ");
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        branch: true,
+        roleVersion: { include: { roleTemplate: true } },
+      },
+    });
+
+    if (!user) throw new NotFoundException("User not found");
+
+    // Enforce branch isolation
+    if (principal.roleScope === "BRANCH") {
+      if ((user.branchId ?? null) !== (principal.branchId ?? null)) {
+        throw new ForbiddenException("Cross-branch access is not allowed");
+      }
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      roleCode: user.roleVersion?.roleTemplate?.code ?? user.role,
+      branchId: user.branchId ?? null,
+      branchName: user.branch?.name ?? null,
+      isActive: user.isActive,
+      mustChangePassword: user.mustChangePassword,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+  async listBranches(principal: Principal) {
+    const where: any = {};
+    // If user is restricted to a branch, only show that branch
+    if (principal.roleScope === "BRANCH" && principal.branchId) {
+      where.id = principal.branchId;
+    }
+    
+    return this.prisma.branch.findMany({
+      where,
+      orderBy: { name: "asc" },
+    });
+  }
+  async listAudit(
+    principal: Principal, 
+    params: { entity?: string; entityId?: string; actorUserId?: string; action?: string; take?: number }
+  ) {
+    if (!principal.permissions.includes(PERM.IAM_AUDIT_READ)) {
+       throw new ForbiddenException("Missing IAM_AUDIT_READ");
+    }
+
+    const where: any = {};
+    
+    // Branch isolation for audit logs
+    if (principal.roleScope === "BRANCH") {
+      where.branchId = principal.branchId ?? "__none__";
+    }
+
+    if (params.entity) where.entity = params.entity;
+    if (params.entityId) where.entityId = params.entityId;
+    if (params.actorUserId) where.actorUserId = params.actorUserId;
+    if (params.action) where.action = params.action;
+
+    // Assuming your audit table is named 'auditLog' or similar in Prisma
+    return this.prisma.auditEvent.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: params.take || 50,
+    });
   }
 }

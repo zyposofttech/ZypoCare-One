@@ -7889,6 +7889,8 @@ export namespace Prisma {
     isActive: boolean | null
     passwordHash: string | null
     mustChangePassword: boolean | null
+    passwordResetToken: string | null
+    passwordResetExpires: Date | null
     roleVersionId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -7905,6 +7907,8 @@ export namespace Prisma {
     isActive: boolean | null
     passwordHash: string | null
     mustChangePassword: boolean | null
+    passwordResetToken: string | null
+    passwordResetExpires: Date | null
     roleVersionId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -7921,6 +7925,8 @@ export namespace Prisma {
     isActive: number
     passwordHash: number
     mustChangePassword: number
+    passwordResetToken: number
+    passwordResetExpires: number
     roleVersionId: number
     createdAt: number
     updatedAt: number
@@ -7939,6 +7945,8 @@ export namespace Prisma {
     isActive?: true
     passwordHash?: true
     mustChangePassword?: true
+    passwordResetToken?: true
+    passwordResetExpires?: true
     roleVersionId?: true
     createdAt?: true
     updatedAt?: true
@@ -7955,6 +7963,8 @@ export namespace Prisma {
     isActive?: true
     passwordHash?: true
     mustChangePassword?: true
+    passwordResetToken?: true
+    passwordResetExpires?: true
     roleVersionId?: true
     createdAt?: true
     updatedAt?: true
@@ -7971,6 +7981,8 @@ export namespace Prisma {
     isActive?: true
     passwordHash?: true
     mustChangePassword?: true
+    passwordResetToken?: true
+    passwordResetExpires?: true
     roleVersionId?: true
     createdAt?: true
     updatedAt?: true
@@ -8060,6 +8072,8 @@ export namespace Prisma {
     isActive: boolean
     passwordHash: string | null
     mustChangePassword: boolean
+    passwordResetToken: string | null
+    passwordResetExpires: Date | null
     roleVersionId: string | null
     createdAt: Date
     updatedAt: Date
@@ -8093,6 +8107,8 @@ export namespace Prisma {
     isActive?: boolean
     passwordHash?: boolean
     mustChangePassword?: boolean
+    passwordResetToken?: boolean
+    passwordResetExpires?: boolean
     roleVersionId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -8115,6 +8131,8 @@ export namespace Prisma {
     isActive?: boolean
     passwordHash?: boolean
     mustChangePassword?: boolean
+    passwordResetToken?: boolean
+    passwordResetExpires?: boolean
     roleVersionId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -8134,6 +8152,8 @@ export namespace Prisma {
     isActive?: boolean
     passwordHash?: boolean
     mustChangePassword?: boolean
+    passwordResetToken?: boolean
+    passwordResetExpires?: boolean
     roleVersionId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -8173,6 +8193,8 @@ export namespace Prisma {
       isActive: boolean
       passwordHash: string | null
       mustChangePassword: boolean
+      passwordResetToken: string | null
+      passwordResetExpires: Date | null
       roleVersionId: string | null
       createdAt: Date
       updatedAt: Date
@@ -8584,6 +8606,8 @@ export namespace Prisma {
     readonly isActive: FieldRef<"User", 'Boolean'>
     readonly passwordHash: FieldRef<"User", 'String'>
     readonly mustChangePassword: FieldRef<"User", 'Boolean'>
+    readonly passwordResetToken: FieldRef<"User", 'String'>
+    readonly passwordResetExpires: FieldRef<"User", 'DateTime'>
     readonly roleVersionId: FieldRef<"User", 'String'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
     readonly updatedAt: FieldRef<"User", 'DateTime'>
@@ -27940,6 +27964,8 @@ export namespace Prisma {
     isActive: 'isActive',
     passwordHash: 'passwordHash',
     mustChangePassword: 'mustChangePassword',
+    passwordResetToken: 'passwordResetToken',
+    passwordResetExpires: 'passwordResetExpires',
     roleVersionId: 'roleVersionId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -28844,6 +28870,8 @@ export namespace Prisma {
     isActive?: BoolFilter<"User"> | boolean
     passwordHash?: StringNullableFilter<"User"> | string | null
     mustChangePassword?: BoolFilter<"User"> | boolean
+    passwordResetToken?: StringNullableFilter<"User"> | string | null
+    passwordResetExpires?: DateTimeNullableFilter<"User"> | Date | string | null
     roleVersionId?: StringNullableFilter<"User"> | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
@@ -28865,6 +28893,8 @@ export namespace Prisma {
     isActive?: SortOrder
     passwordHash?: SortOrderInput | SortOrder
     mustChangePassword?: SortOrder
+    passwordResetToken?: SortOrderInput | SortOrder
+    passwordResetExpires?: SortOrderInput | SortOrder
     roleVersionId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -28879,6 +28909,7 @@ export namespace Prisma {
     id?: string
     email?: string
     staffId?: string
+    passwordResetToken?: string
     AND?: UserWhereInput | UserWhereInput[]
     OR?: UserWhereInput[]
     NOT?: UserWhereInput | UserWhereInput[]
@@ -28889,6 +28920,7 @@ export namespace Prisma {
     isActive?: BoolFilter<"User"> | boolean
     passwordHash?: StringNullableFilter<"User"> | string | null
     mustChangePassword?: BoolFilter<"User"> | boolean
+    passwordResetExpires?: DateTimeNullableFilter<"User"> | Date | string | null
     roleVersionId?: StringNullableFilter<"User"> | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
@@ -28897,7 +28929,7 @@ export namespace Prisma {
     roleVersion?: XOR<RoleTemplateVersionNullableRelationFilter, RoleTemplateVersionWhereInput> | null
     createdRoleVersions?: RoleTemplateVersionListRelationFilter
     auditEventsAsActor?: AuditEventListRelationFilter
-  }, "id" | "email" | "staffId">
+  }, "id" | "email" | "staffId" | "passwordResetToken">
 
   export type UserOrderByWithAggregationInput = {
     id?: SortOrder
@@ -28910,6 +28942,8 @@ export namespace Prisma {
     isActive?: SortOrder
     passwordHash?: SortOrderInput | SortOrder
     mustChangePassword?: SortOrder
+    passwordResetToken?: SortOrderInput | SortOrder
+    passwordResetExpires?: SortOrderInput | SortOrder
     roleVersionId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -28932,6 +28966,8 @@ export namespace Prisma {
     isActive?: BoolWithAggregatesFilter<"User"> | boolean
     passwordHash?: StringNullableWithAggregatesFilter<"User"> | string | null
     mustChangePassword?: BoolWithAggregatesFilter<"User"> | boolean
+    passwordResetToken?: StringNullableWithAggregatesFilter<"User"> | string | null
+    passwordResetExpires?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     roleVersionId?: StringNullableWithAggregatesFilter<"User"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -30736,6 +30772,8 @@ export namespace Prisma {
     isActive?: boolean
     passwordHash?: string | null
     mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     branch?: BranchCreateNestedOneWithoutUsersInput
@@ -30756,6 +30794,8 @@ export namespace Prisma {
     isActive?: boolean
     passwordHash?: string | null
     mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
     roleVersionId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -30772,6 +30812,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branch?: BranchUpdateOneWithoutUsersNestedInput
@@ -30792,6 +30834,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     roleVersionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -30810,6 +30854,8 @@ export namespace Prisma {
     isActive?: boolean
     passwordHash?: string | null
     mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
     roleVersionId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -30824,6 +30870,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -30839,6 +30887,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     roleVersionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -32785,6 +32835,17 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type DateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
   export type BranchNullableRelationFilter = {
     is?: BranchWhereInput | null
     isNot?: BranchWhereInput | null
@@ -32821,6 +32882,8 @@ export namespace Prisma {
     isActive?: SortOrder
     passwordHash?: SortOrder
     mustChangePassword?: SortOrder
+    passwordResetToken?: SortOrder
+    passwordResetExpires?: SortOrder
     roleVersionId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -32837,6 +32900,8 @@ export namespace Prisma {
     isActive?: SortOrder
     passwordHash?: SortOrder
     mustChangePassword?: SortOrder
+    passwordResetToken?: SortOrder
+    passwordResetExpires?: SortOrder
     roleVersionId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -32853,12 +32918,14 @@ export namespace Prisma {
     isActive?: SortOrder
     passwordHash?: SortOrder
     mustChangePassword?: SortOrder
+    passwordResetToken?: SortOrder
+    passwordResetExpires?: SortOrder
     roleVersionId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
-  export type DateTimeNullableFilter<$PrismaModel = never> = {
+  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
     in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
     notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
@@ -32866,7 +32933,10 @@ export namespace Prisma {
     lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type ConsentRecordListRelationFilter = {
@@ -32934,20 +33004,6 @@ export namespace Prisma {
     address?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-  }
-
-  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type EnumEncounterTypeFilter<$PrismaModel = never> = {
@@ -34847,6 +34903,10 @@ export namespace Prisma {
     connect?: AuditEventWhereUniqueInput | AuditEventWhereUniqueInput[]
   }
 
+  export type NullableDateTimeFieldUpdateOperationsInput = {
+    set?: Date | string | null
+  }
+
   export type BranchUpdateOneWithoutUsersNestedInput = {
     create?: XOR<BranchCreateWithoutUsersInput, BranchUncheckedCreateWithoutUsersInput>
     connectOrCreate?: BranchCreateOrConnectWithoutUsersInput
@@ -35007,10 +35067,6 @@ export namespace Prisma {
     connectOrCreate?: StatutoryCaseCreateOrConnectWithoutPatientInput | StatutoryCaseCreateOrConnectWithoutPatientInput[]
     createMany?: StatutoryCaseCreateManyPatientInputEnvelope
     connect?: StatutoryCaseWhereUniqueInput | StatutoryCaseWhereUniqueInput[]
-  }
-
-  export type NullableDateTimeFieldUpdateOperationsInput = {
-    set?: Date | string | null
   }
 
   export type BranchUpdateOneRequiredWithoutPatientsNestedInput = {
@@ -36316,6 +36372,8 @@ export namespace Prisma {
     isActive?: boolean
     passwordHash?: string | null
     mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     staff?: StaffCreateNestedOneWithoutUserInput
@@ -36334,6 +36392,8 @@ export namespace Prisma {
     isActive?: boolean
     passwordHash?: string | null
     mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
     roleVersionId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -36816,6 +36876,8 @@ export namespace Prisma {
     isActive?: BoolFilter<"User"> | boolean
     passwordHash?: StringNullableFilter<"User"> | string | null
     mustChangePassword?: BoolFilter<"User"> | boolean
+    passwordResetToken?: StringNullableFilter<"User"> | string | null
+    passwordResetExpires?: DateTimeNullableFilter<"User"> | Date | string | null
     roleVersionId?: StringNullableFilter<"User"> | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
@@ -37733,6 +37795,8 @@ export namespace Prisma {
     isActive?: boolean
     passwordHash?: string | null
     mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     branch?: BranchCreateNestedOneWithoutUsersInput
@@ -37751,6 +37815,8 @@ export namespace Prisma {
     isActive?: boolean
     passwordHash?: string | null
     mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
     roleVersionId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -37904,6 +37970,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branch?: BranchUpdateOneWithoutUsersNestedInput
@@ -37922,6 +37990,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     roleVersionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -40425,6 +40495,8 @@ export namespace Prisma {
     isActive?: boolean
     passwordHash?: string | null
     mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     branch?: BranchCreateNestedOneWithoutUsersInput
@@ -40444,6 +40516,8 @@ export namespace Prisma {
     isActive?: boolean
     passwordHash?: string | null
     mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
     roleVersionId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -40530,6 +40604,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branch?: BranchUpdateOneWithoutUsersNestedInput
@@ -40549,6 +40625,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     roleVersionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -40695,6 +40773,8 @@ export namespace Prisma {
     isActive?: boolean
     passwordHash?: string | null
     mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     branch?: BranchCreateNestedOneWithoutUsersInput
@@ -40714,6 +40794,8 @@ export namespace Prisma {
     isActive?: boolean
     passwordHash?: string | null
     mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
     roleVersionId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -40760,6 +40842,8 @@ export namespace Prisma {
     isActive?: boolean
     passwordHash?: string | null
     mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     branch?: BranchCreateNestedOneWithoutUsersInput
@@ -40779,6 +40863,8 @@ export namespace Prisma {
     isActive?: boolean
     passwordHash?: string | null
     mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     createdRoleVersions?: RoleTemplateVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
@@ -40848,6 +40934,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branch?: BranchUpdateOneWithoutUsersNestedInput
@@ -40867,6 +40955,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     roleVersionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -41044,6 +41134,8 @@ export namespace Prisma {
     isActive?: boolean
     passwordHash?: string | null
     mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
     roleVersionId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -41221,6 +41313,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     staff?: StaffUpdateOneWithoutUserNestedInput
@@ -41239,6 +41333,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     roleVersionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -41256,6 +41352,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     roleVersionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -42384,6 +42482,8 @@ export namespace Prisma {
     isActive?: boolean
     passwordHash?: string | null
     mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -42421,6 +42521,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branch?: BranchUpdateOneWithoutUsersNestedInput
@@ -42440,6 +42542,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdRoleVersions?: RoleTemplateVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
@@ -42457,6 +42561,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

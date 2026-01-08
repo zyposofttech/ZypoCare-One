@@ -155,8 +155,10 @@ model User {
   passwordHash       String?
   mustChangePassword Boolean @default(false)
 
-  roleVersionId String?
-  roleVersion   RoleTemplateVersion? @relation("UserRoleVersion", fields: [roleVersionId], references: [id])
+  passwordResetToken   String?              @unique
+  passwordResetExpires DateTime?
+  roleVersionId        String?
+  roleVersion          RoleTemplateVersion? @relation("UserRoleVersion", fields: [roleVersionId], references: [id])
 
   // Who created role versions
   createdRoleVersions RoleTemplateVersion[] @relation("RoleVersionCreatedBy")

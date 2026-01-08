@@ -22,8 +22,9 @@ export type AuthUser = {
 
 type AuthState = {
   user: AuthUser | null;
-  token: string | null; // demo only; swap with real JWT later
-  login: (user: AuthUser) => void;
+  token: string | null;
+  isAuthenticated: boolean; // 1. Add this property to the type
+  login: (user: AuthUser, token: string) => void;
   logout: () => void;
 };
 
@@ -40,19 +41,32 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       token: null,
-      login: (user) => {
+      isAuthenticated: false, // 2. Initialize it here
+
+      login: (user, token) => {
         setAuthCookie();
-        set({ user, token: "demo-token" });
+        // 3. Set it to true on login
+        set({ user, token, isAuthenticated: true });
       },
-      logout: () => {
-        clearAuthCookie();
-        set({ user: null, token: null });
-      },
+
+      logout: async () => {
+        try {
+          await fetch('http://localhost:4000/api/auth/logout', { method: 'POST' });
+        } finally {
+          // Always clear local state even if backend fails
+          localStorage.removeItem('access_token');
+          clearAuthCookie(); // (Optional) Good practice to clear the cookie helper too
+          
+          // 4. Set it to false on logout (and ensure token is cleared)
+          set({ user: null, token: null, isAuthenticated: false });
+        }
+      }
     }),
     {
       name: "excelcare-auth",
       storage: createJSONStorage(() => localStorage),
-      partialize: (s) => ({ user: s.user, token: s.token }),
+      // 5. Ensure it is persisted (optional, but consistent)
+      partialize: (s) => ({ user: s.user, token: s.token, isAuthenticated: s.isAuthenticated }),
     }
   )
 );

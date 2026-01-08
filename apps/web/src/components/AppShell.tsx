@@ -203,7 +203,7 @@ const NAV_GOVERN: NavNode[] = [
     href: "/access",
     icon: IconUsers,
     children: [
-      { label: "App Users", href: "/access/users" },
+      { label: "App Users", href: "/admin/users" },
       { label: "Roles", href: "/access/roles" },
       { label: "Audit Trails", href: "/access/audit" },
     ],
