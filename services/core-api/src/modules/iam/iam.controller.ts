@@ -5,7 +5,7 @@ import { PermissionsGuard } from "../auth/permissions.guard";
 import { Permissions } from "../auth/permissions.decorator";
 import type { Principal } from "../auth/access-policy.service";
 import { IamService } from "./iam.service";
-import { CreateUserDto, UpdateUserDto } from "./iam.dto";
+import { CreateUserDto, UpdateUserDto, CreateRoleDto, UpdateRoleDto, CreatePermissionDto } from "./iam.dto";
 import { PERM } from "./iam.constants";
 
 @ApiTags("iam")
@@ -83,5 +83,22 @@ export class IamController {
       action,
       take: take ? Number(take) : undefined,
     });
+  }
+
+  @Post("roles")
+  // @Permissions(PERM.IAM_ROLE_CREATE) <--- Ensure this constant exists in iam.constants.ts
+  async createRole(@Body() dto: CreateRoleDto, @Req() req: any) {
+    return this.iam.createRole(this.principal(req), dto);
+  }
+
+  @Patch("roles/:code")
+  // @Permissions(PERM.IAM_ROLE_UPDATE) <--- Ensure this constant exists
+  async updateRole(@Param("code") code: string, @Body() dto: UpdateRoleDto, @Req() req: any) {
+    return this.iam.updateRole(this.principal(req), code, dto);
+  }
+  @Post("permissions")
+  @Permissions(PERM.IAM_PERMISSION_CREATE)
+  async createPermission(@Body() dto: CreatePermissionDto, @Req() req: any) {
+    return this.iam.createPermission(this.principal(req), dto);
   }
 }

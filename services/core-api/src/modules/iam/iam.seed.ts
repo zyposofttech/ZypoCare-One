@@ -5,11 +5,22 @@ import { generateTempPassword, hashPassword } from "./password.util";
 
 @Injectable()
 export class IamSeedService implements OnModuleInit {
-  constructor(@Inject("PRISMA") private prisma: PrismaClient) {}
+  constructor(@Inject("PRISMA") private prisma: PrismaClient) { }
 
   async onModuleInit() {
     if (process.env.AUTH_DEV_SEED !== "true") return;
+    const seedBranches = [
+      { code: "BLR-HQ", name: "ExcelCare Hospital – Central Campus", city: "Bengaluru" },
+      { code: "BLR-EC", name: "ExcelCare Hospital – Electronic City Campus", city: "Bengaluru" },
+    ];
 
+    for (const b of seedBranches) {
+      await this.prisma.branch.upsert({
+        where: { code: b.code },
+        update: { name: b.name, city: b.city },
+        create: b,
+      });
+    }
     const permissions = [
       { code: PERM.IAM_USER_READ, name: "Read users", category: "IAM" },
       { code: PERM.IAM_USER_CREATE, name: "Create users", category: "IAM" },

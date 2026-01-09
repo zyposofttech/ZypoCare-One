@@ -8,11 +8,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum BranchCode {
-  BRANCH_A
-  BRANCH_B
-}
-
 enum ConsentScope {
   VIEW
   STORE
@@ -53,12 +48,18 @@ enum OutboxStatus {
 }
 
 model Branch {
-  id        String     @id @default(cuid())
-  code      BranchCode @unique
-  name      String
-  city      String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id   String @id @default(cuid())
+  code String @unique @db.VarChar(32)
+  name String
+  city String
+
+  address       String? @db.VarChar(240)
+  contactPhone1 String? @db.VarChar(20)
+  contactPhone2 String? @db.VarChar(20)
+  contactEmail  String? @db.VarChar(120)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   departments Department[]
   users       User[]

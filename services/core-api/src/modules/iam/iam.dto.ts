@@ -1,4 +1,4 @@
-import { IsBoolean, IsEmail, IsOptional, IsString, MinLength } from "class-validator";
+import { IsArray, IsBoolean, IsEmail, IsEnum, IsOptional, IsString, MinLength } from "class-validator";
 
 export class CreateUserDto {
   @IsEmail() email!: string;
@@ -17,4 +17,26 @@ export class UpdateUserDto {
   @IsOptional() @IsString() branchId?: string | null;
   @IsOptional() @IsBoolean() isActive?: boolean;
   @IsOptional() @IsString() staffId?: string | null;
+}
+export class CreateRoleDto {
+  @IsString() @MinLength(2) roleName!: string;
+  
+  // Must be uppercase, e.g., "SENIOR_NURSE"
+  @IsString() @MinLength(2) roleCode!: string;
+
+  @IsEnum(["GLOBAL", "BRANCH"]) scope!: "GLOBAL" | "BRANCH";
+
+  // List of permission codes, e.g., ["PATIENT_READ", "VITALS_WRITE"]
+  @IsArray() @IsString({ each: true }) permissions!: string[];
+}
+
+export class UpdateRoleDto {
+  @IsOptional() @IsString() roleName?: string;
+  @IsOptional() @IsArray() @IsString({ each: true }) permissions?: string[];
+}
+export class CreatePermissionDto {
+  @IsString() @MinLength(3) code!: string;       // e.g. "PATIENT_VIEW_SENSITIVE"
+  @IsString() @MinLength(2) name!: string;       // e.g. "View Sensitive Patient Data"
+  @IsString() @MinLength(2) category!: string;   // e.g. "Clinical"
+  @IsOptional() @IsString() description?: string;
 }

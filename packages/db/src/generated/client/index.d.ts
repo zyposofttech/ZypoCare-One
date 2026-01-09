@@ -138,15 +138,7 @@ export type RoleTemplatePermission = $Result.DefaultSelection<Prisma.$RoleTempla
  * Enums
  */
 export namespace $Enums {
-  export const BranchCode: {
-  BRANCH_A: 'BRANCH_A',
-  BRANCH_B: 'BRANCH_B'
-};
-
-export type BranchCode = (typeof BranchCode)[keyof typeof BranchCode]
-
-
-export const EncounterType: {
+  export const EncounterType: {
   OPD: 'OPD',
   IPD: 'IPD',
   ER: 'ER'
@@ -220,10 +212,6 @@ export const RoleVersionStatus: {
 export type RoleVersionStatus = (typeof RoleVersionStatus)[keyof typeof RoleVersionStatus]
 
 }
-
-export type BranchCode = $Enums.BranchCode
-
-export const BranchCode: typeof $Enums.BranchCode
 
 export type EncounterType = $Enums.EncounterType
 
@@ -3507,18 +3495,26 @@ export namespace Prisma {
 
   export type BranchMinAggregateOutputType = {
     id: string | null
-    code: $Enums.BranchCode | null
+    code: string | null
     name: string | null
     city: string | null
+    address: string | null
+    contactPhone1: string | null
+    contactPhone2: string | null
+    contactEmail: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
 
   export type BranchMaxAggregateOutputType = {
     id: string | null
-    code: $Enums.BranchCode | null
+    code: string | null
     name: string | null
     city: string | null
+    address: string | null
+    contactPhone1: string | null
+    contactPhone2: string | null
+    contactEmail: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -3528,6 +3524,10 @@ export namespace Prisma {
     code: number
     name: number
     city: number
+    address: number
+    contactPhone1: number
+    contactPhone2: number
+    contactEmail: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -3539,6 +3539,10 @@ export namespace Prisma {
     code?: true
     name?: true
     city?: true
+    address?: true
+    contactPhone1?: true
+    contactPhone2?: true
+    contactEmail?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -3548,6 +3552,10 @@ export namespace Prisma {
     code?: true
     name?: true
     city?: true
+    address?: true
+    contactPhone1?: true
+    contactPhone2?: true
+    contactEmail?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -3557,6 +3565,10 @@ export namespace Prisma {
     code?: true
     name?: true
     city?: true
+    address?: true
+    contactPhone1?: true
+    contactPhone2?: true
+    contactEmail?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -3636,9 +3648,13 @@ export namespace Prisma {
 
   export type BranchGroupByOutputType = {
     id: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address: string | null
+    contactPhone1: string | null
+    contactPhone2: string | null
+    contactEmail: string | null
     createdAt: Date
     updatedAt: Date
     _count: BranchCountAggregateOutputType | null
@@ -3665,6 +3681,10 @@ export namespace Prisma {
     code?: boolean
     name?: boolean
     city?: boolean
+    address?: boolean
+    contactPhone1?: boolean
+    contactPhone2?: boolean
+    contactEmail?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     departments?: boolean | Branch$departmentsArgs<ExtArgs>
@@ -3689,6 +3709,10 @@ export namespace Prisma {
     code?: boolean
     name?: boolean
     city?: boolean
+    address?: boolean
+    contactPhone1?: boolean
+    contactPhone2?: boolean
+    contactEmail?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["branch"]>
@@ -3698,6 +3722,10 @@ export namespace Prisma {
     code?: boolean
     name?: boolean
     city?: boolean
+    address?: boolean
+    contactPhone1?: boolean
+    contactPhone2?: boolean
+    contactEmail?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -3741,9 +3769,13 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
-      code: $Enums.BranchCode
+      code: string
       name: string
       city: string
+      address: string | null
+      contactPhone1: string | null
+      contactPhone2: string | null
+      contactEmail: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["branch"]>
@@ -4154,9 +4186,13 @@ export namespace Prisma {
    */ 
   interface BranchFieldRefs {
     readonly id: FieldRef<"Branch", 'String'>
-    readonly code: FieldRef<"Branch", 'BranchCode'>
+    readonly code: FieldRef<"Branch", 'String'>
     readonly name: FieldRef<"Branch", 'String'>
     readonly city: FieldRef<"Branch", 'String'>
+    readonly address: FieldRef<"Branch", 'String'>
+    readonly contactPhone1: FieldRef<"Branch", 'String'>
+    readonly contactPhone2: FieldRef<"Branch", 'String'>
+    readonly contactEmail: FieldRef<"Branch", 'String'>
     readonly createdAt: FieldRef<"Branch", 'DateTime'>
     readonly updatedAt: FieldRef<"Branch", 'DateTime'>
   }
@@ -27901,6 +27937,10 @@ export namespace Prisma {
     code: 'code',
     name: 'name',
     city: 'city',
+    address: 'address',
+    contactPhone1: 'contactPhone1',
+    contactPhone2: 'contactPhone2',
+    contactEmail: 'contactEmail',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -28310,20 +28350,6 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'BranchCode'
-   */
-  export type EnumBranchCodeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BranchCode'>
-    
-
-
-  /**
-   * Reference to a field of type 'BranchCode[]'
-   */
-  export type ListEnumBranchCodeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BranchCode[]'>
-    
-
-
-  /**
    * Reference to a field of type 'DateTime'
    */
   export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -28513,9 +28539,13 @@ export namespace Prisma {
     OR?: BranchWhereInput[]
     NOT?: BranchWhereInput | BranchWhereInput[]
     id?: StringFilter<"Branch"> | string
-    code?: EnumBranchCodeFilter<"Branch"> | $Enums.BranchCode
+    code?: StringFilter<"Branch"> | string
     name?: StringFilter<"Branch"> | string
     city?: StringFilter<"Branch"> | string
+    address?: StringNullableFilter<"Branch"> | string | null
+    contactPhone1?: StringNullableFilter<"Branch"> | string | null
+    contactPhone2?: StringNullableFilter<"Branch"> | string | null
+    contactEmail?: StringNullableFilter<"Branch"> | string | null
     createdAt?: DateTimeFilter<"Branch"> | Date | string
     updatedAt?: DateTimeFilter<"Branch"> | Date | string
     departments?: DepartmentListRelationFilter
@@ -28539,6 +28569,10 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     city?: SortOrder
+    address?: SortOrderInput | SortOrder
+    contactPhone1?: SortOrderInput | SortOrder
+    contactPhone2?: SortOrderInput | SortOrder
+    contactEmail?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     departments?: DepartmentOrderByRelationAggregateInput
@@ -28559,12 +28593,16 @@ export namespace Prisma {
 
   export type BranchWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    code?: $Enums.BranchCode
+    code?: string
     AND?: BranchWhereInput | BranchWhereInput[]
     OR?: BranchWhereInput[]
     NOT?: BranchWhereInput | BranchWhereInput[]
     name?: StringFilter<"Branch"> | string
     city?: StringFilter<"Branch"> | string
+    address?: StringNullableFilter<"Branch"> | string | null
+    contactPhone1?: StringNullableFilter<"Branch"> | string | null
+    contactPhone2?: StringNullableFilter<"Branch"> | string | null
+    contactEmail?: StringNullableFilter<"Branch"> | string | null
     createdAt?: DateTimeFilter<"Branch"> | Date | string
     updatedAt?: DateTimeFilter<"Branch"> | Date | string
     departments?: DepartmentListRelationFilter
@@ -28588,6 +28626,10 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     city?: SortOrder
+    address?: SortOrderInput | SortOrder
+    contactPhone1?: SortOrderInput | SortOrder
+    contactPhone2?: SortOrderInput | SortOrder
+    contactEmail?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: BranchCountOrderByAggregateInput
@@ -28600,9 +28642,13 @@ export namespace Prisma {
     OR?: BranchScalarWhereWithAggregatesInput[]
     NOT?: BranchScalarWhereWithAggregatesInput | BranchScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Branch"> | string
-    code?: EnumBranchCodeWithAggregatesFilter<"Branch"> | $Enums.BranchCode
+    code?: StringWithAggregatesFilter<"Branch"> | string
     name?: StringWithAggregatesFilter<"Branch"> | string
     city?: StringWithAggregatesFilter<"Branch"> | string
+    address?: StringNullableWithAggregatesFilter<"Branch"> | string | null
+    contactPhone1?: StringNullableWithAggregatesFilter<"Branch"> | string | null
+    contactPhone2?: StringNullableWithAggregatesFilter<"Branch"> | string | null
+    contactEmail?: StringNullableWithAggregatesFilter<"Branch"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Branch"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Branch"> | Date | string
   }
@@ -30384,9 +30430,13 @@ export namespace Prisma {
 
   export type BranchCreateInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -30407,9 +30457,13 @@ export namespace Prisma {
 
   export type BranchUncheckedCreateInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -30430,9 +30484,13 @@ export namespace Prisma {
 
   export type BranchUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -30453,9 +30511,13 @@ export namespace Prisma {
 
   export type BranchUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -30476,27 +30538,39 @@ export namespace Prisma {
 
   export type BranchCreateManyInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
   export type BranchUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type BranchUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -32414,11 +32488,19 @@ export namespace Prisma {
     not?: NestedStringFilter<$PrismaModel> | string
   }
 
-  export type EnumBranchCodeFilter<$PrismaModel = never> = {
-    equals?: $Enums.BranchCode | EnumBranchCodeFieldRefInput<$PrismaModel>
-    in?: $Enums.BranchCode[] | ListEnumBranchCodeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.BranchCode[] | ListEnumBranchCodeFieldRefInput<$PrismaModel>
-    not?: NestedEnumBranchCodeFilter<$PrismaModel> | $Enums.BranchCode
+  export type StringNullableFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    mode?: QueryMode
+    not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
   export type DateTimeFilter<$PrismaModel = never> = {
@@ -32516,6 +32598,11 @@ export namespace Prisma {
     none?: AuditEventWhereInput
   }
 
+  export type SortOrderInput = {
+    sort: SortOrder
+    nulls?: NullsOrder
+  }
+
   export type DepartmentOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -32577,6 +32664,10 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     city?: SortOrder
+    address?: SortOrder
+    contactPhone1?: SortOrder
+    contactPhone2?: SortOrder
+    contactEmail?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -32586,6 +32677,10 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     city?: SortOrder
+    address?: SortOrder
+    contactPhone1?: SortOrder
+    contactPhone2?: SortOrder
+    contactEmail?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -32595,6 +32690,10 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     city?: SortOrder
+    address?: SortOrder
+    contactPhone1?: SortOrder
+    contactPhone2?: SortOrder
+    contactEmail?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -32617,14 +32716,22 @@ export namespace Prisma {
     _max?: NestedStringFilter<$PrismaModel>
   }
 
-  export type EnumBranchCodeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.BranchCode | EnumBranchCodeFieldRefInput<$PrismaModel>
-    in?: $Enums.BranchCode[] | ListEnumBranchCodeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.BranchCode[] | ListEnumBranchCodeFieldRefInput<$PrismaModel>
-    not?: NestedEnumBranchCodeWithAggregatesFilter<$PrismaModel> | $Enums.BranchCode
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumBranchCodeFilter<$PrismaModel>
-    _max?: NestedEnumBranchCodeFilter<$PrismaModel>
+  export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    mode?: QueryMode
+    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedStringNullableFilter<$PrismaModel>
+    _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
   export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
@@ -32694,29 +32801,9 @@ export namespace Prisma {
     _max?: NestedBoolFilter<$PrismaModel>
   }
 
-  export type StringNullableFilter<$PrismaModel = never> = {
-    equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    lt?: string | StringFieldRefInput<$PrismaModel>
-    lte?: string | StringFieldRefInput<$PrismaModel>
-    gt?: string | StringFieldRefInput<$PrismaModel>
-    gte?: string | StringFieldRefInput<$PrismaModel>
-    contains?: string | StringFieldRefInput<$PrismaModel>
-    startsWith?: string | StringFieldRefInput<$PrismaModel>
-    endsWith?: string | StringFieldRefInput<$PrismaModel>
-    mode?: QueryMode
-    not?: NestedStringNullableFilter<$PrismaModel> | string | null
-  }
-
   export type DepartmentNullableRelationFilter = {
     is?: DepartmentWhereInput | null
     isNot?: DepartmentWhereInput | null
-  }
-
-  export type SortOrderInput = {
-    sort: SortOrder
-    nulls?: NullsOrder
   }
 
   export type SpecialtyBranchIdCodeCompoundUniqueInput = {
@@ -32755,24 +32842,6 @@ export namespace Prisma {
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-  }
-
-  export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    lt?: string | StringFieldRefInput<$PrismaModel>
-    lte?: string | StringFieldRefInput<$PrismaModel>
-    gt?: string | StringFieldRefInput<$PrismaModel>
-    gte?: string | StringFieldRefInput<$PrismaModel>
-    contains?: string | StringFieldRefInput<$PrismaModel>
-    startsWith?: string | StringFieldRefInput<$PrismaModel>
-    endsWith?: string | StringFieldRefInput<$PrismaModel>
-    mode?: QueryMode
-    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedStringNullableFilter<$PrismaModel>
-    _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
   export type SpecialtyNullableRelationFilter = {
@@ -34201,8 +34270,8 @@ export namespace Prisma {
     set?: string
   }
 
-  export type EnumBranchCodeFieldUpdateOperationsInput = {
-    set?: $Enums.BranchCode
+  export type NullableStringFieldUpdateOperationsInput = {
+    set?: string | null
   }
 
   export type DateTimeFieldUpdateOperationsInput = {
@@ -34759,10 +34828,6 @@ export namespace Prisma {
     update?: StaffUpdateWithWhereUniqueWithoutSpecialtyInput | StaffUpdateWithWhereUniqueWithoutSpecialtyInput[]
     updateMany?: StaffUpdateManyWithWhereWithoutSpecialtyInput | StaffUpdateManyWithWhereWithoutSpecialtyInput[]
     deleteMany?: StaffScalarWhereInput | StaffScalarWhereInput[]
-  }
-
-  export type NullableStringFieldUpdateOperationsInput = {
-    set?: string | null
   }
 
   export type StaffUncheckedUpdateManyWithoutSpecialtyNestedInput = {
@@ -35947,11 +36012,18 @@ export namespace Prisma {
     not?: NestedStringFilter<$PrismaModel> | string
   }
 
-  export type NestedEnumBranchCodeFilter<$PrismaModel = never> = {
-    equals?: $Enums.BranchCode | EnumBranchCodeFieldRefInput<$PrismaModel>
-    in?: $Enums.BranchCode[] | ListEnumBranchCodeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.BranchCode[] | ListEnumBranchCodeFieldRefInput<$PrismaModel>
-    not?: NestedEnumBranchCodeFilter<$PrismaModel> | $Enums.BranchCode
+  export type NestedStringNullableFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
   export type NestedDateTimeFilter<$PrismaModel = never> = {
@@ -35993,14 +36065,32 @@ export namespace Prisma {
     not?: NestedIntFilter<$PrismaModel> | number
   }
 
-  export type NestedEnumBranchCodeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.BranchCode | EnumBranchCodeFieldRefInput<$PrismaModel>
-    in?: $Enums.BranchCode[] | ListEnumBranchCodeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.BranchCode[] | ListEnumBranchCodeFieldRefInput<$PrismaModel>
-    not?: NestedEnumBranchCodeWithAggregatesFilter<$PrismaModel> | $Enums.BranchCode
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumBranchCodeFilter<$PrismaModel>
-    _max?: NestedEnumBranchCodeFilter<$PrismaModel>
+  export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedStringNullableFilter<$PrismaModel>
+    _max?: NestedStringNullableFilter<$PrismaModel>
+  }
+
+  export type NestedIntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
   export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
@@ -36028,48 +36118,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBoolFilter<$PrismaModel>
     _max?: NestedBoolFilter<$PrismaModel>
-  }
-
-  export type NestedStringNullableFilter<$PrismaModel = never> = {
-    equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    lt?: string | StringFieldRefInput<$PrismaModel>
-    lte?: string | StringFieldRefInput<$PrismaModel>
-    gt?: string | StringFieldRefInput<$PrismaModel>
-    gte?: string | StringFieldRefInput<$PrismaModel>
-    contains?: string | StringFieldRefInput<$PrismaModel>
-    startsWith?: string | StringFieldRefInput<$PrismaModel>
-    endsWith?: string | StringFieldRefInput<$PrismaModel>
-    not?: NestedStringNullableFilter<$PrismaModel> | string | null
-  }
-
-  export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    lt?: string | StringFieldRefInput<$PrismaModel>
-    lte?: string | StringFieldRefInput<$PrismaModel>
-    gt?: string | StringFieldRefInput<$PrismaModel>
-    gte?: string | StringFieldRefInput<$PrismaModel>
-    contains?: string | StringFieldRefInput<$PrismaModel>
-    startsWith?: string | StringFieldRefInput<$PrismaModel>
-    endsWith?: string | StringFieldRefInput<$PrismaModel>
-    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedStringNullableFilter<$PrismaModel>
-    _max?: NestedStringNullableFilter<$PrismaModel>
-  }
-
-  export type NestedIntNullableFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
   export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
@@ -37257,9 +37305,13 @@ export namespace Prisma {
 
   export type BranchCreateWithoutDepartmentsInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     users?: UserCreateNestedManyWithoutBranchInput
@@ -37279,9 +37331,13 @@ export namespace Prisma {
 
   export type BranchUncheckedCreateWithoutDepartmentsInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     users?: UserUncheckedCreateNestedManyWithoutBranchInput
@@ -37389,9 +37445,13 @@ export namespace Prisma {
 
   export type BranchUpdateWithoutDepartmentsInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     users?: UserUpdateManyWithoutBranchNestedInput
@@ -37411,9 +37471,13 @@ export namespace Prisma {
 
   export type BranchUncheckedUpdateWithoutDepartmentsInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     users?: UserUncheckedUpdateManyWithoutBranchNestedInput
@@ -37465,9 +37529,13 @@ export namespace Prisma {
 
   export type BranchCreateWithoutSpecialtyInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -37487,9 +37555,13 @@ export namespace Prisma {
 
   export type BranchUncheckedCreateWithoutSpecialtyInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -37592,9 +37664,13 @@ export namespace Prisma {
 
   export type BranchUpdateWithoutSpecialtyInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -37614,9 +37690,13 @@ export namespace Prisma {
 
   export type BranchUncheckedUpdateWithoutSpecialtyInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -37685,9 +37765,13 @@ export namespace Prisma {
 
   export type BranchCreateWithoutStaffInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -37707,9 +37791,13 @@ export namespace Prisma {
 
   export type BranchUncheckedCreateWithoutStaffInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -37842,9 +37930,13 @@ export namespace Prisma {
 
   export type BranchUpdateWithoutStaffInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -37864,9 +37956,13 @@ export namespace Prisma {
 
   export type BranchUncheckedUpdateWithoutStaffInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -38001,9 +38097,13 @@ export namespace Prisma {
 
   export type BranchCreateWithoutUsersInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -38023,9 +38123,13 @@ export namespace Prisma {
 
   export type BranchUncheckedCreateWithoutUsersInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -38189,9 +38293,13 @@ export namespace Prisma {
 
   export type BranchUpdateWithoutUsersInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -38211,9 +38319,13 @@ export namespace Prisma {
 
   export type BranchUncheckedUpdateWithoutUsersInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -38355,9 +38467,13 @@ export namespace Prisma {
 
   export type BranchCreateWithoutPatientsInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -38377,9 +38493,13 @@ export namespace Prisma {
 
   export type BranchUncheckedCreateWithoutPatientsInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -38565,9 +38685,13 @@ export namespace Prisma {
 
   export type BranchUpdateWithoutPatientsInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -38587,9 +38711,13 @@ export namespace Prisma {
 
   export type BranchUncheckedUpdateWithoutPatientsInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -38713,9 +38841,13 @@ export namespace Prisma {
 
   export type BranchCreateWithoutEncounterInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -38735,9 +38867,13 @@ export namespace Prisma {
 
   export type BranchUncheckedCreateWithoutEncounterInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -38848,9 +38984,13 @@ export namespace Prisma {
 
   export type BranchUpdateWithoutEncounterInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -38870,9 +39010,13 @@ export namespace Prisma {
 
   export type BranchUncheckedUpdateWithoutEncounterInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -38955,9 +39099,13 @@ export namespace Prisma {
 
   export type BranchCreateWithoutWardsInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -38977,9 +39125,13 @@ export namespace Prisma {
 
   export type BranchUncheckedCreateWithoutWardsInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -39047,9 +39199,13 @@ export namespace Prisma {
 
   export type BranchUpdateWithoutWardsInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -39069,9 +39225,13 @@ export namespace Prisma {
 
   export type BranchUncheckedUpdateWithoutWardsInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -39107,9 +39267,13 @@ export namespace Prisma {
 
   export type BranchCreateWithoutBedInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -39129,9 +39293,13 @@ export namespace Prisma {
 
   export type BranchUncheckedCreateWithoutBedInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -39228,9 +39396,13 @@ export namespace Prisma {
 
   export type BranchUpdateWithoutBedInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -39250,9 +39422,13 @@ export namespace Prisma {
 
   export type BranchUncheckedUpdateWithoutBedInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -39321,9 +39497,13 @@ export namespace Prisma {
 
   export type BranchCreateWithoutAdmissionInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -39343,9 +39523,13 @@ export namespace Prisma {
 
   export type BranchUncheckedCreateWithoutAdmissionInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -39478,9 +39662,13 @@ export namespace Prisma {
 
   export type BranchUpdateWithoutAdmissionInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -39500,9 +39688,13 @@ export namespace Prisma {
 
   export type BranchUncheckedUpdateWithoutAdmissionInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -39637,9 +39829,13 @@ export namespace Prisma {
 
   export type BranchCreateWithoutOTsInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -39659,9 +39855,13 @@ export namespace Prisma {
 
   export type BranchUncheckedCreateWithoutOTsInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -39697,9 +39897,13 @@ export namespace Prisma {
 
   export type BranchUpdateWithoutOTsInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -39719,9 +39923,13 @@ export namespace Prisma {
 
   export type BranchUncheckedUpdateWithoutOTsInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -39741,9 +39949,13 @@ export namespace Prisma {
 
   export type BranchCreateWithoutAssetsInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -39763,9 +39975,13 @@ export namespace Prisma {
 
   export type BranchUncheckedCreateWithoutAssetsInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -39801,9 +40017,13 @@ export namespace Prisma {
 
   export type BranchUpdateWithoutAssetsInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -39823,9 +40043,13 @@ export namespace Prisma {
 
   export type BranchUncheckedUpdateWithoutAssetsInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -39845,9 +40069,13 @@ export namespace Prisma {
 
   export type BranchCreateWithoutTariffPlansInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -39867,9 +40095,13 @@ export namespace Prisma {
 
   export type BranchUncheckedCreateWithoutTariffPlansInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -39931,9 +40163,13 @@ export namespace Prisma {
 
   export type BranchUpdateWithoutTariffPlansInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -39953,9 +40189,13 @@ export namespace Prisma {
 
   export type BranchUncheckedUpdateWithoutTariffPlansInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -40247,9 +40487,13 @@ export namespace Prisma {
 
   export type BranchCreateWithoutStatutoryCasesInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -40269,9 +40513,13 @@ export namespace Prisma {
 
   export type BranchUncheckedCreateWithoutStatutoryCasesInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -40348,9 +40596,13 @@ export namespace Prisma {
 
   export type BranchUpdateWithoutStatutoryCasesInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -40370,9 +40622,13 @@ export namespace Prisma {
 
   export type BranchUncheckedUpdateWithoutStatutoryCasesInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -40439,9 +40695,13 @@ export namespace Prisma {
 
   export type BranchCreateWithoutAuditEventsInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -40461,9 +40721,13 @@ export namespace Prisma {
 
   export type BranchUncheckedCreateWithoutAuditEventsInput = {
     id?: string
-    code: $Enums.BranchCode
+    code: string
     name: string
     city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -40542,9 +40806,13 @@ export namespace Prisma {
 
   export type BranchUpdateWithoutAuditEventsInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -40564,9 +40832,13 @@ export namespace Prisma {
 
   export type BranchUncheckedUpdateWithoutAuditEventsInput = {
     id?: StringFieldUpdateOperationsInput | string
-    code?: EnumBranchCodeFieldUpdateOperationsInput | $Enums.BranchCode
+    code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput

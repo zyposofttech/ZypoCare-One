@@ -10,7 +10,7 @@ import type { PrismaClient } from "@excelcare/db";
 import { AuditService } from "../audit/audit.service";
 import type { Principal } from "../auth/access-policy.service";
 import { PERM, ROLE } from "./iam.constants";
-import { CreateUserDto, UpdateUserDto } from "./iam.dto";
+import { CreateUserDto, UpdateUserDto, CreateRoleDto, UpdateRoleDto, CreatePermissionDto} from "./iam.dto";
 import { generateTempPassword, hashPassword } from "./password.util";
 
 function lowerEmail(e: string) {
@@ -356,4 +356,158 @@ export class IamService {
       take: params.take || 50,
     });
   }
+  async createRole(principal: Principal, dto: CreateRoleDto) {
+    // 1. Permission Check
+    // Ensure you add IAM_ROLE_CREATE to your PERM constants
+    if (!principal.permissions.includes("IAM_ROLE_CREATE")) { 
+      throw new ForbiddenException("Missing IAM_ROLE_CREATE");
+    }
+
+    const code = dto.roleCode.trim().toUpperCase();
+
+    // 2. Check existence
+    const existing = await this.prisma.roleTemplate.findUnique({
+      where: { code },
+    });
+    if (existing) throw new ConflictException(`Role code ${code} already exists`);
+
+    // 3. Resolve Permission IDs from Codes
+    const perms = await this.prisma.permission.findMany({
+      where: { code: { in: dto.permissions } },
+    });
+    if (perms.length !== dto.permissions.length) {
+      throw new BadRequestException("One or more invalid permission codes");
+    }
+
+    // 4. Transaction: Create Template + Version 1 + Links
+    return this.prisma.$transaction(async (tx) => {
+      const template = await tx.roleTemplate.create({
+        data: {
+          code,
+          name: dto.roleName,
+          scope: dto.scope,
+        },
+      });
+
+      const version = await tx.roleTemplateVersion.create({
+        data: {
+          roleTemplateId: template.id,
+          version: 1,
+          status: "ACTIVE",
+          permissions: {
+            create: perms.map((p) => ({ permissionId: p.id })),
+          },
+        },
+      });
+
+      await this.audit.log({
+        actorUserId: principal.userId,
+        action: "IAM_ROLE_CREATED",
+        entity: "RoleTemplate",
+        entityId: template.id,
+        meta: { code, version: 1, scope: dto.scope },
+        branchId: principal.branchId ?? null,
+      });
+
+      return { roleCode: template.code };
+    });
+  }
+
+  // ✅ ADD THIS METHOD
+  async updateRole(principal: Principal, code: string, dto: UpdateRoleDto) {
+    // 1. Permission Check
+    if (!principal.permissions.includes("IAM_ROLE_UPDATE")) {
+      throw new ForbiddenException("Missing IAM_ROLE_UPDATE");
+    }
+
+    // 2. Fetch current active version
+    const current = await this.prisma.roleTemplateVersion.findFirst({
+      where: { roleTemplate: { code }, status: "ACTIVE" },
+      include: { roleTemplate: true },
+    });
+
+    if (!current) throw new NotFoundException("Role not found or no active version");
+
+    // 3. Prepare new permissions
+    let permIds: string[] = [];
+    if (dto.permissions) {
+      const perms = await this.prisma.permission.findMany({
+        where: { code: { in: dto.permissions } },
+      });
+      permIds = perms.map(p => p.id);
+    }
+
+    // 4. Transaction: Versioning logic
+    await this.prisma.$transaction(async (tx) => {
+      // Archive current version
+      await tx.roleTemplateVersion.update({
+        where: { id: current.id },
+        data: { status: "RETIRED" }, 
+      });
+      // Create new version
+      const newVersion = await tx.roleTemplateVersion.create({
+        data: {
+          roleTemplateId: current.roleTemplateId,
+          version: current.version + 1,
+          status: "ACTIVE",
+          permissions: {
+            create: permIds.map((id) => ({ permissionId: id })),
+          },
+        },
+      });
+
+      // Update name if changed
+      if (dto.roleName && dto.roleName !== current.roleTemplate.name) {
+        await tx.roleTemplate.update({
+          where: { id: current.roleTemplateId },
+          data: { name: dto.roleName },
+        });
+      }
+
+      await this.audit.log({
+        actorUserId: principal.userId,
+        action: "IAM_ROLE_UPDATED",
+        entity: "RoleTemplate",
+        entityId: current.roleTemplateId,
+        meta: { code, oldVersion: current.version, newVersion: newVersion.version },
+        branchId: principal.branchId ?? null,
+      });
+    });
+
+    return { ok: true };
+  }
+  async createPermission(principal: Principal, dto: CreatePermissionDto) {
+    if (!principal.permissions.includes(PERM.IAM_PERMISSION_CREATE)) {
+       throw new ForbiddenException("Missing IAM_PERMISSION_CREATE");
+    }
+
+    const code = dto.code.trim().toUpperCase();
+    
+    // Check for duplicates
+    const existing = await this.prisma.permission.findUnique({ where: { code } });
+    if (existing) throw new ConflictException(`Permission ${code} already exists`);
+
+    // Create
+    const perm = await this.prisma.permission.create({
+      data: {
+        code,
+        name: dto.name,
+        category: dto.category,
+        description: dto.description,
+      },
+    });
+
+    // Audit
+    await this.audit.log({
+      actorUserId: principal.userId,
+      action: "IAM_PERMISSION_CREATED",
+      entity: "Permission",
+      entityId: perm.id,
+      meta: { code: perm.code, category: perm.category },
+      branchId: principal.branchId ?? null,
+    });
+
+    return perm;
+  }
 }
+

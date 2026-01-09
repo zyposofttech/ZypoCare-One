@@ -18,8 +18,9 @@
   --xc-muted: 64 64 64;
 
   /* ExcelCare primary blue */
-  --xc-accent: 16 127 232;
-  --xc-accent2: 96 165 250;
+  --xc-accent: 79 70 229;
+  --xc-accent2: 104 109 212;
+  --xc-ring:165 250;
   --xc-ring: 122 183 255;
 
   --xc-danger: 220 38 38;
@@ -39,8 +40,8 @@
   --xc-text: 236 240 241;   /* near-white */
   --xc-muted: 232 232 237;  /* gray-400 */
 
-  --xc-accent: 16 127 232;
-  --xc-accent2: 96 165 250;
+  --xc-accent: 79 70 229;
+  --xc-accent2: 104 109 212;
   --xc-ring: 122 183 255;
 
   --xc-danger: 248 113 113; /* red-400 */

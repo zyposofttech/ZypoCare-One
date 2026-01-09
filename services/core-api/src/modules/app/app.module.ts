@@ -9,6 +9,7 @@ import { ConsentModule } from "../consent/consent.module";
 import { StatutoryModule } from "../statutory/statutory.module";
 import { HealthController } from "./health.controller";
 import { IamModule } from "../iam/iam.module";
+import { BranchModule } from "../branch/branch.module";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -20,6 +21,7 @@ import { IamModule } from "../iam/iam.module";
     ConsentModule,
     StatutoryModule,
     IamModule,
+    BranchModule,
   ],
   controllers: [HealthController],
 })

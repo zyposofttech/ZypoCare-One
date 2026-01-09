@@ -12,10 +12,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Plus, RefreshCw, Search, ShieldAlert, UserCog, UserPlus } from "lucide-react";
+import { Loader2, Plus, RefreshCw, Search, ShieldAlert, UserCog, UserPlus, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 const CLEAR_SELECT = "__clear__";
 
+// ... (types and helper functions same as before) ...
 type Branch = { id: string; code: string; name: string; city?: string | null };
 type Role = { roleCode: string; roleName: string; scope: "GLOBAL" | "BRANCH"; version: number; permissions: string[] };
 
@@ -57,14 +58,14 @@ function fmt(ts: string) {
   }
 }
 
-function roleScope(roles: Role[], code: string) {
-  const r = roles.find((x) => x.roleCode === code);
-  return r?.scope ?? "GLOBAL";
-}
-
 function roleName(roles: Role[], code: string) {
   const r = roles.find((x) => x.roleCode === code);
   return r?.roleName ?? code;
+}
+
+function roleScope(roles: Role[], code: string) {
+  const r = roles.find((x) => x.roleCode === code);
+  return r?.scope ?? "GLOBAL";
 }
 
 export default function AccessUsersPage() {
@@ -96,7 +97,7 @@ export default function AccessUsersPage() {
   const [eStaffId, setEStaffId] = React.useState<string>("");
   const [savingEdit, setSavingEdit] = React.useState(false);
 
-  // Password reveal dialog (create/reset)
+  // Password reveal dialog
   const [openPw, setOpenPw] = React.useState(false);
   const [pwTitle, setPwTitle] = React.useState("");
   const [pwEmail, setPwEmail] = React.useState("");
@@ -144,13 +145,11 @@ export default function AccessUsersPage() {
 
   async function createUser() {
     setErr(null);
-
     const name = cName.trim();
     const email = cEmail.trim();
     if (!name) return setErr("Name is required.");
     if (!email) return setErr("Email is required.");
     if (!cRole) return setErr("Role is required.");
-
     if (createRoleScope === "BRANCH" && !cBranch) return setErr("Branch is required for a branch-scoped role.");
 
     setCreating(true);
@@ -164,20 +163,15 @@ export default function AccessUsersPage() {
           branchId: cBranch ? cBranch : null,
         }),
       });
-
       setOpenCreate(false);
-
       setPwTitle("Temporary password (new user)");
       setPwEmail(res.email);
       setPwValue(res.tempPassword ?? null);
       setOpenPw(true);
-
-      // reset form
       setCName("");
       setCEmail("");
       setCRole("SUPER_ADMIN");
       setCBranch(me?.branchId || "");
-
       await load();
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "Create failed.");
@@ -191,7 +185,6 @@ export default function AccessUsersPage() {
     setOpenEdit(true);
     setEditId(u.id);
     setEditLoading(true);
-
     try {
       const d = await apiFetch<UserDetail>(`/api/iam/users/${u.id}`);
       setEName(d.name ?? "");
@@ -210,9 +203,7 @@ export default function AccessUsersPage() {
 
   async function saveEdit() {
     if (!editId) return;
-
     setErr(null);
-
     const name = eName.trim();
     if (!name) return setErr("Name is required.");
     if (!eRole) return setErr("Role is required.");
@@ -250,12 +241,10 @@ export default function AccessUsersPage() {
     try {
       const res = await apiFetch<ResetPasswordResponse>(`/api/iam/users/${resetTarget.id}/reset-password`, { method: "POST" });
       setOpenReset(false);
-
       setPwTitle("Temporary password (reset)");
       setPwEmail(resetTarget.email);
       setPwValue(res.tempPassword ?? null);
       setOpenPw(true);
-
       await load();
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "Reset failed.");
@@ -282,6 +271,7 @@ export default function AccessUsersPage() {
       <div className="space-y-6">
         <Card>
           <CardHeader>
+            {/* Header Content */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <CardTitle>App Users</CardTitle>
@@ -313,30 +303,25 @@ export default function AccessUsersPage() {
               </div>
             </div>
 
-            {/* --- UPDATED CARDS WITH COLORS --- */}
+            {/* Stats Cards */}
             <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
               <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-3 dark:border-blue-900/50 dark:bg-blue-900/10">
                 <div className="text-xs font-medium text-blue-600 dark:text-blue-400">Total Users</div>
                 <div className="mt-1 text-lg font-bold text-blue-700 dark:text-blue-300">{stats.total}</div>
               </div>
-              
               <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 dark:border-emerald-900/50 dark:bg-emerald-900/10">
                 <div className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Active Accounts</div>
                 <div className="mt-1 text-lg font-bold text-emerald-700 dark:text-emerald-300">{stats.active}</div>
               </div>
-              
               <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-3 dark:border-rose-900/50 dark:bg-rose-900/10">
                 <div className="text-xs font-medium text-rose-600 dark:text-rose-400">Disabled</div>
                 <div className="mt-1 text-lg font-bold text-rose-700 dark:text-rose-300">{stats.disabled}</div>
               </div>
-              
               <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-3 dark:border-amber-900/50 dark:bg-amber-900/10">
                 <div className="text-xs font-medium text-amber-600 dark:text-amber-400">Pending Password</div>
                 <div className="mt-1 text-lg font-bold text-amber-700 dark:text-amber-300">{stats.mustChange}</div>
               </div>
             </div>
-            {/* ------------------------------- */}
-
           </CardHeader>
 
           <CardContent>
@@ -375,12 +360,10 @@ export default function AccessUsersPage() {
                           <div className="font-medium">{u.name}</div>
                           <div className="font-mono text-xs text-xc-muted">{u.email}</div>
                         </TableCell>
-
                         <TableCell>
                           <div className="font-medium">{roleName(roles, u.roleCode)}</div>
                           <div className="font-mono text-xs text-xc-muted">{u.roleCode}</div>
                         </TableCell>
-
                         <TableCell className="text-sm">
                           {u.branchName ? (
                             <div>
@@ -391,17 +374,13 @@ export default function AccessUsersPage() {
                             <span className="text-xc-muted">—</span>
                           )}
                         </TableCell>
-
                         <TableCell>
                           {u.isActive ? <Badge variant="success">Active</Badge> : <Badge variant="destructive">Disabled</Badge>}
                         </TableCell>
-
                         <TableCell>
                           {u.mustChangePassword ? <Badge variant="warning">Must change password</Badge> : <Badge variant="secondary">Normal</Badge>}
                         </TableCell>
-
                         <TableCell className="text-sm text-xc-muted">{fmt(u.updatedAt)}</TableCell>
-
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             <Button variant="outline" size="sm" onClick={() => openEditUser(u)}>
@@ -436,13 +415,18 @@ export default function AccessUsersPage() {
           </CardContent>
         </Card>
 
-        {/* Create User */}
+        {/* --- Create User Dialog (INDIGO GLOW) --- */}
         <Dialog open={openCreate} onOpenChange={(v) => { setOpenCreate(v); setErr(null); }}>
-          <DialogContent className="sm:max-w-[560px]">
+          <DialogContent 
+            className="sm:max-w-[560px] border-indigo-200/50 dark:border-indigo-800/50 shadow-2xl shadow-indigo-500/10" 
+            onInteractOutside={(e) => e.preventDefault()}
+          >
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <UserPlus className="h-5 w-5" />
-                Create user
+              <DialogTitle className="flex items-center gap-3 text-indigo-700 dark:text-indigo-400">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
+                    <UserPlus className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                Create User
               </DialogTitle>
               <DialogDescription>Creates a user with a temporary password and forces password change on first login.</DialogDescription>
             </DialogHeader>
@@ -515,7 +499,7 @@ export default function AccessUsersPage() {
 
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpenCreate(false)} disabled={creating}>Cancel</Button>
-              <Button onClick={() => void createUser()} disabled={creating}>
+              <Button onClick={() => void createUser()} disabled={creating} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/20">
                 {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 Create
               </Button>
@@ -523,13 +507,18 @@ export default function AccessUsersPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Edit User */}
+        {/* --- Edit User Dialog (AMBER GLOW) --- */}
         <Dialog open={openEdit} onOpenChange={(v) => { setOpenEdit(v); if (!v) setEditId(null); setErr(null); }}>
-          <DialogContent className="sm:max-w-[620px]">
+          <DialogContent 
+            className="sm:max-w-[620px] border-amber-200/50 dark:border-amber-800/50 shadow-2xl shadow-amber-500/10" 
+            onInteractOutside={(e) => e.preventDefault()}
+          >
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <UserCog className="h-5 w-5" />
-                Edit user
+              <DialogTitle className="flex items-center gap-3 text-amber-700 dark:text-amber-400">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
+                    <UserCog className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                Edit User
               </DialogTitle>
               <DialogDescription>Update identity, role, branch mapping and activation status.</DialogDescription>
             </DialogHeader>
@@ -624,7 +613,7 @@ export default function AccessUsersPage() {
 
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setOpenEdit(false)} disabled={savingEdit}>Cancel</Button>
-                  <Button onClick={() => void saveEdit()} disabled={savingEdit}>
+                  <Button onClick={() => void saveEdit()} disabled={savingEdit} className="bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-600/20">
                     {savingEdit ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                     Save changes
                   </Button>
@@ -634,11 +623,19 @@ export default function AccessUsersPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Reset Password Confirm */}
+        {/* --- Reset Password Confirm (ROSE GLOW) --- */}
         <Dialog open={openReset} onOpenChange={(v) => { setOpenReset(v); if (!v) setResetTarget(null); setErr(null); }}>
-          <DialogContent className="sm:max-w-[520px]">
+          <DialogContent 
+            className="sm:max-w-[520px] border-rose-200/50 dark:border-rose-800/50 shadow-2xl shadow-rose-500/10" 
+            onInteractOutside={(e) => e.preventDefault()}
+          >
             <DialogHeader>
-              <DialogTitle>Reset password</DialogTitle>
+              <DialogTitle className="flex items-center gap-3 text-rose-700 dark:text-rose-400">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-900/30">
+                    <ShieldAlert className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+                </div>
+                Reset Password
+              </DialogTitle>
               <DialogDescription>
                 This revokes active sessions immediately and forces a password change on next login.
               </DialogDescription>
@@ -653,7 +650,7 @@ export default function AccessUsersPage() {
 
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpenReset(false)} disabled={resetting}>Cancel</Button>
-              <Button onClick={() => void doReset()} disabled={resetting}>
+              <Button onClick={() => void doReset()} disabled={resetting} className="bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-600/20">
                 {resetting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 Reset now
               </Button>
@@ -661,12 +658,17 @@ export default function AccessUsersPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Password Result */}
+        {/* --- Password Result (EMERALD GLOW) --- */}
         <Dialog open={openPw} onOpenChange={setOpenPw}>
-          <DialogContent className="sm:max-w-[640px]">
+          <DialogContent 
+            className="sm:max-w-[640px] border-emerald-200/50 dark:border-emerald-800/50 shadow-2xl shadow-emerald-500/10" 
+            onInteractOutside={(e) => e.preventDefault()}
+          >
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <ShieldAlert className="h-5 w-5" />
+              <DialogTitle className="flex items-center gap-3 text-emerald-700 dark:text-emerald-400">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+                    <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
                 {pwTitle}
               </DialogTitle>
               <DialogDescription>

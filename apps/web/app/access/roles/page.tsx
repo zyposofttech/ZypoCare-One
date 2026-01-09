@@ -46,7 +46,6 @@ import {
   Search,
   ShieldCheck,
   Edit,
-  Trash2,
 } from "lucide-react";
 
 type Role = {
@@ -81,16 +80,14 @@ export default function AccessRolesPage() {
   const [perms, setPerms] = React.useState<Permission[]>([]);
   const [err, setErr] = React.useState<string | null>(null);
 
-  // --- Create State ---
   const [openCreate, setOpenCreate] = React.useState(false);
   const [creating, setCreating] = React.useState(false);
   const [cName, setCName] = React.useState("");
   const [cCode, setCCode] = React.useState("");
   const [cScope, setCScope] = React.useState<"GLOBAL" | "BRANCH">("GLOBAL");
   const [cPerms, setCPerms] = React.useState<string[]>([]);
-  const [cPermQ, setCPermQ] = React.useState(""); // Search inside dialog
+  const [cPermQ, setCPermQ] = React.useState(""); 
 
-  // --- Edit State ---
   const [openEdit, setOpenEdit] = React.useState(false);
   const [editing, setEditing] = React.useState(false);
   const [editTarget, setEditTarget] = React.useState<Role | null>(null);
@@ -134,8 +131,6 @@ export default function AccessRolesPage() {
       return hay.includes(needle);
     });
   }, [roles, q]);
-
-  // --- Handlers ---
 
   function generateCode(name: string) {
     return name
@@ -215,9 +210,6 @@ export default function AccessRolesPage() {
     }
   }
 
-  // --- Render Helpers ---
-
-  // Renders the list of permissions with checkboxes
   const renderPermissionSelector = (
     selected: string[],
     setSelected: (v: string[]) => void,
@@ -334,16 +326,16 @@ export default function AccessRolesPage() {
 
             <div className="mt-4 grid grid-cols-3 gap-3">
               <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-3 dark:border-blue-900/50 dark:bg-blue-900/10">
-                <div className="text-xs font-medium text-blue-600 dark:text-blue-400">Total Roles</div>
-                <div className="mt-1 text-lg font-semibold">{stats.total}</div>
+                <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">Total Roles</div>
+                <div className="mt-1 text-lg font-bold text-blue-700 dark:text-blue-300">{stats.total}</div>
               </div>
               <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 dark:border-emerald-900/50 dark:bg-emerald-900/10">
-                <div className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Global Scope</div>
-                <div className="mt-1 text-lg font-semibold">{stats.global}</div>
+                <div className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Global Scope</div>
+                <div className="mt-1 text-lg font-bold text-emerald-700 dark:text-emerald-300">{stats.global}</div>
               </div>
               <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-3 dark:border-amber-900/50 dark:bg-amber-900/10">
-                <div className="text-xs font-medium text-amber-600 dark:text-amber-400">Branch Scope</div>
-                <div className="mt-1 text-lg font-semibold">{stats.branch}</div>
+                <div className="text-xs text-amber-600 dark:text-amber-400 font-medium">Branch Scope</div>
+                <div className="mt-1 text-lg font-bold text-amber-700 dark:text-amber-300">{stats.branch}</div>
               </div>
             </div>
           </CardHeader>
@@ -424,7 +416,7 @@ export default function AccessRolesPage() {
           </CardContent>
         </Card>
 
-        {/* --- CREATE ROLE DIALOG --- */}
+        {/* --- CREATE ROLE DIALOG (BLUE GLOW) --- */}
         <Dialog
           open={openCreate}
           onOpenChange={(v) => {
@@ -433,10 +425,15 @@ export default function AccessRolesPage() {
             setErr(null);
           }}
         >
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogContent 
+            className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col border-blue-200/50 dark:border-blue-800/50 shadow-2xl shadow-blue-500/10"
+            onInteractOutside={(e) => e.preventDefault()}
+          >
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Plus className="h-5 w-5" />
+              <DialogTitle className="flex items-center gap-3 text-blue-700 dark:text-blue-400">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+                    <Plus className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
                 Create Role
               </DialogTitle>
               <DialogDescription>
@@ -466,7 +463,7 @@ export default function AccessRolesPage() {
                       value={cCode}
                       onChange={(e) => setCCode(e.target.value.toUpperCase())}
                       placeholder="e.g. SENIOR_NURSE"
-                      className="font-mono"
+                      className="font-mono bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800"
                     />
                   </div>
                 </div>
@@ -507,7 +504,7 @@ export default function AccessRolesPage() {
               >
                 Cancel
               </Button>
-              <Button onClick={() => void createRole()} disabled={creating}>
+              <Button onClick={() => void createRole()} disabled={creating} className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20">
                 {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 Create Role
               </Button>
@@ -515,7 +512,7 @@ export default function AccessRolesPage() {
           </DialogContent>
         </Dialog>
 
-        {/* --- EDIT ROLE DIALOG --- */}
+        {/* --- EDIT ROLE DIALOG (EMERALD GLOW) --- */}
         <Dialog
           open={openEdit}
           onOpenChange={(v) => {
@@ -524,10 +521,15 @@ export default function AccessRolesPage() {
             setErr(null);
           }}
         >
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogContent 
+            className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col border-emerald-200/50 dark:border-emerald-800/50 shadow-2xl shadow-emerald-500/10"
+            onInteractOutside={(e) => e.preventDefault()}
+          >
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5" />
+              <DialogTitle className="flex items-center gap-3 text-emerald-700 dark:text-emerald-400">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+                    <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
                 Edit Role: {editTarget?.roleCode}
               </DialogTitle>
               <DialogDescription>
@@ -572,7 +574,7 @@ export default function AccessRolesPage() {
               >
                 Cancel
               </Button>
-              <Button onClick={() => void saveEdit()} disabled={editing}>
+              <Button onClick={() => void saveEdit()} disabled={editing} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20">
                 {editing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 Save Changes
               </Button>

@@ -127,6 +127,10 @@ exports.Prisma.BranchScalarFieldEnum = {
   code: 'code',
   name: 'name',
   city: 'city',
+  address: 'address',
+  contactPhone1: 'contactPhone1',
+  contactPhone2: 'contactPhone2',
+  contactEmail: 'contactEmail',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -425,11 +429,6 @@ exports.Prisma.JsonNullValueFilter = {
   JsonNull: Prisma.JsonNull,
   AnyNull: Prisma.AnyNull
 };
-exports.BranchCode = exports.$Enums.BranchCode = {
-  BRANCH_A: 'BRANCH_A',
-  BRANCH_B: 'BRANCH_B'
-};
-
 exports.EncounterType = exports.$Enums.EncounterType = {
   OPD: 'OPD',
   IPD: 'IPD',

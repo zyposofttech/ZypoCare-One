@@ -55,7 +55,7 @@ const NAV_WORKSPACES: NavNode[] = [
     href: "/superadmin",
     icon: IconDashboard,
     children: [
-      { label: "Overview", href: "/superadmin" },
+      { label: "Overview", href: "/superadmin/dashboard" },
       { label: "Branches", href: "/superadmin/branches" },
       { label: "Policy Governance", href: "/superadmin/policy" },
       { label: "Reports", href: "/superadmin/reports" },
@@ -203,8 +203,9 @@ const NAV_GOVERN: NavNode[] = [
     href: "/access",
     icon: IconUsers,
     children: [
-      { label: "App Users", href: "/admin/users" },
+      { label: "Permissions", href: "/access/permissions" },
       { label: "Roles", href: "/access/roles" },
+      { label: "App Users", href: "/admin/users" },
       { label: "Audit Trails", href: "/access/audit" },
     ],
   },

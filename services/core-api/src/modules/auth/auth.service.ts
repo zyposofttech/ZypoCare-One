@@ -50,6 +50,10 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       role: user.role,
+      // ✅ FIX: Added realm_access to satisfy Keycloak-style RolesGuard
+      realm_access: {
+        roles: [user.role],
+      },
       branchId: user.branchId,
       mustChangePassword: user.mustChangePassword,
     });
