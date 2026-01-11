@@ -74,6 +74,8 @@ model Branch {
   Bed         Bed[]
   Admission   Admission[]
 
+  facilities    Facility[]
+  rooms         Room[]
   // Opposite relations (required for Prisma validation)
   statutoryCases StatutoryCase[]
   auditEvents    AuditEvent[]
@@ -81,6 +83,31 @@ model Branch {
   // ✅ Policy Governance (opposite relations)
   policyVersions        PolicyVersion[]       @relation("PolicyVersion_Branch")
   policyVersionBranches PolicyVersionBranch[] @relation("PolicyTarget_Branch")
+}
+model Facility {
+  id       String  @id @default(cuid())
+  branchId  String
+  branch    Branch  @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  code      String
+  name      String
+  type      String?
+
+  addressLine1 String?
+  addressLine2 String?
+  city      String
+  state     String?
+  postalCode String?
+  phone     String?
+  email     String?
+
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([branchId, code])
+  @@index([branchId, isActive])
 }
 
 model Department {
@@ -178,7 +205,6 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
 model Patient {
   id       String @id @default(cuid())
   branchId String
@@ -237,17 +263,39 @@ model Ward {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  beds Bed[]
+  rooms Room[]
 
   @@unique([branchId, code])
+}
+
+model Room {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id])
+  wardId   String
+  ward     Ward   @relation(fields: [wardId], references: [id])
+
+  code     String
+  name     String
+  floor    String?
+  type     String?
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  beds Bed[]
+
+  @@unique([wardId, code])
+  @@index([branchId, wardId, isActive])
 }
 
 model Bed {
   id       String @id @default(cuid())
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id])
-  wardId   String
-  ward     Ward   @relation(fields: [wardId], references: [id])
+  roomId   String
+  room     Room   @relation(fields: [roomId], references: [id])
 
   code     String
   state    BedState @default(VACANT)
@@ -258,7 +306,8 @@ model Bed {
 
   admissions Admission[]
 
-  @@unique([wardId, code])
+  @@unique([roomId, code])
+  @@index([branchId, roomId, isActive])
 }
 
 model Admission {
@@ -282,6 +331,7 @@ model Admission {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 
 model OT {
   id       String @id @default(cuid())

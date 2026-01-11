@@ -135,6 +135,24 @@ exports.Prisma.BranchScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.FacilityScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  code: 'code',
+  name: 'name',
+  type: 'type',
+  addressLine1: 'addressLine1',
+  addressLine2: 'addressLine2',
+  city: 'city',
+  state: 'state',
+  postalCode: 'postalCode',
+  phone: 'phone',
+  email: 'email',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.DepartmentScalarFieldEnum = {
   id: 'id',
   branchId: 'branchId',
@@ -226,10 +244,23 @@ exports.Prisma.WardScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.BedScalarFieldEnum = {
+exports.Prisma.RoomScalarFieldEnum = {
   id: 'id',
   branchId: 'branchId',
   wardId: 'wardId',
+  code: 'code',
+  name: 'name',
+  floor: 'floor',
+  type: 'type',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BedScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  roomId: 'roomId',
   code: 'code',
   state: 'state',
   isActive: 'isActive',
@@ -537,6 +568,7 @@ exports.PolicyVersionStatus = exports.$Enums.PolicyVersionStatus = {
 
 exports.Prisma.ModelName = {
   Branch: 'Branch',
+  Facility: 'Facility',
   Department: 'Department',
   Specialty: 'Specialty',
   Staff: 'Staff',
@@ -544,6 +576,7 @@ exports.Prisma.ModelName = {
   Patient: 'Patient',
   Encounter: 'Encounter',
   Ward: 'Ward',
+  Room: 'Room',
   Bed: 'Bed',
   Admission: 'Admission',
   OT: 'OT',

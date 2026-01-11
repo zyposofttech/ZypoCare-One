@@ -11,6 +11,7 @@ import { HealthController } from "./health.controller";
 import { IamModule } from "../iam/iam.module";
 import { BranchModule } from "../branch/branch.module";
 import { GovernanceModule } from "../governance/governance.module";
+import { FacilityModule } from "../facility/facility.module";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -24,6 +25,7 @@ import { GovernanceModule } from "../governance/governance.module";
     IamModule,
     BranchModule,
     GovernanceModule,
+    FacilityModule,
   ],
   controllers: [HealthController],
 })

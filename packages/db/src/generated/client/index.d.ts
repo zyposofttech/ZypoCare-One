@@ -19,6 +19,11 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
  */
 export type Branch = $Result.DefaultSelection<Prisma.$BranchPayload>
 /**
+ * Model Facility
+ * 
+ */
+export type Facility = $Result.DefaultSelection<Prisma.$FacilityPayload>
+/**
  * Model Department
  * 
  */
@@ -53,6 +58,11 @@ export type Encounter = $Result.DefaultSelection<Prisma.$EncounterPayload>
  * 
  */
 export type Ward = $Result.DefaultSelection<Prisma.$WardPayload>
+/**
+ * Model Room
+ * 
+ */
+export type Room = $Result.DefaultSelection<Prisma.$RoomPayload>
 /**
  * Model Bed
  * 
@@ -421,6 +431,16 @@ export class PrismaClient<
   get branch(): Prisma.BranchDelegate<ExtArgs>;
 
   /**
+   * `prisma.facility`: Exposes CRUD operations for the **Facility** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Facilities
+    * const facilities = await prisma.facility.findMany()
+    * ```
+    */
+  get facility(): Prisma.FacilityDelegate<ExtArgs>;
+
+  /**
    * `prisma.department`: Exposes CRUD operations for the **Department** model.
     * Example usage:
     * ```ts
@@ -489,6 +509,16 @@ export class PrismaClient<
     * ```
     */
   get ward(): Prisma.WardDelegate<ExtArgs>;
+
+  /**
+   * `prisma.room`: Exposes CRUD operations for the **Room** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Rooms
+    * const rooms = await prisma.room.findMany()
+    * ```
+    */
+  get room(): Prisma.RoomDelegate<ExtArgs>;
 
   /**
    * `prisma.bed`: Exposes CRUD operations for the **Bed** model.
@@ -1121,6 +1151,7 @@ export namespace Prisma {
 
   export const ModelName: {
     Branch: 'Branch',
+    Facility: 'Facility',
     Department: 'Department',
     Specialty: 'Specialty',
     Staff: 'Staff',
@@ -1128,6 +1159,7 @@ export namespace Prisma {
     Patient: 'Patient',
     Encounter: 'Encounter',
     Ward: 'Ward',
+    Room: 'Room',
     Bed: 'Bed',
     Admission: 'Admission',
     OT: 'OT',
@@ -1162,7 +1194,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "branch" | "department" | "specialty" | "staff" | "user" | "patient" | "encounter" | "ward" | "bed" | "admission" | "oT" | "asset" | "tariffPlan" | "serviceCatalogItem" | "tariffRate" | "consentRecord" | "rtbfRequest" | "statutoryCase" | "auditEvent" | "outboxEvent" | "permission" | "roleTemplate" | "roleTemplateVersion" | "roleTemplatePermission" | "policyDefinition" | "policyVersion" | "policyVersionBranch"
+      modelProps: "branch" | "facility" | "department" | "specialty" | "staff" | "user" | "patient" | "encounter" | "ward" | "room" | "bed" | "admission" | "oT" | "asset" | "tariffPlan" | "serviceCatalogItem" | "tariffRate" | "consentRecord" | "rtbfRequest" | "statutoryCase" | "auditEvent" | "outboxEvent" | "permission" | "roleTemplate" | "roleTemplateVersion" | "roleTemplatePermission" | "policyDefinition" | "policyVersion" | "policyVersionBranch"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1233,6 +1265,76 @@ export namespace Prisma {
           count: {
             args: Prisma.BranchCountArgs<ExtArgs>
             result: $Utils.Optional<BranchCountAggregateOutputType> | number
+          }
+        }
+      }
+      Facility: {
+        payload: Prisma.$FacilityPayload<ExtArgs>
+        fields: Prisma.FacilityFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.FacilityFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FacilityPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.FacilityFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FacilityPayload>
+          }
+          findFirst: {
+            args: Prisma.FacilityFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FacilityPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.FacilityFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FacilityPayload>
+          }
+          findMany: {
+            args: Prisma.FacilityFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FacilityPayload>[]
+          }
+          create: {
+            args: Prisma.FacilityCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FacilityPayload>
+          }
+          createMany: {
+            args: Prisma.FacilityCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.FacilityCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FacilityPayload>[]
+          }
+          delete: {
+            args: Prisma.FacilityDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FacilityPayload>
+          }
+          update: {
+            args: Prisma.FacilityUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FacilityPayload>
+          }
+          deleteMany: {
+            args: Prisma.FacilityDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.FacilityUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.FacilityUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FacilityPayload>
+          }
+          aggregate: {
+            args: Prisma.FacilityAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateFacility>
+          }
+          groupBy: {
+            args: Prisma.FacilityGroupByArgs<ExtArgs>
+            result: $Utils.Optional<FacilityGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.FacilityCountArgs<ExtArgs>
+            result: $Utils.Optional<FacilityCountAggregateOutputType> | number
           }
         }
       }
@@ -1723,6 +1825,76 @@ export namespace Prisma {
           count: {
             args: Prisma.WardCountArgs<ExtArgs>
             result: $Utils.Optional<WardCountAggregateOutputType> | number
+          }
+        }
+      }
+      Room: {
+        payload: Prisma.$RoomPayload<ExtArgs>
+        fields: Prisma.RoomFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.RoomFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RoomPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.RoomFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RoomPayload>
+          }
+          findFirst: {
+            args: Prisma.RoomFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RoomPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.RoomFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RoomPayload>
+          }
+          findMany: {
+            args: Prisma.RoomFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RoomPayload>[]
+          }
+          create: {
+            args: Prisma.RoomCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RoomPayload>
+          }
+          createMany: {
+            args: Prisma.RoomCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.RoomCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RoomPayload>[]
+          }
+          delete: {
+            args: Prisma.RoomDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RoomPayload>
+          }
+          update: {
+            args: Prisma.RoomUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RoomPayload>
+          }
+          deleteMany: {
+            args: Prisma.RoomDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.RoomUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.RoomUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RoomPayload>
+          }
+          aggregate: {
+            args: Prisma.RoomAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateRoom>
+          }
+          groupBy: {
+            args: Prisma.RoomGroupByArgs<ExtArgs>
+            result: $Utils.Optional<RoomGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.RoomCountArgs<ExtArgs>
+            result: $Utils.Optional<RoomCountAggregateOutputType> | number
           }
         }
       }
@@ -3229,6 +3401,8 @@ export namespace Prisma {
     Encounter: number
     Bed: number
     Admission: number
+    facilities: number
+    rooms: number
     statutoryCases: number
     auditEvents: number
     policyVersions: number
@@ -3248,6 +3422,8 @@ export namespace Prisma {
     Encounter?: boolean | BranchCountOutputTypeCountEncounterArgs
     Bed?: boolean | BranchCountOutputTypeCountBedArgs
     Admission?: boolean | BranchCountOutputTypeCountAdmissionArgs
+    facilities?: boolean | BranchCountOutputTypeCountFacilitiesArgs
+    rooms?: boolean | BranchCountOutputTypeCountRoomsArgs
     statutoryCases?: boolean | BranchCountOutputTypeCountStatutoryCasesArgs
     auditEvents?: boolean | BranchCountOutputTypeCountAuditEventsArgs
     policyVersions?: boolean | BranchCountOutputTypeCountPolicyVersionsArgs
@@ -3347,6 +3523,20 @@ export namespace Prisma {
    */
   export type BranchCountOutputTypeCountAdmissionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AdmissionWhereInput
+  }
+
+  /**
+   * BranchCountOutputType without action
+   */
+  export type BranchCountOutputTypeCountFacilitiesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: FacilityWhereInput
+  }
+
+  /**
+   * BranchCountOutputType without action
+   */
+  export type BranchCountOutputTypeCountRoomsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RoomWhereInput
   }
 
   /**
@@ -3637,11 +3827,11 @@ export namespace Prisma {
    */
 
   export type WardCountOutputType = {
-    beds: number
+    rooms: number
   }
 
   export type WardCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    beds?: boolean | WardCountOutputTypeCountBedsArgs
+    rooms?: boolean | WardCountOutputTypeCountRoomsArgs
   }
 
   // Custom InputTypes
@@ -3658,7 +3848,38 @@ export namespace Prisma {
   /**
    * WardCountOutputType without action
    */
-  export type WardCountOutputTypeCountBedsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type WardCountOutputTypeCountRoomsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RoomWhereInput
+  }
+
+
+  /**
+   * Count Type RoomCountOutputType
+   */
+
+  export type RoomCountOutputType = {
+    beds: number
+  }
+
+  export type RoomCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    beds?: boolean | RoomCountOutputTypeCountBedsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * RoomCountOutputType without action
+   */
+  export type RoomCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RoomCountOutputType
+     */
+    select?: RoomCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * RoomCountOutputType without action
+   */
+  export type RoomCountOutputTypeCountBedsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: BedWhereInput
   }
 
@@ -4109,6 +4330,8 @@ export namespace Prisma {
     Encounter?: boolean | Branch$EncounterArgs<ExtArgs>
     Bed?: boolean | Branch$BedArgs<ExtArgs>
     Admission?: boolean | Branch$AdmissionArgs<ExtArgs>
+    facilities?: boolean | Branch$facilitiesArgs<ExtArgs>
+    rooms?: boolean | Branch$roomsArgs<ExtArgs>
     statutoryCases?: boolean | Branch$statutoryCasesArgs<ExtArgs>
     auditEvents?: boolean | Branch$auditEventsArgs<ExtArgs>
     policyVersions?: boolean | Branch$policyVersionsArgs<ExtArgs>
@@ -4155,6 +4378,8 @@ export namespace Prisma {
     Encounter?: boolean | Branch$EncounterArgs<ExtArgs>
     Bed?: boolean | Branch$BedArgs<ExtArgs>
     Admission?: boolean | Branch$AdmissionArgs<ExtArgs>
+    facilities?: boolean | Branch$facilitiesArgs<ExtArgs>
+    rooms?: boolean | Branch$roomsArgs<ExtArgs>
     statutoryCases?: boolean | Branch$statutoryCasesArgs<ExtArgs>
     auditEvents?: boolean | Branch$auditEventsArgs<ExtArgs>
     policyVersions?: boolean | Branch$policyVersionsArgs<ExtArgs>
@@ -4178,6 +4403,8 @@ export namespace Prisma {
       Encounter: Prisma.$EncounterPayload<ExtArgs>[]
       Bed: Prisma.$BedPayload<ExtArgs>[]
       Admission: Prisma.$AdmissionPayload<ExtArgs>[]
+      facilities: Prisma.$FacilityPayload<ExtArgs>[]
+      rooms: Prisma.$RoomPayload<ExtArgs>[]
       statutoryCases: Prisma.$StatutoryCasePayload<ExtArgs>[]
       auditEvents: Prisma.$AuditEventPayload<ExtArgs>[]
       policyVersions: Prisma.$PolicyVersionPayload<ExtArgs>[]
@@ -4570,6 +4797,8 @@ export namespace Prisma {
     Encounter<T extends Branch$EncounterArgs<ExtArgs> = {}>(args?: Subset<T, Branch$EncounterArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EncounterPayload<ExtArgs>, T, "findMany"> | Null>
     Bed<T extends Branch$BedArgs<ExtArgs> = {}>(args?: Subset<T, Branch$BedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BedPayload<ExtArgs>, T, "findMany"> | Null>
     Admission<T extends Branch$AdmissionArgs<ExtArgs> = {}>(args?: Subset<T, Branch$AdmissionArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdmissionPayload<ExtArgs>, T, "findMany"> | Null>
+    facilities<T extends Branch$facilitiesArgs<ExtArgs> = {}>(args?: Subset<T, Branch$facilitiesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FacilityPayload<ExtArgs>, T, "findMany"> | Null>
+    rooms<T extends Branch$roomsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$roomsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RoomPayload<ExtArgs>, T, "findMany"> | Null>
     statutoryCases<T extends Branch$statutoryCasesArgs<ExtArgs> = {}>(args?: Subset<T, Branch$statutoryCasesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StatutoryCasePayload<ExtArgs>, T, "findMany"> | Null>
     auditEvents<T extends Branch$auditEventsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$auditEventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditEventPayload<ExtArgs>, T, "findMany"> | Null>
     policyVersions<T extends Branch$policyVersionsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$policyVersionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "findMany"> | Null>
@@ -5167,6 +5396,46 @@ export namespace Prisma {
   }
 
   /**
+   * Branch.facilities
+   */
+  export type Branch$facilitiesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Facility
+     */
+    select?: FacilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FacilityInclude<ExtArgs> | null
+    where?: FacilityWhereInput
+    orderBy?: FacilityOrderByWithRelationInput | FacilityOrderByWithRelationInput[]
+    cursor?: FacilityWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: FacilityScalarFieldEnum | FacilityScalarFieldEnum[]
+  }
+
+  /**
+   * Branch.rooms
+   */
+  export type Branch$roomsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Room
+     */
+    select?: RoomSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RoomInclude<ExtArgs> | null
+    where?: RoomWhereInput
+    orderBy?: RoomOrderByWithRelationInput | RoomOrderByWithRelationInput[]
+    cursor?: RoomWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: RoomScalarFieldEnum | RoomScalarFieldEnum[]
+  }
+
+  /**
    * Branch.statutoryCases
    */
   export type Branch$statutoryCasesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5258,6 +5527,1059 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: BranchInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Facility
+   */
+
+  export type AggregateFacility = {
+    _count: FacilityCountAggregateOutputType | null
+    _min: FacilityMinAggregateOutputType | null
+    _max: FacilityMaxAggregateOutputType | null
+  }
+
+  export type FacilityMinAggregateOutputType = {
+    id: string | null
+    branchId: string | null
+    code: string | null
+    name: string | null
+    type: string | null
+    addressLine1: string | null
+    addressLine2: string | null
+    city: string | null
+    state: string | null
+    postalCode: string | null
+    phone: string | null
+    email: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type FacilityMaxAggregateOutputType = {
+    id: string | null
+    branchId: string | null
+    code: string | null
+    name: string | null
+    type: string | null
+    addressLine1: string | null
+    addressLine2: string | null
+    city: string | null
+    state: string | null
+    postalCode: string | null
+    phone: string | null
+    email: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type FacilityCountAggregateOutputType = {
+    id: number
+    branchId: number
+    code: number
+    name: number
+    type: number
+    addressLine1: number
+    addressLine2: number
+    city: number
+    state: number
+    postalCode: number
+    phone: number
+    email: number
+    isActive: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type FacilityMinAggregateInputType = {
+    id?: true
+    branchId?: true
+    code?: true
+    name?: true
+    type?: true
+    addressLine1?: true
+    addressLine2?: true
+    city?: true
+    state?: true
+    postalCode?: true
+    phone?: true
+    email?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type FacilityMaxAggregateInputType = {
+    id?: true
+    branchId?: true
+    code?: true
+    name?: true
+    type?: true
+    addressLine1?: true
+    addressLine2?: true
+    city?: true
+    state?: true
+    postalCode?: true
+    phone?: true
+    email?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type FacilityCountAggregateInputType = {
+    id?: true
+    branchId?: true
+    code?: true
+    name?: true
+    type?: true
+    addressLine1?: true
+    addressLine2?: true
+    city?: true
+    state?: true
+    postalCode?: true
+    phone?: true
+    email?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type FacilityAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Facility to aggregate.
+     */
+    where?: FacilityWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Facilities to fetch.
+     */
+    orderBy?: FacilityOrderByWithRelationInput | FacilityOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: FacilityWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Facilities from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Facilities.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Facilities
+    **/
+    _count?: true | FacilityCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: FacilityMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: FacilityMaxAggregateInputType
+  }
+
+  export type GetFacilityAggregateType<T extends FacilityAggregateArgs> = {
+        [P in keyof T & keyof AggregateFacility]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateFacility[P]>
+      : GetScalarType<T[P], AggregateFacility[P]>
+  }
+
+
+
+
+  export type FacilityGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: FacilityWhereInput
+    orderBy?: FacilityOrderByWithAggregationInput | FacilityOrderByWithAggregationInput[]
+    by: FacilityScalarFieldEnum[] | FacilityScalarFieldEnum
+    having?: FacilityScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: FacilityCountAggregateInputType | true
+    _min?: FacilityMinAggregateInputType
+    _max?: FacilityMaxAggregateInputType
+  }
+
+  export type FacilityGroupByOutputType = {
+    id: string
+    branchId: string
+    code: string
+    name: string
+    type: string | null
+    addressLine1: string | null
+    addressLine2: string | null
+    city: string
+    state: string | null
+    postalCode: string | null
+    phone: string | null
+    email: string | null
+    isActive: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: FacilityCountAggregateOutputType | null
+    _min: FacilityMinAggregateOutputType | null
+    _max: FacilityMaxAggregateOutputType | null
+  }
+
+  type GetFacilityGroupByPayload<T extends FacilityGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<FacilityGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof FacilityGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], FacilityGroupByOutputType[P]>
+            : GetScalarType<T[P], FacilityGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type FacilitySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    branchId?: boolean
+    code?: boolean
+    name?: boolean
+    type?: boolean
+    addressLine1?: boolean
+    addressLine2?: boolean
+    city?: boolean
+    state?: boolean
+    postalCode?: boolean
+    phone?: boolean
+    email?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["facility"]>
+
+  export type FacilitySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    branchId?: boolean
+    code?: boolean
+    name?: boolean
+    type?: boolean
+    addressLine1?: boolean
+    addressLine2?: boolean
+    city?: boolean
+    state?: boolean
+    postalCode?: boolean
+    phone?: boolean
+    email?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["facility"]>
+
+  export type FacilitySelectScalar = {
+    id?: boolean
+    branchId?: boolean
+    code?: boolean
+    name?: boolean
+    type?: boolean
+    addressLine1?: boolean
+    addressLine2?: boolean
+    city?: boolean
+    state?: boolean
+    postalCode?: boolean
+    phone?: boolean
+    email?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type FacilityInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+  }
+  export type FacilityIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+  }
+
+  export type $FacilityPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Facility"
+    objects: {
+      branch: Prisma.$BranchPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      branchId: string
+      code: string
+      name: string
+      type: string | null
+      addressLine1: string | null
+      addressLine2: string | null
+      city: string
+      state: string | null
+      postalCode: string | null
+      phone: string | null
+      email: string | null
+      isActive: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["facility"]>
+    composites: {}
+  }
+
+  type FacilityGetPayload<S extends boolean | null | undefined | FacilityDefaultArgs> = $Result.GetResult<Prisma.$FacilityPayload, S>
+
+  type FacilityCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<FacilityFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: FacilityCountAggregateInputType | true
+    }
+
+  export interface FacilityDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Facility'], meta: { name: 'Facility' } }
+    /**
+     * Find zero or one Facility that matches the filter.
+     * @param {FacilityFindUniqueArgs} args - Arguments to find a Facility
+     * @example
+     * // Get one Facility
+     * const facility = await prisma.facility.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends FacilityFindUniqueArgs>(args: SelectSubset<T, FacilityFindUniqueArgs<ExtArgs>>): Prisma__FacilityClient<$Result.GetResult<Prisma.$FacilityPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Facility that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {FacilityFindUniqueOrThrowArgs} args - Arguments to find a Facility
+     * @example
+     * // Get one Facility
+     * const facility = await prisma.facility.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends FacilityFindUniqueOrThrowArgs>(args: SelectSubset<T, FacilityFindUniqueOrThrowArgs<ExtArgs>>): Prisma__FacilityClient<$Result.GetResult<Prisma.$FacilityPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Facility that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FacilityFindFirstArgs} args - Arguments to find a Facility
+     * @example
+     * // Get one Facility
+     * const facility = await prisma.facility.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends FacilityFindFirstArgs>(args?: SelectSubset<T, FacilityFindFirstArgs<ExtArgs>>): Prisma__FacilityClient<$Result.GetResult<Prisma.$FacilityPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Facility that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FacilityFindFirstOrThrowArgs} args - Arguments to find a Facility
+     * @example
+     * // Get one Facility
+     * const facility = await prisma.facility.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends FacilityFindFirstOrThrowArgs>(args?: SelectSubset<T, FacilityFindFirstOrThrowArgs<ExtArgs>>): Prisma__FacilityClient<$Result.GetResult<Prisma.$FacilityPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Facilities that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FacilityFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Facilities
+     * const facilities = await prisma.facility.findMany()
+     * 
+     * // Get first 10 Facilities
+     * const facilities = await prisma.facility.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const facilityWithIdOnly = await prisma.facility.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends FacilityFindManyArgs>(args?: SelectSubset<T, FacilityFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FacilityPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Facility.
+     * @param {FacilityCreateArgs} args - Arguments to create a Facility.
+     * @example
+     * // Create one Facility
+     * const Facility = await prisma.facility.create({
+     *   data: {
+     *     // ... data to create a Facility
+     *   }
+     * })
+     * 
+     */
+    create<T extends FacilityCreateArgs>(args: SelectSubset<T, FacilityCreateArgs<ExtArgs>>): Prisma__FacilityClient<$Result.GetResult<Prisma.$FacilityPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Facilities.
+     * @param {FacilityCreateManyArgs} args - Arguments to create many Facilities.
+     * @example
+     * // Create many Facilities
+     * const facility = await prisma.facility.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends FacilityCreateManyArgs>(args?: SelectSubset<T, FacilityCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Facilities and returns the data saved in the database.
+     * @param {FacilityCreateManyAndReturnArgs} args - Arguments to create many Facilities.
+     * @example
+     * // Create many Facilities
+     * const facility = await prisma.facility.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Facilities and only return the `id`
+     * const facilityWithIdOnly = await prisma.facility.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends FacilityCreateManyAndReturnArgs>(args?: SelectSubset<T, FacilityCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FacilityPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a Facility.
+     * @param {FacilityDeleteArgs} args - Arguments to delete one Facility.
+     * @example
+     * // Delete one Facility
+     * const Facility = await prisma.facility.delete({
+     *   where: {
+     *     // ... filter to delete one Facility
+     *   }
+     * })
+     * 
+     */
+    delete<T extends FacilityDeleteArgs>(args: SelectSubset<T, FacilityDeleteArgs<ExtArgs>>): Prisma__FacilityClient<$Result.GetResult<Prisma.$FacilityPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Facility.
+     * @param {FacilityUpdateArgs} args - Arguments to update one Facility.
+     * @example
+     * // Update one Facility
+     * const facility = await prisma.facility.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends FacilityUpdateArgs>(args: SelectSubset<T, FacilityUpdateArgs<ExtArgs>>): Prisma__FacilityClient<$Result.GetResult<Prisma.$FacilityPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Facilities.
+     * @param {FacilityDeleteManyArgs} args - Arguments to filter Facilities to delete.
+     * @example
+     * // Delete a few Facilities
+     * const { count } = await prisma.facility.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends FacilityDeleteManyArgs>(args?: SelectSubset<T, FacilityDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Facilities.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FacilityUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Facilities
+     * const facility = await prisma.facility.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends FacilityUpdateManyArgs>(args: SelectSubset<T, FacilityUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Facility.
+     * @param {FacilityUpsertArgs} args - Arguments to update or create a Facility.
+     * @example
+     * // Update or create a Facility
+     * const facility = await prisma.facility.upsert({
+     *   create: {
+     *     // ... data to create a Facility
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Facility we want to update
+     *   }
+     * })
+     */
+    upsert<T extends FacilityUpsertArgs>(args: SelectSubset<T, FacilityUpsertArgs<ExtArgs>>): Prisma__FacilityClient<$Result.GetResult<Prisma.$FacilityPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Facilities.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FacilityCountArgs} args - Arguments to filter Facilities to count.
+     * @example
+     * // Count the number of Facilities
+     * const count = await prisma.facility.count({
+     *   where: {
+     *     // ... the filter for the Facilities we want to count
+     *   }
+     * })
+    **/
+    count<T extends FacilityCountArgs>(
+      args?: Subset<T, FacilityCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], FacilityCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Facility.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FacilityAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends FacilityAggregateArgs>(args: Subset<T, FacilityAggregateArgs>): Prisma.PrismaPromise<GetFacilityAggregateType<T>>
+
+    /**
+     * Group by Facility.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FacilityGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends FacilityGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: FacilityGroupByArgs['orderBy'] }
+        : { orderBy?: FacilityGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, FacilityGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetFacilityGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Facility model
+   */
+  readonly fields: FacilityFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Facility.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__FacilityClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    branch<T extends BranchDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BranchDefaultArgs<ExtArgs>>): Prisma__BranchClient<$Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Facility model
+   */ 
+  interface FacilityFieldRefs {
+    readonly id: FieldRef<"Facility", 'String'>
+    readonly branchId: FieldRef<"Facility", 'String'>
+    readonly code: FieldRef<"Facility", 'String'>
+    readonly name: FieldRef<"Facility", 'String'>
+    readonly type: FieldRef<"Facility", 'String'>
+    readonly addressLine1: FieldRef<"Facility", 'String'>
+    readonly addressLine2: FieldRef<"Facility", 'String'>
+    readonly city: FieldRef<"Facility", 'String'>
+    readonly state: FieldRef<"Facility", 'String'>
+    readonly postalCode: FieldRef<"Facility", 'String'>
+    readonly phone: FieldRef<"Facility", 'String'>
+    readonly email: FieldRef<"Facility", 'String'>
+    readonly isActive: FieldRef<"Facility", 'Boolean'>
+    readonly createdAt: FieldRef<"Facility", 'DateTime'>
+    readonly updatedAt: FieldRef<"Facility", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Facility findUnique
+   */
+  export type FacilityFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Facility
+     */
+    select?: FacilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FacilityInclude<ExtArgs> | null
+    /**
+     * Filter, which Facility to fetch.
+     */
+    where: FacilityWhereUniqueInput
+  }
+
+  /**
+   * Facility findUniqueOrThrow
+   */
+  export type FacilityFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Facility
+     */
+    select?: FacilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FacilityInclude<ExtArgs> | null
+    /**
+     * Filter, which Facility to fetch.
+     */
+    where: FacilityWhereUniqueInput
+  }
+
+  /**
+   * Facility findFirst
+   */
+  export type FacilityFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Facility
+     */
+    select?: FacilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FacilityInclude<ExtArgs> | null
+    /**
+     * Filter, which Facility to fetch.
+     */
+    where?: FacilityWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Facilities to fetch.
+     */
+    orderBy?: FacilityOrderByWithRelationInput | FacilityOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Facilities.
+     */
+    cursor?: FacilityWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Facilities from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Facilities.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Facilities.
+     */
+    distinct?: FacilityScalarFieldEnum | FacilityScalarFieldEnum[]
+  }
+
+  /**
+   * Facility findFirstOrThrow
+   */
+  export type FacilityFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Facility
+     */
+    select?: FacilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FacilityInclude<ExtArgs> | null
+    /**
+     * Filter, which Facility to fetch.
+     */
+    where?: FacilityWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Facilities to fetch.
+     */
+    orderBy?: FacilityOrderByWithRelationInput | FacilityOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Facilities.
+     */
+    cursor?: FacilityWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Facilities from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Facilities.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Facilities.
+     */
+    distinct?: FacilityScalarFieldEnum | FacilityScalarFieldEnum[]
+  }
+
+  /**
+   * Facility findMany
+   */
+  export type FacilityFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Facility
+     */
+    select?: FacilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FacilityInclude<ExtArgs> | null
+    /**
+     * Filter, which Facilities to fetch.
+     */
+    where?: FacilityWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Facilities to fetch.
+     */
+    orderBy?: FacilityOrderByWithRelationInput | FacilityOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Facilities.
+     */
+    cursor?: FacilityWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Facilities from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Facilities.
+     */
+    skip?: number
+    distinct?: FacilityScalarFieldEnum | FacilityScalarFieldEnum[]
+  }
+
+  /**
+   * Facility create
+   */
+  export type FacilityCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Facility
+     */
+    select?: FacilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FacilityInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Facility.
+     */
+    data: XOR<FacilityCreateInput, FacilityUncheckedCreateInput>
+  }
+
+  /**
+   * Facility createMany
+   */
+  export type FacilityCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Facilities.
+     */
+    data: FacilityCreateManyInput | FacilityCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Facility createManyAndReturn
+   */
+  export type FacilityCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Facility
+     */
+    select?: FacilitySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many Facilities.
+     */
+    data: FacilityCreateManyInput | FacilityCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FacilityIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Facility update
+   */
+  export type FacilityUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Facility
+     */
+    select?: FacilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FacilityInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Facility.
+     */
+    data: XOR<FacilityUpdateInput, FacilityUncheckedUpdateInput>
+    /**
+     * Choose, which Facility to update.
+     */
+    where: FacilityWhereUniqueInput
+  }
+
+  /**
+   * Facility updateMany
+   */
+  export type FacilityUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Facilities.
+     */
+    data: XOR<FacilityUpdateManyMutationInput, FacilityUncheckedUpdateManyInput>
+    /**
+     * Filter which Facilities to update
+     */
+    where?: FacilityWhereInput
+  }
+
+  /**
+   * Facility upsert
+   */
+  export type FacilityUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Facility
+     */
+    select?: FacilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FacilityInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Facility to update in case it exists.
+     */
+    where: FacilityWhereUniqueInput
+    /**
+     * In case the Facility found by the `where` argument doesn't exist, create a new Facility with this data.
+     */
+    create: XOR<FacilityCreateInput, FacilityUncheckedCreateInput>
+    /**
+     * In case the Facility was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<FacilityUpdateInput, FacilityUncheckedUpdateInput>
+  }
+
+  /**
+   * Facility delete
+   */
+  export type FacilityDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Facility
+     */
+    select?: FacilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FacilityInclude<ExtArgs> | null
+    /**
+     * Filter which Facility to delete.
+     */
+    where: FacilityWhereUniqueInput
+  }
+
+  /**
+   * Facility deleteMany
+   */
+  export type FacilityDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Facilities to delete
+     */
+    where?: FacilityWhereInput
+  }
+
+  /**
+   * Facility without action
+   */
+  export type FacilityDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Facility
+     */
+    select?: FacilitySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FacilityInclude<ExtArgs> | null
   }
 
 
@@ -11971,7 +13293,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     branch?: boolean | BranchDefaultArgs<ExtArgs>
-    beds?: boolean | Ward$bedsArgs<ExtArgs>
+    rooms?: boolean | Ward$roomsArgs<ExtArgs>
     _count?: boolean | WardCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["ward"]>
 
@@ -12000,7 +13322,7 @@ export namespace Prisma {
 
   export type WardInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     branch?: boolean | BranchDefaultArgs<ExtArgs>
-    beds?: boolean | Ward$bedsArgs<ExtArgs>
+    rooms?: boolean | Ward$roomsArgs<ExtArgs>
     _count?: boolean | WardCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type WardIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -12011,7 +13333,7 @@ export namespace Prisma {
     name: "Ward"
     objects: {
       branch: Prisma.$BranchPayload<ExtArgs>
-      beds: Prisma.$BedPayload<ExtArgs>[]
+      rooms: Prisma.$RoomPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -12387,7 +13709,7 @@ export namespace Prisma {
   export interface Prisma__WardClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     branch<T extends BranchDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BranchDefaultArgs<ExtArgs>>): Prisma__BranchClient<$Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
-    beds<T extends Ward$bedsArgs<ExtArgs> = {}>(args?: Subset<T, Ward$bedsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BedPayload<ExtArgs>, T, "findMany"> | Null>
+    rooms<T extends Ward$roomsArgs<ExtArgs> = {}>(args?: Subset<T, Ward$roomsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RoomPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -12743,23 +14065,23 @@ export namespace Prisma {
   }
 
   /**
-   * Ward.beds
+   * Ward.rooms
    */
-  export type Ward$bedsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Ward$roomsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the Bed
+     * Select specific fields to fetch from the Room
      */
-    select?: BedSelect<ExtArgs> | null
+    select?: RoomSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: BedInclude<ExtArgs> | null
-    where?: BedWhereInput
-    orderBy?: BedOrderByWithRelationInput | BedOrderByWithRelationInput[]
-    cursor?: BedWhereUniqueInput
+    include?: RoomInclude<ExtArgs> | null
+    where?: RoomWhereInput
+    orderBy?: RoomOrderByWithRelationInput | RoomOrderByWithRelationInput[]
+    cursor?: RoomWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: BedScalarFieldEnum | BedScalarFieldEnum[]
+    distinct?: RoomScalarFieldEnum | RoomScalarFieldEnum[]
   }
 
   /**
@@ -12778,6 +14100,1031 @@ export namespace Prisma {
 
 
   /**
+   * Model Room
+   */
+
+  export type AggregateRoom = {
+    _count: RoomCountAggregateOutputType | null
+    _min: RoomMinAggregateOutputType | null
+    _max: RoomMaxAggregateOutputType | null
+  }
+
+  export type RoomMinAggregateOutputType = {
+    id: string | null
+    branchId: string | null
+    wardId: string | null
+    code: string | null
+    name: string | null
+    floor: string | null
+    type: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type RoomMaxAggregateOutputType = {
+    id: string | null
+    branchId: string | null
+    wardId: string | null
+    code: string | null
+    name: string | null
+    floor: string | null
+    type: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type RoomCountAggregateOutputType = {
+    id: number
+    branchId: number
+    wardId: number
+    code: number
+    name: number
+    floor: number
+    type: number
+    isActive: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type RoomMinAggregateInputType = {
+    id?: true
+    branchId?: true
+    wardId?: true
+    code?: true
+    name?: true
+    floor?: true
+    type?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type RoomMaxAggregateInputType = {
+    id?: true
+    branchId?: true
+    wardId?: true
+    code?: true
+    name?: true
+    floor?: true
+    type?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type RoomCountAggregateInputType = {
+    id?: true
+    branchId?: true
+    wardId?: true
+    code?: true
+    name?: true
+    floor?: true
+    type?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type RoomAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Room to aggregate.
+     */
+    where?: RoomWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Rooms to fetch.
+     */
+    orderBy?: RoomOrderByWithRelationInput | RoomOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: RoomWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Rooms from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Rooms.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Rooms
+    **/
+    _count?: true | RoomCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: RoomMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: RoomMaxAggregateInputType
+  }
+
+  export type GetRoomAggregateType<T extends RoomAggregateArgs> = {
+        [P in keyof T & keyof AggregateRoom]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateRoom[P]>
+      : GetScalarType<T[P], AggregateRoom[P]>
+  }
+
+
+
+
+  export type RoomGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RoomWhereInput
+    orderBy?: RoomOrderByWithAggregationInput | RoomOrderByWithAggregationInput[]
+    by: RoomScalarFieldEnum[] | RoomScalarFieldEnum
+    having?: RoomScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: RoomCountAggregateInputType | true
+    _min?: RoomMinAggregateInputType
+    _max?: RoomMaxAggregateInputType
+  }
+
+  export type RoomGroupByOutputType = {
+    id: string
+    branchId: string
+    wardId: string
+    code: string
+    name: string
+    floor: string | null
+    type: string | null
+    isActive: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: RoomCountAggregateOutputType | null
+    _min: RoomMinAggregateOutputType | null
+    _max: RoomMaxAggregateOutputType | null
+  }
+
+  type GetRoomGroupByPayload<T extends RoomGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<RoomGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof RoomGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], RoomGroupByOutputType[P]>
+            : GetScalarType<T[P], RoomGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type RoomSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    branchId?: boolean
+    wardId?: boolean
+    code?: boolean
+    name?: boolean
+    floor?: boolean
+    type?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+    ward?: boolean | WardDefaultArgs<ExtArgs>
+    beds?: boolean | Room$bedsArgs<ExtArgs>
+    _count?: boolean | RoomCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["room"]>
+
+  export type RoomSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    branchId?: boolean
+    wardId?: boolean
+    code?: boolean
+    name?: boolean
+    floor?: boolean
+    type?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+    ward?: boolean | WardDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["room"]>
+
+  export type RoomSelectScalar = {
+    id?: boolean
+    branchId?: boolean
+    wardId?: boolean
+    code?: boolean
+    name?: boolean
+    floor?: boolean
+    type?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type RoomInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+    ward?: boolean | WardDefaultArgs<ExtArgs>
+    beds?: boolean | Room$bedsArgs<ExtArgs>
+    _count?: boolean | RoomCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type RoomIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+    ward?: boolean | WardDefaultArgs<ExtArgs>
+  }
+
+  export type $RoomPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Room"
+    objects: {
+      branch: Prisma.$BranchPayload<ExtArgs>
+      ward: Prisma.$WardPayload<ExtArgs>
+      beds: Prisma.$BedPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      branchId: string
+      wardId: string
+      code: string
+      name: string
+      floor: string | null
+      type: string | null
+      isActive: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["room"]>
+    composites: {}
+  }
+
+  type RoomGetPayload<S extends boolean | null | undefined | RoomDefaultArgs> = $Result.GetResult<Prisma.$RoomPayload, S>
+
+  type RoomCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<RoomFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: RoomCountAggregateInputType | true
+    }
+
+  export interface RoomDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Room'], meta: { name: 'Room' } }
+    /**
+     * Find zero or one Room that matches the filter.
+     * @param {RoomFindUniqueArgs} args - Arguments to find a Room
+     * @example
+     * // Get one Room
+     * const room = await prisma.room.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends RoomFindUniqueArgs>(args: SelectSubset<T, RoomFindUniqueArgs<ExtArgs>>): Prisma__RoomClient<$Result.GetResult<Prisma.$RoomPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Room that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {RoomFindUniqueOrThrowArgs} args - Arguments to find a Room
+     * @example
+     * // Get one Room
+     * const room = await prisma.room.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends RoomFindUniqueOrThrowArgs>(args: SelectSubset<T, RoomFindUniqueOrThrowArgs<ExtArgs>>): Prisma__RoomClient<$Result.GetResult<Prisma.$RoomPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Room that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RoomFindFirstArgs} args - Arguments to find a Room
+     * @example
+     * // Get one Room
+     * const room = await prisma.room.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends RoomFindFirstArgs>(args?: SelectSubset<T, RoomFindFirstArgs<ExtArgs>>): Prisma__RoomClient<$Result.GetResult<Prisma.$RoomPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Room that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RoomFindFirstOrThrowArgs} args - Arguments to find a Room
+     * @example
+     * // Get one Room
+     * const room = await prisma.room.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends RoomFindFirstOrThrowArgs>(args?: SelectSubset<T, RoomFindFirstOrThrowArgs<ExtArgs>>): Prisma__RoomClient<$Result.GetResult<Prisma.$RoomPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Rooms that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RoomFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Rooms
+     * const rooms = await prisma.room.findMany()
+     * 
+     * // Get first 10 Rooms
+     * const rooms = await prisma.room.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const roomWithIdOnly = await prisma.room.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends RoomFindManyArgs>(args?: SelectSubset<T, RoomFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RoomPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Room.
+     * @param {RoomCreateArgs} args - Arguments to create a Room.
+     * @example
+     * // Create one Room
+     * const Room = await prisma.room.create({
+     *   data: {
+     *     // ... data to create a Room
+     *   }
+     * })
+     * 
+     */
+    create<T extends RoomCreateArgs>(args: SelectSubset<T, RoomCreateArgs<ExtArgs>>): Prisma__RoomClient<$Result.GetResult<Prisma.$RoomPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Rooms.
+     * @param {RoomCreateManyArgs} args - Arguments to create many Rooms.
+     * @example
+     * // Create many Rooms
+     * const room = await prisma.room.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends RoomCreateManyArgs>(args?: SelectSubset<T, RoomCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Rooms and returns the data saved in the database.
+     * @param {RoomCreateManyAndReturnArgs} args - Arguments to create many Rooms.
+     * @example
+     * // Create many Rooms
+     * const room = await prisma.room.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Rooms and only return the `id`
+     * const roomWithIdOnly = await prisma.room.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends RoomCreateManyAndReturnArgs>(args?: SelectSubset<T, RoomCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RoomPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a Room.
+     * @param {RoomDeleteArgs} args - Arguments to delete one Room.
+     * @example
+     * // Delete one Room
+     * const Room = await prisma.room.delete({
+     *   where: {
+     *     // ... filter to delete one Room
+     *   }
+     * })
+     * 
+     */
+    delete<T extends RoomDeleteArgs>(args: SelectSubset<T, RoomDeleteArgs<ExtArgs>>): Prisma__RoomClient<$Result.GetResult<Prisma.$RoomPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Room.
+     * @param {RoomUpdateArgs} args - Arguments to update one Room.
+     * @example
+     * // Update one Room
+     * const room = await prisma.room.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends RoomUpdateArgs>(args: SelectSubset<T, RoomUpdateArgs<ExtArgs>>): Prisma__RoomClient<$Result.GetResult<Prisma.$RoomPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Rooms.
+     * @param {RoomDeleteManyArgs} args - Arguments to filter Rooms to delete.
+     * @example
+     * // Delete a few Rooms
+     * const { count } = await prisma.room.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends RoomDeleteManyArgs>(args?: SelectSubset<T, RoomDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Rooms.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RoomUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Rooms
+     * const room = await prisma.room.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends RoomUpdateManyArgs>(args: SelectSubset<T, RoomUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Room.
+     * @param {RoomUpsertArgs} args - Arguments to update or create a Room.
+     * @example
+     * // Update or create a Room
+     * const room = await prisma.room.upsert({
+     *   create: {
+     *     // ... data to create a Room
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Room we want to update
+     *   }
+     * })
+     */
+    upsert<T extends RoomUpsertArgs>(args: SelectSubset<T, RoomUpsertArgs<ExtArgs>>): Prisma__RoomClient<$Result.GetResult<Prisma.$RoomPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Rooms.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RoomCountArgs} args - Arguments to filter Rooms to count.
+     * @example
+     * // Count the number of Rooms
+     * const count = await prisma.room.count({
+     *   where: {
+     *     // ... the filter for the Rooms we want to count
+     *   }
+     * })
+    **/
+    count<T extends RoomCountArgs>(
+      args?: Subset<T, RoomCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], RoomCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Room.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RoomAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends RoomAggregateArgs>(args: Subset<T, RoomAggregateArgs>): Prisma.PrismaPromise<GetRoomAggregateType<T>>
+
+    /**
+     * Group by Room.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RoomGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends RoomGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: RoomGroupByArgs['orderBy'] }
+        : { orderBy?: RoomGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, RoomGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetRoomGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Room model
+   */
+  readonly fields: RoomFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Room.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__RoomClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    branch<T extends BranchDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BranchDefaultArgs<ExtArgs>>): Prisma__BranchClient<$Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    ward<T extends WardDefaultArgs<ExtArgs> = {}>(args?: Subset<T, WardDefaultArgs<ExtArgs>>): Prisma__WardClient<$Result.GetResult<Prisma.$WardPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    beds<T extends Room$bedsArgs<ExtArgs> = {}>(args?: Subset<T, Room$bedsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BedPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Room model
+   */ 
+  interface RoomFieldRefs {
+    readonly id: FieldRef<"Room", 'String'>
+    readonly branchId: FieldRef<"Room", 'String'>
+    readonly wardId: FieldRef<"Room", 'String'>
+    readonly code: FieldRef<"Room", 'String'>
+    readonly name: FieldRef<"Room", 'String'>
+    readonly floor: FieldRef<"Room", 'String'>
+    readonly type: FieldRef<"Room", 'String'>
+    readonly isActive: FieldRef<"Room", 'Boolean'>
+    readonly createdAt: FieldRef<"Room", 'DateTime'>
+    readonly updatedAt: FieldRef<"Room", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Room findUnique
+   */
+  export type RoomFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Room
+     */
+    select?: RoomSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RoomInclude<ExtArgs> | null
+    /**
+     * Filter, which Room to fetch.
+     */
+    where: RoomWhereUniqueInput
+  }
+
+  /**
+   * Room findUniqueOrThrow
+   */
+  export type RoomFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Room
+     */
+    select?: RoomSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RoomInclude<ExtArgs> | null
+    /**
+     * Filter, which Room to fetch.
+     */
+    where: RoomWhereUniqueInput
+  }
+
+  /**
+   * Room findFirst
+   */
+  export type RoomFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Room
+     */
+    select?: RoomSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RoomInclude<ExtArgs> | null
+    /**
+     * Filter, which Room to fetch.
+     */
+    where?: RoomWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Rooms to fetch.
+     */
+    orderBy?: RoomOrderByWithRelationInput | RoomOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Rooms.
+     */
+    cursor?: RoomWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Rooms from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Rooms.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Rooms.
+     */
+    distinct?: RoomScalarFieldEnum | RoomScalarFieldEnum[]
+  }
+
+  /**
+   * Room findFirstOrThrow
+   */
+  export type RoomFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Room
+     */
+    select?: RoomSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RoomInclude<ExtArgs> | null
+    /**
+     * Filter, which Room to fetch.
+     */
+    where?: RoomWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Rooms to fetch.
+     */
+    orderBy?: RoomOrderByWithRelationInput | RoomOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Rooms.
+     */
+    cursor?: RoomWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Rooms from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Rooms.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Rooms.
+     */
+    distinct?: RoomScalarFieldEnum | RoomScalarFieldEnum[]
+  }
+
+  /**
+   * Room findMany
+   */
+  export type RoomFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Room
+     */
+    select?: RoomSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RoomInclude<ExtArgs> | null
+    /**
+     * Filter, which Rooms to fetch.
+     */
+    where?: RoomWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Rooms to fetch.
+     */
+    orderBy?: RoomOrderByWithRelationInput | RoomOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Rooms.
+     */
+    cursor?: RoomWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Rooms from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Rooms.
+     */
+    skip?: number
+    distinct?: RoomScalarFieldEnum | RoomScalarFieldEnum[]
+  }
+
+  /**
+   * Room create
+   */
+  export type RoomCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Room
+     */
+    select?: RoomSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RoomInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Room.
+     */
+    data: XOR<RoomCreateInput, RoomUncheckedCreateInput>
+  }
+
+  /**
+   * Room createMany
+   */
+  export type RoomCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Rooms.
+     */
+    data: RoomCreateManyInput | RoomCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Room createManyAndReturn
+   */
+  export type RoomCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Room
+     */
+    select?: RoomSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many Rooms.
+     */
+    data: RoomCreateManyInput | RoomCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RoomIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Room update
+   */
+  export type RoomUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Room
+     */
+    select?: RoomSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RoomInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Room.
+     */
+    data: XOR<RoomUpdateInput, RoomUncheckedUpdateInput>
+    /**
+     * Choose, which Room to update.
+     */
+    where: RoomWhereUniqueInput
+  }
+
+  /**
+   * Room updateMany
+   */
+  export type RoomUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Rooms.
+     */
+    data: XOR<RoomUpdateManyMutationInput, RoomUncheckedUpdateManyInput>
+    /**
+     * Filter which Rooms to update
+     */
+    where?: RoomWhereInput
+  }
+
+  /**
+   * Room upsert
+   */
+  export type RoomUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Room
+     */
+    select?: RoomSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RoomInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Room to update in case it exists.
+     */
+    where: RoomWhereUniqueInput
+    /**
+     * In case the Room found by the `where` argument doesn't exist, create a new Room with this data.
+     */
+    create: XOR<RoomCreateInput, RoomUncheckedCreateInput>
+    /**
+     * In case the Room was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<RoomUpdateInput, RoomUncheckedUpdateInput>
+  }
+
+  /**
+   * Room delete
+   */
+  export type RoomDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Room
+     */
+    select?: RoomSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RoomInclude<ExtArgs> | null
+    /**
+     * Filter which Room to delete.
+     */
+    where: RoomWhereUniqueInput
+  }
+
+  /**
+   * Room deleteMany
+   */
+  export type RoomDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Rooms to delete
+     */
+    where?: RoomWhereInput
+  }
+
+  /**
+   * Room.beds
+   */
+  export type Room$bedsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Bed
+     */
+    select?: BedSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BedInclude<ExtArgs> | null
+    where?: BedWhereInput
+    orderBy?: BedOrderByWithRelationInput | BedOrderByWithRelationInput[]
+    cursor?: BedWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BedScalarFieldEnum | BedScalarFieldEnum[]
+  }
+
+  /**
+   * Room without action
+   */
+  export type RoomDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Room
+     */
+    select?: RoomSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RoomInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model Bed
    */
 
@@ -12790,7 +15137,7 @@ export namespace Prisma {
   export type BedMinAggregateOutputType = {
     id: string | null
     branchId: string | null
-    wardId: string | null
+    roomId: string | null
     code: string | null
     state: $Enums.BedState | null
     isActive: boolean | null
@@ -12801,7 +15148,7 @@ export namespace Prisma {
   export type BedMaxAggregateOutputType = {
     id: string | null
     branchId: string | null
-    wardId: string | null
+    roomId: string | null
     code: string | null
     state: $Enums.BedState | null
     isActive: boolean | null
@@ -12812,7 +15159,7 @@ export namespace Prisma {
   export type BedCountAggregateOutputType = {
     id: number
     branchId: number
-    wardId: number
+    roomId: number
     code: number
     state: number
     isActive: number
@@ -12825,7 +15172,7 @@ export namespace Prisma {
   export type BedMinAggregateInputType = {
     id?: true
     branchId?: true
-    wardId?: true
+    roomId?: true
     code?: true
     state?: true
     isActive?: true
@@ -12836,7 +15183,7 @@ export namespace Prisma {
   export type BedMaxAggregateInputType = {
     id?: true
     branchId?: true
-    wardId?: true
+    roomId?: true
     code?: true
     state?: true
     isActive?: true
@@ -12847,7 +15194,7 @@ export namespace Prisma {
   export type BedCountAggregateInputType = {
     id?: true
     branchId?: true
-    wardId?: true
+    roomId?: true
     code?: true
     state?: true
     isActive?: true
@@ -12931,7 +15278,7 @@ export namespace Prisma {
   export type BedGroupByOutputType = {
     id: string
     branchId: string
-    wardId: string
+    roomId: string
     code: string
     state: $Enums.BedState
     isActive: boolean
@@ -12959,14 +15306,14 @@ export namespace Prisma {
   export type BedSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     branchId?: boolean
-    wardId?: boolean
+    roomId?: boolean
     code?: boolean
     state?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     branch?: boolean | BranchDefaultArgs<ExtArgs>
-    ward?: boolean | WardDefaultArgs<ExtArgs>
+    room?: boolean | RoomDefaultArgs<ExtArgs>
     admissions?: boolean | Bed$admissionsArgs<ExtArgs>
     _count?: boolean | BedCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["bed"]>
@@ -12974,20 +15321,20 @@ export namespace Prisma {
   export type BedSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     branchId?: boolean
-    wardId?: boolean
+    roomId?: boolean
     code?: boolean
     state?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     branch?: boolean | BranchDefaultArgs<ExtArgs>
-    ward?: boolean | WardDefaultArgs<ExtArgs>
+    room?: boolean | RoomDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["bed"]>
 
   export type BedSelectScalar = {
     id?: boolean
     branchId?: boolean
-    wardId?: boolean
+    roomId?: boolean
     code?: boolean
     state?: boolean
     isActive?: boolean
@@ -12997,26 +15344,26 @@ export namespace Prisma {
 
   export type BedInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     branch?: boolean | BranchDefaultArgs<ExtArgs>
-    ward?: boolean | WardDefaultArgs<ExtArgs>
+    room?: boolean | RoomDefaultArgs<ExtArgs>
     admissions?: boolean | Bed$admissionsArgs<ExtArgs>
     _count?: boolean | BedCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type BedIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     branch?: boolean | BranchDefaultArgs<ExtArgs>
-    ward?: boolean | WardDefaultArgs<ExtArgs>
+    room?: boolean | RoomDefaultArgs<ExtArgs>
   }
 
   export type $BedPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Bed"
     objects: {
       branch: Prisma.$BranchPayload<ExtArgs>
-      ward: Prisma.$WardPayload<ExtArgs>
+      room: Prisma.$RoomPayload<ExtArgs>
       admissions: Prisma.$AdmissionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       branchId: string
-      wardId: string
+      roomId: string
       code: string
       state: $Enums.BedState
       isActive: boolean
@@ -13387,7 +15734,7 @@ export namespace Prisma {
   export interface Prisma__BedClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     branch<T extends BranchDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BranchDefaultArgs<ExtArgs>>): Prisma__BranchClient<$Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
-    ward<T extends WardDefaultArgs<ExtArgs> = {}>(args?: Subset<T, WardDefaultArgs<ExtArgs>>): Prisma__WardClient<$Result.GetResult<Prisma.$WardPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    room<T extends RoomDefaultArgs<ExtArgs> = {}>(args?: Subset<T, RoomDefaultArgs<ExtArgs>>): Prisma__RoomClient<$Result.GetResult<Prisma.$RoomPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     admissions<T extends Bed$admissionsArgs<ExtArgs> = {}>(args?: Subset<T, Bed$admissionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdmissionPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -13420,7 +15767,7 @@ export namespace Prisma {
   interface BedFieldRefs {
     readonly id: FieldRef<"Bed", 'String'>
     readonly branchId: FieldRef<"Bed", 'String'>
-    readonly wardId: FieldRef<"Bed", 'String'>
+    readonly roomId: FieldRef<"Bed", 'String'>
     readonly code: FieldRef<"Bed", 'String'>
     readonly state: FieldRef<"Bed", 'BedState'>
     readonly isActive: FieldRef<"Bed", 'Boolean'>
@@ -31756,6 +34103,27 @@ export namespace Prisma {
   export type BranchScalarFieldEnum = (typeof BranchScalarFieldEnum)[keyof typeof BranchScalarFieldEnum]
 
 
+  export const FacilityScalarFieldEnum: {
+    id: 'id',
+    branchId: 'branchId',
+    code: 'code',
+    name: 'name',
+    type: 'type',
+    addressLine1: 'addressLine1',
+    addressLine2: 'addressLine2',
+    city: 'city',
+    state: 'state',
+    postalCode: 'postalCode',
+    phone: 'phone',
+    email: 'email',
+    isActive: 'isActive',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type FacilityScalarFieldEnum = (typeof FacilityScalarFieldEnum)[keyof typeof FacilityScalarFieldEnum]
+
+
   export const DepartmentScalarFieldEnum: {
     id: 'id',
     branchId: 'branchId',
@@ -31868,10 +34236,26 @@ export namespace Prisma {
   export type WardScalarFieldEnum = (typeof WardScalarFieldEnum)[keyof typeof WardScalarFieldEnum]
 
 
-  export const BedScalarFieldEnum: {
+  export const RoomScalarFieldEnum: {
     id: 'id',
     branchId: 'branchId',
     wardId: 'wardId',
+    code: 'code',
+    name: 'name',
+    floor: 'floor',
+    type: 'type',
+    isActive: 'isActive',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type RoomScalarFieldEnum = (typeof RoomScalarFieldEnum)[keyof typeof RoomScalarFieldEnum]
+
+
+  export const BedScalarFieldEnum: {
+    id: 'id',
+    branchId: 'branchId',
+    roomId: 'roomId',
     code: 'code',
     state: 'state',
     isActive: 'isActive',
@@ -32448,6 +34832,8 @@ export namespace Prisma {
     Encounter?: EncounterListRelationFilter
     Bed?: BedListRelationFilter
     Admission?: AdmissionListRelationFilter
+    facilities?: FacilityListRelationFilter
+    rooms?: RoomListRelationFilter
     statutoryCases?: StatutoryCaseListRelationFilter
     auditEvents?: AuditEventListRelationFilter
     policyVersions?: PolicyVersionListRelationFilter
@@ -32477,6 +34863,8 @@ export namespace Prisma {
     Encounter?: EncounterOrderByRelationAggregateInput
     Bed?: BedOrderByRelationAggregateInput
     Admission?: AdmissionOrderByRelationAggregateInput
+    facilities?: FacilityOrderByRelationAggregateInput
+    rooms?: RoomOrderByRelationAggregateInput
     statutoryCases?: StatutoryCaseOrderByRelationAggregateInput
     auditEvents?: AuditEventOrderByRelationAggregateInput
     policyVersions?: PolicyVersionOrderByRelationAggregateInput
@@ -32509,6 +34897,8 @@ export namespace Prisma {
     Encounter?: EncounterListRelationFilter
     Bed?: BedListRelationFilter
     Admission?: AdmissionListRelationFilter
+    facilities?: FacilityListRelationFilter
+    rooms?: RoomListRelationFilter
     statutoryCases?: StatutoryCaseListRelationFilter
     auditEvents?: AuditEventListRelationFilter
     policyVersions?: PolicyVersionListRelationFilter
@@ -32545,6 +34935,112 @@ export namespace Prisma {
     contactEmail?: StringNullableWithAggregatesFilter<"Branch"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Branch"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Branch"> | Date | string
+  }
+
+  export type FacilityWhereInput = {
+    AND?: FacilityWhereInput | FacilityWhereInput[]
+    OR?: FacilityWhereInput[]
+    NOT?: FacilityWhereInput | FacilityWhereInput[]
+    id?: StringFilter<"Facility"> | string
+    branchId?: StringFilter<"Facility"> | string
+    code?: StringFilter<"Facility"> | string
+    name?: StringFilter<"Facility"> | string
+    type?: StringNullableFilter<"Facility"> | string | null
+    addressLine1?: StringNullableFilter<"Facility"> | string | null
+    addressLine2?: StringNullableFilter<"Facility"> | string | null
+    city?: StringFilter<"Facility"> | string
+    state?: StringNullableFilter<"Facility"> | string | null
+    postalCode?: StringNullableFilter<"Facility"> | string | null
+    phone?: StringNullableFilter<"Facility"> | string | null
+    email?: StringNullableFilter<"Facility"> | string | null
+    isActive?: BoolFilter<"Facility"> | boolean
+    createdAt?: DateTimeFilter<"Facility"> | Date | string
+    updatedAt?: DateTimeFilter<"Facility"> | Date | string
+    branch?: XOR<BranchRelationFilter, BranchWhereInput>
+  }
+
+  export type FacilityOrderByWithRelationInput = {
+    id?: SortOrder
+    branchId?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    type?: SortOrderInput | SortOrder
+    addressLine1?: SortOrderInput | SortOrder
+    addressLine2?: SortOrderInput | SortOrder
+    city?: SortOrder
+    state?: SortOrderInput | SortOrder
+    postalCode?: SortOrderInput | SortOrder
+    phone?: SortOrderInput | SortOrder
+    email?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    branch?: BranchOrderByWithRelationInput
+  }
+
+  export type FacilityWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    branchId_code?: FacilityBranchIdCodeCompoundUniqueInput
+    AND?: FacilityWhereInput | FacilityWhereInput[]
+    OR?: FacilityWhereInput[]
+    NOT?: FacilityWhereInput | FacilityWhereInput[]
+    branchId?: StringFilter<"Facility"> | string
+    code?: StringFilter<"Facility"> | string
+    name?: StringFilter<"Facility"> | string
+    type?: StringNullableFilter<"Facility"> | string | null
+    addressLine1?: StringNullableFilter<"Facility"> | string | null
+    addressLine2?: StringNullableFilter<"Facility"> | string | null
+    city?: StringFilter<"Facility"> | string
+    state?: StringNullableFilter<"Facility"> | string | null
+    postalCode?: StringNullableFilter<"Facility"> | string | null
+    phone?: StringNullableFilter<"Facility"> | string | null
+    email?: StringNullableFilter<"Facility"> | string | null
+    isActive?: BoolFilter<"Facility"> | boolean
+    createdAt?: DateTimeFilter<"Facility"> | Date | string
+    updatedAt?: DateTimeFilter<"Facility"> | Date | string
+    branch?: XOR<BranchRelationFilter, BranchWhereInput>
+  }, "id" | "branchId_code">
+
+  export type FacilityOrderByWithAggregationInput = {
+    id?: SortOrder
+    branchId?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    type?: SortOrderInput | SortOrder
+    addressLine1?: SortOrderInput | SortOrder
+    addressLine2?: SortOrderInput | SortOrder
+    city?: SortOrder
+    state?: SortOrderInput | SortOrder
+    postalCode?: SortOrderInput | SortOrder
+    phone?: SortOrderInput | SortOrder
+    email?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: FacilityCountOrderByAggregateInput
+    _max?: FacilityMaxOrderByAggregateInput
+    _min?: FacilityMinOrderByAggregateInput
+  }
+
+  export type FacilityScalarWhereWithAggregatesInput = {
+    AND?: FacilityScalarWhereWithAggregatesInput | FacilityScalarWhereWithAggregatesInput[]
+    OR?: FacilityScalarWhereWithAggregatesInput[]
+    NOT?: FacilityScalarWhereWithAggregatesInput | FacilityScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Facility"> | string
+    branchId?: StringWithAggregatesFilter<"Facility"> | string
+    code?: StringWithAggregatesFilter<"Facility"> | string
+    name?: StringWithAggregatesFilter<"Facility"> | string
+    type?: StringNullableWithAggregatesFilter<"Facility"> | string | null
+    addressLine1?: StringNullableWithAggregatesFilter<"Facility"> | string | null
+    addressLine2?: StringNullableWithAggregatesFilter<"Facility"> | string | null
+    city?: StringWithAggregatesFilter<"Facility"> | string
+    state?: StringNullableWithAggregatesFilter<"Facility"> | string | null
+    postalCode?: StringNullableWithAggregatesFilter<"Facility"> | string | null
+    phone?: StringNullableWithAggregatesFilter<"Facility"> | string | null
+    email?: StringNullableWithAggregatesFilter<"Facility"> | string | null
+    isActive?: BoolWithAggregatesFilter<"Facility"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"Facility"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Facility"> | Date | string
   }
 
   export type DepartmentWhereInput = {
@@ -33123,7 +35619,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Ward"> | Date | string
     updatedAt?: DateTimeFilter<"Ward"> | Date | string
     branch?: XOR<BranchRelationFilter, BranchWhereInput>
-    beds?: BedListRelationFilter
+    rooms?: RoomListRelationFilter
   }
 
   export type WardOrderByWithRelationInput = {
@@ -33136,7 +35632,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     branch?: BranchOrderByWithRelationInput
-    beds?: BedOrderByRelationAggregateInput
+    rooms?: RoomOrderByRelationAggregateInput
   }
 
   export type WardWhereUniqueInput = Prisma.AtLeast<{
@@ -33153,7 +35649,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Ward"> | Date | string
     updatedAt?: DateTimeFilter<"Ward"> | Date | string
     branch?: XOR<BranchRelationFilter, BranchWhereInput>
-    beds?: BedListRelationFilter
+    rooms?: RoomListRelationFilter
   }, "id" | "branchId_code">
 
   export type WardOrderByWithAggregationInput = {
@@ -33184,59 +35680,146 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"Ward"> | Date | string
   }
 
+  export type RoomWhereInput = {
+    AND?: RoomWhereInput | RoomWhereInput[]
+    OR?: RoomWhereInput[]
+    NOT?: RoomWhereInput | RoomWhereInput[]
+    id?: StringFilter<"Room"> | string
+    branchId?: StringFilter<"Room"> | string
+    wardId?: StringFilter<"Room"> | string
+    code?: StringFilter<"Room"> | string
+    name?: StringFilter<"Room"> | string
+    floor?: StringNullableFilter<"Room"> | string | null
+    type?: StringNullableFilter<"Room"> | string | null
+    isActive?: BoolFilter<"Room"> | boolean
+    createdAt?: DateTimeFilter<"Room"> | Date | string
+    updatedAt?: DateTimeFilter<"Room"> | Date | string
+    branch?: XOR<BranchRelationFilter, BranchWhereInput>
+    ward?: XOR<WardRelationFilter, WardWhereInput>
+    beds?: BedListRelationFilter
+  }
+
+  export type RoomOrderByWithRelationInput = {
+    id?: SortOrder
+    branchId?: SortOrder
+    wardId?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    floor?: SortOrderInput | SortOrder
+    type?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    branch?: BranchOrderByWithRelationInput
+    ward?: WardOrderByWithRelationInput
+    beds?: BedOrderByRelationAggregateInput
+  }
+
+  export type RoomWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    wardId_code?: RoomWardIdCodeCompoundUniqueInput
+    AND?: RoomWhereInput | RoomWhereInput[]
+    OR?: RoomWhereInput[]
+    NOT?: RoomWhereInput | RoomWhereInput[]
+    branchId?: StringFilter<"Room"> | string
+    wardId?: StringFilter<"Room"> | string
+    code?: StringFilter<"Room"> | string
+    name?: StringFilter<"Room"> | string
+    floor?: StringNullableFilter<"Room"> | string | null
+    type?: StringNullableFilter<"Room"> | string | null
+    isActive?: BoolFilter<"Room"> | boolean
+    createdAt?: DateTimeFilter<"Room"> | Date | string
+    updatedAt?: DateTimeFilter<"Room"> | Date | string
+    branch?: XOR<BranchRelationFilter, BranchWhereInput>
+    ward?: XOR<WardRelationFilter, WardWhereInput>
+    beds?: BedListRelationFilter
+  }, "id" | "wardId_code">
+
+  export type RoomOrderByWithAggregationInput = {
+    id?: SortOrder
+    branchId?: SortOrder
+    wardId?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    floor?: SortOrderInput | SortOrder
+    type?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: RoomCountOrderByAggregateInput
+    _max?: RoomMaxOrderByAggregateInput
+    _min?: RoomMinOrderByAggregateInput
+  }
+
+  export type RoomScalarWhereWithAggregatesInput = {
+    AND?: RoomScalarWhereWithAggregatesInput | RoomScalarWhereWithAggregatesInput[]
+    OR?: RoomScalarWhereWithAggregatesInput[]
+    NOT?: RoomScalarWhereWithAggregatesInput | RoomScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Room"> | string
+    branchId?: StringWithAggregatesFilter<"Room"> | string
+    wardId?: StringWithAggregatesFilter<"Room"> | string
+    code?: StringWithAggregatesFilter<"Room"> | string
+    name?: StringWithAggregatesFilter<"Room"> | string
+    floor?: StringNullableWithAggregatesFilter<"Room"> | string | null
+    type?: StringNullableWithAggregatesFilter<"Room"> | string | null
+    isActive?: BoolWithAggregatesFilter<"Room"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"Room"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Room"> | Date | string
+  }
+
   export type BedWhereInput = {
     AND?: BedWhereInput | BedWhereInput[]
     OR?: BedWhereInput[]
     NOT?: BedWhereInput | BedWhereInput[]
     id?: StringFilter<"Bed"> | string
     branchId?: StringFilter<"Bed"> | string
-    wardId?: StringFilter<"Bed"> | string
+    roomId?: StringFilter<"Bed"> | string
     code?: StringFilter<"Bed"> | string
     state?: EnumBedStateFilter<"Bed"> | $Enums.BedState
     isActive?: BoolFilter<"Bed"> | boolean
     createdAt?: DateTimeFilter<"Bed"> | Date | string
     updatedAt?: DateTimeFilter<"Bed"> | Date | string
     branch?: XOR<BranchRelationFilter, BranchWhereInput>
-    ward?: XOR<WardRelationFilter, WardWhereInput>
+    room?: XOR<RoomRelationFilter, RoomWhereInput>
     admissions?: AdmissionListRelationFilter
   }
 
   export type BedOrderByWithRelationInput = {
     id?: SortOrder
     branchId?: SortOrder
-    wardId?: SortOrder
+    roomId?: SortOrder
     code?: SortOrder
     state?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     branch?: BranchOrderByWithRelationInput
-    ward?: WardOrderByWithRelationInput
+    room?: RoomOrderByWithRelationInput
     admissions?: AdmissionOrderByRelationAggregateInput
   }
 
   export type BedWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    wardId_code?: BedWardIdCodeCompoundUniqueInput
+    roomId_code?: BedRoomIdCodeCompoundUniqueInput
     AND?: BedWhereInput | BedWhereInput[]
     OR?: BedWhereInput[]
     NOT?: BedWhereInput | BedWhereInput[]
     branchId?: StringFilter<"Bed"> | string
-    wardId?: StringFilter<"Bed"> | string
+    roomId?: StringFilter<"Bed"> | string
     code?: StringFilter<"Bed"> | string
     state?: EnumBedStateFilter<"Bed"> | $Enums.BedState
     isActive?: BoolFilter<"Bed"> | boolean
     createdAt?: DateTimeFilter<"Bed"> | Date | string
     updatedAt?: DateTimeFilter<"Bed"> | Date | string
     branch?: XOR<BranchRelationFilter, BranchWhereInput>
-    ward?: XOR<WardRelationFilter, WardWhereInput>
+    room?: XOR<RoomRelationFilter, RoomWhereInput>
     admissions?: AdmissionListRelationFilter
-  }, "id" | "wardId_code">
+  }, "id" | "roomId_code">
 
   export type BedOrderByWithAggregationInput = {
     id?: SortOrder
     branchId?: SortOrder
-    wardId?: SortOrder
+    roomId?: SortOrder
     code?: SortOrder
     state?: SortOrder
     isActive?: SortOrder
@@ -33253,7 +35836,7 @@ export namespace Prisma {
     NOT?: BedScalarWhereWithAggregatesInput | BedScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Bed"> | string
     branchId?: StringWithAggregatesFilter<"Bed"> | string
-    wardId?: StringWithAggregatesFilter<"Bed"> | string
+    roomId?: StringWithAggregatesFilter<"Bed"> | string
     code?: StringWithAggregatesFilter<"Bed"> | string
     state?: EnumBedStateWithAggregatesFilter<"Bed"> | $Enums.BedState
     isActive?: BoolWithAggregatesFilter<"Bed"> | boolean
@@ -34647,6 +37230,8 @@ export namespace Prisma {
     Encounter?: EncounterCreateNestedManyWithoutBranchInput
     Bed?: BedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    facilities?: FacilityCreateNestedManyWithoutBranchInput
+    rooms?: RoomCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
@@ -34676,6 +37261,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
     Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    facilities?: FacilityUncheckedCreateNestedManyWithoutBranchInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
@@ -34705,6 +37292,8 @@ export namespace Prisma {
     Encounter?: EncounterUpdateManyWithoutBranchNestedInput
     Bed?: BedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
@@ -34734,6 +37323,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
     Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUncheckedUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
@@ -34775,6 +37366,131 @@ export namespace Prisma {
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FacilityCreateInput = {
+    id?: string
+    code: string
+    name: string
+    type?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city: string
+    state?: string | null
+    postalCode?: string | null
+    phone?: string | null
+    email?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branch: BranchCreateNestedOneWithoutFacilitiesInput
+  }
+
+  export type FacilityUncheckedCreateInput = {
+    id?: string
+    branchId: string
+    code: string
+    name: string
+    type?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city: string
+    state?: string | null
+    postalCode?: string | null
+    phone?: string | null
+    email?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type FacilityUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: StringFieldUpdateOperationsInput | string
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    postalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branch?: BranchUpdateOneRequiredWithoutFacilitiesNestedInput
+  }
+
+  export type FacilityUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    branchId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: StringFieldUpdateOperationsInput | string
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    postalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FacilityCreateManyInput = {
+    id?: string
+    branchId: string
+    code: string
+    name: string
+    type?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city: string
+    state?: string | null
+    postalCode?: string | null
+    phone?: string | null
+    email?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type FacilityUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: StringFieldUpdateOperationsInput | string
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    postalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FacilityUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    branchId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: StringFieldUpdateOperationsInput | string
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    postalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -35404,7 +38120,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     branch: BranchCreateNestedOneWithoutWardsInput
-    beds?: BedCreateNestedManyWithoutWardInput
+    rooms?: RoomCreateNestedManyWithoutWardInput
   }
 
   export type WardUncheckedCreateInput = {
@@ -35416,7 +38132,7 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    beds?: BedUncheckedCreateNestedManyWithoutWardInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutWardInput
   }
 
   export type WardUpdateInput = {
@@ -35428,7 +38144,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branch?: BranchUpdateOneRequiredWithoutWardsNestedInput
-    beds?: BedUpdateManyWithoutWardNestedInput
+    rooms?: RoomUpdateManyWithoutWardNestedInput
   }
 
   export type WardUncheckedUpdateInput = {
@@ -35440,7 +38156,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    beds?: BedUncheckedUpdateManyWithoutWardNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutWardNestedInput
   }
 
   export type WardCreateManyInput = {
@@ -35475,6 +38191,99 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type RoomCreateInput = {
+    id?: string
+    code: string
+    name: string
+    floor?: string | null
+    type?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branch: BranchCreateNestedOneWithoutRoomsInput
+    ward: WardCreateNestedOneWithoutRoomsInput
+    beds?: BedCreateNestedManyWithoutRoomInput
+  }
+
+  export type RoomUncheckedCreateInput = {
+    id?: string
+    branchId: string
+    wardId: string
+    code: string
+    name: string
+    floor?: string | null
+    type?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    beds?: BedUncheckedCreateNestedManyWithoutRoomInput
+  }
+
+  export type RoomUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    floor?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branch?: BranchUpdateOneRequiredWithoutRoomsNestedInput
+    ward?: WardUpdateOneRequiredWithoutRoomsNestedInput
+    beds?: BedUpdateManyWithoutRoomNestedInput
+  }
+
+  export type RoomUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    branchId?: StringFieldUpdateOperationsInput | string
+    wardId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    floor?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    beds?: BedUncheckedUpdateManyWithoutRoomNestedInput
+  }
+
+  export type RoomCreateManyInput = {
+    id?: string
+    branchId: string
+    wardId: string
+    code: string
+    name: string
+    floor?: string | null
+    type?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type RoomUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    floor?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RoomUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    branchId?: StringFieldUpdateOperationsInput | string
+    wardId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    floor?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type BedCreateInput = {
     id?: string
     code: string
@@ -35483,14 +38292,14 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     branch: BranchCreateNestedOneWithoutBedInput
-    ward: WardCreateNestedOneWithoutBedsInput
+    room: RoomCreateNestedOneWithoutBedsInput
     admissions?: AdmissionCreateNestedManyWithoutBedInput
   }
 
   export type BedUncheckedCreateInput = {
     id?: string
     branchId: string
-    wardId: string
+    roomId: string
     code: string
     state?: $Enums.BedState
     isActive?: boolean
@@ -35507,14 +38316,14 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branch?: BranchUpdateOneRequiredWithoutBedNestedInput
-    ward?: WardUpdateOneRequiredWithoutBedsNestedInput
+    room?: RoomUpdateOneRequiredWithoutBedsNestedInput
     admissions?: AdmissionUpdateManyWithoutBedNestedInput
   }
 
   export type BedUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
-    wardId?: StringFieldUpdateOperationsInput | string
+    roomId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     state?: EnumBedStateFieldUpdateOperationsInput | $Enums.BedState
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -35526,7 +38335,7 @@ export namespace Prisma {
   export type BedCreateManyInput = {
     id?: string
     branchId: string
-    wardId: string
+    roomId: string
     code: string
     state?: $Enums.BedState
     isActive?: boolean
@@ -35546,7 +38355,7 @@ export namespace Prisma {
   export type BedUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
-    wardId?: StringFieldUpdateOperationsInput | string
+    roomId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     state?: EnumBedStateFieldUpdateOperationsInput | $Enums.BedState
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -37110,6 +39919,18 @@ export namespace Prisma {
     none?: AdmissionWhereInput
   }
 
+  export type FacilityListRelationFilter = {
+    every?: FacilityWhereInput
+    some?: FacilityWhereInput
+    none?: FacilityWhereInput
+  }
+
+  export type RoomListRelationFilter = {
+    every?: RoomWhereInput
+    some?: RoomWhereInput
+    none?: RoomWhereInput
+  }
+
   export type StatutoryCaseListRelationFilter = {
     every?: StatutoryCaseWhereInput
     some?: StatutoryCaseWhereInput
@@ -37184,6 +40005,14 @@ export namespace Prisma {
   }
 
   export type AdmissionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type FacilityOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type RoomOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -37302,6 +40131,73 @@ export namespace Prisma {
     isNot?: BranchWhereInput
   }
 
+  export type FacilityBranchIdCodeCompoundUniqueInput = {
+    branchId: string
+    code: string
+  }
+
+  export type FacilityCountOrderByAggregateInput = {
+    id?: SortOrder
+    branchId?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    addressLine1?: SortOrder
+    addressLine2?: SortOrder
+    city?: SortOrder
+    state?: SortOrder
+    postalCode?: SortOrder
+    phone?: SortOrder
+    email?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type FacilityMaxOrderByAggregateInput = {
+    id?: SortOrder
+    branchId?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    addressLine1?: SortOrder
+    addressLine2?: SortOrder
+    city?: SortOrder
+    state?: SortOrder
+    postalCode?: SortOrder
+    phone?: SortOrder
+    email?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type FacilityMinOrderByAggregateInput = {
+    id?: SortOrder
+    branchId?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    addressLine1?: SortOrder
+    addressLine2?: SortOrder
+    city?: SortOrder
+    state?: SortOrder
+    postalCode?: SortOrder
+    phone?: SortOrder
+    email?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
+  }
+
   export type DepartmentBranchIdCodeCompoundUniqueInput = {
     branchId: string
     code: string
@@ -37335,14 +40231,6 @@ export namespace Prisma {
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-  }
-
-  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedBoolFilter<$PrismaModel>
-    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type DepartmentNullableRelationFilter = {
@@ -37715,6 +40603,55 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type WardRelationFilter = {
+    is?: WardWhereInput
+    isNot?: WardWhereInput
+  }
+
+  export type RoomWardIdCodeCompoundUniqueInput = {
+    wardId: string
+    code: string
+  }
+
+  export type RoomCountOrderByAggregateInput = {
+    id?: SortOrder
+    branchId?: SortOrder
+    wardId?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    floor?: SortOrder
+    type?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type RoomMaxOrderByAggregateInput = {
+    id?: SortOrder
+    branchId?: SortOrder
+    wardId?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    floor?: SortOrder
+    type?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type RoomMinOrderByAggregateInput = {
+    id?: SortOrder
+    branchId?: SortOrder
+    wardId?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    floor?: SortOrder
+    type?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
   export type EnumBedStateFilter<$PrismaModel = never> = {
     equals?: $Enums.BedState | EnumBedStateFieldRefInput<$PrismaModel>
     in?: $Enums.BedState[] | ListEnumBedStateFieldRefInput<$PrismaModel>
@@ -37722,20 +40659,20 @@ export namespace Prisma {
     not?: NestedEnumBedStateFilter<$PrismaModel> | $Enums.BedState
   }
 
-  export type WardRelationFilter = {
-    is?: WardWhereInput
-    isNot?: WardWhereInput
+  export type RoomRelationFilter = {
+    is?: RoomWhereInput
+    isNot?: RoomWhereInput
   }
 
-  export type BedWardIdCodeCompoundUniqueInput = {
-    wardId: string
+  export type BedRoomIdCodeCompoundUniqueInput = {
+    roomId: string
     code: string
   }
 
   export type BedCountOrderByAggregateInput = {
     id?: SortOrder
     branchId?: SortOrder
-    wardId?: SortOrder
+    roomId?: SortOrder
     code?: SortOrder
     state?: SortOrder
     isActive?: SortOrder
@@ -37746,7 +40683,7 @@ export namespace Prisma {
   export type BedMaxOrderByAggregateInput = {
     id?: SortOrder
     branchId?: SortOrder
-    wardId?: SortOrder
+    roomId?: SortOrder
     code?: SortOrder
     state?: SortOrder
     isActive?: SortOrder
@@ -37757,7 +40694,7 @@ export namespace Prisma {
   export type BedMinOrderByAggregateInput = {
     id?: SortOrder
     branchId?: SortOrder
-    wardId?: SortOrder
+    roomId?: SortOrder
     code?: SortOrder
     state?: SortOrder
     isActive?: SortOrder
@@ -38882,6 +41819,20 @@ export namespace Prisma {
     connect?: AdmissionWhereUniqueInput | AdmissionWhereUniqueInput[]
   }
 
+  export type FacilityCreateNestedManyWithoutBranchInput = {
+    create?: XOR<FacilityCreateWithoutBranchInput, FacilityUncheckedCreateWithoutBranchInput> | FacilityCreateWithoutBranchInput[] | FacilityUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: FacilityCreateOrConnectWithoutBranchInput | FacilityCreateOrConnectWithoutBranchInput[]
+    createMany?: FacilityCreateManyBranchInputEnvelope
+    connect?: FacilityWhereUniqueInput | FacilityWhereUniqueInput[]
+  }
+
+  export type RoomCreateNestedManyWithoutBranchInput = {
+    create?: XOR<RoomCreateWithoutBranchInput, RoomUncheckedCreateWithoutBranchInput> | RoomCreateWithoutBranchInput[] | RoomUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: RoomCreateOrConnectWithoutBranchInput | RoomCreateOrConnectWithoutBranchInput[]
+    createMany?: RoomCreateManyBranchInputEnvelope
+    connect?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
+  }
+
   export type StatutoryCaseCreateNestedManyWithoutBranchInput = {
     create?: XOR<StatutoryCaseCreateWithoutBranchInput, StatutoryCaseUncheckedCreateWithoutBranchInput> | StatutoryCaseCreateWithoutBranchInput[] | StatutoryCaseUncheckedCreateWithoutBranchInput[]
     connectOrCreate?: StatutoryCaseCreateOrConnectWithoutBranchInput | StatutoryCaseCreateOrConnectWithoutBranchInput[]
@@ -38992,6 +41943,20 @@ export namespace Prisma {
     connectOrCreate?: AdmissionCreateOrConnectWithoutBranchInput | AdmissionCreateOrConnectWithoutBranchInput[]
     createMany?: AdmissionCreateManyBranchInputEnvelope
     connect?: AdmissionWhereUniqueInput | AdmissionWhereUniqueInput[]
+  }
+
+  export type FacilityUncheckedCreateNestedManyWithoutBranchInput = {
+    create?: XOR<FacilityCreateWithoutBranchInput, FacilityUncheckedCreateWithoutBranchInput> | FacilityCreateWithoutBranchInput[] | FacilityUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: FacilityCreateOrConnectWithoutBranchInput | FacilityCreateOrConnectWithoutBranchInput[]
+    createMany?: FacilityCreateManyBranchInputEnvelope
+    connect?: FacilityWhereUniqueInput | FacilityWhereUniqueInput[]
+  }
+
+  export type RoomUncheckedCreateNestedManyWithoutBranchInput = {
+    create?: XOR<RoomCreateWithoutBranchInput, RoomUncheckedCreateWithoutBranchInput> | RoomCreateWithoutBranchInput[] | RoomUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: RoomCreateOrConnectWithoutBranchInput | RoomCreateOrConnectWithoutBranchInput[]
+    createMany?: RoomCreateManyBranchInputEnvelope
+    connect?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
   }
 
   export type StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput = {
@@ -39200,6 +42165,34 @@ export namespace Prisma {
     update?: AdmissionUpdateWithWhereUniqueWithoutBranchInput | AdmissionUpdateWithWhereUniqueWithoutBranchInput[]
     updateMany?: AdmissionUpdateManyWithWhereWithoutBranchInput | AdmissionUpdateManyWithWhereWithoutBranchInput[]
     deleteMany?: AdmissionScalarWhereInput | AdmissionScalarWhereInput[]
+  }
+
+  export type FacilityUpdateManyWithoutBranchNestedInput = {
+    create?: XOR<FacilityCreateWithoutBranchInput, FacilityUncheckedCreateWithoutBranchInput> | FacilityCreateWithoutBranchInput[] | FacilityUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: FacilityCreateOrConnectWithoutBranchInput | FacilityCreateOrConnectWithoutBranchInput[]
+    upsert?: FacilityUpsertWithWhereUniqueWithoutBranchInput | FacilityUpsertWithWhereUniqueWithoutBranchInput[]
+    createMany?: FacilityCreateManyBranchInputEnvelope
+    set?: FacilityWhereUniqueInput | FacilityWhereUniqueInput[]
+    disconnect?: FacilityWhereUniqueInput | FacilityWhereUniqueInput[]
+    delete?: FacilityWhereUniqueInput | FacilityWhereUniqueInput[]
+    connect?: FacilityWhereUniqueInput | FacilityWhereUniqueInput[]
+    update?: FacilityUpdateWithWhereUniqueWithoutBranchInput | FacilityUpdateWithWhereUniqueWithoutBranchInput[]
+    updateMany?: FacilityUpdateManyWithWhereWithoutBranchInput | FacilityUpdateManyWithWhereWithoutBranchInput[]
+    deleteMany?: FacilityScalarWhereInput | FacilityScalarWhereInput[]
+  }
+
+  export type RoomUpdateManyWithoutBranchNestedInput = {
+    create?: XOR<RoomCreateWithoutBranchInput, RoomUncheckedCreateWithoutBranchInput> | RoomCreateWithoutBranchInput[] | RoomUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: RoomCreateOrConnectWithoutBranchInput | RoomCreateOrConnectWithoutBranchInput[]
+    upsert?: RoomUpsertWithWhereUniqueWithoutBranchInput | RoomUpsertWithWhereUniqueWithoutBranchInput[]
+    createMany?: RoomCreateManyBranchInputEnvelope
+    set?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
+    disconnect?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
+    delete?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
+    connect?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
+    update?: RoomUpdateWithWhereUniqueWithoutBranchInput | RoomUpdateWithWhereUniqueWithoutBranchInput[]
+    updateMany?: RoomUpdateManyWithWhereWithoutBranchInput | RoomUpdateManyWithWhereWithoutBranchInput[]
+    deleteMany?: RoomScalarWhereInput | RoomScalarWhereInput[]
   }
 
   export type StatutoryCaseUpdateManyWithoutBranchNestedInput = {
@@ -39426,6 +42419,34 @@ export namespace Prisma {
     deleteMany?: AdmissionScalarWhereInput | AdmissionScalarWhereInput[]
   }
 
+  export type FacilityUncheckedUpdateManyWithoutBranchNestedInput = {
+    create?: XOR<FacilityCreateWithoutBranchInput, FacilityUncheckedCreateWithoutBranchInput> | FacilityCreateWithoutBranchInput[] | FacilityUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: FacilityCreateOrConnectWithoutBranchInput | FacilityCreateOrConnectWithoutBranchInput[]
+    upsert?: FacilityUpsertWithWhereUniqueWithoutBranchInput | FacilityUpsertWithWhereUniqueWithoutBranchInput[]
+    createMany?: FacilityCreateManyBranchInputEnvelope
+    set?: FacilityWhereUniqueInput | FacilityWhereUniqueInput[]
+    disconnect?: FacilityWhereUniqueInput | FacilityWhereUniqueInput[]
+    delete?: FacilityWhereUniqueInput | FacilityWhereUniqueInput[]
+    connect?: FacilityWhereUniqueInput | FacilityWhereUniqueInput[]
+    update?: FacilityUpdateWithWhereUniqueWithoutBranchInput | FacilityUpdateWithWhereUniqueWithoutBranchInput[]
+    updateMany?: FacilityUpdateManyWithWhereWithoutBranchInput | FacilityUpdateManyWithWhereWithoutBranchInput[]
+    deleteMany?: FacilityScalarWhereInput | FacilityScalarWhereInput[]
+  }
+
+  export type RoomUncheckedUpdateManyWithoutBranchNestedInput = {
+    create?: XOR<RoomCreateWithoutBranchInput, RoomUncheckedCreateWithoutBranchInput> | RoomCreateWithoutBranchInput[] | RoomUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: RoomCreateOrConnectWithoutBranchInput | RoomCreateOrConnectWithoutBranchInput[]
+    upsert?: RoomUpsertWithWhereUniqueWithoutBranchInput | RoomUpsertWithWhereUniqueWithoutBranchInput[]
+    createMany?: RoomCreateManyBranchInputEnvelope
+    set?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
+    disconnect?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
+    delete?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
+    connect?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
+    update?: RoomUpdateWithWhereUniqueWithoutBranchInput | RoomUpdateWithWhereUniqueWithoutBranchInput[]
+    updateMany?: RoomUpdateManyWithWhereWithoutBranchInput | RoomUpdateManyWithWhereWithoutBranchInput[]
+    deleteMany?: RoomScalarWhereInput | RoomScalarWhereInput[]
+  }
+
   export type StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput = {
     create?: XOR<StatutoryCaseCreateWithoutBranchInput, StatutoryCaseUncheckedCreateWithoutBranchInput> | StatutoryCaseCreateWithoutBranchInput[] | StatutoryCaseUncheckedCreateWithoutBranchInput[]
     connectOrCreate?: StatutoryCaseCreateOrConnectWithoutBranchInput | StatutoryCaseCreateOrConnectWithoutBranchInput[]
@@ -39482,6 +42503,24 @@ export namespace Prisma {
     deleteMany?: PolicyVersionBranchScalarWhereInput | PolicyVersionBranchScalarWhereInput[]
   }
 
+  export type BranchCreateNestedOneWithoutFacilitiesInput = {
+    create?: XOR<BranchCreateWithoutFacilitiesInput, BranchUncheckedCreateWithoutFacilitiesInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutFacilitiesInput
+    connect?: BranchWhereUniqueInput
+  }
+
+  export type BoolFieldUpdateOperationsInput = {
+    set?: boolean
+  }
+
+  export type BranchUpdateOneRequiredWithoutFacilitiesNestedInput = {
+    create?: XOR<BranchCreateWithoutFacilitiesInput, BranchUncheckedCreateWithoutFacilitiesInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutFacilitiesInput
+    upsert?: BranchUpsertWithoutFacilitiesInput
+    connect?: BranchWhereUniqueInput
+    update?: XOR<XOR<BranchUpdateToOneWithWhereWithoutFacilitiesInput, BranchUpdateWithoutFacilitiesInput>, BranchUncheckedUpdateWithoutFacilitiesInput>
+  }
+
   export type BranchCreateNestedOneWithoutDepartmentsInput = {
     create?: XOR<BranchCreateWithoutDepartmentsInput, BranchUncheckedCreateWithoutDepartmentsInput>
     connectOrCreate?: BranchCreateOrConnectWithoutDepartmentsInput
@@ -39514,10 +42553,6 @@ export namespace Prisma {
     connectOrCreate?: SpecialtyCreateOrConnectWithoutDepartmentInput | SpecialtyCreateOrConnectWithoutDepartmentInput[]
     createMany?: SpecialtyCreateManyDepartmentInputEnvelope
     connect?: SpecialtyWhereUniqueInput | SpecialtyWhereUniqueInput[]
-  }
-
-  export type BoolFieldUpdateOperationsInput = {
-    set?: boolean
   }
 
   export type BranchUpdateOneRequiredWithoutDepartmentsNestedInput = {
@@ -40384,18 +43419,18 @@ export namespace Prisma {
     connect?: BranchWhereUniqueInput
   }
 
-  export type BedCreateNestedManyWithoutWardInput = {
-    create?: XOR<BedCreateWithoutWardInput, BedUncheckedCreateWithoutWardInput> | BedCreateWithoutWardInput[] | BedUncheckedCreateWithoutWardInput[]
-    connectOrCreate?: BedCreateOrConnectWithoutWardInput | BedCreateOrConnectWithoutWardInput[]
-    createMany?: BedCreateManyWardInputEnvelope
-    connect?: BedWhereUniqueInput | BedWhereUniqueInput[]
+  export type RoomCreateNestedManyWithoutWardInput = {
+    create?: XOR<RoomCreateWithoutWardInput, RoomUncheckedCreateWithoutWardInput> | RoomCreateWithoutWardInput[] | RoomUncheckedCreateWithoutWardInput[]
+    connectOrCreate?: RoomCreateOrConnectWithoutWardInput | RoomCreateOrConnectWithoutWardInput[]
+    createMany?: RoomCreateManyWardInputEnvelope
+    connect?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
   }
 
-  export type BedUncheckedCreateNestedManyWithoutWardInput = {
-    create?: XOR<BedCreateWithoutWardInput, BedUncheckedCreateWithoutWardInput> | BedCreateWithoutWardInput[] | BedUncheckedCreateWithoutWardInput[]
-    connectOrCreate?: BedCreateOrConnectWithoutWardInput | BedCreateOrConnectWithoutWardInput[]
-    createMany?: BedCreateManyWardInputEnvelope
-    connect?: BedWhereUniqueInput | BedWhereUniqueInput[]
+  export type RoomUncheckedCreateNestedManyWithoutWardInput = {
+    create?: XOR<RoomCreateWithoutWardInput, RoomUncheckedCreateWithoutWardInput> | RoomCreateWithoutWardInput[] | RoomUncheckedCreateWithoutWardInput[]
+    connectOrCreate?: RoomCreateOrConnectWithoutWardInput | RoomCreateOrConnectWithoutWardInput[]
+    createMany?: RoomCreateManyWardInputEnvelope
+    connect?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
   }
 
   export type BranchUpdateOneRequiredWithoutWardsNestedInput = {
@@ -40406,31 +43441,101 @@ export namespace Prisma {
     update?: XOR<XOR<BranchUpdateToOneWithWhereWithoutWardsInput, BranchUpdateWithoutWardsInput>, BranchUncheckedUpdateWithoutWardsInput>
   }
 
-  export type BedUpdateManyWithoutWardNestedInput = {
-    create?: XOR<BedCreateWithoutWardInput, BedUncheckedCreateWithoutWardInput> | BedCreateWithoutWardInput[] | BedUncheckedCreateWithoutWardInput[]
-    connectOrCreate?: BedCreateOrConnectWithoutWardInput | BedCreateOrConnectWithoutWardInput[]
-    upsert?: BedUpsertWithWhereUniqueWithoutWardInput | BedUpsertWithWhereUniqueWithoutWardInput[]
-    createMany?: BedCreateManyWardInputEnvelope
+  export type RoomUpdateManyWithoutWardNestedInput = {
+    create?: XOR<RoomCreateWithoutWardInput, RoomUncheckedCreateWithoutWardInput> | RoomCreateWithoutWardInput[] | RoomUncheckedCreateWithoutWardInput[]
+    connectOrCreate?: RoomCreateOrConnectWithoutWardInput | RoomCreateOrConnectWithoutWardInput[]
+    upsert?: RoomUpsertWithWhereUniqueWithoutWardInput | RoomUpsertWithWhereUniqueWithoutWardInput[]
+    createMany?: RoomCreateManyWardInputEnvelope
+    set?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
+    disconnect?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
+    delete?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
+    connect?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
+    update?: RoomUpdateWithWhereUniqueWithoutWardInput | RoomUpdateWithWhereUniqueWithoutWardInput[]
+    updateMany?: RoomUpdateManyWithWhereWithoutWardInput | RoomUpdateManyWithWhereWithoutWardInput[]
+    deleteMany?: RoomScalarWhereInput | RoomScalarWhereInput[]
+  }
+
+  export type RoomUncheckedUpdateManyWithoutWardNestedInput = {
+    create?: XOR<RoomCreateWithoutWardInput, RoomUncheckedCreateWithoutWardInput> | RoomCreateWithoutWardInput[] | RoomUncheckedCreateWithoutWardInput[]
+    connectOrCreate?: RoomCreateOrConnectWithoutWardInput | RoomCreateOrConnectWithoutWardInput[]
+    upsert?: RoomUpsertWithWhereUniqueWithoutWardInput | RoomUpsertWithWhereUniqueWithoutWardInput[]
+    createMany?: RoomCreateManyWardInputEnvelope
+    set?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
+    disconnect?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
+    delete?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
+    connect?: RoomWhereUniqueInput | RoomWhereUniqueInput[]
+    update?: RoomUpdateWithWhereUniqueWithoutWardInput | RoomUpdateWithWhereUniqueWithoutWardInput[]
+    updateMany?: RoomUpdateManyWithWhereWithoutWardInput | RoomUpdateManyWithWhereWithoutWardInput[]
+    deleteMany?: RoomScalarWhereInput | RoomScalarWhereInput[]
+  }
+
+  export type BranchCreateNestedOneWithoutRoomsInput = {
+    create?: XOR<BranchCreateWithoutRoomsInput, BranchUncheckedCreateWithoutRoomsInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutRoomsInput
+    connect?: BranchWhereUniqueInput
+  }
+
+  export type WardCreateNestedOneWithoutRoomsInput = {
+    create?: XOR<WardCreateWithoutRoomsInput, WardUncheckedCreateWithoutRoomsInput>
+    connectOrCreate?: WardCreateOrConnectWithoutRoomsInput
+    connect?: WardWhereUniqueInput
+  }
+
+  export type BedCreateNestedManyWithoutRoomInput = {
+    create?: XOR<BedCreateWithoutRoomInput, BedUncheckedCreateWithoutRoomInput> | BedCreateWithoutRoomInput[] | BedUncheckedCreateWithoutRoomInput[]
+    connectOrCreate?: BedCreateOrConnectWithoutRoomInput | BedCreateOrConnectWithoutRoomInput[]
+    createMany?: BedCreateManyRoomInputEnvelope
+    connect?: BedWhereUniqueInput | BedWhereUniqueInput[]
+  }
+
+  export type BedUncheckedCreateNestedManyWithoutRoomInput = {
+    create?: XOR<BedCreateWithoutRoomInput, BedUncheckedCreateWithoutRoomInput> | BedCreateWithoutRoomInput[] | BedUncheckedCreateWithoutRoomInput[]
+    connectOrCreate?: BedCreateOrConnectWithoutRoomInput | BedCreateOrConnectWithoutRoomInput[]
+    createMany?: BedCreateManyRoomInputEnvelope
+    connect?: BedWhereUniqueInput | BedWhereUniqueInput[]
+  }
+
+  export type BranchUpdateOneRequiredWithoutRoomsNestedInput = {
+    create?: XOR<BranchCreateWithoutRoomsInput, BranchUncheckedCreateWithoutRoomsInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutRoomsInput
+    upsert?: BranchUpsertWithoutRoomsInput
+    connect?: BranchWhereUniqueInput
+    update?: XOR<XOR<BranchUpdateToOneWithWhereWithoutRoomsInput, BranchUpdateWithoutRoomsInput>, BranchUncheckedUpdateWithoutRoomsInput>
+  }
+
+  export type WardUpdateOneRequiredWithoutRoomsNestedInput = {
+    create?: XOR<WardCreateWithoutRoomsInput, WardUncheckedCreateWithoutRoomsInput>
+    connectOrCreate?: WardCreateOrConnectWithoutRoomsInput
+    upsert?: WardUpsertWithoutRoomsInput
+    connect?: WardWhereUniqueInput
+    update?: XOR<XOR<WardUpdateToOneWithWhereWithoutRoomsInput, WardUpdateWithoutRoomsInput>, WardUncheckedUpdateWithoutRoomsInput>
+  }
+
+  export type BedUpdateManyWithoutRoomNestedInput = {
+    create?: XOR<BedCreateWithoutRoomInput, BedUncheckedCreateWithoutRoomInput> | BedCreateWithoutRoomInput[] | BedUncheckedCreateWithoutRoomInput[]
+    connectOrCreate?: BedCreateOrConnectWithoutRoomInput | BedCreateOrConnectWithoutRoomInput[]
+    upsert?: BedUpsertWithWhereUniqueWithoutRoomInput | BedUpsertWithWhereUniqueWithoutRoomInput[]
+    createMany?: BedCreateManyRoomInputEnvelope
     set?: BedWhereUniqueInput | BedWhereUniqueInput[]
     disconnect?: BedWhereUniqueInput | BedWhereUniqueInput[]
     delete?: BedWhereUniqueInput | BedWhereUniqueInput[]
     connect?: BedWhereUniqueInput | BedWhereUniqueInput[]
-    update?: BedUpdateWithWhereUniqueWithoutWardInput | BedUpdateWithWhereUniqueWithoutWardInput[]
-    updateMany?: BedUpdateManyWithWhereWithoutWardInput | BedUpdateManyWithWhereWithoutWardInput[]
+    update?: BedUpdateWithWhereUniqueWithoutRoomInput | BedUpdateWithWhereUniqueWithoutRoomInput[]
+    updateMany?: BedUpdateManyWithWhereWithoutRoomInput | BedUpdateManyWithWhereWithoutRoomInput[]
     deleteMany?: BedScalarWhereInput | BedScalarWhereInput[]
   }
 
-  export type BedUncheckedUpdateManyWithoutWardNestedInput = {
-    create?: XOR<BedCreateWithoutWardInput, BedUncheckedCreateWithoutWardInput> | BedCreateWithoutWardInput[] | BedUncheckedCreateWithoutWardInput[]
-    connectOrCreate?: BedCreateOrConnectWithoutWardInput | BedCreateOrConnectWithoutWardInput[]
-    upsert?: BedUpsertWithWhereUniqueWithoutWardInput | BedUpsertWithWhereUniqueWithoutWardInput[]
-    createMany?: BedCreateManyWardInputEnvelope
+  export type BedUncheckedUpdateManyWithoutRoomNestedInput = {
+    create?: XOR<BedCreateWithoutRoomInput, BedUncheckedCreateWithoutRoomInput> | BedCreateWithoutRoomInput[] | BedUncheckedCreateWithoutRoomInput[]
+    connectOrCreate?: BedCreateOrConnectWithoutRoomInput | BedCreateOrConnectWithoutRoomInput[]
+    upsert?: BedUpsertWithWhereUniqueWithoutRoomInput | BedUpsertWithWhereUniqueWithoutRoomInput[]
+    createMany?: BedCreateManyRoomInputEnvelope
     set?: BedWhereUniqueInput | BedWhereUniqueInput[]
     disconnect?: BedWhereUniqueInput | BedWhereUniqueInput[]
     delete?: BedWhereUniqueInput | BedWhereUniqueInput[]
     connect?: BedWhereUniqueInput | BedWhereUniqueInput[]
-    update?: BedUpdateWithWhereUniqueWithoutWardInput | BedUpdateWithWhereUniqueWithoutWardInput[]
-    updateMany?: BedUpdateManyWithWhereWithoutWardInput | BedUpdateManyWithWhereWithoutWardInput[]
+    update?: BedUpdateWithWhereUniqueWithoutRoomInput | BedUpdateWithWhereUniqueWithoutRoomInput[]
+    updateMany?: BedUpdateManyWithWhereWithoutRoomInput | BedUpdateManyWithWhereWithoutRoomInput[]
     deleteMany?: BedScalarWhereInput | BedScalarWhereInput[]
   }
 
@@ -40440,10 +43545,10 @@ export namespace Prisma {
     connect?: BranchWhereUniqueInput
   }
 
-  export type WardCreateNestedOneWithoutBedsInput = {
-    create?: XOR<WardCreateWithoutBedsInput, WardUncheckedCreateWithoutBedsInput>
-    connectOrCreate?: WardCreateOrConnectWithoutBedsInput
-    connect?: WardWhereUniqueInput
+  export type RoomCreateNestedOneWithoutBedsInput = {
+    create?: XOR<RoomCreateWithoutBedsInput, RoomUncheckedCreateWithoutBedsInput>
+    connectOrCreate?: RoomCreateOrConnectWithoutBedsInput
+    connect?: RoomWhereUniqueInput
   }
 
   export type AdmissionCreateNestedManyWithoutBedInput = {
@@ -40472,12 +43577,12 @@ export namespace Prisma {
     update?: XOR<XOR<BranchUpdateToOneWithWhereWithoutBedInput, BranchUpdateWithoutBedInput>, BranchUncheckedUpdateWithoutBedInput>
   }
 
-  export type WardUpdateOneRequiredWithoutBedsNestedInput = {
-    create?: XOR<WardCreateWithoutBedsInput, WardUncheckedCreateWithoutBedsInput>
-    connectOrCreate?: WardCreateOrConnectWithoutBedsInput
-    upsert?: WardUpsertWithoutBedsInput
-    connect?: WardWhereUniqueInput
-    update?: XOR<XOR<WardUpdateToOneWithWhereWithoutBedsInput, WardUpdateWithoutBedsInput>, WardUncheckedUpdateWithoutBedsInput>
+  export type RoomUpdateOneRequiredWithoutBedsNestedInput = {
+    create?: XOR<RoomCreateWithoutBedsInput, RoomUncheckedCreateWithoutBedsInput>
+    connectOrCreate?: RoomCreateOrConnectWithoutBedsInput
+    upsert?: RoomUpsertWithoutBedsInput
+    connect?: RoomWhereUniqueInput
+    update?: XOR<XOR<RoomUpdateToOneWithWhereWithoutBedsInput, RoomUpdateWithoutBedsInput>, RoomUncheckedUpdateWithoutBedsInput>
   }
 
   export type AdmissionUpdateManyWithoutBedNestedInput = {
@@ -41809,7 +44914,7 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    beds?: BedCreateNestedManyWithoutWardInput
+    rooms?: RoomCreateNestedManyWithoutWardInput
   }
 
   export type WardUncheckedCreateWithoutBranchInput = {
@@ -41820,7 +44925,7 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    beds?: BedUncheckedCreateNestedManyWithoutWardInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutWardInput
   }
 
   export type WardCreateOrConnectWithoutBranchInput = {
@@ -42042,13 +45147,13 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    ward: WardCreateNestedOneWithoutBedsInput
+    room: RoomCreateNestedOneWithoutBedsInput
     admissions?: AdmissionCreateNestedManyWithoutBedInput
   }
 
   export type BedUncheckedCreateWithoutBranchInput = {
     id?: string
-    wardId: string
+    roomId: string
     code: string
     state?: $Enums.BedState
     isActive?: boolean
@@ -42098,6 +45203,86 @@ export namespace Prisma {
 
   export type AdmissionCreateManyBranchInputEnvelope = {
     data: AdmissionCreateManyBranchInput | AdmissionCreateManyBranchInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type FacilityCreateWithoutBranchInput = {
+    id?: string
+    code: string
+    name: string
+    type?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city: string
+    state?: string | null
+    postalCode?: string | null
+    phone?: string | null
+    email?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type FacilityUncheckedCreateWithoutBranchInput = {
+    id?: string
+    code: string
+    name: string
+    type?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city: string
+    state?: string | null
+    postalCode?: string | null
+    phone?: string | null
+    email?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type FacilityCreateOrConnectWithoutBranchInput = {
+    where: FacilityWhereUniqueInput
+    create: XOR<FacilityCreateWithoutBranchInput, FacilityUncheckedCreateWithoutBranchInput>
+  }
+
+  export type FacilityCreateManyBranchInputEnvelope = {
+    data: FacilityCreateManyBranchInput | FacilityCreateManyBranchInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type RoomCreateWithoutBranchInput = {
+    id?: string
+    code: string
+    name: string
+    floor?: string | null
+    type?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    ward: WardCreateNestedOneWithoutRoomsInput
+    beds?: BedCreateNestedManyWithoutRoomInput
+  }
+
+  export type RoomUncheckedCreateWithoutBranchInput = {
+    id?: string
+    wardId: string
+    code: string
+    name: string
+    floor?: string | null
+    type?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    beds?: BedUncheckedCreateNestedManyWithoutRoomInput
+  }
+
+  export type RoomCreateOrConnectWithoutBranchInput = {
+    where: RoomWhereUniqueInput
+    create: XOR<RoomCreateWithoutBranchInput, RoomUncheckedCreateWithoutBranchInput>
+  }
+
+  export type RoomCreateManyBranchInputEnvelope = {
+    data: RoomCreateManyBranchInput | RoomCreateManyBranchInput[]
     skipDuplicates?: boolean
   }
 
@@ -42583,7 +45768,7 @@ export namespace Prisma {
     NOT?: BedScalarWhereInput | BedScalarWhereInput[]
     id?: StringFilter<"Bed"> | string
     branchId?: StringFilter<"Bed"> | string
-    wardId?: StringFilter<"Bed"> | string
+    roomId?: StringFilter<"Bed"> | string
     code?: StringFilter<"Bed"> | string
     state?: EnumBedStateFilter<"Bed"> | $Enums.BedState
     isActive?: BoolFilter<"Bed"> | boolean
@@ -42621,6 +45806,75 @@ export namespace Prisma {
     status?: StringFilter<"Admission"> | string
     createdAt?: DateTimeFilter<"Admission"> | Date | string
     updatedAt?: DateTimeFilter<"Admission"> | Date | string
+  }
+
+  export type FacilityUpsertWithWhereUniqueWithoutBranchInput = {
+    where: FacilityWhereUniqueInput
+    update: XOR<FacilityUpdateWithoutBranchInput, FacilityUncheckedUpdateWithoutBranchInput>
+    create: XOR<FacilityCreateWithoutBranchInput, FacilityUncheckedCreateWithoutBranchInput>
+  }
+
+  export type FacilityUpdateWithWhereUniqueWithoutBranchInput = {
+    where: FacilityWhereUniqueInput
+    data: XOR<FacilityUpdateWithoutBranchInput, FacilityUncheckedUpdateWithoutBranchInput>
+  }
+
+  export type FacilityUpdateManyWithWhereWithoutBranchInput = {
+    where: FacilityScalarWhereInput
+    data: XOR<FacilityUpdateManyMutationInput, FacilityUncheckedUpdateManyWithoutBranchInput>
+  }
+
+  export type FacilityScalarWhereInput = {
+    AND?: FacilityScalarWhereInput | FacilityScalarWhereInput[]
+    OR?: FacilityScalarWhereInput[]
+    NOT?: FacilityScalarWhereInput | FacilityScalarWhereInput[]
+    id?: StringFilter<"Facility"> | string
+    branchId?: StringFilter<"Facility"> | string
+    code?: StringFilter<"Facility"> | string
+    name?: StringFilter<"Facility"> | string
+    type?: StringNullableFilter<"Facility"> | string | null
+    addressLine1?: StringNullableFilter<"Facility"> | string | null
+    addressLine2?: StringNullableFilter<"Facility"> | string | null
+    city?: StringFilter<"Facility"> | string
+    state?: StringNullableFilter<"Facility"> | string | null
+    postalCode?: StringNullableFilter<"Facility"> | string | null
+    phone?: StringNullableFilter<"Facility"> | string | null
+    email?: StringNullableFilter<"Facility"> | string | null
+    isActive?: BoolFilter<"Facility"> | boolean
+    createdAt?: DateTimeFilter<"Facility"> | Date | string
+    updatedAt?: DateTimeFilter<"Facility"> | Date | string
+  }
+
+  export type RoomUpsertWithWhereUniqueWithoutBranchInput = {
+    where: RoomWhereUniqueInput
+    update: XOR<RoomUpdateWithoutBranchInput, RoomUncheckedUpdateWithoutBranchInput>
+    create: XOR<RoomCreateWithoutBranchInput, RoomUncheckedCreateWithoutBranchInput>
+  }
+
+  export type RoomUpdateWithWhereUniqueWithoutBranchInput = {
+    where: RoomWhereUniqueInput
+    data: XOR<RoomUpdateWithoutBranchInput, RoomUncheckedUpdateWithoutBranchInput>
+  }
+
+  export type RoomUpdateManyWithWhereWithoutBranchInput = {
+    where: RoomScalarWhereInput
+    data: XOR<RoomUpdateManyMutationInput, RoomUncheckedUpdateManyWithoutBranchInput>
+  }
+
+  export type RoomScalarWhereInput = {
+    AND?: RoomScalarWhereInput | RoomScalarWhereInput[]
+    OR?: RoomScalarWhereInput[]
+    NOT?: RoomScalarWhereInput | RoomScalarWhereInput[]
+    id?: StringFilter<"Room"> | string
+    branchId?: StringFilter<"Room"> | string
+    wardId?: StringFilter<"Room"> | string
+    code?: StringFilter<"Room"> | string
+    name?: StringFilter<"Room"> | string
+    floor?: StringNullableFilter<"Room"> | string | null
+    type?: StringNullableFilter<"Room"> | string | null
+    isActive?: BoolFilter<"Room"> | boolean
+    createdAt?: DateTimeFilter<"Room"> | Date | string
+    updatedAt?: DateTimeFilter<"Room"> | Date | string
   }
 
   export type StatutoryCaseUpsertWithWhereUniqueWithoutBranchInput = {
@@ -42754,6 +46008,142 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"PolicyVersionBranch"> | Date | string
   }
 
+  export type BranchCreateWithoutFacilitiesInput = {
+    id?: string
+    code: string
+    name: string
+    city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    departments?: DepartmentCreateNestedManyWithoutBranchInput
+    users?: UserCreateNestedManyWithoutBranchInput
+    patients?: PatientCreateNestedManyWithoutBranchInput
+    wards?: WardCreateNestedManyWithoutBranchInput
+    oTs?: OTCreateNestedManyWithoutBranchInput
+    tariffPlans?: TariffPlanCreateNestedManyWithoutBranchInput
+    assets?: AssetCreateNestedManyWithoutBranchInput
+    Specialty?: SpecialtyCreateNestedManyWithoutBranchInput
+    Staff?: StaffCreateNestedManyWithoutBranchInput
+    Encounter?: EncounterCreateNestedManyWithoutBranchInput
+    Bed?: BedCreateNestedManyWithoutBranchInput
+    Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    rooms?: RoomCreateNestedManyWithoutBranchInput
+    statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
+    auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
+  }
+
+  export type BranchUncheckedCreateWithoutFacilitiesInput = {
+    id?: string
+    code: string
+    name: string
+    city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
+    users?: UserUncheckedCreateNestedManyWithoutBranchInput
+    patients?: PatientUncheckedCreateNestedManyWithoutBranchInput
+    wards?: WardUncheckedCreateNestedManyWithoutBranchInput
+    oTs?: OTUncheckedCreateNestedManyWithoutBranchInput
+    tariffPlans?: TariffPlanUncheckedCreateNestedManyWithoutBranchInput
+    assets?: AssetUncheckedCreateNestedManyWithoutBranchInput
+    Specialty?: SpecialtyUncheckedCreateNestedManyWithoutBranchInput
+    Staff?: StaffUncheckedCreateNestedManyWithoutBranchInput
+    Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
+    Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
+    Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutBranchInput
+    statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
+    auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
+  }
+
+  export type BranchCreateOrConnectWithoutFacilitiesInput = {
+    where: BranchWhereUniqueInput
+    create: XOR<BranchCreateWithoutFacilitiesInput, BranchUncheckedCreateWithoutFacilitiesInput>
+  }
+
+  export type BranchUpsertWithoutFacilitiesInput = {
+    update: XOR<BranchUpdateWithoutFacilitiesInput, BranchUncheckedUpdateWithoutFacilitiesInput>
+    create: XOR<BranchCreateWithoutFacilitiesInput, BranchUncheckedCreateWithoutFacilitiesInput>
+    where?: BranchWhereInput
+  }
+
+  export type BranchUpdateToOneWithWhereWithoutFacilitiesInput = {
+    where?: BranchWhereInput
+    data: XOR<BranchUpdateWithoutFacilitiesInput, BranchUncheckedUpdateWithoutFacilitiesInput>
+  }
+
+  export type BranchUpdateWithoutFacilitiesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    departments?: DepartmentUpdateManyWithoutBranchNestedInput
+    users?: UserUpdateManyWithoutBranchNestedInput
+    patients?: PatientUpdateManyWithoutBranchNestedInput
+    wards?: WardUpdateManyWithoutBranchNestedInput
+    oTs?: OTUpdateManyWithoutBranchNestedInput
+    tariffPlans?: TariffPlanUpdateManyWithoutBranchNestedInput
+    assets?: AssetUpdateManyWithoutBranchNestedInput
+    Specialty?: SpecialtyUpdateManyWithoutBranchNestedInput
+    Staff?: StaffUpdateManyWithoutBranchNestedInput
+    Encounter?: EncounterUpdateManyWithoutBranchNestedInput
+    Bed?: BedUpdateManyWithoutBranchNestedInput
+    Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUpdateManyWithoutBranchNestedInput
+    statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
+    auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
+  }
+
+  export type BranchUncheckedUpdateWithoutFacilitiesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
+    users?: UserUncheckedUpdateManyWithoutBranchNestedInput
+    patients?: PatientUncheckedUpdateManyWithoutBranchNestedInput
+    wards?: WardUncheckedUpdateManyWithoutBranchNestedInput
+    oTs?: OTUncheckedUpdateManyWithoutBranchNestedInput
+    tariffPlans?: TariffPlanUncheckedUpdateManyWithoutBranchNestedInput
+    assets?: AssetUncheckedUpdateManyWithoutBranchNestedInput
+    Specialty?: SpecialtyUncheckedUpdateManyWithoutBranchNestedInput
+    Staff?: StaffUncheckedUpdateManyWithoutBranchNestedInput
+    Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
+    Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
+    Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
+    statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
+    auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
+  }
+
   export type BranchCreateWithoutDepartmentsInput = {
     id?: string
     code: string
@@ -42776,6 +46166,8 @@ export namespace Prisma {
     Encounter?: EncounterCreateNestedManyWithoutBranchInput
     Bed?: BedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    facilities?: FacilityCreateNestedManyWithoutBranchInput
+    rooms?: RoomCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
@@ -42804,6 +46196,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
     Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    facilities?: FacilityUncheckedCreateNestedManyWithoutBranchInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
@@ -42920,6 +46314,8 @@ export namespace Prisma {
     Encounter?: EncounterUpdateManyWithoutBranchNestedInput
     Bed?: BedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
@@ -42948,6 +46344,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
     Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUncheckedUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
@@ -43008,6 +46406,8 @@ export namespace Prisma {
     Encounter?: EncounterCreateNestedManyWithoutBranchInput
     Bed?: BedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    facilities?: FacilityCreateNestedManyWithoutBranchInput
+    rooms?: RoomCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
@@ -43036,6 +46436,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
     Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    facilities?: FacilityUncheckedCreateNestedManyWithoutBranchInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
@@ -43147,6 +46549,8 @@ export namespace Prisma {
     Encounter?: EncounterUpdateManyWithoutBranchNestedInput
     Bed?: BedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
@@ -43175,6 +46579,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
     Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUncheckedUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
@@ -43252,6 +46658,8 @@ export namespace Prisma {
     Encounter?: EncounterCreateNestedManyWithoutBranchInput
     Bed?: BedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    facilities?: FacilityCreateNestedManyWithoutBranchInput
+    rooms?: RoomCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
@@ -43280,6 +46688,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
     Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    facilities?: FacilityUncheckedCreateNestedManyWithoutBranchInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
@@ -43431,6 +46841,8 @@ export namespace Prisma {
     Encounter?: EncounterUpdateManyWithoutBranchNestedInput
     Bed?: BedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
@@ -43459,6 +46871,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
     Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUncheckedUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
@@ -43612,6 +47026,8 @@ export namespace Prisma {
     Encounter?: EncounterCreateNestedManyWithoutBranchInput
     Bed?: BedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    facilities?: FacilityCreateNestedManyWithoutBranchInput
+    rooms?: RoomCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
@@ -43640,6 +47056,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
     Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    facilities?: FacilityUncheckedCreateNestedManyWithoutBranchInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
@@ -44122,6 +47540,8 @@ export namespace Prisma {
     Encounter?: EncounterUpdateManyWithoutBranchNestedInput
     Bed?: BedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
@@ -44150,6 +47570,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
     Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUncheckedUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
@@ -44380,6 +47802,8 @@ export namespace Prisma {
     Encounter?: EncounterCreateNestedManyWithoutBranchInput
     Bed?: BedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    facilities?: FacilityCreateNestedManyWithoutBranchInput
+    rooms?: RoomCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
@@ -44408,6 +47832,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
     Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    facilities?: FacilityUncheckedCreateNestedManyWithoutBranchInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
@@ -44602,6 +48028,8 @@ export namespace Prisma {
     Encounter?: EncounterUpdateManyWithoutBranchNestedInput
     Bed?: BedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
@@ -44630,6 +48058,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
     Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUncheckedUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
@@ -44762,6 +48192,8 @@ export namespace Prisma {
     Staff?: StaffCreateNestedManyWithoutBranchInput
     Bed?: BedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    facilities?: FacilityCreateNestedManyWithoutBranchInput
+    rooms?: RoomCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
@@ -44790,6 +48222,8 @@ export namespace Prisma {
     Staff?: StaffUncheckedCreateNestedManyWithoutBranchInput
     Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    facilities?: FacilityUncheckedCreateNestedManyWithoutBranchInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
@@ -44909,6 +48343,8 @@ export namespace Prisma {
     Staff?: StaffUpdateManyWithoutBranchNestedInput
     Bed?: BedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
@@ -44937,6 +48373,8 @@ export namespace Prisma {
     Staff?: StaffUncheckedUpdateManyWithoutBranchNestedInput
     Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUncheckedUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
@@ -45028,6 +48466,8 @@ export namespace Prisma {
     Encounter?: EncounterCreateNestedManyWithoutBranchInput
     Bed?: BedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    facilities?: FacilityCreateNestedManyWithoutBranchInput
+    rooms?: RoomCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
@@ -45056,6 +48496,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
     Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    facilities?: FacilityUncheckedCreateNestedManyWithoutBranchInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
@@ -45067,35 +48509,39 @@ export namespace Prisma {
     create: XOR<BranchCreateWithoutWardsInput, BranchUncheckedCreateWithoutWardsInput>
   }
 
-  export type BedCreateWithoutWardInput = {
+  export type RoomCreateWithoutWardInput = {
     id?: string
     code: string
-    state?: $Enums.BedState
+    name: string
+    floor?: string | null
+    type?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    branch: BranchCreateNestedOneWithoutBedInput
-    admissions?: AdmissionCreateNestedManyWithoutBedInput
+    branch: BranchCreateNestedOneWithoutRoomsInput
+    beds?: BedCreateNestedManyWithoutRoomInput
   }
 
-  export type BedUncheckedCreateWithoutWardInput = {
+  export type RoomUncheckedCreateWithoutWardInput = {
     id?: string
     branchId: string
     code: string
-    state?: $Enums.BedState
+    name: string
+    floor?: string | null
+    type?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    admissions?: AdmissionUncheckedCreateNestedManyWithoutBedInput
+    beds?: BedUncheckedCreateNestedManyWithoutRoomInput
   }
 
-  export type BedCreateOrConnectWithoutWardInput = {
-    where: BedWhereUniqueInput
-    create: XOR<BedCreateWithoutWardInput, BedUncheckedCreateWithoutWardInput>
+  export type RoomCreateOrConnectWithoutWardInput = {
+    where: RoomWhereUniqueInput
+    create: XOR<RoomCreateWithoutWardInput, RoomUncheckedCreateWithoutWardInput>
   }
 
-  export type BedCreateManyWardInputEnvelope = {
-    data: BedCreateManyWardInput | BedCreateManyWardInput[]
+  export type RoomCreateManyWardInputEnvelope = {
+    data: RoomCreateManyWardInput | RoomCreateManyWardInput[]
     skipDuplicates?: boolean
   }
 
@@ -45132,6 +48578,8 @@ export namespace Prisma {
     Encounter?: EncounterUpdateManyWithoutBranchNestedInput
     Bed?: BedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
@@ -45160,26 +48608,272 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
     Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUncheckedUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
   }
 
-  export type BedUpsertWithWhereUniqueWithoutWardInput = {
-    where: BedWhereUniqueInput
-    update: XOR<BedUpdateWithoutWardInput, BedUncheckedUpdateWithoutWardInput>
-    create: XOR<BedCreateWithoutWardInput, BedUncheckedCreateWithoutWardInput>
+  export type RoomUpsertWithWhereUniqueWithoutWardInput = {
+    where: RoomWhereUniqueInput
+    update: XOR<RoomUpdateWithoutWardInput, RoomUncheckedUpdateWithoutWardInput>
+    create: XOR<RoomCreateWithoutWardInput, RoomUncheckedCreateWithoutWardInput>
   }
 
-  export type BedUpdateWithWhereUniqueWithoutWardInput = {
-    where: BedWhereUniqueInput
-    data: XOR<BedUpdateWithoutWardInput, BedUncheckedUpdateWithoutWardInput>
+  export type RoomUpdateWithWhereUniqueWithoutWardInput = {
+    where: RoomWhereUniqueInput
+    data: XOR<RoomUpdateWithoutWardInput, RoomUncheckedUpdateWithoutWardInput>
   }
 
-  export type BedUpdateManyWithWhereWithoutWardInput = {
+  export type RoomUpdateManyWithWhereWithoutWardInput = {
+    where: RoomScalarWhereInput
+    data: XOR<RoomUpdateManyMutationInput, RoomUncheckedUpdateManyWithoutWardInput>
+  }
+
+  export type BranchCreateWithoutRoomsInput = {
+    id?: string
+    code: string
+    name: string
+    city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    departments?: DepartmentCreateNestedManyWithoutBranchInput
+    users?: UserCreateNestedManyWithoutBranchInput
+    patients?: PatientCreateNestedManyWithoutBranchInput
+    wards?: WardCreateNestedManyWithoutBranchInput
+    oTs?: OTCreateNestedManyWithoutBranchInput
+    tariffPlans?: TariffPlanCreateNestedManyWithoutBranchInput
+    assets?: AssetCreateNestedManyWithoutBranchInput
+    Specialty?: SpecialtyCreateNestedManyWithoutBranchInput
+    Staff?: StaffCreateNestedManyWithoutBranchInput
+    Encounter?: EncounterCreateNestedManyWithoutBranchInput
+    Bed?: BedCreateNestedManyWithoutBranchInput
+    Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    facilities?: FacilityCreateNestedManyWithoutBranchInput
+    statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
+    auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
+  }
+
+  export type BranchUncheckedCreateWithoutRoomsInput = {
+    id?: string
+    code: string
+    name: string
+    city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
+    users?: UserUncheckedCreateNestedManyWithoutBranchInput
+    patients?: PatientUncheckedCreateNestedManyWithoutBranchInput
+    wards?: WardUncheckedCreateNestedManyWithoutBranchInput
+    oTs?: OTUncheckedCreateNestedManyWithoutBranchInput
+    tariffPlans?: TariffPlanUncheckedCreateNestedManyWithoutBranchInput
+    assets?: AssetUncheckedCreateNestedManyWithoutBranchInput
+    Specialty?: SpecialtyUncheckedCreateNestedManyWithoutBranchInput
+    Staff?: StaffUncheckedCreateNestedManyWithoutBranchInput
+    Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
+    Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
+    Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    facilities?: FacilityUncheckedCreateNestedManyWithoutBranchInput
+    statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
+    auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
+  }
+
+  export type BranchCreateOrConnectWithoutRoomsInput = {
+    where: BranchWhereUniqueInput
+    create: XOR<BranchCreateWithoutRoomsInput, BranchUncheckedCreateWithoutRoomsInput>
+  }
+
+  export type WardCreateWithoutRoomsInput = {
+    id?: string
+    code: string
+    name: string
+    specialty?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branch: BranchCreateNestedOneWithoutWardsInput
+  }
+
+  export type WardUncheckedCreateWithoutRoomsInput = {
+    id?: string
+    branchId: string
+    code: string
+    name: string
+    specialty?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WardCreateOrConnectWithoutRoomsInput = {
+    where: WardWhereUniqueInput
+    create: XOR<WardCreateWithoutRoomsInput, WardUncheckedCreateWithoutRoomsInput>
+  }
+
+  export type BedCreateWithoutRoomInput = {
+    id?: string
+    code: string
+    state?: $Enums.BedState
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branch: BranchCreateNestedOneWithoutBedInput
+    admissions?: AdmissionCreateNestedManyWithoutBedInput
+  }
+
+  export type BedUncheckedCreateWithoutRoomInput = {
+    id?: string
+    branchId: string
+    code: string
+    state?: $Enums.BedState
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    admissions?: AdmissionUncheckedCreateNestedManyWithoutBedInput
+  }
+
+  export type BedCreateOrConnectWithoutRoomInput = {
+    where: BedWhereUniqueInput
+    create: XOR<BedCreateWithoutRoomInput, BedUncheckedCreateWithoutRoomInput>
+  }
+
+  export type BedCreateManyRoomInputEnvelope = {
+    data: BedCreateManyRoomInput | BedCreateManyRoomInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type BranchUpsertWithoutRoomsInput = {
+    update: XOR<BranchUpdateWithoutRoomsInput, BranchUncheckedUpdateWithoutRoomsInput>
+    create: XOR<BranchCreateWithoutRoomsInput, BranchUncheckedCreateWithoutRoomsInput>
+    where?: BranchWhereInput
+  }
+
+  export type BranchUpdateToOneWithWhereWithoutRoomsInput = {
+    where?: BranchWhereInput
+    data: XOR<BranchUpdateWithoutRoomsInput, BranchUncheckedUpdateWithoutRoomsInput>
+  }
+
+  export type BranchUpdateWithoutRoomsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    departments?: DepartmentUpdateManyWithoutBranchNestedInput
+    users?: UserUpdateManyWithoutBranchNestedInput
+    patients?: PatientUpdateManyWithoutBranchNestedInput
+    wards?: WardUpdateManyWithoutBranchNestedInput
+    oTs?: OTUpdateManyWithoutBranchNestedInput
+    tariffPlans?: TariffPlanUpdateManyWithoutBranchNestedInput
+    assets?: AssetUpdateManyWithoutBranchNestedInput
+    Specialty?: SpecialtyUpdateManyWithoutBranchNestedInput
+    Staff?: StaffUpdateManyWithoutBranchNestedInput
+    Encounter?: EncounterUpdateManyWithoutBranchNestedInput
+    Bed?: BedUpdateManyWithoutBranchNestedInput
+    Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUpdateManyWithoutBranchNestedInput
+    statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
+    auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
+  }
+
+  export type BranchUncheckedUpdateWithoutRoomsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
+    users?: UserUncheckedUpdateManyWithoutBranchNestedInput
+    patients?: PatientUncheckedUpdateManyWithoutBranchNestedInput
+    wards?: WardUncheckedUpdateManyWithoutBranchNestedInput
+    oTs?: OTUncheckedUpdateManyWithoutBranchNestedInput
+    tariffPlans?: TariffPlanUncheckedUpdateManyWithoutBranchNestedInput
+    assets?: AssetUncheckedUpdateManyWithoutBranchNestedInput
+    Specialty?: SpecialtyUncheckedUpdateManyWithoutBranchNestedInput
+    Staff?: StaffUncheckedUpdateManyWithoutBranchNestedInput
+    Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
+    Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
+    Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUncheckedUpdateManyWithoutBranchNestedInput
+    statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
+    auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
+  }
+
+  export type WardUpsertWithoutRoomsInput = {
+    update: XOR<WardUpdateWithoutRoomsInput, WardUncheckedUpdateWithoutRoomsInput>
+    create: XOR<WardCreateWithoutRoomsInput, WardUncheckedCreateWithoutRoomsInput>
+    where?: WardWhereInput
+  }
+
+  export type WardUpdateToOneWithWhereWithoutRoomsInput = {
+    where?: WardWhereInput
+    data: XOR<WardUpdateWithoutRoomsInput, WardUncheckedUpdateWithoutRoomsInput>
+  }
+
+  export type WardUpdateWithoutRoomsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    specialty?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branch?: BranchUpdateOneRequiredWithoutWardsNestedInput
+  }
+
+  export type WardUncheckedUpdateWithoutRoomsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    branchId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    specialty?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BedUpsertWithWhereUniqueWithoutRoomInput = {
+    where: BedWhereUniqueInput
+    update: XOR<BedUpdateWithoutRoomInput, BedUncheckedUpdateWithoutRoomInput>
+    create: XOR<BedCreateWithoutRoomInput, BedUncheckedCreateWithoutRoomInput>
+  }
+
+  export type BedUpdateWithWhereUniqueWithoutRoomInput = {
+    where: BedWhereUniqueInput
+    data: XOR<BedUpdateWithoutRoomInput, BedUncheckedUpdateWithoutRoomInput>
+  }
+
+  export type BedUpdateManyWithWhereWithoutRoomInput = {
     where: BedScalarWhereInput
-    data: XOR<BedUpdateManyMutationInput, BedUncheckedUpdateManyWithoutWardInput>
+    data: XOR<BedUpdateManyMutationInput, BedUncheckedUpdateManyWithoutRoomInput>
   }
 
   export type BranchCreateWithoutBedInput = {
@@ -45204,6 +48898,8 @@ export namespace Prisma {
     Staff?: StaffCreateNestedManyWithoutBranchInput
     Encounter?: EncounterCreateNestedManyWithoutBranchInput
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    facilities?: FacilityCreateNestedManyWithoutBranchInput
+    rooms?: RoomCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
@@ -45232,6 +48928,8 @@ export namespace Prisma {
     Staff?: StaffUncheckedCreateNestedManyWithoutBranchInput
     Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    facilities?: FacilityUncheckedCreateNestedManyWithoutBranchInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
@@ -45243,31 +48941,35 @@ export namespace Prisma {
     create: XOR<BranchCreateWithoutBedInput, BranchUncheckedCreateWithoutBedInput>
   }
 
-  export type WardCreateWithoutBedsInput = {
+  export type RoomCreateWithoutBedsInput = {
     id?: string
     code: string
     name: string
-    specialty?: string | null
+    floor?: string | null
+    type?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    branch: BranchCreateNestedOneWithoutWardsInput
+    branch: BranchCreateNestedOneWithoutRoomsInput
+    ward: WardCreateNestedOneWithoutRoomsInput
   }
 
-  export type WardUncheckedCreateWithoutBedsInput = {
+  export type RoomUncheckedCreateWithoutBedsInput = {
     id?: string
     branchId: string
+    wardId: string
     code: string
     name: string
-    specialty?: string | null
+    floor?: string | null
+    type?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
-  export type WardCreateOrConnectWithoutBedsInput = {
-    where: WardWhereUniqueInput
-    create: XOR<WardCreateWithoutBedsInput, WardUncheckedCreateWithoutBedsInput>
+  export type RoomCreateOrConnectWithoutBedsInput = {
+    where: RoomWhereUniqueInput
+    create: XOR<RoomCreateWithoutBedsInput, RoomUncheckedCreateWithoutBedsInput>
   }
 
   export type AdmissionCreateWithoutBedInput = {
@@ -45337,6 +49039,8 @@ export namespace Prisma {
     Staff?: StaffUpdateManyWithoutBranchNestedInput
     Encounter?: EncounterUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
@@ -45365,40 +49069,46 @@ export namespace Prisma {
     Staff?: StaffUncheckedUpdateManyWithoutBranchNestedInput
     Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUncheckedUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
   }
 
-  export type WardUpsertWithoutBedsInput = {
-    update: XOR<WardUpdateWithoutBedsInput, WardUncheckedUpdateWithoutBedsInput>
-    create: XOR<WardCreateWithoutBedsInput, WardUncheckedCreateWithoutBedsInput>
-    where?: WardWhereInput
+  export type RoomUpsertWithoutBedsInput = {
+    update: XOR<RoomUpdateWithoutBedsInput, RoomUncheckedUpdateWithoutBedsInput>
+    create: XOR<RoomCreateWithoutBedsInput, RoomUncheckedCreateWithoutBedsInput>
+    where?: RoomWhereInput
   }
 
-  export type WardUpdateToOneWithWhereWithoutBedsInput = {
-    where?: WardWhereInput
-    data: XOR<WardUpdateWithoutBedsInput, WardUncheckedUpdateWithoutBedsInput>
+  export type RoomUpdateToOneWithWhereWithoutBedsInput = {
+    where?: RoomWhereInput
+    data: XOR<RoomUpdateWithoutBedsInput, RoomUncheckedUpdateWithoutBedsInput>
   }
 
-  export type WardUpdateWithoutBedsInput = {
+  export type RoomUpdateWithoutBedsInput = {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    specialty?: NullableStringFieldUpdateOperationsInput | string | null
+    floor?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    branch?: BranchUpdateOneRequiredWithoutWardsNestedInput
+    branch?: BranchUpdateOneRequiredWithoutRoomsNestedInput
+    ward?: WardUpdateOneRequiredWithoutRoomsNestedInput
   }
 
-  export type WardUncheckedUpdateWithoutBedsInput = {
+  export type RoomUncheckedUpdateWithoutBedsInput = {
     id?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
+    wardId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    specialty?: NullableStringFieldUpdateOperationsInput | string | null
+    floor?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -45442,6 +49152,8 @@ export namespace Prisma {
     Staff?: StaffCreateNestedManyWithoutBranchInput
     Encounter?: EncounterCreateNestedManyWithoutBranchInput
     Bed?: BedCreateNestedManyWithoutBranchInput
+    facilities?: FacilityCreateNestedManyWithoutBranchInput
+    rooms?: RoomCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
@@ -45470,6 +49182,8 @@ export namespace Prisma {
     Staff?: StaffUncheckedCreateNestedManyWithoutBranchInput
     Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
     Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
+    facilities?: FacilityUncheckedCreateNestedManyWithoutBranchInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
@@ -45559,13 +49273,13 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     branch: BranchCreateNestedOneWithoutBedInput
-    ward: WardCreateNestedOneWithoutBedsInput
+    room: RoomCreateNestedOneWithoutBedsInput
   }
 
   export type BedUncheckedCreateWithoutAdmissionsInput = {
     id?: string
     branchId: string
-    wardId: string
+    roomId: string
     code: string
     state?: $Enums.BedState
     isActive?: boolean
@@ -45611,6 +49325,8 @@ export namespace Prisma {
     Staff?: StaffUpdateManyWithoutBranchNestedInput
     Encounter?: EncounterUpdateManyWithoutBranchNestedInput
     Bed?: BedUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
@@ -45639,6 +49355,8 @@ export namespace Prisma {
     Staff?: StaffUncheckedUpdateManyWithoutBranchNestedInput
     Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
     Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUncheckedUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
@@ -45746,13 +49464,13 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branch?: BranchUpdateOneRequiredWithoutBedNestedInput
-    ward?: WardUpdateOneRequiredWithoutBedsNestedInput
+    room?: RoomUpdateOneRequiredWithoutBedsNestedInput
   }
 
   export type BedUncheckedUpdateWithoutAdmissionsInput = {
     id?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
-    wardId?: StringFieldUpdateOperationsInput | string
+    roomId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     state?: EnumBedStateFieldUpdateOperationsInput | $Enums.BedState
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -45782,6 +49500,8 @@ export namespace Prisma {
     Encounter?: EncounterCreateNestedManyWithoutBranchInput
     Bed?: BedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    facilities?: FacilityCreateNestedManyWithoutBranchInput
+    rooms?: RoomCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
@@ -45810,6 +49530,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
     Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    facilities?: FacilityUncheckedCreateNestedManyWithoutBranchInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
@@ -45854,6 +49576,8 @@ export namespace Prisma {
     Encounter?: EncounterUpdateManyWithoutBranchNestedInput
     Bed?: BedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
@@ -45882,6 +49606,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
     Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUncheckedUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
@@ -45910,6 +49636,8 @@ export namespace Prisma {
     Encounter?: EncounterCreateNestedManyWithoutBranchInput
     Bed?: BedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    facilities?: FacilityCreateNestedManyWithoutBranchInput
+    rooms?: RoomCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
@@ -45938,6 +49666,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
     Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    facilities?: FacilityUncheckedCreateNestedManyWithoutBranchInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
@@ -45982,6 +49712,8 @@ export namespace Prisma {
     Encounter?: EncounterUpdateManyWithoutBranchNestedInput
     Bed?: BedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
@@ -46010,6 +49742,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
     Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUncheckedUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
@@ -46038,6 +49772,8 @@ export namespace Prisma {
     Encounter?: EncounterCreateNestedManyWithoutBranchInput
     Bed?: BedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    facilities?: FacilityCreateNestedManyWithoutBranchInput
+    rooms?: RoomCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
@@ -46066,6 +49802,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
     Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    facilities?: FacilityUncheckedCreateNestedManyWithoutBranchInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
@@ -46136,6 +49874,8 @@ export namespace Prisma {
     Encounter?: EncounterUpdateManyWithoutBranchNestedInput
     Bed?: BedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
@@ -46164,6 +49904,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
     Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUncheckedUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
@@ -46465,6 +50207,8 @@ export namespace Prisma {
     Encounter?: EncounterCreateNestedManyWithoutBranchInput
     Bed?: BedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    facilities?: FacilityCreateNestedManyWithoutBranchInput
+    rooms?: RoomCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
@@ -46493,6 +50237,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
     Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    facilities?: FacilityUncheckedCreateNestedManyWithoutBranchInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
@@ -46578,6 +50324,8 @@ export namespace Prisma {
     Encounter?: EncounterUpdateManyWithoutBranchNestedInput
     Bed?: BedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
@@ -46606,6 +50354,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
     Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUncheckedUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
@@ -46681,6 +50431,8 @@ export namespace Prisma {
     Encounter?: EncounterCreateNestedManyWithoutBranchInput
     Bed?: BedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    facilities?: FacilityCreateNestedManyWithoutBranchInput
+    rooms?: RoomCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
@@ -46709,6 +50461,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
     Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    facilities?: FacilityUncheckedCreateNestedManyWithoutBranchInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
@@ -46806,6 +50560,8 @@ export namespace Prisma {
     Encounter?: EncounterUpdateManyWithoutBranchNestedInput
     Bed?: BedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
@@ -46834,6 +50590,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
     Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUncheckedUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
@@ -47536,6 +51294,8 @@ export namespace Prisma {
     Encounter?: EncounterCreateNestedManyWithoutBranchInput
     Bed?: BedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    facilities?: FacilityCreateNestedManyWithoutBranchInput
+    rooms?: RoomCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
@@ -47564,6 +51324,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
     Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    facilities?: FacilityUncheckedCreateNestedManyWithoutBranchInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
@@ -47926,6 +51688,8 @@ export namespace Prisma {
     Encounter?: EncounterUpdateManyWithoutBranchNestedInput
     Bed?: BedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
@@ -47954,6 +51718,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
     Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUncheckedUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
@@ -48350,6 +52116,8 @@ export namespace Prisma {
     Encounter?: EncounterCreateNestedManyWithoutBranchInput
     Bed?: BedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    facilities?: FacilityCreateNestedManyWithoutBranchInput
+    rooms?: RoomCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
@@ -48378,6 +52146,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
     Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    facilities?: FacilityUncheckedCreateNestedManyWithoutBranchInput
+    rooms?: RoomUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
@@ -48485,6 +52255,8 @@ export namespace Prisma {
     Encounter?: EncounterUpdateManyWithoutBranchNestedInput
     Bed?: BedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
@@ -48513,6 +52285,8 @@ export namespace Prisma {
     Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
     Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    facilities?: FacilityUncheckedUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
@@ -48636,7 +52410,7 @@ export namespace Prisma {
 
   export type BedCreateManyBranchInput = {
     id?: string
-    wardId: string
+    roomId: string
     code: string
     state?: $Enums.BedState
     isActive?: boolean
@@ -48652,6 +52426,35 @@ export namespace Prisma {
     admittedAt?: Date | string
     dischargedAt?: Date | string | null
     status: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type FacilityCreateManyBranchInput = {
+    id?: string
+    code: string
+    name: string
+    type?: string | null
+    addressLine1?: string | null
+    addressLine2?: string | null
+    city: string
+    state?: string | null
+    postalCode?: string | null
+    phone?: string | null
+    email?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type RoomCreateManyBranchInput = {
+    id?: string
+    wardId: string
+    code: string
+    name: string
+    floor?: string | null
+    type?: string | null
+    isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -48860,7 +52663,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    beds?: BedUpdateManyWithoutWardNestedInput
+    rooms?: RoomUpdateManyWithoutWardNestedInput
   }
 
   export type WardUncheckedUpdateWithoutBranchInput = {
@@ -48871,7 +52674,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    beds?: BedUncheckedUpdateManyWithoutWardNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutWardNestedInput
   }
 
   export type WardUncheckedUpdateManyWithoutBranchInput = {
@@ -49100,13 +52903,13 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    ward?: WardUpdateOneRequiredWithoutBedsNestedInput
+    room?: RoomUpdateOneRequiredWithoutBedsNestedInput
     admissions?: AdmissionUpdateManyWithoutBedNestedInput
   }
 
   export type BedUncheckedUpdateWithoutBranchInput = {
     id?: StringFieldUpdateOperationsInput | string
-    wardId?: StringFieldUpdateOperationsInput | string
+    roomId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     state?: EnumBedStateFieldUpdateOperationsInput | $Enums.BedState
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -49117,7 +52920,7 @@ export namespace Prisma {
 
   export type BedUncheckedUpdateManyWithoutBranchInput = {
     id?: StringFieldUpdateOperationsInput | string
-    wardId?: StringFieldUpdateOperationsInput | string
+    roomId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     state?: EnumBedStateFieldUpdateOperationsInput | $Enums.BedState
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -49157,6 +52960,95 @@ export namespace Prisma {
     admittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     dischargedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FacilityUpdateWithoutBranchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: StringFieldUpdateOperationsInput | string
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    postalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FacilityUncheckedUpdateWithoutBranchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: StringFieldUpdateOperationsInput | string
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    postalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FacilityUncheckedUpdateManyWithoutBranchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine1?: NullableStringFieldUpdateOperationsInput | string | null
+    addressLine2?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: StringFieldUpdateOperationsInput | string
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    postalCode?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RoomUpdateWithoutBranchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    floor?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ward?: WardUpdateOneRequiredWithoutRoomsNestedInput
+    beds?: BedUpdateManyWithoutRoomNestedInput
+  }
+
+  export type RoomUncheckedUpdateWithoutBranchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    wardId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    floor?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    beds?: BedUncheckedUpdateManyWithoutRoomNestedInput
+  }
+
+  export type RoomUncheckedUpdateManyWithoutBranchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    wardId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    floor?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -50314,7 +54206,57 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type BedCreateManyWardInput = {
+  export type RoomCreateManyWardInput = {
+    id?: string
+    branchId: string
+    code: string
+    name: string
+    floor?: string | null
+    type?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type RoomUpdateWithoutWardInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    floor?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branch?: BranchUpdateOneRequiredWithoutRoomsNestedInput
+    beds?: BedUpdateManyWithoutRoomNestedInput
+  }
+
+  export type RoomUncheckedUpdateWithoutWardInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    branchId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    floor?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    beds?: BedUncheckedUpdateManyWithoutRoomNestedInput
+  }
+
+  export type RoomUncheckedUpdateManyWithoutWardInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    branchId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    floor?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BedCreateManyRoomInput = {
     id?: string
     branchId: string
     code: string
@@ -50324,7 +54266,7 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
-  export type BedUpdateWithoutWardInput = {
+  export type BedUpdateWithoutRoomInput = {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     state?: EnumBedStateFieldUpdateOperationsInput | $Enums.BedState
@@ -50335,7 +54277,7 @@ export namespace Prisma {
     admissions?: AdmissionUpdateManyWithoutBedNestedInput
   }
 
-  export type BedUncheckedUpdateWithoutWardInput = {
+  export type BedUncheckedUpdateWithoutRoomInput = {
     id?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
@@ -50346,7 +54288,7 @@ export namespace Prisma {
     admissions?: AdmissionUncheckedUpdateManyWithoutBedNestedInput
   }
 
-  export type BedUncheckedUpdateManyWithoutWardInput = {
+  export type BedUncheckedUpdateManyWithoutRoomInput = {
     id?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
@@ -50786,6 +54728,10 @@ export namespace Prisma {
      */
     export type WardCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = WardCountOutputTypeDefaultArgs<ExtArgs>
     /**
+     * @deprecated Use RoomCountOutputTypeDefaultArgs instead
+     */
+    export type RoomCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = RoomCountOutputTypeDefaultArgs<ExtArgs>
+    /**
      * @deprecated Use BedCountOutputTypeDefaultArgs instead
      */
     export type BedCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = BedCountOutputTypeDefaultArgs<ExtArgs>
@@ -50818,6 +54764,10 @@ export namespace Prisma {
      */
     export type BranchArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = BranchDefaultArgs<ExtArgs>
     /**
+     * @deprecated Use FacilityDefaultArgs instead
+     */
+    export type FacilityArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = FacilityDefaultArgs<ExtArgs>
+    /**
      * @deprecated Use DepartmentDefaultArgs instead
      */
     export type DepartmentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = DepartmentDefaultArgs<ExtArgs>
@@ -50845,6 +54795,10 @@ export namespace Prisma {
      * @deprecated Use WardDefaultArgs instead
      */
     export type WardArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = WardDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use RoomDefaultArgs instead
+     */
+    export type RoomArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = RoomDefaultArgs<ExtArgs>
     /**
      * @deprecated Use BedDefaultArgs instead
      */
