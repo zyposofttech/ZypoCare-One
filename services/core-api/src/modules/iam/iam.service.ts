@@ -317,18 +317,51 @@ export class IamService {
       updatedAt: user.updatedAt,
     };
   }
-  async listBranches(principal: Principal) {
-    const where: any = {};
-    // If user is restricted to a branch, only show that branch
-    if (principal.roleScope === "BRANCH" && principal.branchId) {
-      where.id = principal.branchId;
-    }
-    
-    return this.prisma.branch.findMany({
+    async listBranches(principal: Principal) {
+    const isSuperAdmin =
+      principal.roleCode === ROLE.SUPER_ADMIN || principal.roleScope === "GLOBAL";
+
+    const where =
+      !isSuperAdmin && principal.branchId
+        ? { id: principal.branchId }
+        : !isSuperAdmin && !principal.branchId
+          ? { id: "__none__" } // branch-scoped but missing branchId -> return empty
+          : {};
+
+    const rows = await this.prisma.branch.findMany({
       where,
-      orderBy: { name: "asc" },
+      orderBy: [{ name: "asc" }],
+      select: { id: true, code: true, name: true, city: true },
     });
+
+    return rows.map((b) => ({
+      id: b.id,
+      code: String(b.code),
+      name: b.name,
+      city: b.city ?? undefined,
+    }));
   }
+
+  async getBranch(principal: Principal, id: string) {
+    // Enforce branch isolation for branch-scoped users
+    this.ensureBranchScope(principal, id);
+
+    const b = await this.prisma.branch.findUnique({
+      where: { id },
+      select: { id: true, code: true, name: true, city: true, createdAt: true, updatedAt: true },
+    });
+    if (!b) throw new NotFoundException("Branch not found");
+
+    return {
+      id: b.id,
+      code: String(b.code),
+      name: b.name,
+      city: b.city ?? undefined,
+      createdAt: b.createdAt,
+      updatedAt: b.updatedAt,
+    };
+  }
+
   async listAudit(
     principal: Principal, 
     params: { entity?: string; entityId?: string; actorUserId?: string; action?: string; take?: number }

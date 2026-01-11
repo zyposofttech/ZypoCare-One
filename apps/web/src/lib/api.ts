@@ -8,15 +8,7 @@ function getCookie(name: string): string | null {
 
 function getAccessToken(): string | null {
   if (typeof window === "undefined") return null;
-  try {
-    return (
-      localStorage.getItem("access_token") ||
-      sessionStorage.getItem("access_token") ||
-      null
-    );
-  } catch {
-    return null;
-  }
+  return localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
 }
 
 export async function apiFetch<T>(url: string, init: RequestInit = {}): Promise<T> {
@@ -24,8 +16,7 @@ export async function apiFetch<T>(url: string, init: RequestInit = {}): Promise<
   const headers = new Headers(init.headers || {});
   headers.set("Accept", "application/json");
 
-  // Attach Bearer token (core-api uses a global JwtAuthGuard).
-  // Token is set by the login page. This keeps all admin pages working against the real backend.
+  // ✅ Add Bearer token if present
   const token = getAccessToken();
   if (token && !headers.has("Authorization")) {
     headers.set("Authorization", `Bearer ${token}`);
@@ -34,7 +25,7 @@ export async function apiFetch<T>(url: string, init: RequestInit = {}): Promise<
   const mutating = !["GET", "HEAD", "OPTIONS"].includes(method);
   if (mutating) {
     if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
-    const csrf = getCookie("xc_csrf"); // will be used once cookie-auth is enabled
+    const csrf = getCookie("xc_csrf");
     if (csrf) headers.set("X-CSRF-Token", csrf);
   }
 
@@ -44,4 +35,5 @@ export async function apiFetch<T>(url: string, init: RequestInit = {}): Promise<
   if (!res.ok) throw new Error(data?.message || `Request failed (${res.status})`);
   return data as T;
 }
+
 

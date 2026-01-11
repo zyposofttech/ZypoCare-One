@@ -133,6 +133,21 @@ export type RoleTemplateVersion = $Result.DefaultSelection<Prisma.$RoleTemplateV
  * 
  */
 export type RoleTemplatePermission = $Result.DefaultSelection<Prisma.$RoleTemplatePermissionPayload>
+/**
+ * Model PolicyDefinition
+ * 
+ */
+export type PolicyDefinition = $Result.DefaultSelection<Prisma.$PolicyDefinitionPayload>
+/**
+ * Model PolicyVersion
+ * 
+ */
+export type PolicyVersion = $Result.DefaultSelection<Prisma.$PolicyVersionPayload>
+/**
+ * Model PolicyVersionBranch
+ * 
+ */
+export type PolicyVersionBranch = $Result.DefaultSelection<Prisma.$PolicyVersionBranchPayload>
 
 /**
  * Enums
@@ -211,6 +226,25 @@ export const RoleVersionStatus: {
 
 export type RoleVersionStatus = (typeof RoleVersionStatus)[keyof typeof RoleVersionStatus]
 
+
+export const PolicyScope: {
+  GLOBAL: 'GLOBAL',
+  BRANCH_OVERRIDE: 'BRANCH_OVERRIDE'
+};
+
+export type PolicyScope = (typeof PolicyScope)[keyof typeof PolicyScope]
+
+
+export const PolicyVersionStatus: {
+  DRAFT: 'DRAFT',
+  SUBMITTED: 'SUBMITTED',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  RETIRED: 'RETIRED'
+};
+
+export type PolicyVersionStatus = (typeof PolicyVersionStatus)[keyof typeof PolicyVersionStatus]
+
 }
 
 export type EncounterType = $Enums.EncounterType
@@ -244,6 +278,14 @@ export const RoleScope: typeof $Enums.RoleScope
 export type RoleVersionStatus = $Enums.RoleVersionStatus
 
 export const RoleVersionStatus: typeof $Enums.RoleVersionStatus
+
+export type PolicyScope = $Enums.PolicyScope
+
+export const PolicyScope: typeof $Enums.PolicyScope
+
+export type PolicyVersionStatus = $Enums.PolicyVersionStatus
+
+export const PolicyVersionStatus: typeof $Enums.PolicyVersionStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -607,6 +649,36 @@ export class PrismaClient<
     * ```
     */
   get roleTemplatePermission(): Prisma.RoleTemplatePermissionDelegate<ExtArgs>;
+
+  /**
+   * `prisma.policyDefinition`: Exposes CRUD operations for the **PolicyDefinition** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PolicyDefinitions
+    * const policyDefinitions = await prisma.policyDefinition.findMany()
+    * ```
+    */
+  get policyDefinition(): Prisma.PolicyDefinitionDelegate<ExtArgs>;
+
+  /**
+   * `prisma.policyVersion`: Exposes CRUD operations for the **PolicyVersion** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PolicyVersions
+    * const policyVersions = await prisma.policyVersion.findMany()
+    * ```
+    */
+  get policyVersion(): Prisma.PolicyVersionDelegate<ExtArgs>;
+
+  /**
+   * `prisma.policyVersionBranch`: Exposes CRUD operations for the **PolicyVersionBranch** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PolicyVersionBranches
+    * const policyVersionBranches = await prisma.policyVersionBranch.findMany()
+    * ```
+    */
+  get policyVersionBranch(): Prisma.PolicyVersionBranchDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -1071,7 +1143,10 @@ export namespace Prisma {
     Permission: 'Permission',
     RoleTemplate: 'RoleTemplate',
     RoleTemplateVersion: 'RoleTemplateVersion',
-    RoleTemplatePermission: 'RoleTemplatePermission'
+    RoleTemplatePermission: 'RoleTemplatePermission',
+    PolicyDefinition: 'PolicyDefinition',
+    PolicyVersion: 'PolicyVersion',
+    PolicyVersionBranch: 'PolicyVersionBranch'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1087,7 +1162,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "branch" | "department" | "specialty" | "staff" | "user" | "patient" | "encounter" | "ward" | "bed" | "admission" | "oT" | "asset" | "tariffPlan" | "serviceCatalogItem" | "tariffRate" | "consentRecord" | "rtbfRequest" | "statutoryCase" | "auditEvent" | "outboxEvent" | "permission" | "roleTemplate" | "roleTemplateVersion" | "roleTemplatePermission"
+      modelProps: "branch" | "department" | "specialty" | "staff" | "user" | "patient" | "encounter" | "ward" | "bed" | "admission" | "oT" | "asset" | "tariffPlan" | "serviceCatalogItem" | "tariffRate" | "consentRecord" | "rtbfRequest" | "statutoryCase" | "auditEvent" | "outboxEvent" | "permission" | "roleTemplate" | "roleTemplateVersion" | "roleTemplatePermission" | "policyDefinition" | "policyVersion" | "policyVersionBranch"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2771,6 +2846,216 @@ export namespace Prisma {
           }
         }
       }
+      PolicyDefinition: {
+        payload: Prisma.$PolicyDefinitionPayload<ExtArgs>
+        fields: Prisma.PolicyDefinitionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PolicyDefinitionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyDefinitionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PolicyDefinitionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyDefinitionPayload>
+          }
+          findFirst: {
+            args: Prisma.PolicyDefinitionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyDefinitionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PolicyDefinitionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyDefinitionPayload>
+          }
+          findMany: {
+            args: Prisma.PolicyDefinitionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyDefinitionPayload>[]
+          }
+          create: {
+            args: Prisma.PolicyDefinitionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyDefinitionPayload>
+          }
+          createMany: {
+            args: Prisma.PolicyDefinitionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PolicyDefinitionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyDefinitionPayload>[]
+          }
+          delete: {
+            args: Prisma.PolicyDefinitionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyDefinitionPayload>
+          }
+          update: {
+            args: Prisma.PolicyDefinitionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyDefinitionPayload>
+          }
+          deleteMany: {
+            args: Prisma.PolicyDefinitionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PolicyDefinitionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.PolicyDefinitionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyDefinitionPayload>
+          }
+          aggregate: {
+            args: Prisma.PolicyDefinitionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePolicyDefinition>
+          }
+          groupBy: {
+            args: Prisma.PolicyDefinitionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PolicyDefinitionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PolicyDefinitionCountArgs<ExtArgs>
+            result: $Utils.Optional<PolicyDefinitionCountAggregateOutputType> | number
+          }
+        }
+      }
+      PolicyVersion: {
+        payload: Prisma.$PolicyVersionPayload<ExtArgs>
+        fields: Prisma.PolicyVersionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PolicyVersionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PolicyVersionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionPayload>
+          }
+          findFirst: {
+            args: Prisma.PolicyVersionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PolicyVersionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionPayload>
+          }
+          findMany: {
+            args: Prisma.PolicyVersionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionPayload>[]
+          }
+          create: {
+            args: Prisma.PolicyVersionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionPayload>
+          }
+          createMany: {
+            args: Prisma.PolicyVersionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PolicyVersionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionPayload>[]
+          }
+          delete: {
+            args: Prisma.PolicyVersionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionPayload>
+          }
+          update: {
+            args: Prisma.PolicyVersionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionPayload>
+          }
+          deleteMany: {
+            args: Prisma.PolicyVersionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PolicyVersionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.PolicyVersionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionPayload>
+          }
+          aggregate: {
+            args: Prisma.PolicyVersionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePolicyVersion>
+          }
+          groupBy: {
+            args: Prisma.PolicyVersionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PolicyVersionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PolicyVersionCountArgs<ExtArgs>
+            result: $Utils.Optional<PolicyVersionCountAggregateOutputType> | number
+          }
+        }
+      }
+      PolicyVersionBranch: {
+        payload: Prisma.$PolicyVersionBranchPayload<ExtArgs>
+        fields: Prisma.PolicyVersionBranchFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PolicyVersionBranchFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionBranchPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PolicyVersionBranchFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionBranchPayload>
+          }
+          findFirst: {
+            args: Prisma.PolicyVersionBranchFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionBranchPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PolicyVersionBranchFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionBranchPayload>
+          }
+          findMany: {
+            args: Prisma.PolicyVersionBranchFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionBranchPayload>[]
+          }
+          create: {
+            args: Prisma.PolicyVersionBranchCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionBranchPayload>
+          }
+          createMany: {
+            args: Prisma.PolicyVersionBranchCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PolicyVersionBranchCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionBranchPayload>[]
+          }
+          delete: {
+            args: Prisma.PolicyVersionBranchDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionBranchPayload>
+          }
+          update: {
+            args: Prisma.PolicyVersionBranchUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionBranchPayload>
+          }
+          deleteMany: {
+            args: Prisma.PolicyVersionBranchDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PolicyVersionBranchUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.PolicyVersionBranchUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PolicyVersionBranchPayload>
+          }
+          aggregate: {
+            args: Prisma.PolicyVersionBranchAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePolicyVersionBranch>
+          }
+          groupBy: {
+            args: Prisma.PolicyVersionBranchGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PolicyVersionBranchGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PolicyVersionBranchCountArgs<ExtArgs>
+            result: $Utils.Optional<PolicyVersionBranchCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2946,6 +3231,8 @@ export namespace Prisma {
     Admission: number
     statutoryCases: number
     auditEvents: number
+    policyVersions: number
+    policyVersionBranches: number
   }
 
   export type BranchCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2963,6 +3250,8 @@ export namespace Prisma {
     Admission?: boolean | BranchCountOutputTypeCountAdmissionArgs
     statutoryCases?: boolean | BranchCountOutputTypeCountStatutoryCasesArgs
     auditEvents?: boolean | BranchCountOutputTypeCountAuditEventsArgs
+    policyVersions?: boolean | BranchCountOutputTypeCountPolicyVersionsArgs
+    policyVersionBranches?: boolean | BranchCountOutputTypeCountPolicyVersionBranchesArgs
   }
 
   // Custom InputTypes
@@ -3074,6 +3363,20 @@ export namespace Prisma {
     where?: AuditEventWhereInput
   }
 
+  /**
+   * BranchCountOutputType without action
+   */
+  export type BranchCountOutputTypeCountPolicyVersionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PolicyVersionWhereInput
+  }
+
+  /**
+   * BranchCountOutputType without action
+   */
+  export type BranchCountOutputTypeCountPolicyVersionBranchesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PolicyVersionBranchWhereInput
+  }
+
 
   /**
    * Count Type DepartmentCountOutputType
@@ -3153,11 +3456,21 @@ export namespace Prisma {
   export type UserCountOutputType = {
     createdRoleVersions: number
     auditEventsAsActor: number
+    policyVersionsCreatedBy: number
+    policyVersionsSubmittedBy: number
+    policyVersionsApprovedBy: number
+    policyVersionsRejectedBy: number
+    policyVersionsRetiredBy: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     createdRoleVersions?: boolean | UserCountOutputTypeCountCreatedRoleVersionsArgs
     auditEventsAsActor?: boolean | UserCountOutputTypeCountAuditEventsAsActorArgs
+    policyVersionsCreatedBy?: boolean | UserCountOutputTypeCountPolicyVersionsCreatedByArgs
+    policyVersionsSubmittedBy?: boolean | UserCountOutputTypeCountPolicyVersionsSubmittedByArgs
+    policyVersionsApprovedBy?: boolean | UserCountOutputTypeCountPolicyVersionsApprovedByArgs
+    policyVersionsRejectedBy?: boolean | UserCountOutputTypeCountPolicyVersionsRejectedByArgs
+    policyVersionsRetiredBy?: boolean | UserCountOutputTypeCountPolicyVersionsRetiredByArgs
   }
 
   // Custom InputTypes
@@ -3183,6 +3496,41 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountAuditEventsAsActorArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AuditEventWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountPolicyVersionsCreatedByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PolicyVersionWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountPolicyVersionsSubmittedByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PolicyVersionWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountPolicyVersionsApprovedByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PolicyVersionWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountPolicyVersionsRejectedByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PolicyVersionWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountPolicyVersionsRetiredByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PolicyVersionWhereInput
   }
 
 
@@ -3480,6 +3828,68 @@ export namespace Prisma {
 
 
   /**
+   * Count Type PolicyDefinitionCountOutputType
+   */
+
+  export type PolicyDefinitionCountOutputType = {
+    versions: number
+  }
+
+  export type PolicyDefinitionCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    versions?: boolean | PolicyDefinitionCountOutputTypeCountVersionsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * PolicyDefinitionCountOutputType without action
+   */
+  export type PolicyDefinitionCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyDefinitionCountOutputType
+     */
+    select?: PolicyDefinitionCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * PolicyDefinitionCountOutputType without action
+   */
+  export type PolicyDefinitionCountOutputTypeCountVersionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PolicyVersionWhereInput
+  }
+
+
+  /**
+   * Count Type PolicyVersionCountOutputType
+   */
+
+  export type PolicyVersionCountOutputType = {
+    branches: number
+  }
+
+  export type PolicyVersionCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    branches?: boolean | PolicyVersionCountOutputTypeCountBranchesArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * PolicyVersionCountOutputType without action
+   */
+  export type PolicyVersionCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersionCountOutputType
+     */
+    select?: PolicyVersionCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * PolicyVersionCountOutputType without action
+   */
+  export type PolicyVersionCountOutputTypeCountBranchesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PolicyVersionBranchWhereInput
+  }
+
+
+  /**
    * Models
    */
 
@@ -3701,6 +4111,8 @@ export namespace Prisma {
     Admission?: boolean | Branch$AdmissionArgs<ExtArgs>
     statutoryCases?: boolean | Branch$statutoryCasesArgs<ExtArgs>
     auditEvents?: boolean | Branch$auditEventsArgs<ExtArgs>
+    policyVersions?: boolean | Branch$policyVersionsArgs<ExtArgs>
+    policyVersionBranches?: boolean | Branch$policyVersionBranchesArgs<ExtArgs>
     _count?: boolean | BranchCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["branch"]>
 
@@ -3745,6 +4157,8 @@ export namespace Prisma {
     Admission?: boolean | Branch$AdmissionArgs<ExtArgs>
     statutoryCases?: boolean | Branch$statutoryCasesArgs<ExtArgs>
     auditEvents?: boolean | Branch$auditEventsArgs<ExtArgs>
+    policyVersions?: boolean | Branch$policyVersionsArgs<ExtArgs>
+    policyVersionBranches?: boolean | Branch$policyVersionBranchesArgs<ExtArgs>
     _count?: boolean | BranchCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type BranchIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -3766,6 +4180,8 @@ export namespace Prisma {
       Admission: Prisma.$AdmissionPayload<ExtArgs>[]
       statutoryCases: Prisma.$StatutoryCasePayload<ExtArgs>[]
       auditEvents: Prisma.$AuditEventPayload<ExtArgs>[]
+      policyVersions: Prisma.$PolicyVersionPayload<ExtArgs>[]
+      policyVersionBranches: Prisma.$PolicyVersionBranchPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -4156,6 +4572,8 @@ export namespace Prisma {
     Admission<T extends Branch$AdmissionArgs<ExtArgs> = {}>(args?: Subset<T, Branch$AdmissionArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdmissionPayload<ExtArgs>, T, "findMany"> | Null>
     statutoryCases<T extends Branch$statutoryCasesArgs<ExtArgs> = {}>(args?: Subset<T, Branch$statutoryCasesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StatutoryCasePayload<ExtArgs>, T, "findMany"> | Null>
     auditEvents<T extends Branch$auditEventsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$auditEventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditEventPayload<ExtArgs>, T, "findMany"> | Null>
+    policyVersions<T extends Branch$policyVersionsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$policyVersionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "findMany"> | Null>
+    policyVersionBranches<T extends Branch$policyVersionBranchesArgs<ExtArgs> = {}>(args?: Subset<T, Branch$policyVersionBranchesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PolicyVersionBranchPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4786,6 +5204,46 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: AuditEventScalarFieldEnum | AuditEventScalarFieldEnum[]
+  }
+
+  /**
+   * Branch.policyVersions
+   */
+  export type Branch$policyVersionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersion
+     */
+    select?: PolicyVersionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionInclude<ExtArgs> | null
+    where?: PolicyVersionWhereInput
+    orderBy?: PolicyVersionOrderByWithRelationInput | PolicyVersionOrderByWithRelationInput[]
+    cursor?: PolicyVersionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PolicyVersionScalarFieldEnum | PolicyVersionScalarFieldEnum[]
+  }
+
+  /**
+   * Branch.policyVersionBranches
+   */
+  export type Branch$policyVersionBranchesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersionBranch
+     */
+    select?: PolicyVersionBranchSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionBranchInclude<ExtArgs> | null
+    where?: PolicyVersionBranchWhereInput
+    orderBy?: PolicyVersionBranchOrderByWithRelationInput | PolicyVersionBranchOrderByWithRelationInput[]
+    cursor?: PolicyVersionBranchWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PolicyVersionBranchScalarFieldEnum | PolicyVersionBranchScalarFieldEnum[]
   }
 
   /**
@@ -8153,6 +8611,11 @@ export namespace Prisma {
     roleVersion?: boolean | User$roleVersionArgs<ExtArgs>
     createdRoleVersions?: boolean | User$createdRoleVersionsArgs<ExtArgs>
     auditEventsAsActor?: boolean | User$auditEventsAsActorArgs<ExtArgs>
+    policyVersionsCreatedBy?: boolean | User$policyVersionsCreatedByArgs<ExtArgs>
+    policyVersionsSubmittedBy?: boolean | User$policyVersionsSubmittedByArgs<ExtArgs>
+    policyVersionsApprovedBy?: boolean | User$policyVersionsApprovedByArgs<ExtArgs>
+    policyVersionsRejectedBy?: boolean | User$policyVersionsRejectedByArgs<ExtArgs>
+    policyVersionsRetiredBy?: boolean | User$policyVersionsRetiredByArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -8201,6 +8664,11 @@ export namespace Prisma {
     roleVersion?: boolean | User$roleVersionArgs<ExtArgs>
     createdRoleVersions?: boolean | User$createdRoleVersionsArgs<ExtArgs>
     auditEventsAsActor?: boolean | User$auditEventsAsActorArgs<ExtArgs>
+    policyVersionsCreatedBy?: boolean | User$policyVersionsCreatedByArgs<ExtArgs>
+    policyVersionsSubmittedBy?: boolean | User$policyVersionsSubmittedByArgs<ExtArgs>
+    policyVersionsApprovedBy?: boolean | User$policyVersionsApprovedByArgs<ExtArgs>
+    policyVersionsRejectedBy?: boolean | User$policyVersionsRejectedByArgs<ExtArgs>
+    policyVersionsRetiredBy?: boolean | User$policyVersionsRetiredByArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -8217,6 +8685,11 @@ export namespace Prisma {
       roleVersion: Prisma.$RoleTemplateVersionPayload<ExtArgs> | null
       createdRoleVersions: Prisma.$RoleTemplateVersionPayload<ExtArgs>[]
       auditEventsAsActor: Prisma.$AuditEventPayload<ExtArgs>[]
+      policyVersionsCreatedBy: Prisma.$PolicyVersionPayload<ExtArgs>[]
+      policyVersionsSubmittedBy: Prisma.$PolicyVersionPayload<ExtArgs>[]
+      policyVersionsApprovedBy: Prisma.$PolicyVersionPayload<ExtArgs>[]
+      policyVersionsRejectedBy: Prisma.$PolicyVersionPayload<ExtArgs>[]
+      policyVersionsRetiredBy: Prisma.$PolicyVersionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -8603,6 +9076,11 @@ export namespace Prisma {
     roleVersion<T extends User$roleVersionArgs<ExtArgs> = {}>(args?: Subset<T, User$roleVersionArgs<ExtArgs>>): Prisma__RoleTemplateVersionClient<$Result.GetResult<Prisma.$RoleTemplateVersionPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     createdRoleVersions<T extends User$createdRoleVersionsArgs<ExtArgs> = {}>(args?: Subset<T, User$createdRoleVersionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RoleTemplateVersionPayload<ExtArgs>, T, "findMany"> | Null>
     auditEventsAsActor<T extends User$auditEventsAsActorArgs<ExtArgs> = {}>(args?: Subset<T, User$auditEventsAsActorArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditEventPayload<ExtArgs>, T, "findMany"> | Null>
+    policyVersionsCreatedBy<T extends User$policyVersionsCreatedByArgs<ExtArgs> = {}>(args?: Subset<T, User$policyVersionsCreatedByArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "findMany"> | Null>
+    policyVersionsSubmittedBy<T extends User$policyVersionsSubmittedByArgs<ExtArgs> = {}>(args?: Subset<T, User$policyVersionsSubmittedByArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "findMany"> | Null>
+    policyVersionsApprovedBy<T extends User$policyVersionsApprovedByArgs<ExtArgs> = {}>(args?: Subset<T, User$policyVersionsApprovedByArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "findMany"> | Null>
+    policyVersionsRejectedBy<T extends User$policyVersionsRejectedByArgs<ExtArgs> = {}>(args?: Subset<T, User$policyVersionsRejectedByArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "findMany"> | Null>
+    policyVersionsRetiredBy<T extends User$policyVersionsRetiredByArgs<ExtArgs> = {}>(args?: Subset<T, User$policyVersionsRetiredByArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -9047,6 +9525,106 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: AuditEventScalarFieldEnum | AuditEventScalarFieldEnum[]
+  }
+
+  /**
+   * User.policyVersionsCreatedBy
+   */
+  export type User$policyVersionsCreatedByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersion
+     */
+    select?: PolicyVersionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionInclude<ExtArgs> | null
+    where?: PolicyVersionWhereInput
+    orderBy?: PolicyVersionOrderByWithRelationInput | PolicyVersionOrderByWithRelationInput[]
+    cursor?: PolicyVersionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PolicyVersionScalarFieldEnum | PolicyVersionScalarFieldEnum[]
+  }
+
+  /**
+   * User.policyVersionsSubmittedBy
+   */
+  export type User$policyVersionsSubmittedByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersion
+     */
+    select?: PolicyVersionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionInclude<ExtArgs> | null
+    where?: PolicyVersionWhereInput
+    orderBy?: PolicyVersionOrderByWithRelationInput | PolicyVersionOrderByWithRelationInput[]
+    cursor?: PolicyVersionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PolicyVersionScalarFieldEnum | PolicyVersionScalarFieldEnum[]
+  }
+
+  /**
+   * User.policyVersionsApprovedBy
+   */
+  export type User$policyVersionsApprovedByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersion
+     */
+    select?: PolicyVersionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionInclude<ExtArgs> | null
+    where?: PolicyVersionWhereInput
+    orderBy?: PolicyVersionOrderByWithRelationInput | PolicyVersionOrderByWithRelationInput[]
+    cursor?: PolicyVersionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PolicyVersionScalarFieldEnum | PolicyVersionScalarFieldEnum[]
+  }
+
+  /**
+   * User.policyVersionsRejectedBy
+   */
+  export type User$policyVersionsRejectedByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersion
+     */
+    select?: PolicyVersionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionInclude<ExtArgs> | null
+    where?: PolicyVersionWhereInput
+    orderBy?: PolicyVersionOrderByWithRelationInput | PolicyVersionOrderByWithRelationInput[]
+    cursor?: PolicyVersionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PolicyVersionScalarFieldEnum | PolicyVersionScalarFieldEnum[]
+  }
+
+  /**
+   * User.policyVersionsRetiredBy
+   */
+  export type User$policyVersionsRetiredByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersion
+     */
+    select?: PolicyVersionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionInclude<ExtArgs> | null
+    where?: PolicyVersionWhereInput
+    orderBy?: PolicyVersionOrderByWithRelationInput | PolicyVersionOrderByWithRelationInput[]
+    cursor?: PolicyVersionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PolicyVersionScalarFieldEnum | PolicyVersionScalarFieldEnum[]
   }
 
   /**
@@ -27919,6 +28497,3236 @@ export namespace Prisma {
 
 
   /**
+   * Model PolicyDefinition
+   */
+
+  export type AggregatePolicyDefinition = {
+    _count: PolicyDefinitionCountAggregateOutputType | null
+    _min: PolicyDefinitionMinAggregateOutputType | null
+    _max: PolicyDefinitionMaxAggregateOutputType | null
+  }
+
+  export type PolicyDefinitionMinAggregateOutputType = {
+    id: string | null
+    code: string | null
+    name: string | null
+    type: string | null
+    description: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PolicyDefinitionMaxAggregateOutputType = {
+    id: string | null
+    code: string | null
+    name: string | null
+    type: string | null
+    description: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PolicyDefinitionCountAggregateOutputType = {
+    id: number
+    code: number
+    name: number
+    type: number
+    description: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type PolicyDefinitionMinAggregateInputType = {
+    id?: true
+    code?: true
+    name?: true
+    type?: true
+    description?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PolicyDefinitionMaxAggregateInputType = {
+    id?: true
+    code?: true
+    name?: true
+    type?: true
+    description?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PolicyDefinitionCountAggregateInputType = {
+    id?: true
+    code?: true
+    name?: true
+    type?: true
+    description?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type PolicyDefinitionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PolicyDefinition to aggregate.
+     */
+    where?: PolicyDefinitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PolicyDefinitions to fetch.
+     */
+    orderBy?: PolicyDefinitionOrderByWithRelationInput | PolicyDefinitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PolicyDefinitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PolicyDefinitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PolicyDefinitions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PolicyDefinitions
+    **/
+    _count?: true | PolicyDefinitionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PolicyDefinitionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PolicyDefinitionMaxAggregateInputType
+  }
+
+  export type GetPolicyDefinitionAggregateType<T extends PolicyDefinitionAggregateArgs> = {
+        [P in keyof T & keyof AggregatePolicyDefinition]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePolicyDefinition[P]>
+      : GetScalarType<T[P], AggregatePolicyDefinition[P]>
+  }
+
+
+
+
+  export type PolicyDefinitionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PolicyDefinitionWhereInput
+    orderBy?: PolicyDefinitionOrderByWithAggregationInput | PolicyDefinitionOrderByWithAggregationInput[]
+    by: PolicyDefinitionScalarFieldEnum[] | PolicyDefinitionScalarFieldEnum
+    having?: PolicyDefinitionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PolicyDefinitionCountAggregateInputType | true
+    _min?: PolicyDefinitionMinAggregateInputType
+    _max?: PolicyDefinitionMaxAggregateInputType
+  }
+
+  export type PolicyDefinitionGroupByOutputType = {
+    id: string
+    code: string
+    name: string
+    type: string
+    description: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: PolicyDefinitionCountAggregateOutputType | null
+    _min: PolicyDefinitionMinAggregateOutputType | null
+    _max: PolicyDefinitionMaxAggregateOutputType | null
+  }
+
+  type GetPolicyDefinitionGroupByPayload<T extends PolicyDefinitionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PolicyDefinitionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PolicyDefinitionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PolicyDefinitionGroupByOutputType[P]>
+            : GetScalarType<T[P], PolicyDefinitionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PolicyDefinitionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    name?: boolean
+    type?: boolean
+    description?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    versions?: boolean | PolicyDefinition$versionsArgs<ExtArgs>
+    _count?: boolean | PolicyDefinitionCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["policyDefinition"]>
+
+  export type PolicyDefinitionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    name?: boolean
+    type?: boolean
+    description?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["policyDefinition"]>
+
+  export type PolicyDefinitionSelectScalar = {
+    id?: boolean
+    code?: boolean
+    name?: boolean
+    type?: boolean
+    description?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type PolicyDefinitionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    versions?: boolean | PolicyDefinition$versionsArgs<ExtArgs>
+    _count?: boolean | PolicyDefinitionCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type PolicyDefinitionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $PolicyDefinitionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PolicyDefinition"
+    objects: {
+      versions: Prisma.$PolicyVersionPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      code: string
+      name: string
+      type: string
+      description: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["policyDefinition"]>
+    composites: {}
+  }
+
+  type PolicyDefinitionGetPayload<S extends boolean | null | undefined | PolicyDefinitionDefaultArgs> = $Result.GetResult<Prisma.$PolicyDefinitionPayload, S>
+
+  type PolicyDefinitionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<PolicyDefinitionFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: PolicyDefinitionCountAggregateInputType | true
+    }
+
+  export interface PolicyDefinitionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PolicyDefinition'], meta: { name: 'PolicyDefinition' } }
+    /**
+     * Find zero or one PolicyDefinition that matches the filter.
+     * @param {PolicyDefinitionFindUniqueArgs} args - Arguments to find a PolicyDefinition
+     * @example
+     * // Get one PolicyDefinition
+     * const policyDefinition = await prisma.policyDefinition.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PolicyDefinitionFindUniqueArgs>(args: SelectSubset<T, PolicyDefinitionFindUniqueArgs<ExtArgs>>): Prisma__PolicyDefinitionClient<$Result.GetResult<Prisma.$PolicyDefinitionPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one PolicyDefinition that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {PolicyDefinitionFindUniqueOrThrowArgs} args - Arguments to find a PolicyDefinition
+     * @example
+     * // Get one PolicyDefinition
+     * const policyDefinition = await prisma.policyDefinition.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PolicyDefinitionFindUniqueOrThrowArgs>(args: SelectSubset<T, PolicyDefinitionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PolicyDefinitionClient<$Result.GetResult<Prisma.$PolicyDefinitionPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first PolicyDefinition that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyDefinitionFindFirstArgs} args - Arguments to find a PolicyDefinition
+     * @example
+     * // Get one PolicyDefinition
+     * const policyDefinition = await prisma.policyDefinition.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PolicyDefinitionFindFirstArgs>(args?: SelectSubset<T, PolicyDefinitionFindFirstArgs<ExtArgs>>): Prisma__PolicyDefinitionClient<$Result.GetResult<Prisma.$PolicyDefinitionPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first PolicyDefinition that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyDefinitionFindFirstOrThrowArgs} args - Arguments to find a PolicyDefinition
+     * @example
+     * // Get one PolicyDefinition
+     * const policyDefinition = await prisma.policyDefinition.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PolicyDefinitionFindFirstOrThrowArgs>(args?: SelectSubset<T, PolicyDefinitionFindFirstOrThrowArgs<ExtArgs>>): Prisma__PolicyDefinitionClient<$Result.GetResult<Prisma.$PolicyDefinitionPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more PolicyDefinitions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyDefinitionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PolicyDefinitions
+     * const policyDefinitions = await prisma.policyDefinition.findMany()
+     * 
+     * // Get first 10 PolicyDefinitions
+     * const policyDefinitions = await prisma.policyDefinition.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const policyDefinitionWithIdOnly = await prisma.policyDefinition.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PolicyDefinitionFindManyArgs>(args?: SelectSubset<T, PolicyDefinitionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PolicyDefinitionPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a PolicyDefinition.
+     * @param {PolicyDefinitionCreateArgs} args - Arguments to create a PolicyDefinition.
+     * @example
+     * // Create one PolicyDefinition
+     * const PolicyDefinition = await prisma.policyDefinition.create({
+     *   data: {
+     *     // ... data to create a PolicyDefinition
+     *   }
+     * })
+     * 
+     */
+    create<T extends PolicyDefinitionCreateArgs>(args: SelectSubset<T, PolicyDefinitionCreateArgs<ExtArgs>>): Prisma__PolicyDefinitionClient<$Result.GetResult<Prisma.$PolicyDefinitionPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many PolicyDefinitions.
+     * @param {PolicyDefinitionCreateManyArgs} args - Arguments to create many PolicyDefinitions.
+     * @example
+     * // Create many PolicyDefinitions
+     * const policyDefinition = await prisma.policyDefinition.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PolicyDefinitionCreateManyArgs>(args?: SelectSubset<T, PolicyDefinitionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PolicyDefinitions and returns the data saved in the database.
+     * @param {PolicyDefinitionCreateManyAndReturnArgs} args - Arguments to create many PolicyDefinitions.
+     * @example
+     * // Create many PolicyDefinitions
+     * const policyDefinition = await prisma.policyDefinition.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PolicyDefinitions and only return the `id`
+     * const policyDefinitionWithIdOnly = await prisma.policyDefinition.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PolicyDefinitionCreateManyAndReturnArgs>(args?: SelectSubset<T, PolicyDefinitionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PolicyDefinitionPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a PolicyDefinition.
+     * @param {PolicyDefinitionDeleteArgs} args - Arguments to delete one PolicyDefinition.
+     * @example
+     * // Delete one PolicyDefinition
+     * const PolicyDefinition = await prisma.policyDefinition.delete({
+     *   where: {
+     *     // ... filter to delete one PolicyDefinition
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PolicyDefinitionDeleteArgs>(args: SelectSubset<T, PolicyDefinitionDeleteArgs<ExtArgs>>): Prisma__PolicyDefinitionClient<$Result.GetResult<Prisma.$PolicyDefinitionPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one PolicyDefinition.
+     * @param {PolicyDefinitionUpdateArgs} args - Arguments to update one PolicyDefinition.
+     * @example
+     * // Update one PolicyDefinition
+     * const policyDefinition = await prisma.policyDefinition.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PolicyDefinitionUpdateArgs>(args: SelectSubset<T, PolicyDefinitionUpdateArgs<ExtArgs>>): Prisma__PolicyDefinitionClient<$Result.GetResult<Prisma.$PolicyDefinitionPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more PolicyDefinitions.
+     * @param {PolicyDefinitionDeleteManyArgs} args - Arguments to filter PolicyDefinitions to delete.
+     * @example
+     * // Delete a few PolicyDefinitions
+     * const { count } = await prisma.policyDefinition.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PolicyDefinitionDeleteManyArgs>(args?: SelectSubset<T, PolicyDefinitionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PolicyDefinitions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyDefinitionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PolicyDefinitions
+     * const policyDefinition = await prisma.policyDefinition.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PolicyDefinitionUpdateManyArgs>(args: SelectSubset<T, PolicyDefinitionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one PolicyDefinition.
+     * @param {PolicyDefinitionUpsertArgs} args - Arguments to update or create a PolicyDefinition.
+     * @example
+     * // Update or create a PolicyDefinition
+     * const policyDefinition = await prisma.policyDefinition.upsert({
+     *   create: {
+     *     // ... data to create a PolicyDefinition
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PolicyDefinition we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PolicyDefinitionUpsertArgs>(args: SelectSubset<T, PolicyDefinitionUpsertArgs<ExtArgs>>): Prisma__PolicyDefinitionClient<$Result.GetResult<Prisma.$PolicyDefinitionPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of PolicyDefinitions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyDefinitionCountArgs} args - Arguments to filter PolicyDefinitions to count.
+     * @example
+     * // Count the number of PolicyDefinitions
+     * const count = await prisma.policyDefinition.count({
+     *   where: {
+     *     // ... the filter for the PolicyDefinitions we want to count
+     *   }
+     * })
+    **/
+    count<T extends PolicyDefinitionCountArgs>(
+      args?: Subset<T, PolicyDefinitionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PolicyDefinitionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PolicyDefinition.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyDefinitionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PolicyDefinitionAggregateArgs>(args: Subset<T, PolicyDefinitionAggregateArgs>): Prisma.PrismaPromise<GetPolicyDefinitionAggregateType<T>>
+
+    /**
+     * Group by PolicyDefinition.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyDefinitionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PolicyDefinitionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PolicyDefinitionGroupByArgs['orderBy'] }
+        : { orderBy?: PolicyDefinitionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PolicyDefinitionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPolicyDefinitionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PolicyDefinition model
+   */
+  readonly fields: PolicyDefinitionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PolicyDefinition.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PolicyDefinitionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    versions<T extends PolicyDefinition$versionsArgs<ExtArgs> = {}>(args?: Subset<T, PolicyDefinition$versionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PolicyDefinition model
+   */ 
+  interface PolicyDefinitionFieldRefs {
+    readonly id: FieldRef<"PolicyDefinition", 'String'>
+    readonly code: FieldRef<"PolicyDefinition", 'String'>
+    readonly name: FieldRef<"PolicyDefinition", 'String'>
+    readonly type: FieldRef<"PolicyDefinition", 'String'>
+    readonly description: FieldRef<"PolicyDefinition", 'String'>
+    readonly createdAt: FieldRef<"PolicyDefinition", 'DateTime'>
+    readonly updatedAt: FieldRef<"PolicyDefinition", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PolicyDefinition findUnique
+   */
+  export type PolicyDefinitionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyDefinition
+     */
+    select?: PolicyDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which PolicyDefinition to fetch.
+     */
+    where: PolicyDefinitionWhereUniqueInput
+  }
+
+  /**
+   * PolicyDefinition findUniqueOrThrow
+   */
+  export type PolicyDefinitionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyDefinition
+     */
+    select?: PolicyDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which PolicyDefinition to fetch.
+     */
+    where: PolicyDefinitionWhereUniqueInput
+  }
+
+  /**
+   * PolicyDefinition findFirst
+   */
+  export type PolicyDefinitionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyDefinition
+     */
+    select?: PolicyDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which PolicyDefinition to fetch.
+     */
+    where?: PolicyDefinitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PolicyDefinitions to fetch.
+     */
+    orderBy?: PolicyDefinitionOrderByWithRelationInput | PolicyDefinitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PolicyDefinitions.
+     */
+    cursor?: PolicyDefinitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PolicyDefinitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PolicyDefinitions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PolicyDefinitions.
+     */
+    distinct?: PolicyDefinitionScalarFieldEnum | PolicyDefinitionScalarFieldEnum[]
+  }
+
+  /**
+   * PolicyDefinition findFirstOrThrow
+   */
+  export type PolicyDefinitionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyDefinition
+     */
+    select?: PolicyDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which PolicyDefinition to fetch.
+     */
+    where?: PolicyDefinitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PolicyDefinitions to fetch.
+     */
+    orderBy?: PolicyDefinitionOrderByWithRelationInput | PolicyDefinitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PolicyDefinitions.
+     */
+    cursor?: PolicyDefinitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PolicyDefinitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PolicyDefinitions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PolicyDefinitions.
+     */
+    distinct?: PolicyDefinitionScalarFieldEnum | PolicyDefinitionScalarFieldEnum[]
+  }
+
+  /**
+   * PolicyDefinition findMany
+   */
+  export type PolicyDefinitionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyDefinition
+     */
+    select?: PolicyDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which PolicyDefinitions to fetch.
+     */
+    where?: PolicyDefinitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PolicyDefinitions to fetch.
+     */
+    orderBy?: PolicyDefinitionOrderByWithRelationInput | PolicyDefinitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PolicyDefinitions.
+     */
+    cursor?: PolicyDefinitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PolicyDefinitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PolicyDefinitions.
+     */
+    skip?: number
+    distinct?: PolicyDefinitionScalarFieldEnum | PolicyDefinitionScalarFieldEnum[]
+  }
+
+  /**
+   * PolicyDefinition create
+   */
+  export type PolicyDefinitionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyDefinition
+     */
+    select?: PolicyDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyDefinitionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PolicyDefinition.
+     */
+    data: XOR<PolicyDefinitionCreateInput, PolicyDefinitionUncheckedCreateInput>
+  }
+
+  /**
+   * PolicyDefinition createMany
+   */
+  export type PolicyDefinitionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PolicyDefinitions.
+     */
+    data: PolicyDefinitionCreateManyInput | PolicyDefinitionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PolicyDefinition createManyAndReturn
+   */
+  export type PolicyDefinitionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyDefinition
+     */
+    select?: PolicyDefinitionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many PolicyDefinitions.
+     */
+    data: PolicyDefinitionCreateManyInput | PolicyDefinitionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PolicyDefinition update
+   */
+  export type PolicyDefinitionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyDefinition
+     */
+    select?: PolicyDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyDefinitionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PolicyDefinition.
+     */
+    data: XOR<PolicyDefinitionUpdateInput, PolicyDefinitionUncheckedUpdateInput>
+    /**
+     * Choose, which PolicyDefinition to update.
+     */
+    where: PolicyDefinitionWhereUniqueInput
+  }
+
+  /**
+   * PolicyDefinition updateMany
+   */
+  export type PolicyDefinitionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PolicyDefinitions.
+     */
+    data: XOR<PolicyDefinitionUpdateManyMutationInput, PolicyDefinitionUncheckedUpdateManyInput>
+    /**
+     * Filter which PolicyDefinitions to update
+     */
+    where?: PolicyDefinitionWhereInput
+  }
+
+  /**
+   * PolicyDefinition upsert
+   */
+  export type PolicyDefinitionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyDefinition
+     */
+    select?: PolicyDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyDefinitionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PolicyDefinition to update in case it exists.
+     */
+    where: PolicyDefinitionWhereUniqueInput
+    /**
+     * In case the PolicyDefinition found by the `where` argument doesn't exist, create a new PolicyDefinition with this data.
+     */
+    create: XOR<PolicyDefinitionCreateInput, PolicyDefinitionUncheckedCreateInput>
+    /**
+     * In case the PolicyDefinition was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PolicyDefinitionUpdateInput, PolicyDefinitionUncheckedUpdateInput>
+  }
+
+  /**
+   * PolicyDefinition delete
+   */
+  export type PolicyDefinitionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyDefinition
+     */
+    select?: PolicyDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter which PolicyDefinition to delete.
+     */
+    where: PolicyDefinitionWhereUniqueInput
+  }
+
+  /**
+   * PolicyDefinition deleteMany
+   */
+  export type PolicyDefinitionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PolicyDefinitions to delete
+     */
+    where?: PolicyDefinitionWhereInput
+  }
+
+  /**
+   * PolicyDefinition.versions
+   */
+  export type PolicyDefinition$versionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersion
+     */
+    select?: PolicyVersionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionInclude<ExtArgs> | null
+    where?: PolicyVersionWhereInput
+    orderBy?: PolicyVersionOrderByWithRelationInput | PolicyVersionOrderByWithRelationInput[]
+    cursor?: PolicyVersionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PolicyVersionScalarFieldEnum | PolicyVersionScalarFieldEnum[]
+  }
+
+  /**
+   * PolicyDefinition without action
+   */
+  export type PolicyDefinitionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyDefinition
+     */
+    select?: PolicyDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyDefinitionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PolicyVersion
+   */
+
+  export type AggregatePolicyVersion = {
+    _count: PolicyVersionCountAggregateOutputType | null
+    _avg: PolicyVersionAvgAggregateOutputType | null
+    _sum: PolicyVersionSumAggregateOutputType | null
+    _min: PolicyVersionMinAggregateOutputType | null
+    _max: PolicyVersionMaxAggregateOutputType | null
+  }
+
+  export type PolicyVersionAvgAggregateOutputType = {
+    version: number | null
+  }
+
+  export type PolicyVersionSumAggregateOutputType = {
+    version: number | null
+  }
+
+  export type PolicyVersionMinAggregateOutputType = {
+    id: string | null
+    policyId: string | null
+    scope: $Enums.PolicyScope | null
+    branchId: string | null
+    version: number | null
+    status: $Enums.PolicyVersionStatus | null
+    effectiveAt: Date | null
+    notes: string | null
+    applyToAllBranches: boolean | null
+    createdByUserId: string | null
+    submittedAt: Date | null
+    submittedByUserId: string | null
+    approvedAt: Date | null
+    approvedByUserId: string | null
+    approvalNote: string | null
+    rejectedAt: Date | null
+    rejectedByUserId: string | null
+    rejectionReason: string | null
+    retiredAt: Date | null
+    retiredByUserId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PolicyVersionMaxAggregateOutputType = {
+    id: string | null
+    policyId: string | null
+    scope: $Enums.PolicyScope | null
+    branchId: string | null
+    version: number | null
+    status: $Enums.PolicyVersionStatus | null
+    effectiveAt: Date | null
+    notes: string | null
+    applyToAllBranches: boolean | null
+    createdByUserId: string | null
+    submittedAt: Date | null
+    submittedByUserId: string | null
+    approvedAt: Date | null
+    approvedByUserId: string | null
+    approvalNote: string | null
+    rejectedAt: Date | null
+    rejectedByUserId: string | null
+    rejectionReason: string | null
+    retiredAt: Date | null
+    retiredByUserId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PolicyVersionCountAggregateOutputType = {
+    id: number
+    policyId: number
+    scope: number
+    branchId: number
+    version: number
+    status: number
+    effectiveAt: number
+    notes: number
+    payload: number
+    applyToAllBranches: number
+    createdByUserId: number
+    submittedAt: number
+    submittedByUserId: number
+    approvedAt: number
+    approvedByUserId: number
+    approvalNote: number
+    rejectedAt: number
+    rejectedByUserId: number
+    rejectionReason: number
+    retiredAt: number
+    retiredByUserId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type PolicyVersionAvgAggregateInputType = {
+    version?: true
+  }
+
+  export type PolicyVersionSumAggregateInputType = {
+    version?: true
+  }
+
+  export type PolicyVersionMinAggregateInputType = {
+    id?: true
+    policyId?: true
+    scope?: true
+    branchId?: true
+    version?: true
+    status?: true
+    effectiveAt?: true
+    notes?: true
+    applyToAllBranches?: true
+    createdByUserId?: true
+    submittedAt?: true
+    submittedByUserId?: true
+    approvedAt?: true
+    approvedByUserId?: true
+    approvalNote?: true
+    rejectedAt?: true
+    rejectedByUserId?: true
+    rejectionReason?: true
+    retiredAt?: true
+    retiredByUserId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PolicyVersionMaxAggregateInputType = {
+    id?: true
+    policyId?: true
+    scope?: true
+    branchId?: true
+    version?: true
+    status?: true
+    effectiveAt?: true
+    notes?: true
+    applyToAllBranches?: true
+    createdByUserId?: true
+    submittedAt?: true
+    submittedByUserId?: true
+    approvedAt?: true
+    approvedByUserId?: true
+    approvalNote?: true
+    rejectedAt?: true
+    rejectedByUserId?: true
+    rejectionReason?: true
+    retiredAt?: true
+    retiredByUserId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PolicyVersionCountAggregateInputType = {
+    id?: true
+    policyId?: true
+    scope?: true
+    branchId?: true
+    version?: true
+    status?: true
+    effectiveAt?: true
+    notes?: true
+    payload?: true
+    applyToAllBranches?: true
+    createdByUserId?: true
+    submittedAt?: true
+    submittedByUserId?: true
+    approvedAt?: true
+    approvedByUserId?: true
+    approvalNote?: true
+    rejectedAt?: true
+    rejectedByUserId?: true
+    rejectionReason?: true
+    retiredAt?: true
+    retiredByUserId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type PolicyVersionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PolicyVersion to aggregate.
+     */
+    where?: PolicyVersionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PolicyVersions to fetch.
+     */
+    orderBy?: PolicyVersionOrderByWithRelationInput | PolicyVersionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PolicyVersionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PolicyVersions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PolicyVersions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PolicyVersions
+    **/
+    _count?: true | PolicyVersionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PolicyVersionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PolicyVersionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PolicyVersionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PolicyVersionMaxAggregateInputType
+  }
+
+  export type GetPolicyVersionAggregateType<T extends PolicyVersionAggregateArgs> = {
+        [P in keyof T & keyof AggregatePolicyVersion]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePolicyVersion[P]>
+      : GetScalarType<T[P], AggregatePolicyVersion[P]>
+  }
+
+
+
+
+  export type PolicyVersionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PolicyVersionWhereInput
+    orderBy?: PolicyVersionOrderByWithAggregationInput | PolicyVersionOrderByWithAggregationInput[]
+    by: PolicyVersionScalarFieldEnum[] | PolicyVersionScalarFieldEnum
+    having?: PolicyVersionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PolicyVersionCountAggregateInputType | true
+    _avg?: PolicyVersionAvgAggregateInputType
+    _sum?: PolicyVersionSumAggregateInputType
+    _min?: PolicyVersionMinAggregateInputType
+    _max?: PolicyVersionMaxAggregateInputType
+  }
+
+  export type PolicyVersionGroupByOutputType = {
+    id: string
+    policyId: string
+    scope: $Enums.PolicyScope
+    branchId: string | null
+    version: number
+    status: $Enums.PolicyVersionStatus
+    effectiveAt: Date
+    notes: string | null
+    payload: JsonValue
+    applyToAllBranches: boolean
+    createdByUserId: string | null
+    submittedAt: Date | null
+    submittedByUserId: string | null
+    approvedAt: Date | null
+    approvedByUserId: string | null
+    approvalNote: string | null
+    rejectedAt: Date | null
+    rejectedByUserId: string | null
+    rejectionReason: string | null
+    retiredAt: Date | null
+    retiredByUserId: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: PolicyVersionCountAggregateOutputType | null
+    _avg: PolicyVersionAvgAggregateOutputType | null
+    _sum: PolicyVersionSumAggregateOutputType | null
+    _min: PolicyVersionMinAggregateOutputType | null
+    _max: PolicyVersionMaxAggregateOutputType | null
+  }
+
+  type GetPolicyVersionGroupByPayload<T extends PolicyVersionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PolicyVersionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PolicyVersionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PolicyVersionGroupByOutputType[P]>
+            : GetScalarType<T[P], PolicyVersionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PolicyVersionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    policyId?: boolean
+    scope?: boolean
+    branchId?: boolean
+    version?: boolean
+    status?: boolean
+    effectiveAt?: boolean
+    notes?: boolean
+    payload?: boolean
+    applyToAllBranches?: boolean
+    createdByUserId?: boolean
+    submittedAt?: boolean
+    submittedByUserId?: boolean
+    approvedAt?: boolean
+    approvedByUserId?: boolean
+    approvalNote?: boolean
+    rejectedAt?: boolean
+    rejectedByUserId?: boolean
+    rejectionReason?: boolean
+    retiredAt?: boolean
+    retiredByUserId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    policy?: boolean | PolicyDefinitionDefaultArgs<ExtArgs>
+    branch?: boolean | PolicyVersion$branchArgs<ExtArgs>
+    branches?: boolean | PolicyVersion$branchesArgs<ExtArgs>
+    createdByUser?: boolean | PolicyVersion$createdByUserArgs<ExtArgs>
+    submittedByUser?: boolean | PolicyVersion$submittedByUserArgs<ExtArgs>
+    approvedByUser?: boolean | PolicyVersion$approvedByUserArgs<ExtArgs>
+    rejectedByUser?: boolean | PolicyVersion$rejectedByUserArgs<ExtArgs>
+    retiredByUser?: boolean | PolicyVersion$retiredByUserArgs<ExtArgs>
+    _count?: boolean | PolicyVersionCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["policyVersion"]>
+
+  export type PolicyVersionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    policyId?: boolean
+    scope?: boolean
+    branchId?: boolean
+    version?: boolean
+    status?: boolean
+    effectiveAt?: boolean
+    notes?: boolean
+    payload?: boolean
+    applyToAllBranches?: boolean
+    createdByUserId?: boolean
+    submittedAt?: boolean
+    submittedByUserId?: boolean
+    approvedAt?: boolean
+    approvedByUserId?: boolean
+    approvalNote?: boolean
+    rejectedAt?: boolean
+    rejectedByUserId?: boolean
+    rejectionReason?: boolean
+    retiredAt?: boolean
+    retiredByUserId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    policy?: boolean | PolicyDefinitionDefaultArgs<ExtArgs>
+    branch?: boolean | PolicyVersion$branchArgs<ExtArgs>
+    createdByUser?: boolean | PolicyVersion$createdByUserArgs<ExtArgs>
+    submittedByUser?: boolean | PolicyVersion$submittedByUserArgs<ExtArgs>
+    approvedByUser?: boolean | PolicyVersion$approvedByUserArgs<ExtArgs>
+    rejectedByUser?: boolean | PolicyVersion$rejectedByUserArgs<ExtArgs>
+    retiredByUser?: boolean | PolicyVersion$retiredByUserArgs<ExtArgs>
+  }, ExtArgs["result"]["policyVersion"]>
+
+  export type PolicyVersionSelectScalar = {
+    id?: boolean
+    policyId?: boolean
+    scope?: boolean
+    branchId?: boolean
+    version?: boolean
+    status?: boolean
+    effectiveAt?: boolean
+    notes?: boolean
+    payload?: boolean
+    applyToAllBranches?: boolean
+    createdByUserId?: boolean
+    submittedAt?: boolean
+    submittedByUserId?: boolean
+    approvedAt?: boolean
+    approvedByUserId?: boolean
+    approvalNote?: boolean
+    rejectedAt?: boolean
+    rejectedByUserId?: boolean
+    rejectionReason?: boolean
+    retiredAt?: boolean
+    retiredByUserId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type PolicyVersionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    policy?: boolean | PolicyDefinitionDefaultArgs<ExtArgs>
+    branch?: boolean | PolicyVersion$branchArgs<ExtArgs>
+    branches?: boolean | PolicyVersion$branchesArgs<ExtArgs>
+    createdByUser?: boolean | PolicyVersion$createdByUserArgs<ExtArgs>
+    submittedByUser?: boolean | PolicyVersion$submittedByUserArgs<ExtArgs>
+    approvedByUser?: boolean | PolicyVersion$approvedByUserArgs<ExtArgs>
+    rejectedByUser?: boolean | PolicyVersion$rejectedByUserArgs<ExtArgs>
+    retiredByUser?: boolean | PolicyVersion$retiredByUserArgs<ExtArgs>
+    _count?: boolean | PolicyVersionCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type PolicyVersionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    policy?: boolean | PolicyDefinitionDefaultArgs<ExtArgs>
+    branch?: boolean | PolicyVersion$branchArgs<ExtArgs>
+    createdByUser?: boolean | PolicyVersion$createdByUserArgs<ExtArgs>
+    submittedByUser?: boolean | PolicyVersion$submittedByUserArgs<ExtArgs>
+    approvedByUser?: boolean | PolicyVersion$approvedByUserArgs<ExtArgs>
+    rejectedByUser?: boolean | PolicyVersion$rejectedByUserArgs<ExtArgs>
+    retiredByUser?: boolean | PolicyVersion$retiredByUserArgs<ExtArgs>
+  }
+
+  export type $PolicyVersionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PolicyVersion"
+    objects: {
+      policy: Prisma.$PolicyDefinitionPayload<ExtArgs>
+      branch: Prisma.$BranchPayload<ExtArgs> | null
+      branches: Prisma.$PolicyVersionBranchPayload<ExtArgs>[]
+      createdByUser: Prisma.$UserPayload<ExtArgs> | null
+      submittedByUser: Prisma.$UserPayload<ExtArgs> | null
+      approvedByUser: Prisma.$UserPayload<ExtArgs> | null
+      rejectedByUser: Prisma.$UserPayload<ExtArgs> | null
+      retiredByUser: Prisma.$UserPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      policyId: string
+      scope: $Enums.PolicyScope
+      branchId: string | null
+      version: number
+      status: $Enums.PolicyVersionStatus
+      effectiveAt: Date
+      notes: string | null
+      payload: Prisma.JsonValue
+      applyToAllBranches: boolean
+      createdByUserId: string | null
+      submittedAt: Date | null
+      submittedByUserId: string | null
+      approvedAt: Date | null
+      approvedByUserId: string | null
+      approvalNote: string | null
+      rejectedAt: Date | null
+      rejectedByUserId: string | null
+      rejectionReason: string | null
+      retiredAt: Date | null
+      retiredByUserId: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["policyVersion"]>
+    composites: {}
+  }
+
+  type PolicyVersionGetPayload<S extends boolean | null | undefined | PolicyVersionDefaultArgs> = $Result.GetResult<Prisma.$PolicyVersionPayload, S>
+
+  type PolicyVersionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<PolicyVersionFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: PolicyVersionCountAggregateInputType | true
+    }
+
+  export interface PolicyVersionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PolicyVersion'], meta: { name: 'PolicyVersion' } }
+    /**
+     * Find zero or one PolicyVersion that matches the filter.
+     * @param {PolicyVersionFindUniqueArgs} args - Arguments to find a PolicyVersion
+     * @example
+     * // Get one PolicyVersion
+     * const policyVersion = await prisma.policyVersion.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PolicyVersionFindUniqueArgs>(args: SelectSubset<T, PolicyVersionFindUniqueArgs<ExtArgs>>): Prisma__PolicyVersionClient<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one PolicyVersion that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {PolicyVersionFindUniqueOrThrowArgs} args - Arguments to find a PolicyVersion
+     * @example
+     * // Get one PolicyVersion
+     * const policyVersion = await prisma.policyVersion.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PolicyVersionFindUniqueOrThrowArgs>(args: SelectSubset<T, PolicyVersionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PolicyVersionClient<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first PolicyVersion that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyVersionFindFirstArgs} args - Arguments to find a PolicyVersion
+     * @example
+     * // Get one PolicyVersion
+     * const policyVersion = await prisma.policyVersion.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PolicyVersionFindFirstArgs>(args?: SelectSubset<T, PolicyVersionFindFirstArgs<ExtArgs>>): Prisma__PolicyVersionClient<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first PolicyVersion that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyVersionFindFirstOrThrowArgs} args - Arguments to find a PolicyVersion
+     * @example
+     * // Get one PolicyVersion
+     * const policyVersion = await prisma.policyVersion.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PolicyVersionFindFirstOrThrowArgs>(args?: SelectSubset<T, PolicyVersionFindFirstOrThrowArgs<ExtArgs>>): Prisma__PolicyVersionClient<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more PolicyVersions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyVersionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PolicyVersions
+     * const policyVersions = await prisma.policyVersion.findMany()
+     * 
+     * // Get first 10 PolicyVersions
+     * const policyVersions = await prisma.policyVersion.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const policyVersionWithIdOnly = await prisma.policyVersion.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PolicyVersionFindManyArgs>(args?: SelectSubset<T, PolicyVersionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a PolicyVersion.
+     * @param {PolicyVersionCreateArgs} args - Arguments to create a PolicyVersion.
+     * @example
+     * // Create one PolicyVersion
+     * const PolicyVersion = await prisma.policyVersion.create({
+     *   data: {
+     *     // ... data to create a PolicyVersion
+     *   }
+     * })
+     * 
+     */
+    create<T extends PolicyVersionCreateArgs>(args: SelectSubset<T, PolicyVersionCreateArgs<ExtArgs>>): Prisma__PolicyVersionClient<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many PolicyVersions.
+     * @param {PolicyVersionCreateManyArgs} args - Arguments to create many PolicyVersions.
+     * @example
+     * // Create many PolicyVersions
+     * const policyVersion = await prisma.policyVersion.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PolicyVersionCreateManyArgs>(args?: SelectSubset<T, PolicyVersionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PolicyVersions and returns the data saved in the database.
+     * @param {PolicyVersionCreateManyAndReturnArgs} args - Arguments to create many PolicyVersions.
+     * @example
+     * // Create many PolicyVersions
+     * const policyVersion = await prisma.policyVersion.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PolicyVersions and only return the `id`
+     * const policyVersionWithIdOnly = await prisma.policyVersion.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PolicyVersionCreateManyAndReturnArgs>(args?: SelectSubset<T, PolicyVersionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a PolicyVersion.
+     * @param {PolicyVersionDeleteArgs} args - Arguments to delete one PolicyVersion.
+     * @example
+     * // Delete one PolicyVersion
+     * const PolicyVersion = await prisma.policyVersion.delete({
+     *   where: {
+     *     // ... filter to delete one PolicyVersion
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PolicyVersionDeleteArgs>(args: SelectSubset<T, PolicyVersionDeleteArgs<ExtArgs>>): Prisma__PolicyVersionClient<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one PolicyVersion.
+     * @param {PolicyVersionUpdateArgs} args - Arguments to update one PolicyVersion.
+     * @example
+     * // Update one PolicyVersion
+     * const policyVersion = await prisma.policyVersion.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PolicyVersionUpdateArgs>(args: SelectSubset<T, PolicyVersionUpdateArgs<ExtArgs>>): Prisma__PolicyVersionClient<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more PolicyVersions.
+     * @param {PolicyVersionDeleteManyArgs} args - Arguments to filter PolicyVersions to delete.
+     * @example
+     * // Delete a few PolicyVersions
+     * const { count } = await prisma.policyVersion.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PolicyVersionDeleteManyArgs>(args?: SelectSubset<T, PolicyVersionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PolicyVersions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyVersionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PolicyVersions
+     * const policyVersion = await prisma.policyVersion.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PolicyVersionUpdateManyArgs>(args: SelectSubset<T, PolicyVersionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one PolicyVersion.
+     * @param {PolicyVersionUpsertArgs} args - Arguments to update or create a PolicyVersion.
+     * @example
+     * // Update or create a PolicyVersion
+     * const policyVersion = await prisma.policyVersion.upsert({
+     *   create: {
+     *     // ... data to create a PolicyVersion
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PolicyVersion we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PolicyVersionUpsertArgs>(args: SelectSubset<T, PolicyVersionUpsertArgs<ExtArgs>>): Prisma__PolicyVersionClient<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of PolicyVersions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyVersionCountArgs} args - Arguments to filter PolicyVersions to count.
+     * @example
+     * // Count the number of PolicyVersions
+     * const count = await prisma.policyVersion.count({
+     *   where: {
+     *     // ... the filter for the PolicyVersions we want to count
+     *   }
+     * })
+    **/
+    count<T extends PolicyVersionCountArgs>(
+      args?: Subset<T, PolicyVersionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PolicyVersionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PolicyVersion.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyVersionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PolicyVersionAggregateArgs>(args: Subset<T, PolicyVersionAggregateArgs>): Prisma.PrismaPromise<GetPolicyVersionAggregateType<T>>
+
+    /**
+     * Group by PolicyVersion.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyVersionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PolicyVersionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PolicyVersionGroupByArgs['orderBy'] }
+        : { orderBy?: PolicyVersionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PolicyVersionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPolicyVersionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PolicyVersion model
+   */
+  readonly fields: PolicyVersionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PolicyVersion.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PolicyVersionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    policy<T extends PolicyDefinitionDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PolicyDefinitionDefaultArgs<ExtArgs>>): Prisma__PolicyDefinitionClient<$Result.GetResult<Prisma.$PolicyDefinitionPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    branch<T extends PolicyVersion$branchArgs<ExtArgs> = {}>(args?: Subset<T, PolicyVersion$branchArgs<ExtArgs>>): Prisma__BranchClient<$Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    branches<T extends PolicyVersion$branchesArgs<ExtArgs> = {}>(args?: Subset<T, PolicyVersion$branchesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PolicyVersionBranchPayload<ExtArgs>, T, "findMany"> | Null>
+    createdByUser<T extends PolicyVersion$createdByUserArgs<ExtArgs> = {}>(args?: Subset<T, PolicyVersion$createdByUserArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    submittedByUser<T extends PolicyVersion$submittedByUserArgs<ExtArgs> = {}>(args?: Subset<T, PolicyVersion$submittedByUserArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    approvedByUser<T extends PolicyVersion$approvedByUserArgs<ExtArgs> = {}>(args?: Subset<T, PolicyVersion$approvedByUserArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    rejectedByUser<T extends PolicyVersion$rejectedByUserArgs<ExtArgs> = {}>(args?: Subset<T, PolicyVersion$rejectedByUserArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    retiredByUser<T extends PolicyVersion$retiredByUserArgs<ExtArgs> = {}>(args?: Subset<T, PolicyVersion$retiredByUserArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PolicyVersion model
+   */ 
+  interface PolicyVersionFieldRefs {
+    readonly id: FieldRef<"PolicyVersion", 'String'>
+    readonly policyId: FieldRef<"PolicyVersion", 'String'>
+    readonly scope: FieldRef<"PolicyVersion", 'PolicyScope'>
+    readonly branchId: FieldRef<"PolicyVersion", 'String'>
+    readonly version: FieldRef<"PolicyVersion", 'Int'>
+    readonly status: FieldRef<"PolicyVersion", 'PolicyVersionStatus'>
+    readonly effectiveAt: FieldRef<"PolicyVersion", 'DateTime'>
+    readonly notes: FieldRef<"PolicyVersion", 'String'>
+    readonly payload: FieldRef<"PolicyVersion", 'Json'>
+    readonly applyToAllBranches: FieldRef<"PolicyVersion", 'Boolean'>
+    readonly createdByUserId: FieldRef<"PolicyVersion", 'String'>
+    readonly submittedAt: FieldRef<"PolicyVersion", 'DateTime'>
+    readonly submittedByUserId: FieldRef<"PolicyVersion", 'String'>
+    readonly approvedAt: FieldRef<"PolicyVersion", 'DateTime'>
+    readonly approvedByUserId: FieldRef<"PolicyVersion", 'String'>
+    readonly approvalNote: FieldRef<"PolicyVersion", 'String'>
+    readonly rejectedAt: FieldRef<"PolicyVersion", 'DateTime'>
+    readonly rejectedByUserId: FieldRef<"PolicyVersion", 'String'>
+    readonly rejectionReason: FieldRef<"PolicyVersion", 'String'>
+    readonly retiredAt: FieldRef<"PolicyVersion", 'DateTime'>
+    readonly retiredByUserId: FieldRef<"PolicyVersion", 'String'>
+    readonly createdAt: FieldRef<"PolicyVersion", 'DateTime'>
+    readonly updatedAt: FieldRef<"PolicyVersion", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PolicyVersion findUnique
+   */
+  export type PolicyVersionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersion
+     */
+    select?: PolicyVersionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionInclude<ExtArgs> | null
+    /**
+     * Filter, which PolicyVersion to fetch.
+     */
+    where: PolicyVersionWhereUniqueInput
+  }
+
+  /**
+   * PolicyVersion findUniqueOrThrow
+   */
+  export type PolicyVersionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersion
+     */
+    select?: PolicyVersionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionInclude<ExtArgs> | null
+    /**
+     * Filter, which PolicyVersion to fetch.
+     */
+    where: PolicyVersionWhereUniqueInput
+  }
+
+  /**
+   * PolicyVersion findFirst
+   */
+  export type PolicyVersionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersion
+     */
+    select?: PolicyVersionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionInclude<ExtArgs> | null
+    /**
+     * Filter, which PolicyVersion to fetch.
+     */
+    where?: PolicyVersionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PolicyVersions to fetch.
+     */
+    orderBy?: PolicyVersionOrderByWithRelationInput | PolicyVersionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PolicyVersions.
+     */
+    cursor?: PolicyVersionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PolicyVersions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PolicyVersions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PolicyVersions.
+     */
+    distinct?: PolicyVersionScalarFieldEnum | PolicyVersionScalarFieldEnum[]
+  }
+
+  /**
+   * PolicyVersion findFirstOrThrow
+   */
+  export type PolicyVersionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersion
+     */
+    select?: PolicyVersionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionInclude<ExtArgs> | null
+    /**
+     * Filter, which PolicyVersion to fetch.
+     */
+    where?: PolicyVersionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PolicyVersions to fetch.
+     */
+    orderBy?: PolicyVersionOrderByWithRelationInput | PolicyVersionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PolicyVersions.
+     */
+    cursor?: PolicyVersionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PolicyVersions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PolicyVersions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PolicyVersions.
+     */
+    distinct?: PolicyVersionScalarFieldEnum | PolicyVersionScalarFieldEnum[]
+  }
+
+  /**
+   * PolicyVersion findMany
+   */
+  export type PolicyVersionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersion
+     */
+    select?: PolicyVersionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionInclude<ExtArgs> | null
+    /**
+     * Filter, which PolicyVersions to fetch.
+     */
+    where?: PolicyVersionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PolicyVersions to fetch.
+     */
+    orderBy?: PolicyVersionOrderByWithRelationInput | PolicyVersionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PolicyVersions.
+     */
+    cursor?: PolicyVersionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PolicyVersions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PolicyVersions.
+     */
+    skip?: number
+    distinct?: PolicyVersionScalarFieldEnum | PolicyVersionScalarFieldEnum[]
+  }
+
+  /**
+   * PolicyVersion create
+   */
+  export type PolicyVersionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersion
+     */
+    select?: PolicyVersionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PolicyVersion.
+     */
+    data: XOR<PolicyVersionCreateInput, PolicyVersionUncheckedCreateInput>
+  }
+
+  /**
+   * PolicyVersion createMany
+   */
+  export type PolicyVersionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PolicyVersions.
+     */
+    data: PolicyVersionCreateManyInput | PolicyVersionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PolicyVersion createManyAndReturn
+   */
+  export type PolicyVersionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersion
+     */
+    select?: PolicyVersionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many PolicyVersions.
+     */
+    data: PolicyVersionCreateManyInput | PolicyVersionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PolicyVersion update
+   */
+  export type PolicyVersionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersion
+     */
+    select?: PolicyVersionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PolicyVersion.
+     */
+    data: XOR<PolicyVersionUpdateInput, PolicyVersionUncheckedUpdateInput>
+    /**
+     * Choose, which PolicyVersion to update.
+     */
+    where: PolicyVersionWhereUniqueInput
+  }
+
+  /**
+   * PolicyVersion updateMany
+   */
+  export type PolicyVersionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PolicyVersions.
+     */
+    data: XOR<PolicyVersionUpdateManyMutationInput, PolicyVersionUncheckedUpdateManyInput>
+    /**
+     * Filter which PolicyVersions to update
+     */
+    where?: PolicyVersionWhereInput
+  }
+
+  /**
+   * PolicyVersion upsert
+   */
+  export type PolicyVersionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersion
+     */
+    select?: PolicyVersionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PolicyVersion to update in case it exists.
+     */
+    where: PolicyVersionWhereUniqueInput
+    /**
+     * In case the PolicyVersion found by the `where` argument doesn't exist, create a new PolicyVersion with this data.
+     */
+    create: XOR<PolicyVersionCreateInput, PolicyVersionUncheckedCreateInput>
+    /**
+     * In case the PolicyVersion was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PolicyVersionUpdateInput, PolicyVersionUncheckedUpdateInput>
+  }
+
+  /**
+   * PolicyVersion delete
+   */
+  export type PolicyVersionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersion
+     */
+    select?: PolicyVersionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionInclude<ExtArgs> | null
+    /**
+     * Filter which PolicyVersion to delete.
+     */
+    where: PolicyVersionWhereUniqueInput
+  }
+
+  /**
+   * PolicyVersion deleteMany
+   */
+  export type PolicyVersionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PolicyVersions to delete
+     */
+    where?: PolicyVersionWhereInput
+  }
+
+  /**
+   * PolicyVersion.branch
+   */
+  export type PolicyVersion$branchArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Branch
+     */
+    select?: BranchSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BranchInclude<ExtArgs> | null
+    where?: BranchWhereInput
+  }
+
+  /**
+   * PolicyVersion.branches
+   */
+  export type PolicyVersion$branchesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersionBranch
+     */
+    select?: PolicyVersionBranchSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionBranchInclude<ExtArgs> | null
+    where?: PolicyVersionBranchWhereInput
+    orderBy?: PolicyVersionBranchOrderByWithRelationInput | PolicyVersionBranchOrderByWithRelationInput[]
+    cursor?: PolicyVersionBranchWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PolicyVersionBranchScalarFieldEnum | PolicyVersionBranchScalarFieldEnum[]
+  }
+
+  /**
+   * PolicyVersion.createdByUser
+   */
+  export type PolicyVersion$createdByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
+   * PolicyVersion.submittedByUser
+   */
+  export type PolicyVersion$submittedByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
+   * PolicyVersion.approvedByUser
+   */
+  export type PolicyVersion$approvedByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
+   * PolicyVersion.rejectedByUser
+   */
+  export type PolicyVersion$rejectedByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
+   * PolicyVersion.retiredByUser
+   */
+  export type PolicyVersion$retiredByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
+   * PolicyVersion without action
+   */
+  export type PolicyVersionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersion
+     */
+    select?: PolicyVersionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PolicyVersionBranch
+   */
+
+  export type AggregatePolicyVersionBranch = {
+    _count: PolicyVersionBranchCountAggregateOutputType | null
+    _min: PolicyVersionBranchMinAggregateOutputType | null
+    _max: PolicyVersionBranchMaxAggregateOutputType | null
+  }
+
+  export type PolicyVersionBranchMinAggregateOutputType = {
+    id: string | null
+    policyVersionId: string | null
+    branchId: string | null
+    createdAt: Date | null
+  }
+
+  export type PolicyVersionBranchMaxAggregateOutputType = {
+    id: string | null
+    policyVersionId: string | null
+    branchId: string | null
+    createdAt: Date | null
+  }
+
+  export type PolicyVersionBranchCountAggregateOutputType = {
+    id: number
+    policyVersionId: number
+    branchId: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type PolicyVersionBranchMinAggregateInputType = {
+    id?: true
+    policyVersionId?: true
+    branchId?: true
+    createdAt?: true
+  }
+
+  export type PolicyVersionBranchMaxAggregateInputType = {
+    id?: true
+    policyVersionId?: true
+    branchId?: true
+    createdAt?: true
+  }
+
+  export type PolicyVersionBranchCountAggregateInputType = {
+    id?: true
+    policyVersionId?: true
+    branchId?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type PolicyVersionBranchAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PolicyVersionBranch to aggregate.
+     */
+    where?: PolicyVersionBranchWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PolicyVersionBranches to fetch.
+     */
+    orderBy?: PolicyVersionBranchOrderByWithRelationInput | PolicyVersionBranchOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PolicyVersionBranchWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PolicyVersionBranches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PolicyVersionBranches.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PolicyVersionBranches
+    **/
+    _count?: true | PolicyVersionBranchCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PolicyVersionBranchMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PolicyVersionBranchMaxAggregateInputType
+  }
+
+  export type GetPolicyVersionBranchAggregateType<T extends PolicyVersionBranchAggregateArgs> = {
+        [P in keyof T & keyof AggregatePolicyVersionBranch]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePolicyVersionBranch[P]>
+      : GetScalarType<T[P], AggregatePolicyVersionBranch[P]>
+  }
+
+
+
+
+  export type PolicyVersionBranchGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PolicyVersionBranchWhereInput
+    orderBy?: PolicyVersionBranchOrderByWithAggregationInput | PolicyVersionBranchOrderByWithAggregationInput[]
+    by: PolicyVersionBranchScalarFieldEnum[] | PolicyVersionBranchScalarFieldEnum
+    having?: PolicyVersionBranchScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PolicyVersionBranchCountAggregateInputType | true
+    _min?: PolicyVersionBranchMinAggregateInputType
+    _max?: PolicyVersionBranchMaxAggregateInputType
+  }
+
+  export type PolicyVersionBranchGroupByOutputType = {
+    id: string
+    policyVersionId: string
+    branchId: string
+    createdAt: Date
+    _count: PolicyVersionBranchCountAggregateOutputType | null
+    _min: PolicyVersionBranchMinAggregateOutputType | null
+    _max: PolicyVersionBranchMaxAggregateOutputType | null
+  }
+
+  type GetPolicyVersionBranchGroupByPayload<T extends PolicyVersionBranchGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PolicyVersionBranchGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PolicyVersionBranchGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PolicyVersionBranchGroupByOutputType[P]>
+            : GetScalarType<T[P], PolicyVersionBranchGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PolicyVersionBranchSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    policyVersionId?: boolean
+    branchId?: boolean
+    createdAt?: boolean
+    policyVersion?: boolean | PolicyVersionDefaultArgs<ExtArgs>
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["policyVersionBranch"]>
+
+  export type PolicyVersionBranchSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    policyVersionId?: boolean
+    branchId?: boolean
+    createdAt?: boolean
+    policyVersion?: boolean | PolicyVersionDefaultArgs<ExtArgs>
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["policyVersionBranch"]>
+
+  export type PolicyVersionBranchSelectScalar = {
+    id?: boolean
+    policyVersionId?: boolean
+    branchId?: boolean
+    createdAt?: boolean
+  }
+
+  export type PolicyVersionBranchInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    policyVersion?: boolean | PolicyVersionDefaultArgs<ExtArgs>
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+  }
+  export type PolicyVersionBranchIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    policyVersion?: boolean | PolicyVersionDefaultArgs<ExtArgs>
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+  }
+
+  export type $PolicyVersionBranchPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PolicyVersionBranch"
+    objects: {
+      policyVersion: Prisma.$PolicyVersionPayload<ExtArgs>
+      branch: Prisma.$BranchPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      policyVersionId: string
+      branchId: string
+      createdAt: Date
+    }, ExtArgs["result"]["policyVersionBranch"]>
+    composites: {}
+  }
+
+  type PolicyVersionBranchGetPayload<S extends boolean | null | undefined | PolicyVersionBranchDefaultArgs> = $Result.GetResult<Prisma.$PolicyVersionBranchPayload, S>
+
+  type PolicyVersionBranchCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<PolicyVersionBranchFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: PolicyVersionBranchCountAggregateInputType | true
+    }
+
+  export interface PolicyVersionBranchDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PolicyVersionBranch'], meta: { name: 'PolicyVersionBranch' } }
+    /**
+     * Find zero or one PolicyVersionBranch that matches the filter.
+     * @param {PolicyVersionBranchFindUniqueArgs} args - Arguments to find a PolicyVersionBranch
+     * @example
+     * // Get one PolicyVersionBranch
+     * const policyVersionBranch = await prisma.policyVersionBranch.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PolicyVersionBranchFindUniqueArgs>(args: SelectSubset<T, PolicyVersionBranchFindUniqueArgs<ExtArgs>>): Prisma__PolicyVersionBranchClient<$Result.GetResult<Prisma.$PolicyVersionBranchPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one PolicyVersionBranch that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {PolicyVersionBranchFindUniqueOrThrowArgs} args - Arguments to find a PolicyVersionBranch
+     * @example
+     * // Get one PolicyVersionBranch
+     * const policyVersionBranch = await prisma.policyVersionBranch.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PolicyVersionBranchFindUniqueOrThrowArgs>(args: SelectSubset<T, PolicyVersionBranchFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PolicyVersionBranchClient<$Result.GetResult<Prisma.$PolicyVersionBranchPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first PolicyVersionBranch that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyVersionBranchFindFirstArgs} args - Arguments to find a PolicyVersionBranch
+     * @example
+     * // Get one PolicyVersionBranch
+     * const policyVersionBranch = await prisma.policyVersionBranch.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PolicyVersionBranchFindFirstArgs>(args?: SelectSubset<T, PolicyVersionBranchFindFirstArgs<ExtArgs>>): Prisma__PolicyVersionBranchClient<$Result.GetResult<Prisma.$PolicyVersionBranchPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first PolicyVersionBranch that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyVersionBranchFindFirstOrThrowArgs} args - Arguments to find a PolicyVersionBranch
+     * @example
+     * // Get one PolicyVersionBranch
+     * const policyVersionBranch = await prisma.policyVersionBranch.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PolicyVersionBranchFindFirstOrThrowArgs>(args?: SelectSubset<T, PolicyVersionBranchFindFirstOrThrowArgs<ExtArgs>>): Prisma__PolicyVersionBranchClient<$Result.GetResult<Prisma.$PolicyVersionBranchPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more PolicyVersionBranches that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyVersionBranchFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PolicyVersionBranches
+     * const policyVersionBranches = await prisma.policyVersionBranch.findMany()
+     * 
+     * // Get first 10 PolicyVersionBranches
+     * const policyVersionBranches = await prisma.policyVersionBranch.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const policyVersionBranchWithIdOnly = await prisma.policyVersionBranch.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PolicyVersionBranchFindManyArgs>(args?: SelectSubset<T, PolicyVersionBranchFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PolicyVersionBranchPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a PolicyVersionBranch.
+     * @param {PolicyVersionBranchCreateArgs} args - Arguments to create a PolicyVersionBranch.
+     * @example
+     * // Create one PolicyVersionBranch
+     * const PolicyVersionBranch = await prisma.policyVersionBranch.create({
+     *   data: {
+     *     // ... data to create a PolicyVersionBranch
+     *   }
+     * })
+     * 
+     */
+    create<T extends PolicyVersionBranchCreateArgs>(args: SelectSubset<T, PolicyVersionBranchCreateArgs<ExtArgs>>): Prisma__PolicyVersionBranchClient<$Result.GetResult<Prisma.$PolicyVersionBranchPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many PolicyVersionBranches.
+     * @param {PolicyVersionBranchCreateManyArgs} args - Arguments to create many PolicyVersionBranches.
+     * @example
+     * // Create many PolicyVersionBranches
+     * const policyVersionBranch = await prisma.policyVersionBranch.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PolicyVersionBranchCreateManyArgs>(args?: SelectSubset<T, PolicyVersionBranchCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PolicyVersionBranches and returns the data saved in the database.
+     * @param {PolicyVersionBranchCreateManyAndReturnArgs} args - Arguments to create many PolicyVersionBranches.
+     * @example
+     * // Create many PolicyVersionBranches
+     * const policyVersionBranch = await prisma.policyVersionBranch.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PolicyVersionBranches and only return the `id`
+     * const policyVersionBranchWithIdOnly = await prisma.policyVersionBranch.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PolicyVersionBranchCreateManyAndReturnArgs>(args?: SelectSubset<T, PolicyVersionBranchCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PolicyVersionBranchPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a PolicyVersionBranch.
+     * @param {PolicyVersionBranchDeleteArgs} args - Arguments to delete one PolicyVersionBranch.
+     * @example
+     * // Delete one PolicyVersionBranch
+     * const PolicyVersionBranch = await prisma.policyVersionBranch.delete({
+     *   where: {
+     *     // ... filter to delete one PolicyVersionBranch
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PolicyVersionBranchDeleteArgs>(args: SelectSubset<T, PolicyVersionBranchDeleteArgs<ExtArgs>>): Prisma__PolicyVersionBranchClient<$Result.GetResult<Prisma.$PolicyVersionBranchPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one PolicyVersionBranch.
+     * @param {PolicyVersionBranchUpdateArgs} args - Arguments to update one PolicyVersionBranch.
+     * @example
+     * // Update one PolicyVersionBranch
+     * const policyVersionBranch = await prisma.policyVersionBranch.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PolicyVersionBranchUpdateArgs>(args: SelectSubset<T, PolicyVersionBranchUpdateArgs<ExtArgs>>): Prisma__PolicyVersionBranchClient<$Result.GetResult<Prisma.$PolicyVersionBranchPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more PolicyVersionBranches.
+     * @param {PolicyVersionBranchDeleteManyArgs} args - Arguments to filter PolicyVersionBranches to delete.
+     * @example
+     * // Delete a few PolicyVersionBranches
+     * const { count } = await prisma.policyVersionBranch.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PolicyVersionBranchDeleteManyArgs>(args?: SelectSubset<T, PolicyVersionBranchDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PolicyVersionBranches.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyVersionBranchUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PolicyVersionBranches
+     * const policyVersionBranch = await prisma.policyVersionBranch.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PolicyVersionBranchUpdateManyArgs>(args: SelectSubset<T, PolicyVersionBranchUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one PolicyVersionBranch.
+     * @param {PolicyVersionBranchUpsertArgs} args - Arguments to update or create a PolicyVersionBranch.
+     * @example
+     * // Update or create a PolicyVersionBranch
+     * const policyVersionBranch = await prisma.policyVersionBranch.upsert({
+     *   create: {
+     *     // ... data to create a PolicyVersionBranch
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PolicyVersionBranch we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PolicyVersionBranchUpsertArgs>(args: SelectSubset<T, PolicyVersionBranchUpsertArgs<ExtArgs>>): Prisma__PolicyVersionBranchClient<$Result.GetResult<Prisma.$PolicyVersionBranchPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of PolicyVersionBranches.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyVersionBranchCountArgs} args - Arguments to filter PolicyVersionBranches to count.
+     * @example
+     * // Count the number of PolicyVersionBranches
+     * const count = await prisma.policyVersionBranch.count({
+     *   where: {
+     *     // ... the filter for the PolicyVersionBranches we want to count
+     *   }
+     * })
+    **/
+    count<T extends PolicyVersionBranchCountArgs>(
+      args?: Subset<T, PolicyVersionBranchCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PolicyVersionBranchCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PolicyVersionBranch.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyVersionBranchAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PolicyVersionBranchAggregateArgs>(args: Subset<T, PolicyVersionBranchAggregateArgs>): Prisma.PrismaPromise<GetPolicyVersionBranchAggregateType<T>>
+
+    /**
+     * Group by PolicyVersionBranch.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PolicyVersionBranchGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PolicyVersionBranchGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PolicyVersionBranchGroupByArgs['orderBy'] }
+        : { orderBy?: PolicyVersionBranchGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PolicyVersionBranchGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPolicyVersionBranchGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PolicyVersionBranch model
+   */
+  readonly fields: PolicyVersionBranchFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PolicyVersionBranch.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PolicyVersionBranchClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    policyVersion<T extends PolicyVersionDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PolicyVersionDefaultArgs<ExtArgs>>): Prisma__PolicyVersionClient<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    branch<T extends BranchDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BranchDefaultArgs<ExtArgs>>): Prisma__BranchClient<$Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PolicyVersionBranch model
+   */ 
+  interface PolicyVersionBranchFieldRefs {
+    readonly id: FieldRef<"PolicyVersionBranch", 'String'>
+    readonly policyVersionId: FieldRef<"PolicyVersionBranch", 'String'>
+    readonly branchId: FieldRef<"PolicyVersionBranch", 'String'>
+    readonly createdAt: FieldRef<"PolicyVersionBranch", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PolicyVersionBranch findUnique
+   */
+  export type PolicyVersionBranchFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersionBranch
+     */
+    select?: PolicyVersionBranchSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionBranchInclude<ExtArgs> | null
+    /**
+     * Filter, which PolicyVersionBranch to fetch.
+     */
+    where: PolicyVersionBranchWhereUniqueInput
+  }
+
+  /**
+   * PolicyVersionBranch findUniqueOrThrow
+   */
+  export type PolicyVersionBranchFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersionBranch
+     */
+    select?: PolicyVersionBranchSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionBranchInclude<ExtArgs> | null
+    /**
+     * Filter, which PolicyVersionBranch to fetch.
+     */
+    where: PolicyVersionBranchWhereUniqueInput
+  }
+
+  /**
+   * PolicyVersionBranch findFirst
+   */
+  export type PolicyVersionBranchFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersionBranch
+     */
+    select?: PolicyVersionBranchSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionBranchInclude<ExtArgs> | null
+    /**
+     * Filter, which PolicyVersionBranch to fetch.
+     */
+    where?: PolicyVersionBranchWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PolicyVersionBranches to fetch.
+     */
+    orderBy?: PolicyVersionBranchOrderByWithRelationInput | PolicyVersionBranchOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PolicyVersionBranches.
+     */
+    cursor?: PolicyVersionBranchWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PolicyVersionBranches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PolicyVersionBranches.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PolicyVersionBranches.
+     */
+    distinct?: PolicyVersionBranchScalarFieldEnum | PolicyVersionBranchScalarFieldEnum[]
+  }
+
+  /**
+   * PolicyVersionBranch findFirstOrThrow
+   */
+  export type PolicyVersionBranchFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersionBranch
+     */
+    select?: PolicyVersionBranchSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionBranchInclude<ExtArgs> | null
+    /**
+     * Filter, which PolicyVersionBranch to fetch.
+     */
+    where?: PolicyVersionBranchWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PolicyVersionBranches to fetch.
+     */
+    orderBy?: PolicyVersionBranchOrderByWithRelationInput | PolicyVersionBranchOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PolicyVersionBranches.
+     */
+    cursor?: PolicyVersionBranchWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PolicyVersionBranches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PolicyVersionBranches.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PolicyVersionBranches.
+     */
+    distinct?: PolicyVersionBranchScalarFieldEnum | PolicyVersionBranchScalarFieldEnum[]
+  }
+
+  /**
+   * PolicyVersionBranch findMany
+   */
+  export type PolicyVersionBranchFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersionBranch
+     */
+    select?: PolicyVersionBranchSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionBranchInclude<ExtArgs> | null
+    /**
+     * Filter, which PolicyVersionBranches to fetch.
+     */
+    where?: PolicyVersionBranchWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PolicyVersionBranches to fetch.
+     */
+    orderBy?: PolicyVersionBranchOrderByWithRelationInput | PolicyVersionBranchOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PolicyVersionBranches.
+     */
+    cursor?: PolicyVersionBranchWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PolicyVersionBranches from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PolicyVersionBranches.
+     */
+    skip?: number
+    distinct?: PolicyVersionBranchScalarFieldEnum | PolicyVersionBranchScalarFieldEnum[]
+  }
+
+  /**
+   * PolicyVersionBranch create
+   */
+  export type PolicyVersionBranchCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersionBranch
+     */
+    select?: PolicyVersionBranchSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionBranchInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PolicyVersionBranch.
+     */
+    data: XOR<PolicyVersionBranchCreateInput, PolicyVersionBranchUncheckedCreateInput>
+  }
+
+  /**
+   * PolicyVersionBranch createMany
+   */
+  export type PolicyVersionBranchCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PolicyVersionBranches.
+     */
+    data: PolicyVersionBranchCreateManyInput | PolicyVersionBranchCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PolicyVersionBranch createManyAndReturn
+   */
+  export type PolicyVersionBranchCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersionBranch
+     */
+    select?: PolicyVersionBranchSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many PolicyVersionBranches.
+     */
+    data: PolicyVersionBranchCreateManyInput | PolicyVersionBranchCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionBranchIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PolicyVersionBranch update
+   */
+  export type PolicyVersionBranchUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersionBranch
+     */
+    select?: PolicyVersionBranchSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionBranchInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PolicyVersionBranch.
+     */
+    data: XOR<PolicyVersionBranchUpdateInput, PolicyVersionBranchUncheckedUpdateInput>
+    /**
+     * Choose, which PolicyVersionBranch to update.
+     */
+    where: PolicyVersionBranchWhereUniqueInput
+  }
+
+  /**
+   * PolicyVersionBranch updateMany
+   */
+  export type PolicyVersionBranchUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PolicyVersionBranches.
+     */
+    data: XOR<PolicyVersionBranchUpdateManyMutationInput, PolicyVersionBranchUncheckedUpdateManyInput>
+    /**
+     * Filter which PolicyVersionBranches to update
+     */
+    where?: PolicyVersionBranchWhereInput
+  }
+
+  /**
+   * PolicyVersionBranch upsert
+   */
+  export type PolicyVersionBranchUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersionBranch
+     */
+    select?: PolicyVersionBranchSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionBranchInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PolicyVersionBranch to update in case it exists.
+     */
+    where: PolicyVersionBranchWhereUniqueInput
+    /**
+     * In case the PolicyVersionBranch found by the `where` argument doesn't exist, create a new PolicyVersionBranch with this data.
+     */
+    create: XOR<PolicyVersionBranchCreateInput, PolicyVersionBranchUncheckedCreateInput>
+    /**
+     * In case the PolicyVersionBranch was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PolicyVersionBranchUpdateInput, PolicyVersionBranchUncheckedUpdateInput>
+  }
+
+  /**
+   * PolicyVersionBranch delete
+   */
+  export type PolicyVersionBranchDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersionBranch
+     */
+    select?: PolicyVersionBranchSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionBranchInclude<ExtArgs> | null
+    /**
+     * Filter which PolicyVersionBranch to delete.
+     */
+    where: PolicyVersionBranchWhereUniqueInput
+  }
+
+  /**
+   * PolicyVersionBranch deleteMany
+   */
+  export type PolicyVersionBranchDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PolicyVersionBranches to delete
+     */
+    where?: PolicyVersionBranchWhereInput
+  }
+
+  /**
+   * PolicyVersionBranch without action
+   */
+  export type PolicyVersionBranchDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PolicyVersionBranch
+     */
+    select?: PolicyVersionBranchSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PolicyVersionBranchInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -28282,6 +32090,58 @@ export namespace Prisma {
   export type RoleTemplatePermissionScalarFieldEnum = (typeof RoleTemplatePermissionScalarFieldEnum)[keyof typeof RoleTemplatePermissionScalarFieldEnum]
 
 
+  export const PolicyDefinitionScalarFieldEnum: {
+    id: 'id',
+    code: 'code',
+    name: 'name',
+    type: 'type',
+    description: 'description',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type PolicyDefinitionScalarFieldEnum = (typeof PolicyDefinitionScalarFieldEnum)[keyof typeof PolicyDefinitionScalarFieldEnum]
+
+
+  export const PolicyVersionScalarFieldEnum: {
+    id: 'id',
+    policyId: 'policyId',
+    scope: 'scope',
+    branchId: 'branchId',
+    version: 'version',
+    status: 'status',
+    effectiveAt: 'effectiveAt',
+    notes: 'notes',
+    payload: 'payload',
+    applyToAllBranches: 'applyToAllBranches',
+    createdByUserId: 'createdByUserId',
+    submittedAt: 'submittedAt',
+    submittedByUserId: 'submittedByUserId',
+    approvedAt: 'approvedAt',
+    approvedByUserId: 'approvedByUserId',
+    approvalNote: 'approvalNote',
+    rejectedAt: 'rejectedAt',
+    rejectedByUserId: 'rejectedByUserId',
+    rejectionReason: 'rejectionReason',
+    retiredAt: 'retiredAt',
+    retiredByUserId: 'retiredByUserId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type PolicyVersionScalarFieldEnum = (typeof PolicyVersionScalarFieldEnum)[keyof typeof PolicyVersionScalarFieldEnum]
+
+
+  export const PolicyVersionBranchScalarFieldEnum: {
+    id: 'id',
+    policyVersionId: 'policyVersionId',
+    branchId: 'branchId',
+    createdAt: 'createdAt'
+  };
+
+  export type PolicyVersionBranchScalarFieldEnum = (typeof PolicyVersionBranchScalarFieldEnum)[keyof typeof PolicyVersionBranchScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -28518,6 +32378,34 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'PolicyScope'
+   */
+  export type EnumPolicyScopeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PolicyScope'>
+    
+
+
+  /**
+   * Reference to a field of type 'PolicyScope[]'
+   */
+  export type ListEnumPolicyScopeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PolicyScope[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'PolicyVersionStatus'
+   */
+  export type EnumPolicyVersionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PolicyVersionStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'PolicyVersionStatus[]'
+   */
+  export type ListEnumPolicyVersionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PolicyVersionStatus[]'>
+    
+
+
+  /**
    * Reference to a field of type 'Float'
    */
   export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -28562,6 +32450,8 @@ export namespace Prisma {
     Admission?: AdmissionListRelationFilter
     statutoryCases?: StatutoryCaseListRelationFilter
     auditEvents?: AuditEventListRelationFilter
+    policyVersions?: PolicyVersionListRelationFilter
+    policyVersionBranches?: PolicyVersionBranchListRelationFilter
   }
 
   export type BranchOrderByWithRelationInput = {
@@ -28589,6 +32479,8 @@ export namespace Prisma {
     Admission?: AdmissionOrderByRelationAggregateInput
     statutoryCases?: StatutoryCaseOrderByRelationAggregateInput
     auditEvents?: AuditEventOrderByRelationAggregateInput
+    policyVersions?: PolicyVersionOrderByRelationAggregateInput
+    policyVersionBranches?: PolicyVersionBranchOrderByRelationAggregateInput
   }
 
   export type BranchWhereUniqueInput = Prisma.AtLeast<{
@@ -28619,6 +32511,8 @@ export namespace Prisma {
     Admission?: AdmissionListRelationFilter
     statutoryCases?: StatutoryCaseListRelationFilter
     auditEvents?: AuditEventListRelationFilter
+    policyVersions?: PolicyVersionListRelationFilter
+    policyVersionBranches?: PolicyVersionBranchListRelationFilter
   }, "id" | "code">
 
   export type BranchOrderByWithAggregationInput = {
@@ -28926,6 +32820,11 @@ export namespace Prisma {
     roleVersion?: XOR<RoleTemplateVersionNullableRelationFilter, RoleTemplateVersionWhereInput> | null
     createdRoleVersions?: RoleTemplateVersionListRelationFilter
     auditEventsAsActor?: AuditEventListRelationFilter
+    policyVersionsCreatedBy?: PolicyVersionListRelationFilter
+    policyVersionsSubmittedBy?: PolicyVersionListRelationFilter
+    policyVersionsApprovedBy?: PolicyVersionListRelationFilter
+    policyVersionsRejectedBy?: PolicyVersionListRelationFilter
+    policyVersionsRetiredBy?: PolicyVersionListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -28949,6 +32848,11 @@ export namespace Prisma {
     roleVersion?: RoleTemplateVersionOrderByWithRelationInput
     createdRoleVersions?: RoleTemplateVersionOrderByRelationAggregateInput
     auditEventsAsActor?: AuditEventOrderByRelationAggregateInput
+    policyVersionsCreatedBy?: PolicyVersionOrderByRelationAggregateInput
+    policyVersionsSubmittedBy?: PolicyVersionOrderByRelationAggregateInput
+    policyVersionsApprovedBy?: PolicyVersionOrderByRelationAggregateInput
+    policyVersionsRejectedBy?: PolicyVersionOrderByRelationAggregateInput
+    policyVersionsRetiredBy?: PolicyVersionOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -28975,6 +32879,11 @@ export namespace Prisma {
     roleVersion?: XOR<RoleTemplateVersionNullableRelationFilter, RoleTemplateVersionWhereInput> | null
     createdRoleVersions?: RoleTemplateVersionListRelationFilter
     auditEventsAsActor?: AuditEventListRelationFilter
+    policyVersionsCreatedBy?: PolicyVersionListRelationFilter
+    policyVersionsSubmittedBy?: PolicyVersionListRelationFilter
+    policyVersionsApprovedBy?: PolicyVersionListRelationFilter
+    policyVersionsRejectedBy?: PolicyVersionListRelationFilter
+    policyVersionsRetiredBy?: PolicyVersionListRelationFilter
   }, "id" | "email" | "staffId" | "passwordResetToken">
 
   export type UserOrderByWithAggregationInput = {
@@ -30428,6 +34337,293 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"RoleTemplatePermission"> | Date | string
   }
 
+  export type PolicyDefinitionWhereInput = {
+    AND?: PolicyDefinitionWhereInput | PolicyDefinitionWhereInput[]
+    OR?: PolicyDefinitionWhereInput[]
+    NOT?: PolicyDefinitionWhereInput | PolicyDefinitionWhereInput[]
+    id?: StringFilter<"PolicyDefinition"> | string
+    code?: StringFilter<"PolicyDefinition"> | string
+    name?: StringFilter<"PolicyDefinition"> | string
+    type?: StringFilter<"PolicyDefinition"> | string
+    description?: StringNullableFilter<"PolicyDefinition"> | string | null
+    createdAt?: DateTimeFilter<"PolicyDefinition"> | Date | string
+    updatedAt?: DateTimeFilter<"PolicyDefinition"> | Date | string
+    versions?: PolicyVersionListRelationFilter
+  }
+
+  export type PolicyDefinitionOrderByWithRelationInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    description?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    versions?: PolicyVersionOrderByRelationAggregateInput
+  }
+
+  export type PolicyDefinitionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    code?: string
+    AND?: PolicyDefinitionWhereInput | PolicyDefinitionWhereInput[]
+    OR?: PolicyDefinitionWhereInput[]
+    NOT?: PolicyDefinitionWhereInput | PolicyDefinitionWhereInput[]
+    name?: StringFilter<"PolicyDefinition"> | string
+    type?: StringFilter<"PolicyDefinition"> | string
+    description?: StringNullableFilter<"PolicyDefinition"> | string | null
+    createdAt?: DateTimeFilter<"PolicyDefinition"> | Date | string
+    updatedAt?: DateTimeFilter<"PolicyDefinition"> | Date | string
+    versions?: PolicyVersionListRelationFilter
+  }, "id" | "code">
+
+  export type PolicyDefinitionOrderByWithAggregationInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    description?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: PolicyDefinitionCountOrderByAggregateInput
+    _max?: PolicyDefinitionMaxOrderByAggregateInput
+    _min?: PolicyDefinitionMinOrderByAggregateInput
+  }
+
+  export type PolicyDefinitionScalarWhereWithAggregatesInput = {
+    AND?: PolicyDefinitionScalarWhereWithAggregatesInput | PolicyDefinitionScalarWhereWithAggregatesInput[]
+    OR?: PolicyDefinitionScalarWhereWithAggregatesInput[]
+    NOT?: PolicyDefinitionScalarWhereWithAggregatesInput | PolicyDefinitionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"PolicyDefinition"> | string
+    code?: StringWithAggregatesFilter<"PolicyDefinition"> | string
+    name?: StringWithAggregatesFilter<"PolicyDefinition"> | string
+    type?: StringWithAggregatesFilter<"PolicyDefinition"> | string
+    description?: StringNullableWithAggregatesFilter<"PolicyDefinition"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"PolicyDefinition"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"PolicyDefinition"> | Date | string
+  }
+
+  export type PolicyVersionWhereInput = {
+    AND?: PolicyVersionWhereInput | PolicyVersionWhereInput[]
+    OR?: PolicyVersionWhereInput[]
+    NOT?: PolicyVersionWhereInput | PolicyVersionWhereInput[]
+    id?: StringFilter<"PolicyVersion"> | string
+    policyId?: StringFilter<"PolicyVersion"> | string
+    scope?: EnumPolicyScopeFilter<"PolicyVersion"> | $Enums.PolicyScope
+    branchId?: StringNullableFilter<"PolicyVersion"> | string | null
+    version?: IntFilter<"PolicyVersion"> | number
+    status?: EnumPolicyVersionStatusFilter<"PolicyVersion"> | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFilter<"PolicyVersion"> | Date | string
+    notes?: StringNullableFilter<"PolicyVersion"> | string | null
+    payload?: JsonFilter<"PolicyVersion">
+    applyToAllBranches?: BoolFilter<"PolicyVersion"> | boolean
+    createdByUserId?: StringNullableFilter<"PolicyVersion"> | string | null
+    submittedAt?: DateTimeNullableFilter<"PolicyVersion"> | Date | string | null
+    submittedByUserId?: StringNullableFilter<"PolicyVersion"> | string | null
+    approvedAt?: DateTimeNullableFilter<"PolicyVersion"> | Date | string | null
+    approvedByUserId?: StringNullableFilter<"PolicyVersion"> | string | null
+    approvalNote?: StringNullableFilter<"PolicyVersion"> | string | null
+    rejectedAt?: DateTimeNullableFilter<"PolicyVersion"> | Date | string | null
+    rejectedByUserId?: StringNullableFilter<"PolicyVersion"> | string | null
+    rejectionReason?: StringNullableFilter<"PolicyVersion"> | string | null
+    retiredAt?: DateTimeNullableFilter<"PolicyVersion"> | Date | string | null
+    retiredByUserId?: StringNullableFilter<"PolicyVersion"> | string | null
+    createdAt?: DateTimeFilter<"PolicyVersion"> | Date | string
+    updatedAt?: DateTimeFilter<"PolicyVersion"> | Date | string
+    policy?: XOR<PolicyDefinitionRelationFilter, PolicyDefinitionWhereInput>
+    branch?: XOR<BranchNullableRelationFilter, BranchWhereInput> | null
+    branches?: PolicyVersionBranchListRelationFilter
+    createdByUser?: XOR<UserNullableRelationFilter, UserWhereInput> | null
+    submittedByUser?: XOR<UserNullableRelationFilter, UserWhereInput> | null
+    approvedByUser?: XOR<UserNullableRelationFilter, UserWhereInput> | null
+    rejectedByUser?: XOR<UserNullableRelationFilter, UserWhereInput> | null
+    retiredByUser?: XOR<UserNullableRelationFilter, UserWhereInput> | null
+  }
+
+  export type PolicyVersionOrderByWithRelationInput = {
+    id?: SortOrder
+    policyId?: SortOrder
+    scope?: SortOrder
+    branchId?: SortOrderInput | SortOrder
+    version?: SortOrder
+    status?: SortOrder
+    effectiveAt?: SortOrder
+    notes?: SortOrderInput | SortOrder
+    payload?: SortOrder
+    applyToAllBranches?: SortOrder
+    createdByUserId?: SortOrderInput | SortOrder
+    submittedAt?: SortOrderInput | SortOrder
+    submittedByUserId?: SortOrderInput | SortOrder
+    approvedAt?: SortOrderInput | SortOrder
+    approvedByUserId?: SortOrderInput | SortOrder
+    approvalNote?: SortOrderInput | SortOrder
+    rejectedAt?: SortOrderInput | SortOrder
+    rejectedByUserId?: SortOrderInput | SortOrder
+    rejectionReason?: SortOrderInput | SortOrder
+    retiredAt?: SortOrderInput | SortOrder
+    retiredByUserId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    policy?: PolicyDefinitionOrderByWithRelationInput
+    branch?: BranchOrderByWithRelationInput
+    branches?: PolicyVersionBranchOrderByRelationAggregateInput
+    createdByUser?: UserOrderByWithRelationInput
+    submittedByUser?: UserOrderByWithRelationInput
+    approvedByUser?: UserOrderByWithRelationInput
+    rejectedByUser?: UserOrderByWithRelationInput
+    retiredByUser?: UserOrderByWithRelationInput
+  }
+
+  export type PolicyVersionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: PolicyVersionWhereInput | PolicyVersionWhereInput[]
+    OR?: PolicyVersionWhereInput[]
+    NOT?: PolicyVersionWhereInput | PolicyVersionWhereInput[]
+    policyId?: StringFilter<"PolicyVersion"> | string
+    scope?: EnumPolicyScopeFilter<"PolicyVersion"> | $Enums.PolicyScope
+    branchId?: StringNullableFilter<"PolicyVersion"> | string | null
+    version?: IntFilter<"PolicyVersion"> | number
+    status?: EnumPolicyVersionStatusFilter<"PolicyVersion"> | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFilter<"PolicyVersion"> | Date | string
+    notes?: StringNullableFilter<"PolicyVersion"> | string | null
+    payload?: JsonFilter<"PolicyVersion">
+    applyToAllBranches?: BoolFilter<"PolicyVersion"> | boolean
+    createdByUserId?: StringNullableFilter<"PolicyVersion"> | string | null
+    submittedAt?: DateTimeNullableFilter<"PolicyVersion"> | Date | string | null
+    submittedByUserId?: StringNullableFilter<"PolicyVersion"> | string | null
+    approvedAt?: DateTimeNullableFilter<"PolicyVersion"> | Date | string | null
+    approvedByUserId?: StringNullableFilter<"PolicyVersion"> | string | null
+    approvalNote?: StringNullableFilter<"PolicyVersion"> | string | null
+    rejectedAt?: DateTimeNullableFilter<"PolicyVersion"> | Date | string | null
+    rejectedByUserId?: StringNullableFilter<"PolicyVersion"> | string | null
+    rejectionReason?: StringNullableFilter<"PolicyVersion"> | string | null
+    retiredAt?: DateTimeNullableFilter<"PolicyVersion"> | Date | string | null
+    retiredByUserId?: StringNullableFilter<"PolicyVersion"> | string | null
+    createdAt?: DateTimeFilter<"PolicyVersion"> | Date | string
+    updatedAt?: DateTimeFilter<"PolicyVersion"> | Date | string
+    policy?: XOR<PolicyDefinitionRelationFilter, PolicyDefinitionWhereInput>
+    branch?: XOR<BranchNullableRelationFilter, BranchWhereInput> | null
+    branches?: PolicyVersionBranchListRelationFilter
+    createdByUser?: XOR<UserNullableRelationFilter, UserWhereInput> | null
+    submittedByUser?: XOR<UserNullableRelationFilter, UserWhereInput> | null
+    approvedByUser?: XOR<UserNullableRelationFilter, UserWhereInput> | null
+    rejectedByUser?: XOR<UserNullableRelationFilter, UserWhereInput> | null
+    retiredByUser?: XOR<UserNullableRelationFilter, UserWhereInput> | null
+  }, "id">
+
+  export type PolicyVersionOrderByWithAggregationInput = {
+    id?: SortOrder
+    policyId?: SortOrder
+    scope?: SortOrder
+    branchId?: SortOrderInput | SortOrder
+    version?: SortOrder
+    status?: SortOrder
+    effectiveAt?: SortOrder
+    notes?: SortOrderInput | SortOrder
+    payload?: SortOrder
+    applyToAllBranches?: SortOrder
+    createdByUserId?: SortOrderInput | SortOrder
+    submittedAt?: SortOrderInput | SortOrder
+    submittedByUserId?: SortOrderInput | SortOrder
+    approvedAt?: SortOrderInput | SortOrder
+    approvedByUserId?: SortOrderInput | SortOrder
+    approvalNote?: SortOrderInput | SortOrder
+    rejectedAt?: SortOrderInput | SortOrder
+    rejectedByUserId?: SortOrderInput | SortOrder
+    rejectionReason?: SortOrderInput | SortOrder
+    retiredAt?: SortOrderInput | SortOrder
+    retiredByUserId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: PolicyVersionCountOrderByAggregateInput
+    _avg?: PolicyVersionAvgOrderByAggregateInput
+    _max?: PolicyVersionMaxOrderByAggregateInput
+    _min?: PolicyVersionMinOrderByAggregateInput
+    _sum?: PolicyVersionSumOrderByAggregateInput
+  }
+
+  export type PolicyVersionScalarWhereWithAggregatesInput = {
+    AND?: PolicyVersionScalarWhereWithAggregatesInput | PolicyVersionScalarWhereWithAggregatesInput[]
+    OR?: PolicyVersionScalarWhereWithAggregatesInput[]
+    NOT?: PolicyVersionScalarWhereWithAggregatesInput | PolicyVersionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"PolicyVersion"> | string
+    policyId?: StringWithAggregatesFilter<"PolicyVersion"> | string
+    scope?: EnumPolicyScopeWithAggregatesFilter<"PolicyVersion"> | $Enums.PolicyScope
+    branchId?: StringNullableWithAggregatesFilter<"PolicyVersion"> | string | null
+    version?: IntWithAggregatesFilter<"PolicyVersion"> | number
+    status?: EnumPolicyVersionStatusWithAggregatesFilter<"PolicyVersion"> | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeWithAggregatesFilter<"PolicyVersion"> | Date | string
+    notes?: StringNullableWithAggregatesFilter<"PolicyVersion"> | string | null
+    payload?: JsonWithAggregatesFilter<"PolicyVersion">
+    applyToAllBranches?: BoolWithAggregatesFilter<"PolicyVersion"> | boolean
+    createdByUserId?: StringNullableWithAggregatesFilter<"PolicyVersion"> | string | null
+    submittedAt?: DateTimeNullableWithAggregatesFilter<"PolicyVersion"> | Date | string | null
+    submittedByUserId?: StringNullableWithAggregatesFilter<"PolicyVersion"> | string | null
+    approvedAt?: DateTimeNullableWithAggregatesFilter<"PolicyVersion"> | Date | string | null
+    approvedByUserId?: StringNullableWithAggregatesFilter<"PolicyVersion"> | string | null
+    approvalNote?: StringNullableWithAggregatesFilter<"PolicyVersion"> | string | null
+    rejectedAt?: DateTimeNullableWithAggregatesFilter<"PolicyVersion"> | Date | string | null
+    rejectedByUserId?: StringNullableWithAggregatesFilter<"PolicyVersion"> | string | null
+    rejectionReason?: StringNullableWithAggregatesFilter<"PolicyVersion"> | string | null
+    retiredAt?: DateTimeNullableWithAggregatesFilter<"PolicyVersion"> | Date | string | null
+    retiredByUserId?: StringNullableWithAggregatesFilter<"PolicyVersion"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"PolicyVersion"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"PolicyVersion"> | Date | string
+  }
+
+  export type PolicyVersionBranchWhereInput = {
+    AND?: PolicyVersionBranchWhereInput | PolicyVersionBranchWhereInput[]
+    OR?: PolicyVersionBranchWhereInput[]
+    NOT?: PolicyVersionBranchWhereInput | PolicyVersionBranchWhereInput[]
+    id?: StringFilter<"PolicyVersionBranch"> | string
+    policyVersionId?: StringFilter<"PolicyVersionBranch"> | string
+    branchId?: StringFilter<"PolicyVersionBranch"> | string
+    createdAt?: DateTimeFilter<"PolicyVersionBranch"> | Date | string
+    policyVersion?: XOR<PolicyVersionRelationFilter, PolicyVersionWhereInput>
+    branch?: XOR<BranchRelationFilter, BranchWhereInput>
+  }
+
+  export type PolicyVersionBranchOrderByWithRelationInput = {
+    id?: SortOrder
+    policyVersionId?: SortOrder
+    branchId?: SortOrder
+    createdAt?: SortOrder
+    policyVersion?: PolicyVersionOrderByWithRelationInput
+    branch?: BranchOrderByWithRelationInput
+  }
+
+  export type PolicyVersionBranchWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    policyVersionId_branchId?: PolicyVersionBranchPolicyVersionIdBranchIdCompoundUniqueInput
+    AND?: PolicyVersionBranchWhereInput | PolicyVersionBranchWhereInput[]
+    OR?: PolicyVersionBranchWhereInput[]
+    NOT?: PolicyVersionBranchWhereInput | PolicyVersionBranchWhereInput[]
+    policyVersionId?: StringFilter<"PolicyVersionBranch"> | string
+    branchId?: StringFilter<"PolicyVersionBranch"> | string
+    createdAt?: DateTimeFilter<"PolicyVersionBranch"> | Date | string
+    policyVersion?: XOR<PolicyVersionRelationFilter, PolicyVersionWhereInput>
+    branch?: XOR<BranchRelationFilter, BranchWhereInput>
+  }, "id" | "policyVersionId_branchId">
+
+  export type PolicyVersionBranchOrderByWithAggregationInput = {
+    id?: SortOrder
+    policyVersionId?: SortOrder
+    branchId?: SortOrder
+    createdAt?: SortOrder
+    _count?: PolicyVersionBranchCountOrderByAggregateInput
+    _max?: PolicyVersionBranchMaxOrderByAggregateInput
+    _min?: PolicyVersionBranchMinOrderByAggregateInput
+  }
+
+  export type PolicyVersionBranchScalarWhereWithAggregatesInput = {
+    AND?: PolicyVersionBranchScalarWhereWithAggregatesInput | PolicyVersionBranchScalarWhereWithAggregatesInput[]
+    OR?: PolicyVersionBranchScalarWhereWithAggregatesInput[]
+    NOT?: PolicyVersionBranchScalarWhereWithAggregatesInput | PolicyVersionBranchScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"PolicyVersionBranch"> | string
+    policyVersionId?: StringWithAggregatesFilter<"PolicyVersionBranch"> | string
+    branchId?: StringWithAggregatesFilter<"PolicyVersionBranch"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"PolicyVersionBranch"> | Date | string
+  }
+
   export type BranchCreateInput = {
     id?: string
     code: string
@@ -30453,6 +34649,8 @@ export namespace Prisma {
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateInput = {
@@ -30480,6 +34678,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUpdateInput = {
@@ -30507,6 +34707,8 @@ export namespace Prisma {
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateInput = {
@@ -30534,6 +34736,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchCreateManyInput = {
@@ -30855,6 +35059,11 @@ export namespace Prisma {
     roleVersion?: RoleTemplateVersionCreateNestedOneWithoutUsersInput
     createdRoleVersions?: RoleTemplateVersionCreateNestedManyWithoutCreatedByUserInput
     auditEventsAsActor?: AuditEventCreateNestedManyWithoutActorUserInput
+    policyVersionsCreatedBy?: PolicyVersionCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsSubmittedBy?: PolicyVersionCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionCreateNestedManyWithoutRejectedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionCreateNestedManyWithoutRetiredByUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -30875,6 +35084,11 @@ export namespace Prisma {
     updatedAt?: Date | string
     createdRoleVersions?: RoleTemplateVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
     auditEventsAsActor?: AuditEventUncheckedCreateNestedManyWithoutActorUserInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedCreateNestedManyWithoutRejectedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedCreateNestedManyWithoutRetiredByUserInput
   }
 
   export type UserUpdateInput = {
@@ -30895,6 +35109,11 @@ export namespace Prisma {
     roleVersion?: RoleTemplateVersionUpdateOneWithoutUsersNestedInput
     createdRoleVersions?: RoleTemplateVersionUpdateManyWithoutCreatedByUserNestedInput
     auditEventsAsActor?: AuditEventUpdateManyWithoutActorUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUpdateManyWithoutRejectedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUpdateManyWithoutRetiredByUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -30915,6 +35134,11 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdRoleVersions?: RoleTemplateVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     auditEventsAsActor?: AuditEventUncheckedUpdateManyWithoutActorUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedUpdateManyWithoutRejectedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedUpdateManyWithoutRetiredByUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -32473,6 +36697,306 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type PolicyDefinitionCreateInput = {
+    id?: string
+    code: string
+    name: string
+    type: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    versions?: PolicyVersionCreateNestedManyWithoutPolicyInput
+  }
+
+  export type PolicyDefinitionUncheckedCreateInput = {
+    id?: string
+    code: string
+    name: string
+    type: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    versions?: PolicyVersionUncheckedCreateNestedManyWithoutPolicyInput
+  }
+
+  export type PolicyDefinitionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    versions?: PolicyVersionUpdateManyWithoutPolicyNestedInput
+  }
+
+  export type PolicyDefinitionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    versions?: PolicyVersionUncheckedUpdateManyWithoutPolicyNestedInput
+  }
+
+  export type PolicyDefinitionCreateManyInput = {
+    id?: string
+    code: string
+    name: string
+    type: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PolicyDefinitionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PolicyDefinitionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PolicyVersionCreateInput = {
+    id?: string
+    scope?: $Enums.PolicyScope
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    submittedAt?: Date | string | null
+    approvedAt?: Date | string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    policy: PolicyDefinitionCreateNestedOneWithoutVersionsInput
+    branch?: BranchCreateNestedOneWithoutPolicyVersionsInput
+    branches?: PolicyVersionBranchCreateNestedManyWithoutPolicyVersionInput
+    createdByUser?: UserCreateNestedOneWithoutPolicyVersionsCreatedByInput
+    submittedByUser?: UserCreateNestedOneWithoutPolicyVersionsSubmittedByInput
+    approvedByUser?: UserCreateNestedOneWithoutPolicyVersionsApprovedByInput
+    rejectedByUser?: UserCreateNestedOneWithoutPolicyVersionsRejectedByInput
+    retiredByUser?: UserCreateNestedOneWithoutPolicyVersionsRetiredByInput
+  }
+
+  export type PolicyVersionUncheckedCreateInput = {
+    id?: string
+    policyId: string
+    scope?: $Enums.PolicyScope
+    branchId?: string | null
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    createdByUserId?: string | null
+    submittedAt?: Date | string | null
+    submittedByUserId?: string | null
+    approvedAt?: Date | string | null
+    approvedByUserId?: string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectedByUserId?: string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    retiredByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutPolicyVersionInput
+  }
+
+  export type PolicyVersionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    policy?: PolicyDefinitionUpdateOneRequiredWithoutVersionsNestedInput
+    branch?: BranchUpdateOneWithoutPolicyVersionsNestedInput
+    branches?: PolicyVersionBranchUpdateManyWithoutPolicyVersionNestedInput
+    createdByUser?: UserUpdateOneWithoutPolicyVersionsCreatedByNestedInput
+    submittedByUser?: UserUpdateOneWithoutPolicyVersionsSubmittedByNestedInput
+    approvedByUser?: UserUpdateOneWithoutPolicyVersionsApprovedByNestedInput
+    rejectedByUser?: UserUpdateOneWithoutPolicyVersionsRejectedByNestedInput
+    retiredByUser?: UserUpdateOneWithoutPolicyVersionsRetiredByNestedInput
+  }
+
+  export type PolicyVersionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    policyId?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    retiredByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branches?: PolicyVersionBranchUncheckedUpdateManyWithoutPolicyVersionNestedInput
+  }
+
+  export type PolicyVersionCreateManyInput = {
+    id?: string
+    policyId: string
+    scope?: $Enums.PolicyScope
+    branchId?: string | null
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    createdByUserId?: string | null
+    submittedAt?: Date | string | null
+    submittedByUserId?: string | null
+    approvedAt?: Date | string | null
+    approvedByUserId?: string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectedByUserId?: string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    retiredByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PolicyVersionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PolicyVersionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    policyId?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    retiredByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PolicyVersionBranchCreateInput = {
+    id?: string
+    createdAt?: Date | string
+    policyVersion: PolicyVersionCreateNestedOneWithoutBranchesInput
+    branch: BranchCreateNestedOneWithoutPolicyVersionBranchesInput
+  }
+
+  export type PolicyVersionBranchUncheckedCreateInput = {
+    id?: string
+    policyVersionId: string
+    branchId: string
+    createdAt?: Date | string
+  }
+
+  export type PolicyVersionBranchUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    policyVersion?: PolicyVersionUpdateOneRequiredWithoutBranchesNestedInput
+    branch?: BranchUpdateOneRequiredWithoutPolicyVersionBranchesNestedInput
+  }
+
+  export type PolicyVersionBranchUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    policyVersionId?: StringFieldUpdateOperationsInput | string
+    branchId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PolicyVersionBranchCreateManyInput = {
+    id?: string
+    policyVersionId: string
+    branchId: string
+    createdAt?: Date | string
+  }
+
+  export type PolicyVersionBranchUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PolicyVersionBranchUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    policyVersionId?: StringFieldUpdateOperationsInput | string
+    branchId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -32598,6 +37122,18 @@ export namespace Prisma {
     none?: AuditEventWhereInput
   }
 
+  export type PolicyVersionListRelationFilter = {
+    every?: PolicyVersionWhereInput
+    some?: PolicyVersionWhereInput
+    none?: PolicyVersionWhereInput
+  }
+
+  export type PolicyVersionBranchListRelationFilter = {
+    every?: PolicyVersionBranchWhereInput
+    some?: PolicyVersionBranchWhereInput
+    none?: PolicyVersionBranchWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -32656,6 +37192,14 @@ export namespace Prisma {
   }
 
   export type AuditEventOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type PolicyVersionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type PolicyVersionBranchOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -34070,6 +38614,190 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type PolicyDefinitionCountOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    description?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PolicyDefinitionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    description?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PolicyDefinitionMinOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    type?: SortOrder
+    description?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumPolicyScopeFilter<$PrismaModel = never> = {
+    equals?: $Enums.PolicyScope | EnumPolicyScopeFieldRefInput<$PrismaModel>
+    in?: $Enums.PolicyScope[] | ListEnumPolicyScopeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PolicyScope[] | ListEnumPolicyScopeFieldRefInput<$PrismaModel>
+    not?: NestedEnumPolicyScopeFilter<$PrismaModel> | $Enums.PolicyScope
+  }
+
+  export type EnumPolicyVersionStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.PolicyVersionStatus | EnumPolicyVersionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PolicyVersionStatus[] | ListEnumPolicyVersionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PolicyVersionStatus[] | ListEnumPolicyVersionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPolicyVersionStatusFilter<$PrismaModel> | $Enums.PolicyVersionStatus
+  }
+
+  export type PolicyDefinitionRelationFilter = {
+    is?: PolicyDefinitionWhereInput
+    isNot?: PolicyDefinitionWhereInput
+  }
+
+  export type PolicyVersionCountOrderByAggregateInput = {
+    id?: SortOrder
+    policyId?: SortOrder
+    scope?: SortOrder
+    branchId?: SortOrder
+    version?: SortOrder
+    status?: SortOrder
+    effectiveAt?: SortOrder
+    notes?: SortOrder
+    payload?: SortOrder
+    applyToAllBranches?: SortOrder
+    createdByUserId?: SortOrder
+    submittedAt?: SortOrder
+    submittedByUserId?: SortOrder
+    approvedAt?: SortOrder
+    approvedByUserId?: SortOrder
+    approvalNote?: SortOrder
+    rejectedAt?: SortOrder
+    rejectedByUserId?: SortOrder
+    rejectionReason?: SortOrder
+    retiredAt?: SortOrder
+    retiredByUserId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PolicyVersionAvgOrderByAggregateInput = {
+    version?: SortOrder
+  }
+
+  export type PolicyVersionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    policyId?: SortOrder
+    scope?: SortOrder
+    branchId?: SortOrder
+    version?: SortOrder
+    status?: SortOrder
+    effectiveAt?: SortOrder
+    notes?: SortOrder
+    applyToAllBranches?: SortOrder
+    createdByUserId?: SortOrder
+    submittedAt?: SortOrder
+    submittedByUserId?: SortOrder
+    approvedAt?: SortOrder
+    approvedByUserId?: SortOrder
+    approvalNote?: SortOrder
+    rejectedAt?: SortOrder
+    rejectedByUserId?: SortOrder
+    rejectionReason?: SortOrder
+    retiredAt?: SortOrder
+    retiredByUserId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PolicyVersionMinOrderByAggregateInput = {
+    id?: SortOrder
+    policyId?: SortOrder
+    scope?: SortOrder
+    branchId?: SortOrder
+    version?: SortOrder
+    status?: SortOrder
+    effectiveAt?: SortOrder
+    notes?: SortOrder
+    applyToAllBranches?: SortOrder
+    createdByUserId?: SortOrder
+    submittedAt?: SortOrder
+    submittedByUserId?: SortOrder
+    approvedAt?: SortOrder
+    approvedByUserId?: SortOrder
+    approvalNote?: SortOrder
+    rejectedAt?: SortOrder
+    rejectedByUserId?: SortOrder
+    rejectionReason?: SortOrder
+    retiredAt?: SortOrder
+    retiredByUserId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PolicyVersionSumOrderByAggregateInput = {
+    version?: SortOrder
+  }
+
+  export type EnumPolicyScopeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PolicyScope | EnumPolicyScopeFieldRefInput<$PrismaModel>
+    in?: $Enums.PolicyScope[] | ListEnumPolicyScopeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PolicyScope[] | ListEnumPolicyScopeFieldRefInput<$PrismaModel>
+    not?: NestedEnumPolicyScopeWithAggregatesFilter<$PrismaModel> | $Enums.PolicyScope
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPolicyScopeFilter<$PrismaModel>
+    _max?: NestedEnumPolicyScopeFilter<$PrismaModel>
+  }
+
+  export type EnumPolicyVersionStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PolicyVersionStatus | EnumPolicyVersionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PolicyVersionStatus[] | ListEnumPolicyVersionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PolicyVersionStatus[] | ListEnumPolicyVersionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPolicyVersionStatusWithAggregatesFilter<$PrismaModel> | $Enums.PolicyVersionStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPolicyVersionStatusFilter<$PrismaModel>
+    _max?: NestedEnumPolicyVersionStatusFilter<$PrismaModel>
+  }
+
+  export type PolicyVersionRelationFilter = {
+    is?: PolicyVersionWhereInput
+    isNot?: PolicyVersionWhereInput
+  }
+
+  export type PolicyVersionBranchPolicyVersionIdBranchIdCompoundUniqueInput = {
+    policyVersionId: string
+    branchId: string
+  }
+
+  export type PolicyVersionBranchCountOrderByAggregateInput = {
+    id?: SortOrder
+    policyVersionId?: SortOrder
+    branchId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PolicyVersionBranchMaxOrderByAggregateInput = {
+    id?: SortOrder
+    policyVersionId?: SortOrder
+    branchId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PolicyVersionBranchMinOrderByAggregateInput = {
+    id?: SortOrder
+    policyVersionId?: SortOrder
+    branchId?: SortOrder
+    createdAt?: SortOrder
+  }
+
   export type DepartmentCreateNestedManyWithoutBranchInput = {
     create?: XOR<DepartmentCreateWithoutBranchInput, DepartmentUncheckedCreateWithoutBranchInput> | DepartmentCreateWithoutBranchInput[] | DepartmentUncheckedCreateWithoutBranchInput[]
     connectOrCreate?: DepartmentCreateOrConnectWithoutBranchInput | DepartmentCreateOrConnectWithoutBranchInput[]
@@ -34168,6 +38896,20 @@ export namespace Prisma {
     connect?: AuditEventWhereUniqueInput | AuditEventWhereUniqueInput[]
   }
 
+  export type PolicyVersionCreateNestedManyWithoutBranchInput = {
+    create?: XOR<PolicyVersionCreateWithoutBranchInput, PolicyVersionUncheckedCreateWithoutBranchInput> | PolicyVersionCreateWithoutBranchInput[] | PolicyVersionUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutBranchInput | PolicyVersionCreateOrConnectWithoutBranchInput[]
+    createMany?: PolicyVersionCreateManyBranchInputEnvelope
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+  }
+
+  export type PolicyVersionBranchCreateNestedManyWithoutBranchInput = {
+    create?: XOR<PolicyVersionBranchCreateWithoutBranchInput, PolicyVersionBranchUncheckedCreateWithoutBranchInput> | PolicyVersionBranchCreateWithoutBranchInput[] | PolicyVersionBranchUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: PolicyVersionBranchCreateOrConnectWithoutBranchInput | PolicyVersionBranchCreateOrConnectWithoutBranchInput[]
+    createMany?: PolicyVersionBranchCreateManyBranchInputEnvelope
+    connect?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
+  }
+
   export type DepartmentUncheckedCreateNestedManyWithoutBranchInput = {
     create?: XOR<DepartmentCreateWithoutBranchInput, DepartmentUncheckedCreateWithoutBranchInput> | DepartmentCreateWithoutBranchInput[] | DepartmentUncheckedCreateWithoutBranchInput[]
     connectOrCreate?: DepartmentCreateOrConnectWithoutBranchInput | DepartmentCreateOrConnectWithoutBranchInput[]
@@ -34264,6 +39006,20 @@ export namespace Prisma {
     connectOrCreate?: AuditEventCreateOrConnectWithoutBranchInput | AuditEventCreateOrConnectWithoutBranchInput[]
     createMany?: AuditEventCreateManyBranchInputEnvelope
     connect?: AuditEventWhereUniqueInput | AuditEventWhereUniqueInput[]
+  }
+
+  export type PolicyVersionUncheckedCreateNestedManyWithoutBranchInput = {
+    create?: XOR<PolicyVersionCreateWithoutBranchInput, PolicyVersionUncheckedCreateWithoutBranchInput> | PolicyVersionCreateWithoutBranchInput[] | PolicyVersionUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutBranchInput | PolicyVersionCreateOrConnectWithoutBranchInput[]
+    createMany?: PolicyVersionCreateManyBranchInputEnvelope
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+  }
+
+  export type PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput = {
+    create?: XOR<PolicyVersionBranchCreateWithoutBranchInput, PolicyVersionBranchUncheckedCreateWithoutBranchInput> | PolicyVersionBranchCreateWithoutBranchInput[] | PolicyVersionBranchUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: PolicyVersionBranchCreateOrConnectWithoutBranchInput | PolicyVersionBranchCreateOrConnectWithoutBranchInput[]
+    createMany?: PolicyVersionBranchCreateManyBranchInputEnvelope
+    connect?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -34474,6 +39230,34 @@ export namespace Prisma {
     deleteMany?: AuditEventScalarWhereInput | AuditEventScalarWhereInput[]
   }
 
+  export type PolicyVersionUpdateManyWithoutBranchNestedInput = {
+    create?: XOR<PolicyVersionCreateWithoutBranchInput, PolicyVersionUncheckedCreateWithoutBranchInput> | PolicyVersionCreateWithoutBranchInput[] | PolicyVersionUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutBranchInput | PolicyVersionCreateOrConnectWithoutBranchInput[]
+    upsert?: PolicyVersionUpsertWithWhereUniqueWithoutBranchInput | PolicyVersionUpsertWithWhereUniqueWithoutBranchInput[]
+    createMany?: PolicyVersionCreateManyBranchInputEnvelope
+    set?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    disconnect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    delete?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    update?: PolicyVersionUpdateWithWhereUniqueWithoutBranchInput | PolicyVersionUpdateWithWhereUniqueWithoutBranchInput[]
+    updateMany?: PolicyVersionUpdateManyWithWhereWithoutBranchInput | PolicyVersionUpdateManyWithWhereWithoutBranchInput[]
+    deleteMany?: PolicyVersionScalarWhereInput | PolicyVersionScalarWhereInput[]
+  }
+
+  export type PolicyVersionBranchUpdateManyWithoutBranchNestedInput = {
+    create?: XOR<PolicyVersionBranchCreateWithoutBranchInput, PolicyVersionBranchUncheckedCreateWithoutBranchInput> | PolicyVersionBranchCreateWithoutBranchInput[] | PolicyVersionBranchUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: PolicyVersionBranchCreateOrConnectWithoutBranchInput | PolicyVersionBranchCreateOrConnectWithoutBranchInput[]
+    upsert?: PolicyVersionBranchUpsertWithWhereUniqueWithoutBranchInput | PolicyVersionBranchUpsertWithWhereUniqueWithoutBranchInput[]
+    createMany?: PolicyVersionBranchCreateManyBranchInputEnvelope
+    set?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
+    disconnect?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
+    delete?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
+    connect?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
+    update?: PolicyVersionBranchUpdateWithWhereUniqueWithoutBranchInput | PolicyVersionBranchUpdateWithWhereUniqueWithoutBranchInput[]
+    updateMany?: PolicyVersionBranchUpdateManyWithWhereWithoutBranchInput | PolicyVersionBranchUpdateManyWithWhereWithoutBranchInput[]
+    deleteMany?: PolicyVersionBranchScalarWhereInput | PolicyVersionBranchScalarWhereInput[]
+  }
+
   export type DepartmentUncheckedUpdateManyWithoutBranchNestedInput = {
     create?: XOR<DepartmentCreateWithoutBranchInput, DepartmentUncheckedCreateWithoutBranchInput> | DepartmentCreateWithoutBranchInput[] | DepartmentUncheckedCreateWithoutBranchInput[]
     connectOrCreate?: DepartmentCreateOrConnectWithoutBranchInput | DepartmentCreateOrConnectWithoutBranchInput[]
@@ -34668,6 +39452,34 @@ export namespace Prisma {
     update?: AuditEventUpdateWithWhereUniqueWithoutBranchInput | AuditEventUpdateWithWhereUniqueWithoutBranchInput[]
     updateMany?: AuditEventUpdateManyWithWhereWithoutBranchInput | AuditEventUpdateManyWithWhereWithoutBranchInput[]
     deleteMany?: AuditEventScalarWhereInput | AuditEventScalarWhereInput[]
+  }
+
+  export type PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput = {
+    create?: XOR<PolicyVersionCreateWithoutBranchInput, PolicyVersionUncheckedCreateWithoutBranchInput> | PolicyVersionCreateWithoutBranchInput[] | PolicyVersionUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutBranchInput | PolicyVersionCreateOrConnectWithoutBranchInput[]
+    upsert?: PolicyVersionUpsertWithWhereUniqueWithoutBranchInput | PolicyVersionUpsertWithWhereUniqueWithoutBranchInput[]
+    createMany?: PolicyVersionCreateManyBranchInputEnvelope
+    set?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    disconnect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    delete?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    update?: PolicyVersionUpdateWithWhereUniqueWithoutBranchInput | PolicyVersionUpdateWithWhereUniqueWithoutBranchInput[]
+    updateMany?: PolicyVersionUpdateManyWithWhereWithoutBranchInput | PolicyVersionUpdateManyWithWhereWithoutBranchInput[]
+    deleteMany?: PolicyVersionScalarWhereInput | PolicyVersionScalarWhereInput[]
+  }
+
+  export type PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput = {
+    create?: XOR<PolicyVersionBranchCreateWithoutBranchInput, PolicyVersionBranchUncheckedCreateWithoutBranchInput> | PolicyVersionBranchCreateWithoutBranchInput[] | PolicyVersionBranchUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: PolicyVersionBranchCreateOrConnectWithoutBranchInput | PolicyVersionBranchCreateOrConnectWithoutBranchInput[]
+    upsert?: PolicyVersionBranchUpsertWithWhereUniqueWithoutBranchInput | PolicyVersionBranchUpsertWithWhereUniqueWithoutBranchInput[]
+    createMany?: PolicyVersionBranchCreateManyBranchInputEnvelope
+    set?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
+    disconnect?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
+    delete?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
+    connect?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
+    update?: PolicyVersionBranchUpdateWithWhereUniqueWithoutBranchInput | PolicyVersionBranchUpdateWithWhereUniqueWithoutBranchInput[]
+    updateMany?: PolicyVersionBranchUpdateManyWithWhereWithoutBranchInput | PolicyVersionBranchUpdateManyWithWhereWithoutBranchInput[]
+    deleteMany?: PolicyVersionBranchScalarWhereInput | PolicyVersionBranchScalarWhereInput[]
   }
 
   export type BranchCreateNestedOneWithoutDepartmentsInput = {
@@ -34954,6 +39766,41 @@ export namespace Prisma {
     connect?: AuditEventWhereUniqueInput | AuditEventWhereUniqueInput[]
   }
 
+  export type PolicyVersionCreateNestedManyWithoutCreatedByUserInput = {
+    create?: XOR<PolicyVersionCreateWithoutCreatedByUserInput, PolicyVersionUncheckedCreateWithoutCreatedByUserInput> | PolicyVersionCreateWithoutCreatedByUserInput[] | PolicyVersionUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutCreatedByUserInput | PolicyVersionCreateOrConnectWithoutCreatedByUserInput[]
+    createMany?: PolicyVersionCreateManyCreatedByUserInputEnvelope
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+  }
+
+  export type PolicyVersionCreateNestedManyWithoutSubmittedByUserInput = {
+    create?: XOR<PolicyVersionCreateWithoutSubmittedByUserInput, PolicyVersionUncheckedCreateWithoutSubmittedByUserInput> | PolicyVersionCreateWithoutSubmittedByUserInput[] | PolicyVersionUncheckedCreateWithoutSubmittedByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutSubmittedByUserInput | PolicyVersionCreateOrConnectWithoutSubmittedByUserInput[]
+    createMany?: PolicyVersionCreateManySubmittedByUserInputEnvelope
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+  }
+
+  export type PolicyVersionCreateNestedManyWithoutApprovedByUserInput = {
+    create?: XOR<PolicyVersionCreateWithoutApprovedByUserInput, PolicyVersionUncheckedCreateWithoutApprovedByUserInput> | PolicyVersionCreateWithoutApprovedByUserInput[] | PolicyVersionUncheckedCreateWithoutApprovedByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutApprovedByUserInput | PolicyVersionCreateOrConnectWithoutApprovedByUserInput[]
+    createMany?: PolicyVersionCreateManyApprovedByUserInputEnvelope
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+  }
+
+  export type PolicyVersionCreateNestedManyWithoutRejectedByUserInput = {
+    create?: XOR<PolicyVersionCreateWithoutRejectedByUserInput, PolicyVersionUncheckedCreateWithoutRejectedByUserInput> | PolicyVersionCreateWithoutRejectedByUserInput[] | PolicyVersionUncheckedCreateWithoutRejectedByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutRejectedByUserInput | PolicyVersionCreateOrConnectWithoutRejectedByUserInput[]
+    createMany?: PolicyVersionCreateManyRejectedByUserInputEnvelope
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+  }
+
+  export type PolicyVersionCreateNestedManyWithoutRetiredByUserInput = {
+    create?: XOR<PolicyVersionCreateWithoutRetiredByUserInput, PolicyVersionUncheckedCreateWithoutRetiredByUserInput> | PolicyVersionCreateWithoutRetiredByUserInput[] | PolicyVersionUncheckedCreateWithoutRetiredByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutRetiredByUserInput | PolicyVersionCreateOrConnectWithoutRetiredByUserInput[]
+    createMany?: PolicyVersionCreateManyRetiredByUserInputEnvelope
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+  }
+
   export type RoleTemplateVersionUncheckedCreateNestedManyWithoutCreatedByUserInput = {
     create?: XOR<RoleTemplateVersionCreateWithoutCreatedByUserInput, RoleTemplateVersionUncheckedCreateWithoutCreatedByUserInput> | RoleTemplateVersionCreateWithoutCreatedByUserInput[] | RoleTemplateVersionUncheckedCreateWithoutCreatedByUserInput[]
     connectOrCreate?: RoleTemplateVersionCreateOrConnectWithoutCreatedByUserInput | RoleTemplateVersionCreateOrConnectWithoutCreatedByUserInput[]
@@ -34966,6 +39813,41 @@ export namespace Prisma {
     connectOrCreate?: AuditEventCreateOrConnectWithoutActorUserInput | AuditEventCreateOrConnectWithoutActorUserInput[]
     createMany?: AuditEventCreateManyActorUserInputEnvelope
     connect?: AuditEventWhereUniqueInput | AuditEventWhereUniqueInput[]
+  }
+
+  export type PolicyVersionUncheckedCreateNestedManyWithoutCreatedByUserInput = {
+    create?: XOR<PolicyVersionCreateWithoutCreatedByUserInput, PolicyVersionUncheckedCreateWithoutCreatedByUserInput> | PolicyVersionCreateWithoutCreatedByUserInput[] | PolicyVersionUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutCreatedByUserInput | PolicyVersionCreateOrConnectWithoutCreatedByUserInput[]
+    createMany?: PolicyVersionCreateManyCreatedByUserInputEnvelope
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+  }
+
+  export type PolicyVersionUncheckedCreateNestedManyWithoutSubmittedByUserInput = {
+    create?: XOR<PolicyVersionCreateWithoutSubmittedByUserInput, PolicyVersionUncheckedCreateWithoutSubmittedByUserInput> | PolicyVersionCreateWithoutSubmittedByUserInput[] | PolicyVersionUncheckedCreateWithoutSubmittedByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutSubmittedByUserInput | PolicyVersionCreateOrConnectWithoutSubmittedByUserInput[]
+    createMany?: PolicyVersionCreateManySubmittedByUserInputEnvelope
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+  }
+
+  export type PolicyVersionUncheckedCreateNestedManyWithoutApprovedByUserInput = {
+    create?: XOR<PolicyVersionCreateWithoutApprovedByUserInput, PolicyVersionUncheckedCreateWithoutApprovedByUserInput> | PolicyVersionCreateWithoutApprovedByUserInput[] | PolicyVersionUncheckedCreateWithoutApprovedByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutApprovedByUserInput | PolicyVersionCreateOrConnectWithoutApprovedByUserInput[]
+    createMany?: PolicyVersionCreateManyApprovedByUserInputEnvelope
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+  }
+
+  export type PolicyVersionUncheckedCreateNestedManyWithoutRejectedByUserInput = {
+    create?: XOR<PolicyVersionCreateWithoutRejectedByUserInput, PolicyVersionUncheckedCreateWithoutRejectedByUserInput> | PolicyVersionCreateWithoutRejectedByUserInput[] | PolicyVersionUncheckedCreateWithoutRejectedByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutRejectedByUserInput | PolicyVersionCreateOrConnectWithoutRejectedByUserInput[]
+    createMany?: PolicyVersionCreateManyRejectedByUserInputEnvelope
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+  }
+
+  export type PolicyVersionUncheckedCreateNestedManyWithoutRetiredByUserInput = {
+    create?: XOR<PolicyVersionCreateWithoutRetiredByUserInput, PolicyVersionUncheckedCreateWithoutRetiredByUserInput> | PolicyVersionCreateWithoutRetiredByUserInput[] | PolicyVersionUncheckedCreateWithoutRetiredByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutRetiredByUserInput | PolicyVersionCreateOrConnectWithoutRetiredByUserInput[]
+    createMany?: PolicyVersionCreateManyRetiredByUserInputEnvelope
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
   }
 
   export type NullableDateTimeFieldUpdateOperationsInput = {
@@ -35030,6 +39912,76 @@ export namespace Prisma {
     deleteMany?: AuditEventScalarWhereInput | AuditEventScalarWhereInput[]
   }
 
+  export type PolicyVersionUpdateManyWithoutCreatedByUserNestedInput = {
+    create?: XOR<PolicyVersionCreateWithoutCreatedByUserInput, PolicyVersionUncheckedCreateWithoutCreatedByUserInput> | PolicyVersionCreateWithoutCreatedByUserInput[] | PolicyVersionUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutCreatedByUserInput | PolicyVersionCreateOrConnectWithoutCreatedByUserInput[]
+    upsert?: PolicyVersionUpsertWithWhereUniqueWithoutCreatedByUserInput | PolicyVersionUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+    createMany?: PolicyVersionCreateManyCreatedByUserInputEnvelope
+    set?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    disconnect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    delete?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    update?: PolicyVersionUpdateWithWhereUniqueWithoutCreatedByUserInput | PolicyVersionUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+    updateMany?: PolicyVersionUpdateManyWithWhereWithoutCreatedByUserInput | PolicyVersionUpdateManyWithWhereWithoutCreatedByUserInput[]
+    deleteMany?: PolicyVersionScalarWhereInput | PolicyVersionScalarWhereInput[]
+  }
+
+  export type PolicyVersionUpdateManyWithoutSubmittedByUserNestedInput = {
+    create?: XOR<PolicyVersionCreateWithoutSubmittedByUserInput, PolicyVersionUncheckedCreateWithoutSubmittedByUserInput> | PolicyVersionCreateWithoutSubmittedByUserInput[] | PolicyVersionUncheckedCreateWithoutSubmittedByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutSubmittedByUserInput | PolicyVersionCreateOrConnectWithoutSubmittedByUserInput[]
+    upsert?: PolicyVersionUpsertWithWhereUniqueWithoutSubmittedByUserInput | PolicyVersionUpsertWithWhereUniqueWithoutSubmittedByUserInput[]
+    createMany?: PolicyVersionCreateManySubmittedByUserInputEnvelope
+    set?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    disconnect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    delete?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    update?: PolicyVersionUpdateWithWhereUniqueWithoutSubmittedByUserInput | PolicyVersionUpdateWithWhereUniqueWithoutSubmittedByUserInput[]
+    updateMany?: PolicyVersionUpdateManyWithWhereWithoutSubmittedByUserInput | PolicyVersionUpdateManyWithWhereWithoutSubmittedByUserInput[]
+    deleteMany?: PolicyVersionScalarWhereInput | PolicyVersionScalarWhereInput[]
+  }
+
+  export type PolicyVersionUpdateManyWithoutApprovedByUserNestedInput = {
+    create?: XOR<PolicyVersionCreateWithoutApprovedByUserInput, PolicyVersionUncheckedCreateWithoutApprovedByUserInput> | PolicyVersionCreateWithoutApprovedByUserInput[] | PolicyVersionUncheckedCreateWithoutApprovedByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutApprovedByUserInput | PolicyVersionCreateOrConnectWithoutApprovedByUserInput[]
+    upsert?: PolicyVersionUpsertWithWhereUniqueWithoutApprovedByUserInput | PolicyVersionUpsertWithWhereUniqueWithoutApprovedByUserInput[]
+    createMany?: PolicyVersionCreateManyApprovedByUserInputEnvelope
+    set?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    disconnect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    delete?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    update?: PolicyVersionUpdateWithWhereUniqueWithoutApprovedByUserInput | PolicyVersionUpdateWithWhereUniqueWithoutApprovedByUserInput[]
+    updateMany?: PolicyVersionUpdateManyWithWhereWithoutApprovedByUserInput | PolicyVersionUpdateManyWithWhereWithoutApprovedByUserInput[]
+    deleteMany?: PolicyVersionScalarWhereInput | PolicyVersionScalarWhereInput[]
+  }
+
+  export type PolicyVersionUpdateManyWithoutRejectedByUserNestedInput = {
+    create?: XOR<PolicyVersionCreateWithoutRejectedByUserInput, PolicyVersionUncheckedCreateWithoutRejectedByUserInput> | PolicyVersionCreateWithoutRejectedByUserInput[] | PolicyVersionUncheckedCreateWithoutRejectedByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutRejectedByUserInput | PolicyVersionCreateOrConnectWithoutRejectedByUserInput[]
+    upsert?: PolicyVersionUpsertWithWhereUniqueWithoutRejectedByUserInput | PolicyVersionUpsertWithWhereUniqueWithoutRejectedByUserInput[]
+    createMany?: PolicyVersionCreateManyRejectedByUserInputEnvelope
+    set?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    disconnect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    delete?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    update?: PolicyVersionUpdateWithWhereUniqueWithoutRejectedByUserInput | PolicyVersionUpdateWithWhereUniqueWithoutRejectedByUserInput[]
+    updateMany?: PolicyVersionUpdateManyWithWhereWithoutRejectedByUserInput | PolicyVersionUpdateManyWithWhereWithoutRejectedByUserInput[]
+    deleteMany?: PolicyVersionScalarWhereInput | PolicyVersionScalarWhereInput[]
+  }
+
+  export type PolicyVersionUpdateManyWithoutRetiredByUserNestedInput = {
+    create?: XOR<PolicyVersionCreateWithoutRetiredByUserInput, PolicyVersionUncheckedCreateWithoutRetiredByUserInput> | PolicyVersionCreateWithoutRetiredByUserInput[] | PolicyVersionUncheckedCreateWithoutRetiredByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutRetiredByUserInput | PolicyVersionCreateOrConnectWithoutRetiredByUserInput[]
+    upsert?: PolicyVersionUpsertWithWhereUniqueWithoutRetiredByUserInput | PolicyVersionUpsertWithWhereUniqueWithoutRetiredByUserInput[]
+    createMany?: PolicyVersionCreateManyRetiredByUserInputEnvelope
+    set?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    disconnect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    delete?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    update?: PolicyVersionUpdateWithWhereUniqueWithoutRetiredByUserInput | PolicyVersionUpdateWithWhereUniqueWithoutRetiredByUserInput[]
+    updateMany?: PolicyVersionUpdateManyWithWhereWithoutRetiredByUserInput | PolicyVersionUpdateManyWithWhereWithoutRetiredByUserInput[]
+    deleteMany?: PolicyVersionScalarWhereInput | PolicyVersionScalarWhereInput[]
+  }
+
   export type RoleTemplateVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput = {
     create?: XOR<RoleTemplateVersionCreateWithoutCreatedByUserInput, RoleTemplateVersionUncheckedCreateWithoutCreatedByUserInput> | RoleTemplateVersionCreateWithoutCreatedByUserInput[] | RoleTemplateVersionUncheckedCreateWithoutCreatedByUserInput[]
     connectOrCreate?: RoleTemplateVersionCreateOrConnectWithoutCreatedByUserInput | RoleTemplateVersionCreateOrConnectWithoutCreatedByUserInput[]
@@ -35056,6 +40008,76 @@ export namespace Prisma {
     update?: AuditEventUpdateWithWhereUniqueWithoutActorUserInput | AuditEventUpdateWithWhereUniqueWithoutActorUserInput[]
     updateMany?: AuditEventUpdateManyWithWhereWithoutActorUserInput | AuditEventUpdateManyWithWhereWithoutActorUserInput[]
     deleteMany?: AuditEventScalarWhereInput | AuditEventScalarWhereInput[]
+  }
+
+  export type PolicyVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput = {
+    create?: XOR<PolicyVersionCreateWithoutCreatedByUserInput, PolicyVersionUncheckedCreateWithoutCreatedByUserInput> | PolicyVersionCreateWithoutCreatedByUserInput[] | PolicyVersionUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutCreatedByUserInput | PolicyVersionCreateOrConnectWithoutCreatedByUserInput[]
+    upsert?: PolicyVersionUpsertWithWhereUniqueWithoutCreatedByUserInput | PolicyVersionUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+    createMany?: PolicyVersionCreateManyCreatedByUserInputEnvelope
+    set?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    disconnect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    delete?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    update?: PolicyVersionUpdateWithWhereUniqueWithoutCreatedByUserInput | PolicyVersionUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+    updateMany?: PolicyVersionUpdateManyWithWhereWithoutCreatedByUserInput | PolicyVersionUpdateManyWithWhereWithoutCreatedByUserInput[]
+    deleteMany?: PolicyVersionScalarWhereInput | PolicyVersionScalarWhereInput[]
+  }
+
+  export type PolicyVersionUncheckedUpdateManyWithoutSubmittedByUserNestedInput = {
+    create?: XOR<PolicyVersionCreateWithoutSubmittedByUserInput, PolicyVersionUncheckedCreateWithoutSubmittedByUserInput> | PolicyVersionCreateWithoutSubmittedByUserInput[] | PolicyVersionUncheckedCreateWithoutSubmittedByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutSubmittedByUserInput | PolicyVersionCreateOrConnectWithoutSubmittedByUserInput[]
+    upsert?: PolicyVersionUpsertWithWhereUniqueWithoutSubmittedByUserInput | PolicyVersionUpsertWithWhereUniqueWithoutSubmittedByUserInput[]
+    createMany?: PolicyVersionCreateManySubmittedByUserInputEnvelope
+    set?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    disconnect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    delete?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    update?: PolicyVersionUpdateWithWhereUniqueWithoutSubmittedByUserInput | PolicyVersionUpdateWithWhereUniqueWithoutSubmittedByUserInput[]
+    updateMany?: PolicyVersionUpdateManyWithWhereWithoutSubmittedByUserInput | PolicyVersionUpdateManyWithWhereWithoutSubmittedByUserInput[]
+    deleteMany?: PolicyVersionScalarWhereInput | PolicyVersionScalarWhereInput[]
+  }
+
+  export type PolicyVersionUncheckedUpdateManyWithoutApprovedByUserNestedInput = {
+    create?: XOR<PolicyVersionCreateWithoutApprovedByUserInput, PolicyVersionUncheckedCreateWithoutApprovedByUserInput> | PolicyVersionCreateWithoutApprovedByUserInput[] | PolicyVersionUncheckedCreateWithoutApprovedByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutApprovedByUserInput | PolicyVersionCreateOrConnectWithoutApprovedByUserInput[]
+    upsert?: PolicyVersionUpsertWithWhereUniqueWithoutApprovedByUserInput | PolicyVersionUpsertWithWhereUniqueWithoutApprovedByUserInput[]
+    createMany?: PolicyVersionCreateManyApprovedByUserInputEnvelope
+    set?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    disconnect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    delete?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    update?: PolicyVersionUpdateWithWhereUniqueWithoutApprovedByUserInput | PolicyVersionUpdateWithWhereUniqueWithoutApprovedByUserInput[]
+    updateMany?: PolicyVersionUpdateManyWithWhereWithoutApprovedByUserInput | PolicyVersionUpdateManyWithWhereWithoutApprovedByUserInput[]
+    deleteMany?: PolicyVersionScalarWhereInput | PolicyVersionScalarWhereInput[]
+  }
+
+  export type PolicyVersionUncheckedUpdateManyWithoutRejectedByUserNestedInput = {
+    create?: XOR<PolicyVersionCreateWithoutRejectedByUserInput, PolicyVersionUncheckedCreateWithoutRejectedByUserInput> | PolicyVersionCreateWithoutRejectedByUserInput[] | PolicyVersionUncheckedCreateWithoutRejectedByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutRejectedByUserInput | PolicyVersionCreateOrConnectWithoutRejectedByUserInput[]
+    upsert?: PolicyVersionUpsertWithWhereUniqueWithoutRejectedByUserInput | PolicyVersionUpsertWithWhereUniqueWithoutRejectedByUserInput[]
+    createMany?: PolicyVersionCreateManyRejectedByUserInputEnvelope
+    set?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    disconnect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    delete?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    update?: PolicyVersionUpdateWithWhereUniqueWithoutRejectedByUserInput | PolicyVersionUpdateWithWhereUniqueWithoutRejectedByUserInput[]
+    updateMany?: PolicyVersionUpdateManyWithWhereWithoutRejectedByUserInput | PolicyVersionUpdateManyWithWhereWithoutRejectedByUserInput[]
+    deleteMany?: PolicyVersionScalarWhereInput | PolicyVersionScalarWhereInput[]
+  }
+
+  export type PolicyVersionUncheckedUpdateManyWithoutRetiredByUserNestedInput = {
+    create?: XOR<PolicyVersionCreateWithoutRetiredByUserInput, PolicyVersionUncheckedCreateWithoutRetiredByUserInput> | PolicyVersionCreateWithoutRetiredByUserInput[] | PolicyVersionUncheckedCreateWithoutRetiredByUserInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutRetiredByUserInput | PolicyVersionCreateOrConnectWithoutRetiredByUserInput[]
+    upsert?: PolicyVersionUpsertWithWhereUniqueWithoutRetiredByUserInput | PolicyVersionUpsertWithWhereUniqueWithoutRetiredByUserInput[]
+    createMany?: PolicyVersionCreateManyRetiredByUserInputEnvelope
+    set?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    disconnect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    delete?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    update?: PolicyVersionUpdateWithWhereUniqueWithoutRetiredByUserInput | PolicyVersionUpdateWithWhereUniqueWithoutRetiredByUserInput[]
+    updateMany?: PolicyVersionUpdateManyWithWhereWithoutRetiredByUserInput | PolicyVersionUpdateManyWithWhereWithoutRetiredByUserInput[]
+    deleteMany?: PolicyVersionScalarWhereInput | PolicyVersionScalarWhereInput[]
   }
 
   export type BranchCreateNestedOneWithoutPatientsInput = {
@@ -35998,6 +41020,236 @@ export namespace Prisma {
     update?: XOR<XOR<PermissionUpdateToOneWithWhereWithoutRoleGrantsInput, PermissionUpdateWithoutRoleGrantsInput>, PermissionUncheckedUpdateWithoutRoleGrantsInput>
   }
 
+  export type PolicyVersionCreateNestedManyWithoutPolicyInput = {
+    create?: XOR<PolicyVersionCreateWithoutPolicyInput, PolicyVersionUncheckedCreateWithoutPolicyInput> | PolicyVersionCreateWithoutPolicyInput[] | PolicyVersionUncheckedCreateWithoutPolicyInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutPolicyInput | PolicyVersionCreateOrConnectWithoutPolicyInput[]
+    createMany?: PolicyVersionCreateManyPolicyInputEnvelope
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+  }
+
+  export type PolicyVersionUncheckedCreateNestedManyWithoutPolicyInput = {
+    create?: XOR<PolicyVersionCreateWithoutPolicyInput, PolicyVersionUncheckedCreateWithoutPolicyInput> | PolicyVersionCreateWithoutPolicyInput[] | PolicyVersionUncheckedCreateWithoutPolicyInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutPolicyInput | PolicyVersionCreateOrConnectWithoutPolicyInput[]
+    createMany?: PolicyVersionCreateManyPolicyInputEnvelope
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+  }
+
+  export type PolicyVersionUpdateManyWithoutPolicyNestedInput = {
+    create?: XOR<PolicyVersionCreateWithoutPolicyInput, PolicyVersionUncheckedCreateWithoutPolicyInput> | PolicyVersionCreateWithoutPolicyInput[] | PolicyVersionUncheckedCreateWithoutPolicyInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutPolicyInput | PolicyVersionCreateOrConnectWithoutPolicyInput[]
+    upsert?: PolicyVersionUpsertWithWhereUniqueWithoutPolicyInput | PolicyVersionUpsertWithWhereUniqueWithoutPolicyInput[]
+    createMany?: PolicyVersionCreateManyPolicyInputEnvelope
+    set?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    disconnect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    delete?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    update?: PolicyVersionUpdateWithWhereUniqueWithoutPolicyInput | PolicyVersionUpdateWithWhereUniqueWithoutPolicyInput[]
+    updateMany?: PolicyVersionUpdateManyWithWhereWithoutPolicyInput | PolicyVersionUpdateManyWithWhereWithoutPolicyInput[]
+    deleteMany?: PolicyVersionScalarWhereInput | PolicyVersionScalarWhereInput[]
+  }
+
+  export type PolicyVersionUncheckedUpdateManyWithoutPolicyNestedInput = {
+    create?: XOR<PolicyVersionCreateWithoutPolicyInput, PolicyVersionUncheckedCreateWithoutPolicyInput> | PolicyVersionCreateWithoutPolicyInput[] | PolicyVersionUncheckedCreateWithoutPolicyInput[]
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutPolicyInput | PolicyVersionCreateOrConnectWithoutPolicyInput[]
+    upsert?: PolicyVersionUpsertWithWhereUniqueWithoutPolicyInput | PolicyVersionUpsertWithWhereUniqueWithoutPolicyInput[]
+    createMany?: PolicyVersionCreateManyPolicyInputEnvelope
+    set?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    disconnect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    delete?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    connect?: PolicyVersionWhereUniqueInput | PolicyVersionWhereUniqueInput[]
+    update?: PolicyVersionUpdateWithWhereUniqueWithoutPolicyInput | PolicyVersionUpdateWithWhereUniqueWithoutPolicyInput[]
+    updateMany?: PolicyVersionUpdateManyWithWhereWithoutPolicyInput | PolicyVersionUpdateManyWithWhereWithoutPolicyInput[]
+    deleteMany?: PolicyVersionScalarWhereInput | PolicyVersionScalarWhereInput[]
+  }
+
+  export type PolicyDefinitionCreateNestedOneWithoutVersionsInput = {
+    create?: XOR<PolicyDefinitionCreateWithoutVersionsInput, PolicyDefinitionUncheckedCreateWithoutVersionsInput>
+    connectOrCreate?: PolicyDefinitionCreateOrConnectWithoutVersionsInput
+    connect?: PolicyDefinitionWhereUniqueInput
+  }
+
+  export type BranchCreateNestedOneWithoutPolicyVersionsInput = {
+    create?: XOR<BranchCreateWithoutPolicyVersionsInput, BranchUncheckedCreateWithoutPolicyVersionsInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutPolicyVersionsInput
+    connect?: BranchWhereUniqueInput
+  }
+
+  export type PolicyVersionBranchCreateNestedManyWithoutPolicyVersionInput = {
+    create?: XOR<PolicyVersionBranchCreateWithoutPolicyVersionInput, PolicyVersionBranchUncheckedCreateWithoutPolicyVersionInput> | PolicyVersionBranchCreateWithoutPolicyVersionInput[] | PolicyVersionBranchUncheckedCreateWithoutPolicyVersionInput[]
+    connectOrCreate?: PolicyVersionBranchCreateOrConnectWithoutPolicyVersionInput | PolicyVersionBranchCreateOrConnectWithoutPolicyVersionInput[]
+    createMany?: PolicyVersionBranchCreateManyPolicyVersionInputEnvelope
+    connect?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
+  }
+
+  export type UserCreateNestedOneWithoutPolicyVersionsCreatedByInput = {
+    create?: XOR<UserCreateWithoutPolicyVersionsCreatedByInput, UserUncheckedCreateWithoutPolicyVersionsCreatedByInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPolicyVersionsCreatedByInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutPolicyVersionsSubmittedByInput = {
+    create?: XOR<UserCreateWithoutPolicyVersionsSubmittedByInput, UserUncheckedCreateWithoutPolicyVersionsSubmittedByInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPolicyVersionsSubmittedByInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutPolicyVersionsApprovedByInput = {
+    create?: XOR<UserCreateWithoutPolicyVersionsApprovedByInput, UserUncheckedCreateWithoutPolicyVersionsApprovedByInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPolicyVersionsApprovedByInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutPolicyVersionsRejectedByInput = {
+    create?: XOR<UserCreateWithoutPolicyVersionsRejectedByInput, UserUncheckedCreateWithoutPolicyVersionsRejectedByInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPolicyVersionsRejectedByInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutPolicyVersionsRetiredByInput = {
+    create?: XOR<UserCreateWithoutPolicyVersionsRetiredByInput, UserUncheckedCreateWithoutPolicyVersionsRetiredByInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPolicyVersionsRetiredByInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type PolicyVersionBranchUncheckedCreateNestedManyWithoutPolicyVersionInput = {
+    create?: XOR<PolicyVersionBranchCreateWithoutPolicyVersionInput, PolicyVersionBranchUncheckedCreateWithoutPolicyVersionInput> | PolicyVersionBranchCreateWithoutPolicyVersionInput[] | PolicyVersionBranchUncheckedCreateWithoutPolicyVersionInput[]
+    connectOrCreate?: PolicyVersionBranchCreateOrConnectWithoutPolicyVersionInput | PolicyVersionBranchCreateOrConnectWithoutPolicyVersionInput[]
+    createMany?: PolicyVersionBranchCreateManyPolicyVersionInputEnvelope
+    connect?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
+  }
+
+  export type EnumPolicyScopeFieldUpdateOperationsInput = {
+    set?: $Enums.PolicyScope
+  }
+
+  export type EnumPolicyVersionStatusFieldUpdateOperationsInput = {
+    set?: $Enums.PolicyVersionStatus
+  }
+
+  export type PolicyDefinitionUpdateOneRequiredWithoutVersionsNestedInput = {
+    create?: XOR<PolicyDefinitionCreateWithoutVersionsInput, PolicyDefinitionUncheckedCreateWithoutVersionsInput>
+    connectOrCreate?: PolicyDefinitionCreateOrConnectWithoutVersionsInput
+    upsert?: PolicyDefinitionUpsertWithoutVersionsInput
+    connect?: PolicyDefinitionWhereUniqueInput
+    update?: XOR<XOR<PolicyDefinitionUpdateToOneWithWhereWithoutVersionsInput, PolicyDefinitionUpdateWithoutVersionsInput>, PolicyDefinitionUncheckedUpdateWithoutVersionsInput>
+  }
+
+  export type BranchUpdateOneWithoutPolicyVersionsNestedInput = {
+    create?: XOR<BranchCreateWithoutPolicyVersionsInput, BranchUncheckedCreateWithoutPolicyVersionsInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutPolicyVersionsInput
+    upsert?: BranchUpsertWithoutPolicyVersionsInput
+    disconnect?: BranchWhereInput | boolean
+    delete?: BranchWhereInput | boolean
+    connect?: BranchWhereUniqueInput
+    update?: XOR<XOR<BranchUpdateToOneWithWhereWithoutPolicyVersionsInput, BranchUpdateWithoutPolicyVersionsInput>, BranchUncheckedUpdateWithoutPolicyVersionsInput>
+  }
+
+  export type PolicyVersionBranchUpdateManyWithoutPolicyVersionNestedInput = {
+    create?: XOR<PolicyVersionBranchCreateWithoutPolicyVersionInput, PolicyVersionBranchUncheckedCreateWithoutPolicyVersionInput> | PolicyVersionBranchCreateWithoutPolicyVersionInput[] | PolicyVersionBranchUncheckedCreateWithoutPolicyVersionInput[]
+    connectOrCreate?: PolicyVersionBranchCreateOrConnectWithoutPolicyVersionInput | PolicyVersionBranchCreateOrConnectWithoutPolicyVersionInput[]
+    upsert?: PolicyVersionBranchUpsertWithWhereUniqueWithoutPolicyVersionInput | PolicyVersionBranchUpsertWithWhereUniqueWithoutPolicyVersionInput[]
+    createMany?: PolicyVersionBranchCreateManyPolicyVersionInputEnvelope
+    set?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
+    disconnect?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
+    delete?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
+    connect?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
+    update?: PolicyVersionBranchUpdateWithWhereUniqueWithoutPolicyVersionInput | PolicyVersionBranchUpdateWithWhereUniqueWithoutPolicyVersionInput[]
+    updateMany?: PolicyVersionBranchUpdateManyWithWhereWithoutPolicyVersionInput | PolicyVersionBranchUpdateManyWithWhereWithoutPolicyVersionInput[]
+    deleteMany?: PolicyVersionBranchScalarWhereInput | PolicyVersionBranchScalarWhereInput[]
+  }
+
+  export type UserUpdateOneWithoutPolicyVersionsCreatedByNestedInput = {
+    create?: XOR<UserCreateWithoutPolicyVersionsCreatedByInput, UserUncheckedCreateWithoutPolicyVersionsCreatedByInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPolicyVersionsCreatedByInput
+    upsert?: UserUpsertWithoutPolicyVersionsCreatedByInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutPolicyVersionsCreatedByInput, UserUpdateWithoutPolicyVersionsCreatedByInput>, UserUncheckedUpdateWithoutPolicyVersionsCreatedByInput>
+  }
+
+  export type UserUpdateOneWithoutPolicyVersionsSubmittedByNestedInput = {
+    create?: XOR<UserCreateWithoutPolicyVersionsSubmittedByInput, UserUncheckedCreateWithoutPolicyVersionsSubmittedByInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPolicyVersionsSubmittedByInput
+    upsert?: UserUpsertWithoutPolicyVersionsSubmittedByInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutPolicyVersionsSubmittedByInput, UserUpdateWithoutPolicyVersionsSubmittedByInput>, UserUncheckedUpdateWithoutPolicyVersionsSubmittedByInput>
+  }
+
+  export type UserUpdateOneWithoutPolicyVersionsApprovedByNestedInput = {
+    create?: XOR<UserCreateWithoutPolicyVersionsApprovedByInput, UserUncheckedCreateWithoutPolicyVersionsApprovedByInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPolicyVersionsApprovedByInput
+    upsert?: UserUpsertWithoutPolicyVersionsApprovedByInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutPolicyVersionsApprovedByInput, UserUpdateWithoutPolicyVersionsApprovedByInput>, UserUncheckedUpdateWithoutPolicyVersionsApprovedByInput>
+  }
+
+  export type UserUpdateOneWithoutPolicyVersionsRejectedByNestedInput = {
+    create?: XOR<UserCreateWithoutPolicyVersionsRejectedByInput, UserUncheckedCreateWithoutPolicyVersionsRejectedByInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPolicyVersionsRejectedByInput
+    upsert?: UserUpsertWithoutPolicyVersionsRejectedByInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutPolicyVersionsRejectedByInput, UserUpdateWithoutPolicyVersionsRejectedByInput>, UserUncheckedUpdateWithoutPolicyVersionsRejectedByInput>
+  }
+
+  export type UserUpdateOneWithoutPolicyVersionsRetiredByNestedInput = {
+    create?: XOR<UserCreateWithoutPolicyVersionsRetiredByInput, UserUncheckedCreateWithoutPolicyVersionsRetiredByInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPolicyVersionsRetiredByInput
+    upsert?: UserUpsertWithoutPolicyVersionsRetiredByInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutPolicyVersionsRetiredByInput, UserUpdateWithoutPolicyVersionsRetiredByInput>, UserUncheckedUpdateWithoutPolicyVersionsRetiredByInput>
+  }
+
+  export type PolicyVersionBranchUncheckedUpdateManyWithoutPolicyVersionNestedInput = {
+    create?: XOR<PolicyVersionBranchCreateWithoutPolicyVersionInput, PolicyVersionBranchUncheckedCreateWithoutPolicyVersionInput> | PolicyVersionBranchCreateWithoutPolicyVersionInput[] | PolicyVersionBranchUncheckedCreateWithoutPolicyVersionInput[]
+    connectOrCreate?: PolicyVersionBranchCreateOrConnectWithoutPolicyVersionInput | PolicyVersionBranchCreateOrConnectWithoutPolicyVersionInput[]
+    upsert?: PolicyVersionBranchUpsertWithWhereUniqueWithoutPolicyVersionInput | PolicyVersionBranchUpsertWithWhereUniqueWithoutPolicyVersionInput[]
+    createMany?: PolicyVersionBranchCreateManyPolicyVersionInputEnvelope
+    set?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
+    disconnect?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
+    delete?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
+    connect?: PolicyVersionBranchWhereUniqueInput | PolicyVersionBranchWhereUniqueInput[]
+    update?: PolicyVersionBranchUpdateWithWhereUniqueWithoutPolicyVersionInput | PolicyVersionBranchUpdateWithWhereUniqueWithoutPolicyVersionInput[]
+    updateMany?: PolicyVersionBranchUpdateManyWithWhereWithoutPolicyVersionInput | PolicyVersionBranchUpdateManyWithWhereWithoutPolicyVersionInput[]
+    deleteMany?: PolicyVersionBranchScalarWhereInput | PolicyVersionBranchScalarWhereInput[]
+  }
+
+  export type PolicyVersionCreateNestedOneWithoutBranchesInput = {
+    create?: XOR<PolicyVersionCreateWithoutBranchesInput, PolicyVersionUncheckedCreateWithoutBranchesInput>
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutBranchesInput
+    connect?: PolicyVersionWhereUniqueInput
+  }
+
+  export type BranchCreateNestedOneWithoutPolicyVersionBranchesInput = {
+    create?: XOR<BranchCreateWithoutPolicyVersionBranchesInput, BranchUncheckedCreateWithoutPolicyVersionBranchesInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutPolicyVersionBranchesInput
+    connect?: BranchWhereUniqueInput
+  }
+
+  export type PolicyVersionUpdateOneRequiredWithoutBranchesNestedInput = {
+    create?: XOR<PolicyVersionCreateWithoutBranchesInput, PolicyVersionUncheckedCreateWithoutBranchesInput>
+    connectOrCreate?: PolicyVersionCreateOrConnectWithoutBranchesInput
+    upsert?: PolicyVersionUpsertWithoutBranchesInput
+    connect?: PolicyVersionWhereUniqueInput
+    update?: XOR<XOR<PolicyVersionUpdateToOneWithWhereWithoutBranchesInput, PolicyVersionUpdateWithoutBranchesInput>, PolicyVersionUncheckedUpdateWithoutBranchesInput>
+  }
+
+  export type BranchUpdateOneRequiredWithoutPolicyVersionBranchesNestedInput = {
+    create?: XOR<BranchCreateWithoutPolicyVersionBranchesInput, BranchUncheckedCreateWithoutPolicyVersionBranchesInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutPolicyVersionBranchesInput
+    upsert?: BranchUpsertWithoutPolicyVersionBranchesInput
+    connect?: BranchWhereUniqueInput
+    update?: XOR<XOR<BranchUpdateToOneWithWhereWithoutPolicyVersionBranchesInput, BranchUpdateWithoutPolicyVersionBranchesInput>, BranchUncheckedUpdateWithoutPolicyVersionBranchesInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -36379,6 +41631,40 @@ export namespace Prisma {
     _max?: NestedEnumRoleVersionStatusFilter<$PrismaModel>
   }
 
+  export type NestedEnumPolicyScopeFilter<$PrismaModel = never> = {
+    equals?: $Enums.PolicyScope | EnumPolicyScopeFieldRefInput<$PrismaModel>
+    in?: $Enums.PolicyScope[] | ListEnumPolicyScopeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PolicyScope[] | ListEnumPolicyScopeFieldRefInput<$PrismaModel>
+    not?: NestedEnumPolicyScopeFilter<$PrismaModel> | $Enums.PolicyScope
+  }
+
+  export type NestedEnumPolicyVersionStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.PolicyVersionStatus | EnumPolicyVersionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PolicyVersionStatus[] | ListEnumPolicyVersionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PolicyVersionStatus[] | ListEnumPolicyVersionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPolicyVersionStatusFilter<$PrismaModel> | $Enums.PolicyVersionStatus
+  }
+
+  export type NestedEnumPolicyScopeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PolicyScope | EnumPolicyScopeFieldRefInput<$PrismaModel>
+    in?: $Enums.PolicyScope[] | ListEnumPolicyScopeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PolicyScope[] | ListEnumPolicyScopeFieldRefInput<$PrismaModel>
+    not?: NestedEnumPolicyScopeWithAggregatesFilter<$PrismaModel> | $Enums.PolicyScope
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPolicyScopeFilter<$PrismaModel>
+    _max?: NestedEnumPolicyScopeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumPolicyVersionStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PolicyVersionStatus | EnumPolicyVersionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PolicyVersionStatus[] | ListEnumPolicyVersionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PolicyVersionStatus[] | ListEnumPolicyVersionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPolicyVersionStatusWithAggregatesFilter<$PrismaModel> | $Enums.PolicyVersionStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPolicyVersionStatusFilter<$PrismaModel>
+    _max?: NestedEnumPolicyVersionStatusFilter<$PrismaModel>
+  }
+
   export type DepartmentCreateWithoutBranchInput = {
     id?: string
     code: string
@@ -36428,6 +41714,11 @@ export namespace Prisma {
     roleVersion?: RoleTemplateVersionCreateNestedOneWithoutUsersInput
     createdRoleVersions?: RoleTemplateVersionCreateNestedManyWithoutCreatedByUserInput
     auditEventsAsActor?: AuditEventCreateNestedManyWithoutActorUserInput
+    policyVersionsCreatedBy?: PolicyVersionCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsSubmittedBy?: PolicyVersionCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionCreateNestedManyWithoutRejectedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionCreateNestedManyWithoutRetiredByUserInput
   }
 
   export type UserUncheckedCreateWithoutBranchInput = {
@@ -36447,6 +41738,11 @@ export namespace Prisma {
     updatedAt?: Date | string
     createdRoleVersions?: RoleTemplateVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
     auditEventsAsActor?: AuditEventUncheckedCreateNestedManyWithoutActorUserInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedCreateNestedManyWithoutRejectedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedCreateNestedManyWithoutRetiredByUserInput
   }
 
   export type UserCreateOrConnectWithoutBranchInput = {
@@ -36862,6 +42158,90 @@ export namespace Prisma {
 
   export type AuditEventCreateManyBranchInputEnvelope = {
     data: AuditEventCreateManyBranchInput | AuditEventCreateManyBranchInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PolicyVersionCreateWithoutBranchInput = {
+    id?: string
+    scope?: $Enums.PolicyScope
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    submittedAt?: Date | string | null
+    approvedAt?: Date | string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    policy: PolicyDefinitionCreateNestedOneWithoutVersionsInput
+    branches?: PolicyVersionBranchCreateNestedManyWithoutPolicyVersionInput
+    createdByUser?: UserCreateNestedOneWithoutPolicyVersionsCreatedByInput
+    submittedByUser?: UserCreateNestedOneWithoutPolicyVersionsSubmittedByInput
+    approvedByUser?: UserCreateNestedOneWithoutPolicyVersionsApprovedByInput
+    rejectedByUser?: UserCreateNestedOneWithoutPolicyVersionsRejectedByInput
+    retiredByUser?: UserCreateNestedOneWithoutPolicyVersionsRetiredByInput
+  }
+
+  export type PolicyVersionUncheckedCreateWithoutBranchInput = {
+    id?: string
+    policyId: string
+    scope?: $Enums.PolicyScope
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    createdByUserId?: string | null
+    submittedAt?: Date | string | null
+    submittedByUserId?: string | null
+    approvedAt?: Date | string | null
+    approvedByUserId?: string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectedByUserId?: string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    retiredByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutPolicyVersionInput
+  }
+
+  export type PolicyVersionCreateOrConnectWithoutBranchInput = {
+    where: PolicyVersionWhereUniqueInput
+    create: XOR<PolicyVersionCreateWithoutBranchInput, PolicyVersionUncheckedCreateWithoutBranchInput>
+  }
+
+  export type PolicyVersionCreateManyBranchInputEnvelope = {
+    data: PolicyVersionCreateManyBranchInput | PolicyVersionCreateManyBranchInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PolicyVersionBranchCreateWithoutBranchInput = {
+    id?: string
+    createdAt?: Date | string
+    policyVersion: PolicyVersionCreateNestedOneWithoutBranchesInput
+  }
+
+  export type PolicyVersionBranchUncheckedCreateWithoutBranchInput = {
+    id?: string
+    policyVersionId: string
+    createdAt?: Date | string
+  }
+
+  export type PolicyVersionBranchCreateOrConnectWithoutBranchInput = {
+    where: PolicyVersionBranchWhereUniqueInput
+    create: XOR<PolicyVersionBranchCreateWithoutBranchInput, PolicyVersionBranchUncheckedCreateWithoutBranchInput>
+  }
+
+  export type PolicyVersionBranchCreateManyBranchInputEnvelope = {
+    data: PolicyVersionBranchCreateManyBranchInput | PolicyVersionBranchCreateManyBranchInput[]
     skipDuplicates?: boolean
   }
 
@@ -37303,6 +42683,77 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"AuditEvent"> | Date | string
   }
 
+  export type PolicyVersionUpsertWithWhereUniqueWithoutBranchInput = {
+    where: PolicyVersionWhereUniqueInput
+    update: XOR<PolicyVersionUpdateWithoutBranchInput, PolicyVersionUncheckedUpdateWithoutBranchInput>
+    create: XOR<PolicyVersionCreateWithoutBranchInput, PolicyVersionUncheckedCreateWithoutBranchInput>
+  }
+
+  export type PolicyVersionUpdateWithWhereUniqueWithoutBranchInput = {
+    where: PolicyVersionWhereUniqueInput
+    data: XOR<PolicyVersionUpdateWithoutBranchInput, PolicyVersionUncheckedUpdateWithoutBranchInput>
+  }
+
+  export type PolicyVersionUpdateManyWithWhereWithoutBranchInput = {
+    where: PolicyVersionScalarWhereInput
+    data: XOR<PolicyVersionUpdateManyMutationInput, PolicyVersionUncheckedUpdateManyWithoutBranchInput>
+  }
+
+  export type PolicyVersionScalarWhereInput = {
+    AND?: PolicyVersionScalarWhereInput | PolicyVersionScalarWhereInput[]
+    OR?: PolicyVersionScalarWhereInput[]
+    NOT?: PolicyVersionScalarWhereInput | PolicyVersionScalarWhereInput[]
+    id?: StringFilter<"PolicyVersion"> | string
+    policyId?: StringFilter<"PolicyVersion"> | string
+    scope?: EnumPolicyScopeFilter<"PolicyVersion"> | $Enums.PolicyScope
+    branchId?: StringNullableFilter<"PolicyVersion"> | string | null
+    version?: IntFilter<"PolicyVersion"> | number
+    status?: EnumPolicyVersionStatusFilter<"PolicyVersion"> | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFilter<"PolicyVersion"> | Date | string
+    notes?: StringNullableFilter<"PolicyVersion"> | string | null
+    payload?: JsonFilter<"PolicyVersion">
+    applyToAllBranches?: BoolFilter<"PolicyVersion"> | boolean
+    createdByUserId?: StringNullableFilter<"PolicyVersion"> | string | null
+    submittedAt?: DateTimeNullableFilter<"PolicyVersion"> | Date | string | null
+    submittedByUserId?: StringNullableFilter<"PolicyVersion"> | string | null
+    approvedAt?: DateTimeNullableFilter<"PolicyVersion"> | Date | string | null
+    approvedByUserId?: StringNullableFilter<"PolicyVersion"> | string | null
+    approvalNote?: StringNullableFilter<"PolicyVersion"> | string | null
+    rejectedAt?: DateTimeNullableFilter<"PolicyVersion"> | Date | string | null
+    rejectedByUserId?: StringNullableFilter<"PolicyVersion"> | string | null
+    rejectionReason?: StringNullableFilter<"PolicyVersion"> | string | null
+    retiredAt?: DateTimeNullableFilter<"PolicyVersion"> | Date | string | null
+    retiredByUserId?: StringNullableFilter<"PolicyVersion"> | string | null
+    createdAt?: DateTimeFilter<"PolicyVersion"> | Date | string
+    updatedAt?: DateTimeFilter<"PolicyVersion"> | Date | string
+  }
+
+  export type PolicyVersionBranchUpsertWithWhereUniqueWithoutBranchInput = {
+    where: PolicyVersionBranchWhereUniqueInput
+    update: XOR<PolicyVersionBranchUpdateWithoutBranchInput, PolicyVersionBranchUncheckedUpdateWithoutBranchInput>
+    create: XOR<PolicyVersionBranchCreateWithoutBranchInput, PolicyVersionBranchUncheckedCreateWithoutBranchInput>
+  }
+
+  export type PolicyVersionBranchUpdateWithWhereUniqueWithoutBranchInput = {
+    where: PolicyVersionBranchWhereUniqueInput
+    data: XOR<PolicyVersionBranchUpdateWithoutBranchInput, PolicyVersionBranchUncheckedUpdateWithoutBranchInput>
+  }
+
+  export type PolicyVersionBranchUpdateManyWithWhereWithoutBranchInput = {
+    where: PolicyVersionBranchScalarWhereInput
+    data: XOR<PolicyVersionBranchUpdateManyMutationInput, PolicyVersionBranchUncheckedUpdateManyWithoutBranchInput>
+  }
+
+  export type PolicyVersionBranchScalarWhereInput = {
+    AND?: PolicyVersionBranchScalarWhereInput | PolicyVersionBranchScalarWhereInput[]
+    OR?: PolicyVersionBranchScalarWhereInput[]
+    NOT?: PolicyVersionBranchScalarWhereInput | PolicyVersionBranchScalarWhereInput[]
+    id?: StringFilter<"PolicyVersionBranch"> | string
+    policyVersionId?: StringFilter<"PolicyVersionBranch"> | string
+    branchId?: StringFilter<"PolicyVersionBranch"> | string
+    createdAt?: DateTimeFilter<"PolicyVersionBranch"> | Date | string
+  }
+
   export type BranchCreateWithoutDepartmentsInput = {
     id?: string
     code: string
@@ -37327,6 +42778,8 @@ export namespace Prisma {
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutDepartmentsInput = {
@@ -37353,6 +42806,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutDepartmentsInput = {
@@ -37467,6 +42922,8 @@ export namespace Prisma {
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutDepartmentsInput = {
@@ -37493,6 +42950,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type StaffUpsertWithWhereUniqueWithoutDepartmentInput = {
@@ -37551,6 +43010,8 @@ export namespace Prisma {
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutSpecialtyInput = {
@@ -37577,6 +43038,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutSpecialtyInput = {
@@ -37686,6 +43149,8 @@ export namespace Prisma {
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutSpecialtyInput = {
@@ -37712,6 +43177,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type DepartmentUpsertWithoutSpecialtiesInput = {
@@ -37787,6 +43254,8 @@ export namespace Prisma {
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutStaffInput = {
@@ -37813,6 +43282,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutStaffInput = {
@@ -37891,6 +43362,11 @@ export namespace Prisma {
     roleVersion?: RoleTemplateVersionCreateNestedOneWithoutUsersInput
     createdRoleVersions?: RoleTemplateVersionCreateNestedManyWithoutCreatedByUserInput
     auditEventsAsActor?: AuditEventCreateNestedManyWithoutActorUserInput
+    policyVersionsCreatedBy?: PolicyVersionCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsSubmittedBy?: PolicyVersionCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionCreateNestedManyWithoutRejectedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionCreateNestedManyWithoutRetiredByUserInput
   }
 
   export type UserUncheckedCreateWithoutStaffInput = {
@@ -37910,6 +43386,11 @@ export namespace Prisma {
     updatedAt?: Date | string
     createdRoleVersions?: RoleTemplateVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
     auditEventsAsActor?: AuditEventUncheckedCreateNestedManyWithoutActorUserInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedCreateNestedManyWithoutRejectedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedCreateNestedManyWithoutRetiredByUserInput
   }
 
   export type UserCreateOrConnectWithoutStaffInput = {
@@ -37952,6 +43433,8 @@ export namespace Prisma {
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutStaffInput = {
@@ -37978,6 +43461,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type DepartmentUpsertWithoutStaffInput = {
@@ -38074,6 +43559,11 @@ export namespace Prisma {
     roleVersion?: RoleTemplateVersionUpdateOneWithoutUsersNestedInput
     createdRoleVersions?: RoleTemplateVersionUpdateManyWithoutCreatedByUserNestedInput
     auditEventsAsActor?: AuditEventUpdateManyWithoutActorUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUpdateManyWithoutRejectedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUpdateManyWithoutRetiredByUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutStaffInput = {
@@ -38093,6 +43583,11 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdRoleVersions?: RoleTemplateVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     auditEventsAsActor?: AuditEventUncheckedUpdateManyWithoutActorUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedUpdateManyWithoutRejectedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedUpdateManyWithoutRetiredByUserNestedInput
   }
 
   export type BranchCreateWithoutUsersInput = {
@@ -38119,6 +43614,8 @@ export namespace Prisma {
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutUsersInput = {
@@ -38145,6 +43642,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutUsersInput = {
@@ -38280,6 +43779,316 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type PolicyVersionCreateWithoutCreatedByUserInput = {
+    id?: string
+    scope?: $Enums.PolicyScope
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    submittedAt?: Date | string | null
+    approvedAt?: Date | string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    policy: PolicyDefinitionCreateNestedOneWithoutVersionsInput
+    branch?: BranchCreateNestedOneWithoutPolicyVersionsInput
+    branches?: PolicyVersionBranchCreateNestedManyWithoutPolicyVersionInput
+    submittedByUser?: UserCreateNestedOneWithoutPolicyVersionsSubmittedByInput
+    approvedByUser?: UserCreateNestedOneWithoutPolicyVersionsApprovedByInput
+    rejectedByUser?: UserCreateNestedOneWithoutPolicyVersionsRejectedByInput
+    retiredByUser?: UserCreateNestedOneWithoutPolicyVersionsRetiredByInput
+  }
+
+  export type PolicyVersionUncheckedCreateWithoutCreatedByUserInput = {
+    id?: string
+    policyId: string
+    scope?: $Enums.PolicyScope
+    branchId?: string | null
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    submittedAt?: Date | string | null
+    submittedByUserId?: string | null
+    approvedAt?: Date | string | null
+    approvedByUserId?: string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectedByUserId?: string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    retiredByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutPolicyVersionInput
+  }
+
+  export type PolicyVersionCreateOrConnectWithoutCreatedByUserInput = {
+    where: PolicyVersionWhereUniqueInput
+    create: XOR<PolicyVersionCreateWithoutCreatedByUserInput, PolicyVersionUncheckedCreateWithoutCreatedByUserInput>
+  }
+
+  export type PolicyVersionCreateManyCreatedByUserInputEnvelope = {
+    data: PolicyVersionCreateManyCreatedByUserInput | PolicyVersionCreateManyCreatedByUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PolicyVersionCreateWithoutSubmittedByUserInput = {
+    id?: string
+    scope?: $Enums.PolicyScope
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    submittedAt?: Date | string | null
+    approvedAt?: Date | string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    policy: PolicyDefinitionCreateNestedOneWithoutVersionsInput
+    branch?: BranchCreateNestedOneWithoutPolicyVersionsInput
+    branches?: PolicyVersionBranchCreateNestedManyWithoutPolicyVersionInput
+    createdByUser?: UserCreateNestedOneWithoutPolicyVersionsCreatedByInput
+    approvedByUser?: UserCreateNestedOneWithoutPolicyVersionsApprovedByInput
+    rejectedByUser?: UserCreateNestedOneWithoutPolicyVersionsRejectedByInput
+    retiredByUser?: UserCreateNestedOneWithoutPolicyVersionsRetiredByInput
+  }
+
+  export type PolicyVersionUncheckedCreateWithoutSubmittedByUserInput = {
+    id?: string
+    policyId: string
+    scope?: $Enums.PolicyScope
+    branchId?: string | null
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    createdByUserId?: string | null
+    submittedAt?: Date | string | null
+    approvedAt?: Date | string | null
+    approvedByUserId?: string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectedByUserId?: string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    retiredByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutPolicyVersionInput
+  }
+
+  export type PolicyVersionCreateOrConnectWithoutSubmittedByUserInput = {
+    where: PolicyVersionWhereUniqueInput
+    create: XOR<PolicyVersionCreateWithoutSubmittedByUserInput, PolicyVersionUncheckedCreateWithoutSubmittedByUserInput>
+  }
+
+  export type PolicyVersionCreateManySubmittedByUserInputEnvelope = {
+    data: PolicyVersionCreateManySubmittedByUserInput | PolicyVersionCreateManySubmittedByUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PolicyVersionCreateWithoutApprovedByUserInput = {
+    id?: string
+    scope?: $Enums.PolicyScope
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    submittedAt?: Date | string | null
+    approvedAt?: Date | string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    policy: PolicyDefinitionCreateNestedOneWithoutVersionsInput
+    branch?: BranchCreateNestedOneWithoutPolicyVersionsInput
+    branches?: PolicyVersionBranchCreateNestedManyWithoutPolicyVersionInput
+    createdByUser?: UserCreateNestedOneWithoutPolicyVersionsCreatedByInput
+    submittedByUser?: UserCreateNestedOneWithoutPolicyVersionsSubmittedByInput
+    rejectedByUser?: UserCreateNestedOneWithoutPolicyVersionsRejectedByInput
+    retiredByUser?: UserCreateNestedOneWithoutPolicyVersionsRetiredByInput
+  }
+
+  export type PolicyVersionUncheckedCreateWithoutApprovedByUserInput = {
+    id?: string
+    policyId: string
+    scope?: $Enums.PolicyScope
+    branchId?: string | null
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    createdByUserId?: string | null
+    submittedAt?: Date | string | null
+    submittedByUserId?: string | null
+    approvedAt?: Date | string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectedByUserId?: string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    retiredByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutPolicyVersionInput
+  }
+
+  export type PolicyVersionCreateOrConnectWithoutApprovedByUserInput = {
+    where: PolicyVersionWhereUniqueInput
+    create: XOR<PolicyVersionCreateWithoutApprovedByUserInput, PolicyVersionUncheckedCreateWithoutApprovedByUserInput>
+  }
+
+  export type PolicyVersionCreateManyApprovedByUserInputEnvelope = {
+    data: PolicyVersionCreateManyApprovedByUserInput | PolicyVersionCreateManyApprovedByUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PolicyVersionCreateWithoutRejectedByUserInput = {
+    id?: string
+    scope?: $Enums.PolicyScope
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    submittedAt?: Date | string | null
+    approvedAt?: Date | string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    policy: PolicyDefinitionCreateNestedOneWithoutVersionsInput
+    branch?: BranchCreateNestedOneWithoutPolicyVersionsInput
+    branches?: PolicyVersionBranchCreateNestedManyWithoutPolicyVersionInput
+    createdByUser?: UserCreateNestedOneWithoutPolicyVersionsCreatedByInput
+    submittedByUser?: UserCreateNestedOneWithoutPolicyVersionsSubmittedByInput
+    approvedByUser?: UserCreateNestedOneWithoutPolicyVersionsApprovedByInput
+    retiredByUser?: UserCreateNestedOneWithoutPolicyVersionsRetiredByInput
+  }
+
+  export type PolicyVersionUncheckedCreateWithoutRejectedByUserInput = {
+    id?: string
+    policyId: string
+    scope?: $Enums.PolicyScope
+    branchId?: string | null
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    createdByUserId?: string | null
+    submittedAt?: Date | string | null
+    submittedByUserId?: string | null
+    approvedAt?: Date | string | null
+    approvedByUserId?: string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    retiredByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutPolicyVersionInput
+  }
+
+  export type PolicyVersionCreateOrConnectWithoutRejectedByUserInput = {
+    where: PolicyVersionWhereUniqueInput
+    create: XOR<PolicyVersionCreateWithoutRejectedByUserInput, PolicyVersionUncheckedCreateWithoutRejectedByUserInput>
+  }
+
+  export type PolicyVersionCreateManyRejectedByUserInputEnvelope = {
+    data: PolicyVersionCreateManyRejectedByUserInput | PolicyVersionCreateManyRejectedByUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PolicyVersionCreateWithoutRetiredByUserInput = {
+    id?: string
+    scope?: $Enums.PolicyScope
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    submittedAt?: Date | string | null
+    approvedAt?: Date | string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    policy: PolicyDefinitionCreateNestedOneWithoutVersionsInput
+    branch?: BranchCreateNestedOneWithoutPolicyVersionsInput
+    branches?: PolicyVersionBranchCreateNestedManyWithoutPolicyVersionInput
+    createdByUser?: UserCreateNestedOneWithoutPolicyVersionsCreatedByInput
+    submittedByUser?: UserCreateNestedOneWithoutPolicyVersionsSubmittedByInput
+    approvedByUser?: UserCreateNestedOneWithoutPolicyVersionsApprovedByInput
+    rejectedByUser?: UserCreateNestedOneWithoutPolicyVersionsRejectedByInput
+  }
+
+  export type PolicyVersionUncheckedCreateWithoutRetiredByUserInput = {
+    id?: string
+    policyId: string
+    scope?: $Enums.PolicyScope
+    branchId?: string | null
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    createdByUserId?: string | null
+    submittedAt?: Date | string | null
+    submittedByUserId?: string | null
+    approvedAt?: Date | string | null
+    approvedByUserId?: string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectedByUserId?: string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutPolicyVersionInput
+  }
+
+  export type PolicyVersionCreateOrConnectWithoutRetiredByUserInput = {
+    where: PolicyVersionWhereUniqueInput
+    create: XOR<PolicyVersionCreateWithoutRetiredByUserInput, PolicyVersionUncheckedCreateWithoutRetiredByUserInput>
+  }
+
+  export type PolicyVersionCreateManyRetiredByUserInputEnvelope = {
+    data: PolicyVersionCreateManyRetiredByUserInput | PolicyVersionCreateManyRetiredByUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type BranchUpsertWithoutUsersInput = {
     update: XOR<BranchUpdateWithoutUsersInput, BranchUncheckedUpdateWithoutUsersInput>
     create: XOR<BranchCreateWithoutUsersInput, BranchUncheckedCreateWithoutUsersInput>
@@ -38315,6 +44124,8 @@ export namespace Prisma {
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutUsersInput = {
@@ -38341,6 +44152,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type StaffUpsertWithoutUserInput = {
@@ -38465,6 +44278,86 @@ export namespace Prisma {
     data: XOR<AuditEventUpdateManyMutationInput, AuditEventUncheckedUpdateManyWithoutActorUserInput>
   }
 
+  export type PolicyVersionUpsertWithWhereUniqueWithoutCreatedByUserInput = {
+    where: PolicyVersionWhereUniqueInput
+    update: XOR<PolicyVersionUpdateWithoutCreatedByUserInput, PolicyVersionUncheckedUpdateWithoutCreatedByUserInput>
+    create: XOR<PolicyVersionCreateWithoutCreatedByUserInput, PolicyVersionUncheckedCreateWithoutCreatedByUserInput>
+  }
+
+  export type PolicyVersionUpdateWithWhereUniqueWithoutCreatedByUserInput = {
+    where: PolicyVersionWhereUniqueInput
+    data: XOR<PolicyVersionUpdateWithoutCreatedByUserInput, PolicyVersionUncheckedUpdateWithoutCreatedByUserInput>
+  }
+
+  export type PolicyVersionUpdateManyWithWhereWithoutCreatedByUserInput = {
+    where: PolicyVersionScalarWhereInput
+    data: XOR<PolicyVersionUpdateManyMutationInput, PolicyVersionUncheckedUpdateManyWithoutCreatedByUserInput>
+  }
+
+  export type PolicyVersionUpsertWithWhereUniqueWithoutSubmittedByUserInput = {
+    where: PolicyVersionWhereUniqueInput
+    update: XOR<PolicyVersionUpdateWithoutSubmittedByUserInput, PolicyVersionUncheckedUpdateWithoutSubmittedByUserInput>
+    create: XOR<PolicyVersionCreateWithoutSubmittedByUserInput, PolicyVersionUncheckedCreateWithoutSubmittedByUserInput>
+  }
+
+  export type PolicyVersionUpdateWithWhereUniqueWithoutSubmittedByUserInput = {
+    where: PolicyVersionWhereUniqueInput
+    data: XOR<PolicyVersionUpdateWithoutSubmittedByUserInput, PolicyVersionUncheckedUpdateWithoutSubmittedByUserInput>
+  }
+
+  export type PolicyVersionUpdateManyWithWhereWithoutSubmittedByUserInput = {
+    where: PolicyVersionScalarWhereInput
+    data: XOR<PolicyVersionUpdateManyMutationInput, PolicyVersionUncheckedUpdateManyWithoutSubmittedByUserInput>
+  }
+
+  export type PolicyVersionUpsertWithWhereUniqueWithoutApprovedByUserInput = {
+    where: PolicyVersionWhereUniqueInput
+    update: XOR<PolicyVersionUpdateWithoutApprovedByUserInput, PolicyVersionUncheckedUpdateWithoutApprovedByUserInput>
+    create: XOR<PolicyVersionCreateWithoutApprovedByUserInput, PolicyVersionUncheckedCreateWithoutApprovedByUserInput>
+  }
+
+  export type PolicyVersionUpdateWithWhereUniqueWithoutApprovedByUserInput = {
+    where: PolicyVersionWhereUniqueInput
+    data: XOR<PolicyVersionUpdateWithoutApprovedByUserInput, PolicyVersionUncheckedUpdateWithoutApprovedByUserInput>
+  }
+
+  export type PolicyVersionUpdateManyWithWhereWithoutApprovedByUserInput = {
+    where: PolicyVersionScalarWhereInput
+    data: XOR<PolicyVersionUpdateManyMutationInput, PolicyVersionUncheckedUpdateManyWithoutApprovedByUserInput>
+  }
+
+  export type PolicyVersionUpsertWithWhereUniqueWithoutRejectedByUserInput = {
+    where: PolicyVersionWhereUniqueInput
+    update: XOR<PolicyVersionUpdateWithoutRejectedByUserInput, PolicyVersionUncheckedUpdateWithoutRejectedByUserInput>
+    create: XOR<PolicyVersionCreateWithoutRejectedByUserInput, PolicyVersionUncheckedCreateWithoutRejectedByUserInput>
+  }
+
+  export type PolicyVersionUpdateWithWhereUniqueWithoutRejectedByUserInput = {
+    where: PolicyVersionWhereUniqueInput
+    data: XOR<PolicyVersionUpdateWithoutRejectedByUserInput, PolicyVersionUncheckedUpdateWithoutRejectedByUserInput>
+  }
+
+  export type PolicyVersionUpdateManyWithWhereWithoutRejectedByUserInput = {
+    where: PolicyVersionScalarWhereInput
+    data: XOR<PolicyVersionUpdateManyMutationInput, PolicyVersionUncheckedUpdateManyWithoutRejectedByUserInput>
+  }
+
+  export type PolicyVersionUpsertWithWhereUniqueWithoutRetiredByUserInput = {
+    where: PolicyVersionWhereUniqueInput
+    update: XOR<PolicyVersionUpdateWithoutRetiredByUserInput, PolicyVersionUncheckedUpdateWithoutRetiredByUserInput>
+    create: XOR<PolicyVersionCreateWithoutRetiredByUserInput, PolicyVersionUncheckedCreateWithoutRetiredByUserInput>
+  }
+
+  export type PolicyVersionUpdateWithWhereUniqueWithoutRetiredByUserInput = {
+    where: PolicyVersionWhereUniqueInput
+    data: XOR<PolicyVersionUpdateWithoutRetiredByUserInput, PolicyVersionUncheckedUpdateWithoutRetiredByUserInput>
+  }
+
+  export type PolicyVersionUpdateManyWithWhereWithoutRetiredByUserInput = {
+    where: PolicyVersionScalarWhereInput
+    data: XOR<PolicyVersionUpdateManyMutationInput, PolicyVersionUncheckedUpdateManyWithoutRetiredByUserInput>
+  }
+
   export type BranchCreateWithoutPatientsInput = {
     id?: string
     code: string
@@ -38489,6 +44382,8 @@ export namespace Prisma {
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutPatientsInput = {
@@ -38515,6 +44410,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutPatientsInput = {
@@ -38707,6 +44604,8 @@ export namespace Prisma {
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutPatientsInput = {
@@ -38733,6 +44632,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type EncounterUpsertWithWhereUniqueWithoutPatientInput = {
@@ -38863,6 +44764,8 @@ export namespace Prisma {
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutEncounterInput = {
@@ -38889,6 +44792,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutEncounterInput = {
@@ -39006,6 +44911,8 @@ export namespace Prisma {
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutEncounterInput = {
@@ -39032,6 +44939,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type PatientUpsertWithoutEncountersInput = {
@@ -39121,6 +45030,8 @@ export namespace Prisma {
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutWardsInput = {
@@ -39147,6 +45058,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutWardsInput = {
@@ -39221,6 +45134,8 @@ export namespace Prisma {
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutWardsInput = {
@@ -39247,6 +45162,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type BedUpsertWithWhereUniqueWithoutWardInput = {
@@ -39289,6 +45206,8 @@ export namespace Prisma {
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutBedInput = {
@@ -39315,6 +45234,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutBedInput = {
@@ -39418,6 +45339,8 @@ export namespace Prisma {
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutBedInput = {
@@ -39444,6 +45367,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type WardUpsertWithoutBedsInput = {
@@ -39519,6 +45444,8 @@ export namespace Prisma {
     Bed?: BedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutAdmissionInput = {
@@ -39545,6 +45472,8 @@ export namespace Prisma {
     Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutAdmissionInput = {
@@ -39684,6 +45613,8 @@ export namespace Prisma {
     Bed?: BedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutAdmissionInput = {
@@ -39710,6 +45641,8 @@ export namespace Prisma {
     Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type EncounterUpsertWithoutAdmissionsInput = {
@@ -39851,6 +45784,8 @@ export namespace Prisma {
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutOTsInput = {
@@ -39877,6 +45812,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutOTsInput = {
@@ -39919,6 +45856,8 @@ export namespace Prisma {
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutOTsInput = {
@@ -39945,6 +45884,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchCreateWithoutAssetsInput = {
@@ -39971,6 +45912,8 @@ export namespace Prisma {
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutAssetsInput = {
@@ -39997,6 +45940,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutAssetsInput = {
@@ -40039,6 +45984,8 @@ export namespace Prisma {
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutAssetsInput = {
@@ -40065,6 +46012,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchCreateWithoutTariffPlansInput = {
@@ -40091,6 +46040,8 @@ export namespace Prisma {
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutTariffPlansInput = {
@@ -40117,6 +46068,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutTariffPlansInput = {
@@ -40185,6 +46138,8 @@ export namespace Prisma {
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutTariffPlansInput = {
@@ -40211,6 +46166,8 @@ export namespace Prisma {
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type TariffRateUpsertWithWhereUniqueWithoutTariffPlanInput = {
@@ -40509,6 +46466,8 @@ export namespace Prisma {
     Bed?: BedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutStatutoryCasesInput = {
@@ -40535,6 +46494,8 @@ export namespace Prisma {
     Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutStatutoryCasesInput = {
@@ -40618,6 +46579,8 @@ export namespace Prisma {
     Bed?: BedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutStatutoryCasesInput = {
@@ -40644,6 +46607,8 @@ export namespace Prisma {
     Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type PatientUpsertWithoutStatutoryCasesInput = {
@@ -40717,6 +46682,8 @@ export namespace Prisma {
     Bed?: BedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutAuditEventsInput = {
@@ -40743,6 +46710,8 @@ export namespace Prisma {
     Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
     Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
     statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutAuditEventsInput = {
@@ -40767,6 +46736,11 @@ export namespace Prisma {
     staff?: StaffCreateNestedOneWithoutUserInput
     roleVersion?: RoleTemplateVersionCreateNestedOneWithoutUsersInput
     createdRoleVersions?: RoleTemplateVersionCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsCreatedBy?: PolicyVersionCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsSubmittedBy?: PolicyVersionCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionCreateNestedManyWithoutRejectedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionCreateNestedManyWithoutRetiredByUserInput
   }
 
   export type UserUncheckedCreateWithoutAuditEventsAsActorInput = {
@@ -40786,6 +46760,11 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdRoleVersions?: RoleTemplateVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedCreateNestedManyWithoutRejectedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedCreateNestedManyWithoutRetiredByUserInput
   }
 
   export type UserCreateOrConnectWithoutAuditEventsAsActorInput = {
@@ -40828,6 +46807,8 @@ export namespace Prisma {
     Bed?: BedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutAuditEventsInput = {
@@ -40854,6 +46835,8 @@ export namespace Prisma {
     Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
     Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
     statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type UserUpsertWithoutAuditEventsAsActorInput = {
@@ -40884,6 +46867,11 @@ export namespace Prisma {
     staff?: StaffUpdateOneWithoutUserNestedInput
     roleVersion?: RoleTemplateVersionUpdateOneWithoutUsersNestedInput
     createdRoleVersions?: RoleTemplateVersionUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUpdateManyWithoutRejectedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUpdateManyWithoutRetiredByUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAuditEventsAsActorInput = {
@@ -40903,6 +46891,11 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdRoleVersions?: RoleTemplateVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedUpdateManyWithoutRejectedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedUpdateManyWithoutRetiredByUserNestedInput
   }
 
   export type RoleTemplatePermissionCreateWithoutPermissionInput = {
@@ -41053,6 +47046,11 @@ export namespace Prisma {
     staff?: StaffCreateNestedOneWithoutUserInput
     roleVersion?: RoleTemplateVersionCreateNestedOneWithoutUsersInput
     auditEventsAsActor?: AuditEventCreateNestedManyWithoutActorUserInput
+    policyVersionsCreatedBy?: PolicyVersionCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsSubmittedBy?: PolicyVersionCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionCreateNestedManyWithoutRejectedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionCreateNestedManyWithoutRetiredByUserInput
   }
 
   export type UserUncheckedCreateWithoutCreatedRoleVersionsInput = {
@@ -41072,6 +47070,11 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     auditEventsAsActor?: AuditEventUncheckedCreateNestedManyWithoutActorUserInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedCreateNestedManyWithoutRejectedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedCreateNestedManyWithoutRetiredByUserInput
   }
 
   export type UserCreateOrConnectWithoutCreatedRoleVersionsInput = {
@@ -41122,6 +47125,11 @@ export namespace Prisma {
     staff?: StaffCreateNestedOneWithoutUserInput
     createdRoleVersions?: RoleTemplateVersionCreateNestedManyWithoutCreatedByUserInput
     auditEventsAsActor?: AuditEventCreateNestedManyWithoutActorUserInput
+    policyVersionsCreatedBy?: PolicyVersionCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsSubmittedBy?: PolicyVersionCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionCreateNestedManyWithoutRejectedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionCreateNestedManyWithoutRetiredByUserInput
   }
 
   export type UserUncheckedCreateWithoutRoleVersionInput = {
@@ -41141,6 +47149,11 @@ export namespace Prisma {
     updatedAt?: Date | string
     createdRoleVersions?: RoleTemplateVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
     auditEventsAsActor?: AuditEventUncheckedCreateNestedManyWithoutActorUserInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedCreateNestedManyWithoutRejectedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedCreateNestedManyWithoutRetiredByUserInput
   }
 
   export type UserCreateOrConnectWithoutRoleVersionInput = {
@@ -41214,6 +47227,11 @@ export namespace Prisma {
     staff?: StaffUpdateOneWithoutUserNestedInput
     roleVersion?: RoleTemplateVersionUpdateOneWithoutUsersNestedInput
     auditEventsAsActor?: AuditEventUpdateManyWithoutActorUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUpdateManyWithoutRejectedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUpdateManyWithoutRetiredByUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCreatedRoleVersionsInput = {
@@ -41233,6 +47251,11 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     auditEventsAsActor?: AuditEventUncheckedUpdateManyWithoutActorUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedUpdateManyWithoutRejectedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedUpdateManyWithoutRetiredByUserNestedInput
   }
 
   export type RoleTemplatePermissionUpsertWithWhereUniqueWithoutRoleVersionInput = {
@@ -41385,6 +47408,1114 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PolicyVersionCreateWithoutPolicyInput = {
+    id?: string
+    scope?: $Enums.PolicyScope
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    submittedAt?: Date | string | null
+    approvedAt?: Date | string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branch?: BranchCreateNestedOneWithoutPolicyVersionsInput
+    branches?: PolicyVersionBranchCreateNestedManyWithoutPolicyVersionInput
+    createdByUser?: UserCreateNestedOneWithoutPolicyVersionsCreatedByInput
+    submittedByUser?: UserCreateNestedOneWithoutPolicyVersionsSubmittedByInput
+    approvedByUser?: UserCreateNestedOneWithoutPolicyVersionsApprovedByInput
+    rejectedByUser?: UserCreateNestedOneWithoutPolicyVersionsRejectedByInput
+    retiredByUser?: UserCreateNestedOneWithoutPolicyVersionsRetiredByInput
+  }
+
+  export type PolicyVersionUncheckedCreateWithoutPolicyInput = {
+    id?: string
+    scope?: $Enums.PolicyScope
+    branchId?: string | null
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    createdByUserId?: string | null
+    submittedAt?: Date | string | null
+    submittedByUserId?: string | null
+    approvedAt?: Date | string | null
+    approvedByUserId?: string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectedByUserId?: string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    retiredByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutPolicyVersionInput
+  }
+
+  export type PolicyVersionCreateOrConnectWithoutPolicyInput = {
+    where: PolicyVersionWhereUniqueInput
+    create: XOR<PolicyVersionCreateWithoutPolicyInput, PolicyVersionUncheckedCreateWithoutPolicyInput>
+  }
+
+  export type PolicyVersionCreateManyPolicyInputEnvelope = {
+    data: PolicyVersionCreateManyPolicyInput | PolicyVersionCreateManyPolicyInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PolicyVersionUpsertWithWhereUniqueWithoutPolicyInput = {
+    where: PolicyVersionWhereUniqueInput
+    update: XOR<PolicyVersionUpdateWithoutPolicyInput, PolicyVersionUncheckedUpdateWithoutPolicyInput>
+    create: XOR<PolicyVersionCreateWithoutPolicyInput, PolicyVersionUncheckedCreateWithoutPolicyInput>
+  }
+
+  export type PolicyVersionUpdateWithWhereUniqueWithoutPolicyInput = {
+    where: PolicyVersionWhereUniqueInput
+    data: XOR<PolicyVersionUpdateWithoutPolicyInput, PolicyVersionUncheckedUpdateWithoutPolicyInput>
+  }
+
+  export type PolicyVersionUpdateManyWithWhereWithoutPolicyInput = {
+    where: PolicyVersionScalarWhereInput
+    data: XOR<PolicyVersionUpdateManyMutationInput, PolicyVersionUncheckedUpdateManyWithoutPolicyInput>
+  }
+
+  export type PolicyDefinitionCreateWithoutVersionsInput = {
+    id?: string
+    code: string
+    name: string
+    type: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PolicyDefinitionUncheckedCreateWithoutVersionsInput = {
+    id?: string
+    code: string
+    name: string
+    type: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PolicyDefinitionCreateOrConnectWithoutVersionsInput = {
+    where: PolicyDefinitionWhereUniqueInput
+    create: XOR<PolicyDefinitionCreateWithoutVersionsInput, PolicyDefinitionUncheckedCreateWithoutVersionsInput>
+  }
+
+  export type BranchCreateWithoutPolicyVersionsInput = {
+    id?: string
+    code: string
+    name: string
+    city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    departments?: DepartmentCreateNestedManyWithoutBranchInput
+    users?: UserCreateNestedManyWithoutBranchInput
+    patients?: PatientCreateNestedManyWithoutBranchInput
+    wards?: WardCreateNestedManyWithoutBranchInput
+    oTs?: OTCreateNestedManyWithoutBranchInput
+    tariffPlans?: TariffPlanCreateNestedManyWithoutBranchInput
+    assets?: AssetCreateNestedManyWithoutBranchInput
+    Specialty?: SpecialtyCreateNestedManyWithoutBranchInput
+    Staff?: StaffCreateNestedManyWithoutBranchInput
+    Encounter?: EncounterCreateNestedManyWithoutBranchInput
+    Bed?: BedCreateNestedManyWithoutBranchInput
+    Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
+    auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
+  }
+
+  export type BranchUncheckedCreateWithoutPolicyVersionsInput = {
+    id?: string
+    code: string
+    name: string
+    city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
+    users?: UserUncheckedCreateNestedManyWithoutBranchInput
+    patients?: PatientUncheckedCreateNestedManyWithoutBranchInput
+    wards?: WardUncheckedCreateNestedManyWithoutBranchInput
+    oTs?: OTUncheckedCreateNestedManyWithoutBranchInput
+    tariffPlans?: TariffPlanUncheckedCreateNestedManyWithoutBranchInput
+    assets?: AssetUncheckedCreateNestedManyWithoutBranchInput
+    Specialty?: SpecialtyUncheckedCreateNestedManyWithoutBranchInput
+    Staff?: StaffUncheckedCreateNestedManyWithoutBranchInput
+    Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
+    Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
+    Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
+    auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
+  }
+
+  export type BranchCreateOrConnectWithoutPolicyVersionsInput = {
+    where: BranchWhereUniqueInput
+    create: XOR<BranchCreateWithoutPolicyVersionsInput, BranchUncheckedCreateWithoutPolicyVersionsInput>
+  }
+
+  export type PolicyVersionBranchCreateWithoutPolicyVersionInput = {
+    id?: string
+    createdAt?: Date | string
+    branch: BranchCreateNestedOneWithoutPolicyVersionBranchesInput
+  }
+
+  export type PolicyVersionBranchUncheckedCreateWithoutPolicyVersionInput = {
+    id?: string
+    branchId: string
+    createdAt?: Date | string
+  }
+
+  export type PolicyVersionBranchCreateOrConnectWithoutPolicyVersionInput = {
+    where: PolicyVersionBranchWhereUniqueInput
+    create: XOR<PolicyVersionBranchCreateWithoutPolicyVersionInput, PolicyVersionBranchUncheckedCreateWithoutPolicyVersionInput>
+  }
+
+  export type PolicyVersionBranchCreateManyPolicyVersionInputEnvelope = {
+    data: PolicyVersionBranchCreateManyPolicyVersionInput | PolicyVersionBranchCreateManyPolicyVersionInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type UserCreateWithoutPolicyVersionsCreatedByInput = {
+    id?: string
+    email: string
+    name: string
+    role?: string
+    phone?: string | null
+    isActive?: boolean
+    passwordHash?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branch?: BranchCreateNestedOneWithoutUsersInput
+    staff?: StaffCreateNestedOneWithoutUserInput
+    roleVersion?: RoleTemplateVersionCreateNestedOneWithoutUsersInput
+    createdRoleVersions?: RoleTemplateVersionCreateNestedManyWithoutCreatedByUserInput
+    auditEventsAsActor?: AuditEventCreateNestedManyWithoutActorUserInput
+    policyVersionsSubmittedBy?: PolicyVersionCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionCreateNestedManyWithoutRejectedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionCreateNestedManyWithoutRetiredByUserInput
+  }
+
+  export type UserUncheckedCreateWithoutPolicyVersionsCreatedByInput = {
+    id?: string
+    email: string
+    name: string
+    role?: string
+    phone?: string | null
+    branchId?: string | null
+    staffId?: string | null
+    isActive?: boolean
+    passwordHash?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    roleVersionId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdRoleVersions?: RoleTemplateVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    auditEventsAsActor?: AuditEventUncheckedCreateNestedManyWithoutActorUserInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedCreateNestedManyWithoutRejectedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedCreateNestedManyWithoutRetiredByUserInput
+  }
+
+  export type UserCreateOrConnectWithoutPolicyVersionsCreatedByInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutPolicyVersionsCreatedByInput, UserUncheckedCreateWithoutPolicyVersionsCreatedByInput>
+  }
+
+  export type UserCreateWithoutPolicyVersionsSubmittedByInput = {
+    id?: string
+    email: string
+    name: string
+    role?: string
+    phone?: string | null
+    isActive?: boolean
+    passwordHash?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branch?: BranchCreateNestedOneWithoutUsersInput
+    staff?: StaffCreateNestedOneWithoutUserInput
+    roleVersion?: RoleTemplateVersionCreateNestedOneWithoutUsersInput
+    createdRoleVersions?: RoleTemplateVersionCreateNestedManyWithoutCreatedByUserInput
+    auditEventsAsActor?: AuditEventCreateNestedManyWithoutActorUserInput
+    policyVersionsCreatedBy?: PolicyVersionCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionCreateNestedManyWithoutRejectedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionCreateNestedManyWithoutRetiredByUserInput
+  }
+
+  export type UserUncheckedCreateWithoutPolicyVersionsSubmittedByInput = {
+    id?: string
+    email: string
+    name: string
+    role?: string
+    phone?: string | null
+    branchId?: string | null
+    staffId?: string | null
+    isActive?: boolean
+    passwordHash?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    roleVersionId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdRoleVersions?: RoleTemplateVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    auditEventsAsActor?: AuditEventUncheckedCreateNestedManyWithoutActorUserInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedCreateNestedManyWithoutRejectedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedCreateNestedManyWithoutRetiredByUserInput
+  }
+
+  export type UserCreateOrConnectWithoutPolicyVersionsSubmittedByInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutPolicyVersionsSubmittedByInput, UserUncheckedCreateWithoutPolicyVersionsSubmittedByInput>
+  }
+
+  export type UserCreateWithoutPolicyVersionsApprovedByInput = {
+    id?: string
+    email: string
+    name: string
+    role?: string
+    phone?: string | null
+    isActive?: boolean
+    passwordHash?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branch?: BranchCreateNestedOneWithoutUsersInput
+    staff?: StaffCreateNestedOneWithoutUserInput
+    roleVersion?: RoleTemplateVersionCreateNestedOneWithoutUsersInput
+    createdRoleVersions?: RoleTemplateVersionCreateNestedManyWithoutCreatedByUserInput
+    auditEventsAsActor?: AuditEventCreateNestedManyWithoutActorUserInput
+    policyVersionsCreatedBy?: PolicyVersionCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsSubmittedBy?: PolicyVersionCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionCreateNestedManyWithoutRejectedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionCreateNestedManyWithoutRetiredByUserInput
+  }
+
+  export type UserUncheckedCreateWithoutPolicyVersionsApprovedByInput = {
+    id?: string
+    email: string
+    name: string
+    role?: string
+    phone?: string | null
+    branchId?: string | null
+    staffId?: string | null
+    isActive?: boolean
+    passwordHash?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    roleVersionId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdRoleVersions?: RoleTemplateVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    auditEventsAsActor?: AuditEventUncheckedCreateNestedManyWithoutActorUserInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedCreateNestedManyWithoutRejectedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedCreateNestedManyWithoutRetiredByUserInput
+  }
+
+  export type UserCreateOrConnectWithoutPolicyVersionsApprovedByInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutPolicyVersionsApprovedByInput, UserUncheckedCreateWithoutPolicyVersionsApprovedByInput>
+  }
+
+  export type UserCreateWithoutPolicyVersionsRejectedByInput = {
+    id?: string
+    email: string
+    name: string
+    role?: string
+    phone?: string | null
+    isActive?: boolean
+    passwordHash?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branch?: BranchCreateNestedOneWithoutUsersInput
+    staff?: StaffCreateNestedOneWithoutUserInput
+    roleVersion?: RoleTemplateVersionCreateNestedOneWithoutUsersInput
+    createdRoleVersions?: RoleTemplateVersionCreateNestedManyWithoutCreatedByUserInput
+    auditEventsAsActor?: AuditEventCreateNestedManyWithoutActorUserInput
+    policyVersionsCreatedBy?: PolicyVersionCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsSubmittedBy?: PolicyVersionCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionCreateNestedManyWithoutRetiredByUserInput
+  }
+
+  export type UserUncheckedCreateWithoutPolicyVersionsRejectedByInput = {
+    id?: string
+    email: string
+    name: string
+    role?: string
+    phone?: string | null
+    branchId?: string | null
+    staffId?: string | null
+    isActive?: boolean
+    passwordHash?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    roleVersionId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdRoleVersions?: RoleTemplateVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    auditEventsAsActor?: AuditEventUncheckedCreateNestedManyWithoutActorUserInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedCreateNestedManyWithoutRetiredByUserInput
+  }
+
+  export type UserCreateOrConnectWithoutPolicyVersionsRejectedByInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutPolicyVersionsRejectedByInput, UserUncheckedCreateWithoutPolicyVersionsRejectedByInput>
+  }
+
+  export type UserCreateWithoutPolicyVersionsRetiredByInput = {
+    id?: string
+    email: string
+    name: string
+    role?: string
+    phone?: string | null
+    isActive?: boolean
+    passwordHash?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branch?: BranchCreateNestedOneWithoutUsersInput
+    staff?: StaffCreateNestedOneWithoutUserInput
+    roleVersion?: RoleTemplateVersionCreateNestedOneWithoutUsersInput
+    createdRoleVersions?: RoleTemplateVersionCreateNestedManyWithoutCreatedByUserInput
+    auditEventsAsActor?: AuditEventCreateNestedManyWithoutActorUserInput
+    policyVersionsCreatedBy?: PolicyVersionCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsSubmittedBy?: PolicyVersionCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionCreateNestedManyWithoutRejectedByUserInput
+  }
+
+  export type UserUncheckedCreateWithoutPolicyVersionsRetiredByInput = {
+    id?: string
+    email: string
+    name: string
+    role?: string
+    phone?: string | null
+    branchId?: string | null
+    staffId?: string | null
+    isActive?: boolean
+    passwordHash?: string | null
+    mustChangePassword?: boolean
+    passwordResetToken?: string | null
+    passwordResetExpires?: Date | string | null
+    roleVersionId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdRoleVersions?: RoleTemplateVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    auditEventsAsActor?: AuditEventUncheckedCreateNestedManyWithoutActorUserInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedCreateNestedManyWithoutSubmittedByUserInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedCreateNestedManyWithoutApprovedByUserInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedCreateNestedManyWithoutRejectedByUserInput
+  }
+
+  export type UserCreateOrConnectWithoutPolicyVersionsRetiredByInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutPolicyVersionsRetiredByInput, UserUncheckedCreateWithoutPolicyVersionsRetiredByInput>
+  }
+
+  export type PolicyDefinitionUpsertWithoutVersionsInput = {
+    update: XOR<PolicyDefinitionUpdateWithoutVersionsInput, PolicyDefinitionUncheckedUpdateWithoutVersionsInput>
+    create: XOR<PolicyDefinitionCreateWithoutVersionsInput, PolicyDefinitionUncheckedCreateWithoutVersionsInput>
+    where?: PolicyDefinitionWhereInput
+  }
+
+  export type PolicyDefinitionUpdateToOneWithWhereWithoutVersionsInput = {
+    where?: PolicyDefinitionWhereInput
+    data: XOR<PolicyDefinitionUpdateWithoutVersionsInput, PolicyDefinitionUncheckedUpdateWithoutVersionsInput>
+  }
+
+  export type PolicyDefinitionUpdateWithoutVersionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PolicyDefinitionUncheckedUpdateWithoutVersionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BranchUpsertWithoutPolicyVersionsInput = {
+    update: XOR<BranchUpdateWithoutPolicyVersionsInput, BranchUncheckedUpdateWithoutPolicyVersionsInput>
+    create: XOR<BranchCreateWithoutPolicyVersionsInput, BranchUncheckedCreateWithoutPolicyVersionsInput>
+    where?: BranchWhereInput
+  }
+
+  export type BranchUpdateToOneWithWhereWithoutPolicyVersionsInput = {
+    where?: BranchWhereInput
+    data: XOR<BranchUpdateWithoutPolicyVersionsInput, BranchUncheckedUpdateWithoutPolicyVersionsInput>
+  }
+
+  export type BranchUpdateWithoutPolicyVersionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    departments?: DepartmentUpdateManyWithoutBranchNestedInput
+    users?: UserUpdateManyWithoutBranchNestedInput
+    patients?: PatientUpdateManyWithoutBranchNestedInput
+    wards?: WardUpdateManyWithoutBranchNestedInput
+    oTs?: OTUpdateManyWithoutBranchNestedInput
+    tariffPlans?: TariffPlanUpdateManyWithoutBranchNestedInput
+    assets?: AssetUpdateManyWithoutBranchNestedInput
+    Specialty?: SpecialtyUpdateManyWithoutBranchNestedInput
+    Staff?: StaffUpdateManyWithoutBranchNestedInput
+    Encounter?: EncounterUpdateManyWithoutBranchNestedInput
+    Bed?: BedUpdateManyWithoutBranchNestedInput
+    Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
+    auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
+  }
+
+  export type BranchUncheckedUpdateWithoutPolicyVersionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
+    users?: UserUncheckedUpdateManyWithoutBranchNestedInput
+    patients?: PatientUncheckedUpdateManyWithoutBranchNestedInput
+    wards?: WardUncheckedUpdateManyWithoutBranchNestedInput
+    oTs?: OTUncheckedUpdateManyWithoutBranchNestedInput
+    tariffPlans?: TariffPlanUncheckedUpdateManyWithoutBranchNestedInput
+    assets?: AssetUncheckedUpdateManyWithoutBranchNestedInput
+    Specialty?: SpecialtyUncheckedUpdateManyWithoutBranchNestedInput
+    Staff?: StaffUncheckedUpdateManyWithoutBranchNestedInput
+    Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
+    Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
+    Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
+    auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
+  }
+
+  export type PolicyVersionBranchUpsertWithWhereUniqueWithoutPolicyVersionInput = {
+    where: PolicyVersionBranchWhereUniqueInput
+    update: XOR<PolicyVersionBranchUpdateWithoutPolicyVersionInput, PolicyVersionBranchUncheckedUpdateWithoutPolicyVersionInput>
+    create: XOR<PolicyVersionBranchCreateWithoutPolicyVersionInput, PolicyVersionBranchUncheckedCreateWithoutPolicyVersionInput>
+  }
+
+  export type PolicyVersionBranchUpdateWithWhereUniqueWithoutPolicyVersionInput = {
+    where: PolicyVersionBranchWhereUniqueInput
+    data: XOR<PolicyVersionBranchUpdateWithoutPolicyVersionInput, PolicyVersionBranchUncheckedUpdateWithoutPolicyVersionInput>
+  }
+
+  export type PolicyVersionBranchUpdateManyWithWhereWithoutPolicyVersionInput = {
+    where: PolicyVersionBranchScalarWhereInput
+    data: XOR<PolicyVersionBranchUpdateManyMutationInput, PolicyVersionBranchUncheckedUpdateManyWithoutPolicyVersionInput>
+  }
+
+  export type UserUpsertWithoutPolicyVersionsCreatedByInput = {
+    update: XOR<UserUpdateWithoutPolicyVersionsCreatedByInput, UserUncheckedUpdateWithoutPolicyVersionsCreatedByInput>
+    create: XOR<UserCreateWithoutPolicyVersionsCreatedByInput, UserUncheckedCreateWithoutPolicyVersionsCreatedByInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutPolicyVersionsCreatedByInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutPolicyVersionsCreatedByInput, UserUncheckedUpdateWithoutPolicyVersionsCreatedByInput>
+  }
+
+  export type UserUpdateWithoutPolicyVersionsCreatedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branch?: BranchUpdateOneWithoutUsersNestedInput
+    staff?: StaffUpdateOneWithoutUserNestedInput
+    roleVersion?: RoleTemplateVersionUpdateOneWithoutUsersNestedInput
+    createdRoleVersions?: RoleTemplateVersionUpdateManyWithoutCreatedByUserNestedInput
+    auditEventsAsActor?: AuditEventUpdateManyWithoutActorUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUpdateManyWithoutRejectedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUpdateManyWithoutRetiredByUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutPolicyVersionsCreatedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    staffId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    roleVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdRoleVersions?: RoleTemplateVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    auditEventsAsActor?: AuditEventUncheckedUpdateManyWithoutActorUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedUpdateManyWithoutRejectedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedUpdateManyWithoutRetiredByUserNestedInput
+  }
+
+  export type UserUpsertWithoutPolicyVersionsSubmittedByInput = {
+    update: XOR<UserUpdateWithoutPolicyVersionsSubmittedByInput, UserUncheckedUpdateWithoutPolicyVersionsSubmittedByInput>
+    create: XOR<UserCreateWithoutPolicyVersionsSubmittedByInput, UserUncheckedCreateWithoutPolicyVersionsSubmittedByInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutPolicyVersionsSubmittedByInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutPolicyVersionsSubmittedByInput, UserUncheckedUpdateWithoutPolicyVersionsSubmittedByInput>
+  }
+
+  export type UserUpdateWithoutPolicyVersionsSubmittedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branch?: BranchUpdateOneWithoutUsersNestedInput
+    staff?: StaffUpdateOneWithoutUserNestedInput
+    roleVersion?: RoleTemplateVersionUpdateOneWithoutUsersNestedInput
+    createdRoleVersions?: RoleTemplateVersionUpdateManyWithoutCreatedByUserNestedInput
+    auditEventsAsActor?: AuditEventUpdateManyWithoutActorUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUpdateManyWithoutRejectedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUpdateManyWithoutRetiredByUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutPolicyVersionsSubmittedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    staffId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    roleVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdRoleVersions?: RoleTemplateVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    auditEventsAsActor?: AuditEventUncheckedUpdateManyWithoutActorUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedUpdateManyWithoutRejectedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedUpdateManyWithoutRetiredByUserNestedInput
+  }
+
+  export type UserUpsertWithoutPolicyVersionsApprovedByInput = {
+    update: XOR<UserUpdateWithoutPolicyVersionsApprovedByInput, UserUncheckedUpdateWithoutPolicyVersionsApprovedByInput>
+    create: XOR<UserCreateWithoutPolicyVersionsApprovedByInput, UserUncheckedCreateWithoutPolicyVersionsApprovedByInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutPolicyVersionsApprovedByInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutPolicyVersionsApprovedByInput, UserUncheckedUpdateWithoutPolicyVersionsApprovedByInput>
+  }
+
+  export type UserUpdateWithoutPolicyVersionsApprovedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branch?: BranchUpdateOneWithoutUsersNestedInput
+    staff?: StaffUpdateOneWithoutUserNestedInput
+    roleVersion?: RoleTemplateVersionUpdateOneWithoutUsersNestedInput
+    createdRoleVersions?: RoleTemplateVersionUpdateManyWithoutCreatedByUserNestedInput
+    auditEventsAsActor?: AuditEventUpdateManyWithoutActorUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUpdateManyWithoutRejectedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUpdateManyWithoutRetiredByUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutPolicyVersionsApprovedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    staffId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    roleVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdRoleVersions?: RoleTemplateVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    auditEventsAsActor?: AuditEventUncheckedUpdateManyWithoutActorUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedUpdateManyWithoutRejectedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedUpdateManyWithoutRetiredByUserNestedInput
+  }
+
+  export type UserUpsertWithoutPolicyVersionsRejectedByInput = {
+    update: XOR<UserUpdateWithoutPolicyVersionsRejectedByInput, UserUncheckedUpdateWithoutPolicyVersionsRejectedByInput>
+    create: XOR<UserCreateWithoutPolicyVersionsRejectedByInput, UserUncheckedCreateWithoutPolicyVersionsRejectedByInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutPolicyVersionsRejectedByInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutPolicyVersionsRejectedByInput, UserUncheckedUpdateWithoutPolicyVersionsRejectedByInput>
+  }
+
+  export type UserUpdateWithoutPolicyVersionsRejectedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branch?: BranchUpdateOneWithoutUsersNestedInput
+    staff?: StaffUpdateOneWithoutUserNestedInput
+    roleVersion?: RoleTemplateVersionUpdateOneWithoutUsersNestedInput
+    createdRoleVersions?: RoleTemplateVersionUpdateManyWithoutCreatedByUserNestedInput
+    auditEventsAsActor?: AuditEventUpdateManyWithoutActorUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUpdateManyWithoutRetiredByUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutPolicyVersionsRejectedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    staffId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    roleVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdRoleVersions?: RoleTemplateVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    auditEventsAsActor?: AuditEventUncheckedUpdateManyWithoutActorUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedUpdateManyWithoutRetiredByUserNestedInput
+  }
+
+  export type UserUpsertWithoutPolicyVersionsRetiredByInput = {
+    update: XOR<UserUpdateWithoutPolicyVersionsRetiredByInput, UserUncheckedUpdateWithoutPolicyVersionsRetiredByInput>
+    create: XOR<UserCreateWithoutPolicyVersionsRetiredByInput, UserUncheckedCreateWithoutPolicyVersionsRetiredByInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutPolicyVersionsRetiredByInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutPolicyVersionsRetiredByInput, UserUncheckedUpdateWithoutPolicyVersionsRetiredByInput>
+  }
+
+  export type UserUpdateWithoutPolicyVersionsRetiredByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branch?: BranchUpdateOneWithoutUsersNestedInput
+    staff?: StaffUpdateOneWithoutUserNestedInput
+    roleVersion?: RoleTemplateVersionUpdateOneWithoutUsersNestedInput
+    createdRoleVersions?: RoleTemplateVersionUpdateManyWithoutCreatedByUserNestedInput
+    auditEventsAsActor?: AuditEventUpdateManyWithoutActorUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUpdateManyWithoutRejectedByUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutPolicyVersionsRetiredByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    staffId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
+    mustChangePassword?: BoolFieldUpdateOperationsInput | boolean
+    passwordResetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    roleVersionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdRoleVersions?: RoleTemplateVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    auditEventsAsActor?: AuditEventUncheckedUpdateManyWithoutActorUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedUpdateManyWithoutRejectedByUserNestedInput
+  }
+
+  export type PolicyVersionCreateWithoutBranchesInput = {
+    id?: string
+    scope?: $Enums.PolicyScope
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    submittedAt?: Date | string | null
+    approvedAt?: Date | string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    policy: PolicyDefinitionCreateNestedOneWithoutVersionsInput
+    branch?: BranchCreateNestedOneWithoutPolicyVersionsInput
+    createdByUser?: UserCreateNestedOneWithoutPolicyVersionsCreatedByInput
+    submittedByUser?: UserCreateNestedOneWithoutPolicyVersionsSubmittedByInput
+    approvedByUser?: UserCreateNestedOneWithoutPolicyVersionsApprovedByInput
+    rejectedByUser?: UserCreateNestedOneWithoutPolicyVersionsRejectedByInput
+    retiredByUser?: UserCreateNestedOneWithoutPolicyVersionsRetiredByInput
+  }
+
+  export type PolicyVersionUncheckedCreateWithoutBranchesInput = {
+    id?: string
+    policyId: string
+    scope?: $Enums.PolicyScope
+    branchId?: string | null
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    createdByUserId?: string | null
+    submittedAt?: Date | string | null
+    submittedByUserId?: string | null
+    approvedAt?: Date | string | null
+    approvedByUserId?: string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectedByUserId?: string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    retiredByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PolicyVersionCreateOrConnectWithoutBranchesInput = {
+    where: PolicyVersionWhereUniqueInput
+    create: XOR<PolicyVersionCreateWithoutBranchesInput, PolicyVersionUncheckedCreateWithoutBranchesInput>
+  }
+
+  export type BranchCreateWithoutPolicyVersionBranchesInput = {
+    id?: string
+    code: string
+    name: string
+    city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    departments?: DepartmentCreateNestedManyWithoutBranchInput
+    users?: UserCreateNestedManyWithoutBranchInput
+    patients?: PatientCreateNestedManyWithoutBranchInput
+    wards?: WardCreateNestedManyWithoutBranchInput
+    oTs?: OTCreateNestedManyWithoutBranchInput
+    tariffPlans?: TariffPlanCreateNestedManyWithoutBranchInput
+    assets?: AssetCreateNestedManyWithoutBranchInput
+    Specialty?: SpecialtyCreateNestedManyWithoutBranchInput
+    Staff?: StaffCreateNestedManyWithoutBranchInput
+    Encounter?: EncounterCreateNestedManyWithoutBranchInput
+    Bed?: BedCreateNestedManyWithoutBranchInput
+    Admission?: AdmissionCreateNestedManyWithoutBranchInput
+    statutoryCases?: StatutoryCaseCreateNestedManyWithoutBranchInput
+    auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
+  }
+
+  export type BranchUncheckedCreateWithoutPolicyVersionBranchesInput = {
+    id?: string
+    code: string
+    name: string
+    city: string
+    address?: string | null
+    contactPhone1?: string | null
+    contactPhone2?: string | null
+    contactEmail?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
+    users?: UserUncheckedCreateNestedManyWithoutBranchInput
+    patients?: PatientUncheckedCreateNestedManyWithoutBranchInput
+    wards?: WardUncheckedCreateNestedManyWithoutBranchInput
+    oTs?: OTUncheckedCreateNestedManyWithoutBranchInput
+    tariffPlans?: TariffPlanUncheckedCreateNestedManyWithoutBranchInput
+    assets?: AssetUncheckedCreateNestedManyWithoutBranchInput
+    Specialty?: SpecialtyUncheckedCreateNestedManyWithoutBranchInput
+    Staff?: StaffUncheckedCreateNestedManyWithoutBranchInput
+    Encounter?: EncounterUncheckedCreateNestedManyWithoutBranchInput
+    Bed?: BedUncheckedCreateNestedManyWithoutBranchInput
+    Admission?: AdmissionUncheckedCreateNestedManyWithoutBranchInput
+    statutoryCases?: StatutoryCaseUncheckedCreateNestedManyWithoutBranchInput
+    auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
+    policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
+  }
+
+  export type BranchCreateOrConnectWithoutPolicyVersionBranchesInput = {
+    where: BranchWhereUniqueInput
+    create: XOR<BranchCreateWithoutPolicyVersionBranchesInput, BranchUncheckedCreateWithoutPolicyVersionBranchesInput>
+  }
+
+  export type PolicyVersionUpsertWithoutBranchesInput = {
+    update: XOR<PolicyVersionUpdateWithoutBranchesInput, PolicyVersionUncheckedUpdateWithoutBranchesInput>
+    create: XOR<PolicyVersionCreateWithoutBranchesInput, PolicyVersionUncheckedCreateWithoutBranchesInput>
+    where?: PolicyVersionWhereInput
+  }
+
+  export type PolicyVersionUpdateToOneWithWhereWithoutBranchesInput = {
+    where?: PolicyVersionWhereInput
+    data: XOR<PolicyVersionUpdateWithoutBranchesInput, PolicyVersionUncheckedUpdateWithoutBranchesInput>
+  }
+
+  export type PolicyVersionUpdateWithoutBranchesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    policy?: PolicyDefinitionUpdateOneRequiredWithoutVersionsNestedInput
+    branch?: BranchUpdateOneWithoutPolicyVersionsNestedInput
+    createdByUser?: UserUpdateOneWithoutPolicyVersionsCreatedByNestedInput
+    submittedByUser?: UserUpdateOneWithoutPolicyVersionsSubmittedByNestedInput
+    approvedByUser?: UserUpdateOneWithoutPolicyVersionsApprovedByNestedInput
+    rejectedByUser?: UserUpdateOneWithoutPolicyVersionsRejectedByNestedInput
+    retiredByUser?: UserUpdateOneWithoutPolicyVersionsRetiredByNestedInput
+  }
+
+  export type PolicyVersionUncheckedUpdateWithoutBranchesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    policyId?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    retiredByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BranchUpsertWithoutPolicyVersionBranchesInput = {
+    update: XOR<BranchUpdateWithoutPolicyVersionBranchesInput, BranchUncheckedUpdateWithoutPolicyVersionBranchesInput>
+    create: XOR<BranchCreateWithoutPolicyVersionBranchesInput, BranchUncheckedCreateWithoutPolicyVersionBranchesInput>
+    where?: BranchWhereInput
+  }
+
+  export type BranchUpdateToOneWithWhereWithoutPolicyVersionBranchesInput = {
+    where?: BranchWhereInput
+    data: XOR<BranchUpdateWithoutPolicyVersionBranchesInput, BranchUncheckedUpdateWithoutPolicyVersionBranchesInput>
+  }
+
+  export type BranchUpdateWithoutPolicyVersionBranchesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    departments?: DepartmentUpdateManyWithoutBranchNestedInput
+    users?: UserUpdateManyWithoutBranchNestedInput
+    patients?: PatientUpdateManyWithoutBranchNestedInput
+    wards?: WardUpdateManyWithoutBranchNestedInput
+    oTs?: OTUpdateManyWithoutBranchNestedInput
+    tariffPlans?: TariffPlanUpdateManyWithoutBranchNestedInput
+    assets?: AssetUpdateManyWithoutBranchNestedInput
+    Specialty?: SpecialtyUpdateManyWithoutBranchNestedInput
+    Staff?: StaffUpdateManyWithoutBranchNestedInput
+    Encounter?: EncounterUpdateManyWithoutBranchNestedInput
+    Bed?: BedUpdateManyWithoutBranchNestedInput
+    Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
+    auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
+  }
+
+  export type BranchUncheckedUpdateWithoutPolicyVersionBranchesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
+    users?: UserUncheckedUpdateManyWithoutBranchNestedInput
+    patients?: PatientUncheckedUpdateManyWithoutBranchNestedInput
+    wards?: WardUncheckedUpdateManyWithoutBranchNestedInput
+    oTs?: OTUncheckedUpdateManyWithoutBranchNestedInput
+    tariffPlans?: TariffPlanUncheckedUpdateManyWithoutBranchNestedInput
+    assets?: AssetUncheckedUpdateManyWithoutBranchNestedInput
+    Specialty?: SpecialtyUncheckedUpdateManyWithoutBranchNestedInput
+    Staff?: StaffUncheckedUpdateManyWithoutBranchNestedInput
+    Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
+    Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
+    Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
+    auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type DepartmentCreateManyBranchInput = {
@@ -41545,6 +48676,37 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type PolicyVersionCreateManyBranchInput = {
+    id?: string
+    policyId: string
+    scope?: $Enums.PolicyScope
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    createdByUserId?: string | null
+    submittedAt?: Date | string | null
+    submittedByUserId?: string | null
+    approvedAt?: Date | string | null
+    approvedByUserId?: string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectedByUserId?: string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    retiredByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PolicyVersionBranchCreateManyBranchInput = {
+    id?: string
+    policyVersionId: string
+    createdAt?: Date | string
+  }
+
   export type DepartmentUpdateWithoutBranchInput = {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
@@ -41593,6 +48755,11 @@ export namespace Prisma {
     roleVersion?: RoleTemplateVersionUpdateOneWithoutUsersNestedInput
     createdRoleVersions?: RoleTemplateVersionUpdateManyWithoutCreatedByUserNestedInput
     auditEventsAsActor?: AuditEventUpdateManyWithoutActorUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUpdateManyWithoutRejectedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUpdateManyWithoutRetiredByUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutBranchInput = {
@@ -41612,6 +48779,11 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdRoleVersions?: RoleTemplateVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     auditEventsAsActor?: AuditEventUncheckedUpdateManyWithoutActorUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedUpdateManyWithoutRejectedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedUpdateManyWithoutRetiredByUserNestedInput
   }
 
   export type UserUncheckedUpdateManyWithoutBranchInput = {
@@ -42049,6 +49221,101 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type PolicyVersionUpdateWithoutBranchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    policy?: PolicyDefinitionUpdateOneRequiredWithoutVersionsNestedInput
+    branches?: PolicyVersionBranchUpdateManyWithoutPolicyVersionNestedInput
+    createdByUser?: UserUpdateOneWithoutPolicyVersionsCreatedByNestedInput
+    submittedByUser?: UserUpdateOneWithoutPolicyVersionsSubmittedByNestedInput
+    approvedByUser?: UserUpdateOneWithoutPolicyVersionsApprovedByNestedInput
+    rejectedByUser?: UserUpdateOneWithoutPolicyVersionsRejectedByNestedInput
+    retiredByUser?: UserUpdateOneWithoutPolicyVersionsRetiredByNestedInput
+  }
+
+  export type PolicyVersionUncheckedUpdateWithoutBranchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    policyId?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    retiredByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branches?: PolicyVersionBranchUncheckedUpdateManyWithoutPolicyVersionNestedInput
+  }
+
+  export type PolicyVersionUncheckedUpdateManyWithoutBranchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    policyId?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    retiredByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PolicyVersionBranchUpdateWithoutBranchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    policyVersion?: PolicyVersionUpdateOneRequiredWithoutBranchesNestedInput
+  }
+
+  export type PolicyVersionBranchUncheckedUpdateWithoutBranchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    policyVersionId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PolicyVersionBranchUncheckedUpdateManyWithoutBranchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    policyVersionId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StaffCreateManyDepartmentInput = {
     id?: string
     branchId: string
@@ -42227,6 +49494,131 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type PolicyVersionCreateManyCreatedByUserInput = {
+    id?: string
+    policyId: string
+    scope?: $Enums.PolicyScope
+    branchId?: string | null
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    submittedAt?: Date | string | null
+    submittedByUserId?: string | null
+    approvedAt?: Date | string | null
+    approvedByUserId?: string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectedByUserId?: string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    retiredByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PolicyVersionCreateManySubmittedByUserInput = {
+    id?: string
+    policyId: string
+    scope?: $Enums.PolicyScope
+    branchId?: string | null
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    createdByUserId?: string | null
+    submittedAt?: Date | string | null
+    approvedAt?: Date | string | null
+    approvedByUserId?: string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectedByUserId?: string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    retiredByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PolicyVersionCreateManyApprovedByUserInput = {
+    id?: string
+    policyId: string
+    scope?: $Enums.PolicyScope
+    branchId?: string | null
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    createdByUserId?: string | null
+    submittedAt?: Date | string | null
+    submittedByUserId?: string | null
+    approvedAt?: Date | string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectedByUserId?: string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    retiredByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PolicyVersionCreateManyRejectedByUserInput = {
+    id?: string
+    policyId: string
+    scope?: $Enums.PolicyScope
+    branchId?: string | null
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    createdByUserId?: string | null
+    submittedAt?: Date | string | null
+    submittedByUserId?: string | null
+    approvedAt?: Date | string | null
+    approvedByUserId?: string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    retiredByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PolicyVersionCreateManyRetiredByUserInput = {
+    id?: string
+    policyId: string
+    scope?: $Enums.PolicyScope
+    branchId?: string | null
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    createdByUserId?: string | null
+    submittedAt?: Date | string | null
+    submittedByUserId?: string | null
+    approvedAt?: Date | string | null
+    approvedByUserId?: string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectedByUserId?: string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type RoleTemplateVersionUpdateWithoutCreatedByUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     version?: IntFieldUpdateOperationsInput | number
@@ -42289,6 +49681,391 @@ export namespace Prisma {
     entityId?: NullableStringFieldUpdateOperationsInput | string | null
     meta?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PolicyVersionUpdateWithoutCreatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    policy?: PolicyDefinitionUpdateOneRequiredWithoutVersionsNestedInput
+    branch?: BranchUpdateOneWithoutPolicyVersionsNestedInput
+    branches?: PolicyVersionBranchUpdateManyWithoutPolicyVersionNestedInput
+    submittedByUser?: UserUpdateOneWithoutPolicyVersionsSubmittedByNestedInput
+    approvedByUser?: UserUpdateOneWithoutPolicyVersionsApprovedByNestedInput
+    rejectedByUser?: UserUpdateOneWithoutPolicyVersionsRejectedByNestedInput
+    retiredByUser?: UserUpdateOneWithoutPolicyVersionsRetiredByNestedInput
+  }
+
+  export type PolicyVersionUncheckedUpdateWithoutCreatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    policyId?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    retiredByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branches?: PolicyVersionBranchUncheckedUpdateManyWithoutPolicyVersionNestedInput
+  }
+
+  export type PolicyVersionUncheckedUpdateManyWithoutCreatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    policyId?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    retiredByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PolicyVersionUpdateWithoutSubmittedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    policy?: PolicyDefinitionUpdateOneRequiredWithoutVersionsNestedInput
+    branch?: BranchUpdateOneWithoutPolicyVersionsNestedInput
+    branches?: PolicyVersionBranchUpdateManyWithoutPolicyVersionNestedInput
+    createdByUser?: UserUpdateOneWithoutPolicyVersionsCreatedByNestedInput
+    approvedByUser?: UserUpdateOneWithoutPolicyVersionsApprovedByNestedInput
+    rejectedByUser?: UserUpdateOneWithoutPolicyVersionsRejectedByNestedInput
+    retiredByUser?: UserUpdateOneWithoutPolicyVersionsRetiredByNestedInput
+  }
+
+  export type PolicyVersionUncheckedUpdateWithoutSubmittedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    policyId?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    retiredByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branches?: PolicyVersionBranchUncheckedUpdateManyWithoutPolicyVersionNestedInput
+  }
+
+  export type PolicyVersionUncheckedUpdateManyWithoutSubmittedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    policyId?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    retiredByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PolicyVersionUpdateWithoutApprovedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    policy?: PolicyDefinitionUpdateOneRequiredWithoutVersionsNestedInput
+    branch?: BranchUpdateOneWithoutPolicyVersionsNestedInput
+    branches?: PolicyVersionBranchUpdateManyWithoutPolicyVersionNestedInput
+    createdByUser?: UserUpdateOneWithoutPolicyVersionsCreatedByNestedInput
+    submittedByUser?: UserUpdateOneWithoutPolicyVersionsSubmittedByNestedInput
+    rejectedByUser?: UserUpdateOneWithoutPolicyVersionsRejectedByNestedInput
+    retiredByUser?: UserUpdateOneWithoutPolicyVersionsRetiredByNestedInput
+  }
+
+  export type PolicyVersionUncheckedUpdateWithoutApprovedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    policyId?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    retiredByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branches?: PolicyVersionBranchUncheckedUpdateManyWithoutPolicyVersionNestedInput
+  }
+
+  export type PolicyVersionUncheckedUpdateManyWithoutApprovedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    policyId?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    retiredByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PolicyVersionUpdateWithoutRejectedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    policy?: PolicyDefinitionUpdateOneRequiredWithoutVersionsNestedInput
+    branch?: BranchUpdateOneWithoutPolicyVersionsNestedInput
+    branches?: PolicyVersionBranchUpdateManyWithoutPolicyVersionNestedInput
+    createdByUser?: UserUpdateOneWithoutPolicyVersionsCreatedByNestedInput
+    submittedByUser?: UserUpdateOneWithoutPolicyVersionsSubmittedByNestedInput
+    approvedByUser?: UserUpdateOneWithoutPolicyVersionsApprovedByNestedInput
+    retiredByUser?: UserUpdateOneWithoutPolicyVersionsRetiredByNestedInput
+  }
+
+  export type PolicyVersionUncheckedUpdateWithoutRejectedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    policyId?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    retiredByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branches?: PolicyVersionBranchUncheckedUpdateManyWithoutPolicyVersionNestedInput
+  }
+
+  export type PolicyVersionUncheckedUpdateManyWithoutRejectedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    policyId?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    retiredByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PolicyVersionUpdateWithoutRetiredByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    policy?: PolicyDefinitionUpdateOneRequiredWithoutVersionsNestedInput
+    branch?: BranchUpdateOneWithoutPolicyVersionsNestedInput
+    branches?: PolicyVersionBranchUpdateManyWithoutPolicyVersionNestedInput
+    createdByUser?: UserUpdateOneWithoutPolicyVersionsCreatedByNestedInput
+    submittedByUser?: UserUpdateOneWithoutPolicyVersionsSubmittedByNestedInput
+    approvedByUser?: UserUpdateOneWithoutPolicyVersionsApprovedByNestedInput
+    rejectedByUser?: UserUpdateOneWithoutPolicyVersionsRejectedByNestedInput
+  }
+
+  export type PolicyVersionUncheckedUpdateWithoutRetiredByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    policyId?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branches?: PolicyVersionBranchUncheckedUpdateManyWithoutPolicyVersionNestedInput
+  }
+
+  export type PolicyVersionUncheckedUpdateManyWithoutRetiredByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    policyId?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type EncounterCreateManyPatientInput = {
@@ -42801,6 +50578,11 @@ export namespace Prisma {
     staff?: StaffUpdateOneWithoutUserNestedInput
     createdRoleVersions?: RoleTemplateVersionUpdateManyWithoutCreatedByUserNestedInput
     auditEventsAsActor?: AuditEventUpdateManyWithoutActorUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUpdateManyWithoutRejectedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUpdateManyWithoutRetiredByUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutRoleVersionInput = {
@@ -42820,6 +50602,11 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdRoleVersions?: RoleTemplateVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     auditEventsAsActor?: AuditEventUncheckedUpdateManyWithoutActorUserNestedInput
+    policyVersionsCreatedBy?: PolicyVersionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    policyVersionsSubmittedBy?: PolicyVersionUncheckedUpdateManyWithoutSubmittedByUserNestedInput
+    policyVersionsApprovedBy?: PolicyVersionUncheckedUpdateManyWithoutApprovedByUserNestedInput
+    policyVersionsRejectedBy?: PolicyVersionUncheckedUpdateManyWithoutRejectedByUserNestedInput
+    policyVersionsRetiredBy?: PolicyVersionUncheckedUpdateManyWithoutRetiredByUserNestedInput
   }
 
   export type UserUncheckedUpdateManyWithoutRoleVersionInput = {
@@ -42837,6 +50624,132 @@ export namespace Prisma {
     passwordResetExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PolicyVersionCreateManyPolicyInput = {
+    id?: string
+    scope?: $Enums.PolicyScope
+    branchId?: string | null
+    version: number
+    status?: $Enums.PolicyVersionStatus
+    effectiveAt?: Date | string
+    notes?: string | null
+    payload: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: boolean
+    createdByUserId?: string | null
+    submittedAt?: Date | string | null
+    submittedByUserId?: string | null
+    approvedAt?: Date | string | null
+    approvedByUserId?: string | null
+    approvalNote?: string | null
+    rejectedAt?: Date | string | null
+    rejectedByUserId?: string | null
+    rejectionReason?: string | null
+    retiredAt?: Date | string | null
+    retiredByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PolicyVersionUpdateWithoutPolicyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branch?: BranchUpdateOneWithoutPolicyVersionsNestedInput
+    branches?: PolicyVersionBranchUpdateManyWithoutPolicyVersionNestedInput
+    createdByUser?: UserUpdateOneWithoutPolicyVersionsCreatedByNestedInput
+    submittedByUser?: UserUpdateOneWithoutPolicyVersionsSubmittedByNestedInput
+    approvedByUser?: UserUpdateOneWithoutPolicyVersionsApprovedByNestedInput
+    rejectedByUser?: UserUpdateOneWithoutPolicyVersionsRejectedByNestedInput
+    retiredByUser?: UserUpdateOneWithoutPolicyVersionsRetiredByNestedInput
+  }
+
+  export type PolicyVersionUncheckedUpdateWithoutPolicyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    retiredByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branches?: PolicyVersionBranchUncheckedUpdateManyWithoutPolicyVersionNestedInput
+  }
+
+  export type PolicyVersionUncheckedUpdateManyWithoutPolicyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scope?: EnumPolicyScopeFieldUpdateOperationsInput | $Enums.PolicyScope
+    branchId?: NullableStringFieldUpdateOperationsInput | string | null
+    version?: IntFieldUpdateOperationsInput | number
+    status?: EnumPolicyVersionStatusFieldUpdateOperationsInput | $Enums.PolicyVersionStatus
+    effectiveAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: JsonNullValueInput | InputJsonValue
+    applyToAllBranches?: BoolFieldUpdateOperationsInput | boolean
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    submittedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    approvedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    approvalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejectedByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
+    retiredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    retiredByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PolicyVersionBranchCreateManyPolicyVersionInput = {
+    id?: string
+    branchId: string
+    createdAt?: Date | string
+  }
+
+  export type PolicyVersionBranchUpdateWithoutPolicyVersionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branch?: BranchUpdateOneRequiredWithoutPolicyVersionBranchesNestedInput
+  }
+
+  export type PolicyVersionBranchUncheckedUpdateWithoutPolicyVersionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    branchId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PolicyVersionBranchUncheckedUpdateManyWithoutPolicyVersionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    branchId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 
@@ -42892,6 +50805,14 @@ export namespace Prisma {
      * @deprecated Use RoleTemplateVersionCountOutputTypeDefaultArgs instead
      */
     export type RoleTemplateVersionCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = RoleTemplateVersionCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use PolicyDefinitionCountOutputTypeDefaultArgs instead
+     */
+    export type PolicyDefinitionCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PolicyDefinitionCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use PolicyVersionCountOutputTypeDefaultArgs instead
+     */
+    export type PolicyVersionCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PolicyVersionCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use BranchDefaultArgs instead
      */
@@ -42988,6 +50909,18 @@ export namespace Prisma {
      * @deprecated Use RoleTemplatePermissionDefaultArgs instead
      */
     export type RoleTemplatePermissionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = RoleTemplatePermissionDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use PolicyDefinitionDefaultArgs instead
+     */
+    export type PolicyDefinitionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PolicyDefinitionDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use PolicyVersionDefaultArgs instead
+     */
+    export type PolicyVersionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PolicyVersionDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use PolicyVersionBranchDefaultArgs instead
+     */
+    export type PolicyVersionBranchArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PolicyVersionBranchDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

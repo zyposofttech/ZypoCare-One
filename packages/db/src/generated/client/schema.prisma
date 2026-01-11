@@ -77,6 +77,10 @@ model Branch {
   // Opposite relations (required for Prisma validation)
   statutoryCases StatutoryCase[]
   auditEvents    AuditEvent[]
+
+  // ✅ Policy Governance (opposite relations)
+  policyVersions        PolicyVersion[]       @relation("PolicyVersion_Branch")
+  policyVersionBranches PolicyVersionBranch[] @relation("PolicyTarget_Branch")
 }
 
 model Department {
@@ -161,11 +165,15 @@ model User {
   roleVersionId        String?
   roleVersion          RoleTemplateVersion? @relation("UserRoleVersion", fields: [roleVersionId], references: [id])
 
-  // Who created role versions
   createdRoleVersions RoleTemplateVersion[] @relation("RoleVersionCreatedBy")
+  auditEventsAsActor  AuditEvent[]          @relation("AuditActor")
 
-  // Opposite relation for AuditEvent.actorUser
-  auditEventsAsActor AuditEvent[] @relation("AuditActor")
+  // Policy governance opposite relations
+  policyVersionsCreatedBy   PolicyVersion[] @relation("PolicyVersionCreatedBy")
+  policyVersionsSubmittedBy PolicyVersion[] @relation("PolicyVersionSubmittedBy")
+  policyVersionsApprovedBy  PolicyVersion[] @relation("PolicyVersionApprovedBy")
+  policyVersionsRejectedBy  PolicyVersion[] @relation("PolicyVersionRejectedBy")
+  policyVersionsRetiredBy   PolicyVersion[] @relation("PolicyVersionRetiredBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -515,4 +523,102 @@ model RoleTemplatePermission {
   updatedAt DateTime @updatedAt
 
   @@unique([roleVersionId, permissionId])
+}
+
+// ---------------------------------------------------------------------------
+// Policy Governance (global baselines + branch overrides with maker-checker)
+// ---------------------------------------------------------------------------
+
+enum PolicyScope {
+  GLOBAL
+  BRANCH_OVERRIDE
+}
+
+enum PolicyVersionStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  RETIRED
+}
+
+model PolicyDefinition {
+  id          String  @id @default(cuid())
+  code        String  @unique
+  name        String
+  type        String
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Canonical versions for this definition
+  versions PolicyVersion[] @relation("PolicyDefinitionVersions")
+}
+
+model PolicyVersion {
+  id String @id @default(cuid())
+
+  // FK to the policy definition catalog (governance.service.ts expects this)
+  policyId String
+  policy   PolicyDefinition @relation("PolicyDefinitionVersions", fields: [policyId], references: [id])
+  scope    PolicyScope      @default(GLOBAL)
+  branchId String?
+  branch   Branch?          @relation("PolicyVersion_Branch", fields: [branchId], references: [id], onDelete: SetNull)
+
+  version Int
+  status  PolicyVersionStatus @default(DRAFT)
+
+  effectiveAt DateTime @default(now())
+  notes       String?
+  payload     Json
+
+  applyToAllBranches Boolean               @default(true)
+  branches           PolicyVersionBranch[]
+
+  createdByUserId String?
+  createdByUser   User?   @relation("PolicyVersionCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  submittedAt       DateTime?
+  submittedByUserId String?
+  submittedByUser   User?     @relation("PolicyVersionSubmittedBy", fields: [submittedByUserId], references: [id], onDelete: SetNull)
+
+  approvedAt       DateTime?
+  approvedByUserId String?
+  approvedByUser   User?     @relation("PolicyVersionApprovedBy", fields: [approvedByUserId], references: [id], onDelete: SetNull)
+  approvalNote     String?
+
+  rejectedAt       DateTime?
+  rejectedByUserId String?
+  rejectedByUser   User?     @relation("PolicyVersionRejectedBy", fields: [rejectedByUserId], references: [id], onDelete: SetNull)
+  rejectionReason  String?
+
+  retiredAt       DateTime?
+  retiredByUserId String?
+  retiredByUser   User?     @relation("PolicyVersionRetiredBy", fields: [retiredByUserId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // NOTE: We intentionally model the relation via policyId.
+  // Any legacy/experimental policyDefinitionId field was removed to keep the schema unambiguous.
+
+  @@index([policyId, scope, status])
+  @@index([branchId, status])
+  @@index([policyId, scope, version])
+  @@index([policyId, branchId, version])
+}
+
+model PolicyVersionBranch {
+  id              String        @id @default(cuid())
+  policyVersionId String
+  policyVersion   PolicyVersion @relation(fields: [policyVersionId], references: [id], onDelete: Cascade)
+
+  branchId String
+  branch   Branch @relation("PolicyTarget_Branch", fields: [branchId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([policyVersionId, branchId])
+  @@index([branchId])
 }

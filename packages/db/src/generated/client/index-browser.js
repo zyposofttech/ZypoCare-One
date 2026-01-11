@@ -400,6 +400,49 @@ exports.Prisma.RoleTemplatePermissionScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.PolicyDefinitionScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  type: 'type',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PolicyVersionScalarFieldEnum = {
+  id: 'id',
+  policyId: 'policyId',
+  scope: 'scope',
+  branchId: 'branchId',
+  version: 'version',
+  status: 'status',
+  effectiveAt: 'effectiveAt',
+  notes: 'notes',
+  payload: 'payload',
+  applyToAllBranches: 'applyToAllBranches',
+  createdByUserId: 'createdByUserId',
+  submittedAt: 'submittedAt',
+  submittedByUserId: 'submittedByUserId',
+  approvedAt: 'approvedAt',
+  approvedByUserId: 'approvedByUserId',
+  approvalNote: 'approvalNote',
+  rejectedAt: 'rejectedAt',
+  rejectedByUserId: 'rejectedByUserId',
+  rejectionReason: 'rejectionReason',
+  retiredAt: 'retiredAt',
+  retiredByUserId: 'retiredByUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PolicyVersionBranchScalarFieldEnum = {
+  id: 'id',
+  policyVersionId: 'policyVersionId',
+  branchId: 'branchId',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -479,6 +522,19 @@ exports.RoleVersionStatus = exports.$Enums.RoleVersionStatus = {
   RETIRED: 'RETIRED'
 };
 
+exports.PolicyScope = exports.$Enums.PolicyScope = {
+  GLOBAL: 'GLOBAL',
+  BRANCH_OVERRIDE: 'BRANCH_OVERRIDE'
+};
+
+exports.PolicyVersionStatus = exports.$Enums.PolicyVersionStatus = {
+  DRAFT: 'DRAFT',
+  SUBMITTED: 'SUBMITTED',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  RETIRED: 'RETIRED'
+};
+
 exports.Prisma.ModelName = {
   Branch: 'Branch',
   Department: 'Department',
@@ -503,7 +559,10 @@ exports.Prisma.ModelName = {
   Permission: 'Permission',
   RoleTemplate: 'RoleTemplate',
   RoleTemplateVersion: 'RoleTemplateVersion',
-  RoleTemplatePermission: 'RoleTemplatePermission'
+  RoleTemplatePermission: 'RoleTemplatePermission',
+  PolicyDefinition: 'PolicyDefinition',
+  PolicyVersion: 'PolicyVersion',
+  PolicyVersionBranch: 'PolicyVersionBranch'
 };
 
 /**

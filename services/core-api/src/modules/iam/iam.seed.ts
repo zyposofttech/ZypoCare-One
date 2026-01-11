@@ -29,6 +29,13 @@ export class IamSeedService implements OnModuleInit {
       { code: PERM.IAM_ROLE_READ, name: "Read roles", category: "IAM" },
       { code: PERM.IAM_PERMISSION_READ, name: "Read permissions", category: "IAM" },
       { code: PERM.IAM_AUDIT_READ, name: "Read audit events", category: "IAM" },
+      // Policy Governance
+      { code: PERM.GOV_POLICY_READ, name: "Read policies", category: "Governance" },
+      { code: PERM.GOV_POLICY_GLOBAL_DRAFT, name: "Draft global policies", category: "Governance" },
+      { code: PERM.GOV_POLICY_BRANCH_OVERRIDE_DRAFT, name: "Draft branch overrides", category: "Governance" },
+      { code: PERM.GOV_POLICY_SUBMIT, name: "Submit policy changes", category: "Governance" },
+      { code: PERM.GOV_POLICY_APPROVE, name: "Approve policy changes", category: "Governance" },
+      { code: PERM.GOV_POLICY_AUDIT_READ, name: "Read policy audit", category: "Governance" },
     ];
 
     for (const p of permissions) {

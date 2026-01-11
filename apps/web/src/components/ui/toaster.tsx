@@ -2,95 +2,86 @@
 
 import * as React from "react";
 import * as ToastPrimitives from "@radix-ui/react-toast";
+import { X } from "lucide-react";
 
 import { cn } from "@/lib/cn";
 import { useToast } from "@/components/ui/use-toast";
 
-const ToastProvider = ToastPrimitives.Provider;
-
-const ToastViewport = React.forwardRef<
-  React.ElementRef<typeof ToastPrimitives.Viewport>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Viewport>
->(({ className, ...props }, ref) => (
-  <ToastPrimitives.Viewport
-    ref={ref}
-    className={cn(
-      "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]",
-      className,
-    )}
-    {...props}
-  />
-));
-ToastViewport.displayName = ToastPrimitives.Viewport.displayName;
-
-const Toast = React.forwardRef<
-  React.ElementRef<typeof ToastPrimitives.Root>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> & { variant?: "default" | "destructive" }
->(({ className, variant = "default", ...props }, ref) => (
-  <ToastPrimitives.Root
-    ref={ref}
-    className={cn(
-      "group pointer-events-auto relative flex w-full items-start justify-between gap-3 overflow-hidden rounded-xl border p-4 pr-8 shadow-lg transition-all",
-      variant === "destructive"
-        ? "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-200"
-        : "border-xc-border bg-xc-card text-xc-text",
-      className,
-    )}
-    {...props}
-  />
-));
-Toast.displayName = ToastPrimitives.Root.displayName;
-
-const ToastTitle = React.forwardRef<
-  React.ElementRef<typeof ToastPrimitives.Title>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Title>
->(({ className, ...props }, ref) => (
-  <ToastPrimitives.Title ref={ref} className={cn("text-sm font-semibold", className)} {...props} />
-));
-ToastTitle.displayName = ToastPrimitives.Title.displayName;
-
-const ToastDescription = React.forwardRef<
-  React.ElementRef<typeof ToastPrimitives.Description>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Description>
->(({ className, ...props }, ref) => (
-  <ToastPrimitives.Description ref={ref} className={cn("text-sm opacity-80", className)} {...props} />
-));
-ToastDescription.displayName = ToastPrimitives.Description.displayName;
-
-const ToastClose = React.forwardRef<
-  React.ElementRef<typeof ToastPrimitives.Close>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Close>
->(({ className, ...props }, ref) => (
-  <ToastPrimitives.Close
-    ref={ref}
-    className={cn(
-      "absolute right-2 top-2 rounded-md p-1 text-xc-muted opacity-70 transition-opacity hover:opacity-100",
-      className,
-    )}
-    toast-close=""
-    {...props}
-  >
-    <span className="sr-only">Close</span>✕
-  </ToastPrimitives.Close>
-));
-ToastClose.displayName = ToastPrimitives.Close.displayName;
-
 export function Toaster() {
-  const { toasts } = useToast();
+  const { toasts, dismiss } = useToast();
 
   return (
-    <ToastProvider>
-      {toasts.map(({ id, title, description, action, ...props }) => (
-        <Toast key={id} {...props}>
-          <div className="grid gap-1">
-            {title ? <ToastTitle>{title}</ToastTitle> : null}
-            {description ? <ToastDescription>{description}</ToastDescription> : null}
-          </div>
-          {action}
-          <ToastClose />
-        </Toast>
-      ))}
-      <ToastViewport />
-    </ToastProvider>
+    <ToastPrimitives.Provider swipeDirection="right">
+      {toasts.map((t) => {
+        const variant = t.variant ?? "default";
+
+        const tone =
+          variant === "destructive"
+            ? "border-[rgb(var(--xc-danger-rgb)/0.40)] bg-[rgb(var(--xc-danger-rgb)/0.12)]"
+            : variant === "success"
+              ? "border-emerald-200/70 bg-emerald-50/70 dark:border-emerald-900/50 dark:bg-emerald-950/25"
+              : variant === "warning"
+                ? "border-amber-200/70 bg-amber-50/70 dark:border-amber-900/50 dark:bg-amber-950/25"
+                : variant === "info"
+                  ? "border-sky-200/70 bg-sky-50/70 dark:border-sky-900/50 dark:bg-sky-950/25"
+                  : "border-xc-border bg-xc-card";
+
+        const descTone =
+          variant === "destructive"
+            ? "text-[rgb(var(--xc-danger))]"
+            : variant === "success"
+              ? "text-emerald-800 dark:text-emerald-200"
+              : variant === "warning"
+                ? "text-amber-900 dark:text-amber-200"
+                : variant === "info"
+                  ? "text-sky-800 dark:text-sky-200"
+                  : "text-xc-muted";
+
+        return (
+          <ToastPrimitives.Root
+            key={t.id}
+            open={t.open}
+            onOpenChange={(open) => {
+              if (!open) dismiss(t.id);
+            }}
+            duration={t.duration ?? 3500}
+            className={cn(
+              "group pointer-events-auto relative grid w-full max-w-[420px] gap-1 rounded-2xl border p-4 shadow-elev-2",
+              tone
+            )}
+          >
+            <ToastPrimitives.Close
+              className={cn(
+                "absolute right-3 top-3 rounded-lg p-1 text-xc-muted",
+                "hover:bg-[rgb(var(--xc-hover-rgb)/0.08)] hover:text-xc-text",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-xc-ring"
+              )}
+            >
+              <X className="h-4 w-4" />
+            </ToastPrimitives.Close>
+
+            {t.title ? (
+              <ToastPrimitives.Title className="text-sm font-semibold text-xc-text">
+                {t.title}
+              </ToastPrimitives.Title>
+            ) : null}
+
+            {t.description ? (
+              <ToastPrimitives.Description className={cn("text-sm", descTone)}>
+                {t.description}
+              </ToastPrimitives.Description>
+            ) : null}
+          </ToastPrimitives.Root>
+        );
+      })}
+
+      {/* TOP-RIGHT viewport (matches your screenshot) */}
+      <ToastPrimitives.Viewport
+        className={cn(
+          "fixed right-4 top-4 z-[100] flex max-h-screen w-full flex-col gap-2 p-4",
+          "sm:max-w-[460px]"
+        )}
+      />
+    </ToastPrimitives.Provider>
   );
 }

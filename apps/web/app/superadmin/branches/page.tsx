@@ -10,15 +10,14 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-// Added useToast import
-import { toast, useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useAuthStore } from "@/lib/auth/store";
 
 import { IconBuilding, IconChevronRight, IconPlus, IconSearch } from "@/components/icons";
-import { AlertTriangle, Building2, Loader2, Pencil, Trash2, Wand2 } from "lucide-react";
+import { AlertTriangle, Building2, Loader2, Pencil, RefreshCw, Trash2, Wand2 } from "lucide-react";
 
 type BranchCounts = {
   users?: number;
@@ -67,17 +66,6 @@ function validateCode(code: string): string | null {
     return "Code must be 2–32 chars, letters/numbers/hyphen (example: BLR-EC)";
   }
   return null;
-}
-async function refresh(showToast = true) {
-  try {
-    const data = await apiFetch<BranchRow[]>("/api/branches");
-    setRows(data);
-    if (showToast) toast({ title: "Branches refreshed", description: `Loaded ${data.length} branches.` });
-  } catch (e: any) {
-    const msg = e?.message || "Failed to load branches";
-    setErr(msg);
-    toast({ variant: "destructive", title: "Refresh failed", description: msg });
-  }
 }
 
 function validateEmail(email: string): string | null {
@@ -140,10 +128,14 @@ function deriveBranchCode(name: string, city: string): string {
 function pillTone(label: string) {
   const l = (label || "").toLowerCase();
 
-  if (l.includes("branch")) return "border-indigo-200/70 bg-indigo-50/70 text-indigo-700 dark:border-indigo-900/50 dark:bg-indigo-950/25 dark:text-indigo-200";
-  if (l.includes("user")) return "border-sky-200/70 bg-sky-50/70 text-sky-700 dark:border-sky-900/50 dark:bg-sky-950/25 dark:text-sky-200";
-  if (l.includes("dept")) return "border-emerald-200/70 bg-emerald-50/70 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/25 dark:text-emerald-200";
-  if (l.includes("bed")) return "border-amber-200/70 bg-amber-50/70 text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-200";
+  if (l.includes("branch"))
+    return "border-indigo-200/70 bg-indigo-50/70 text-indigo-700 dark:border-indigo-900/50 dark:bg-indigo-950/25 dark:text-indigo-200";
+  if (l.includes("user"))
+    return "border-sky-200/70 bg-sky-50/70 text-sky-700 dark:border-sky-900/50 dark:bg-sky-950/25 dark:text-sky-200";
+  if (l.includes("dept"))
+    return "border-emerald-200/70 bg-emerald-50/70 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/25 dark:text-emerald-200";
+  if (l.includes("bed"))
+    return "border-amber-200/70 bg-amber-50/70 text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-200";
 
   return "border-xc-border bg-xc-panel/30 text-xc-muted";
 }
@@ -161,6 +153,129 @@ function countSum(rows: BranchRow[], key: keyof BranchCounts) {
   return rows.reduce((acc, r) => acc + (Number(r._count?.[key] ?? 0) || 0), 0);
 }
 
+function ModalShell({
+  title,
+  description,
+  children,
+  onClose,
+}: {
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-xl rounded-2xl border border-xc-border bg-xc-card shadow-elev-2">
+        <div className="p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="text-lg font-semibold tracking-tight text-xc-text">{title}</div>
+              {description ? <div className="mt-1 text-sm text-xc-muted">{description}</div> : null}
+            </div>
+            <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
+              ✕
+            </Button>
+          </div>
+        </div>
+        <div className="px-5 pb-5">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function DeleteConfirmModal({
+  open,
+  branch,
+  onClose,
+  onDeleted,
+}: {
+  open: boolean;
+  branch: BranchRow | null;
+  onClose: () => void;
+  onDeleted: () => Promise<void> | void;
+}) {
+  const { toast } = useToast();
+  const [busy, setBusy] = React.useState(false);
+  const [err, setErr] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (open) {
+      setErr(null);
+      setBusy(false);
+    }
+  }, [open]);
+
+  async function onConfirm() {
+    if (!branch?.id) return;
+    setErr(null);
+    setBusy(true);
+    try {
+      await apiFetch(`/api/branches/${branch.id}`, { method: "DELETE" });
+      await onDeleted();
+      toast({
+  title: "Branch Deleted",
+  description: `Successfully deleted branch "${branch.name}"`,
+  variant: "success",
+});
+      onClose();
+    } catch (e: any) {
+      setErr(e?.message || "Delete failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!open || !branch) return null;
+
+  const deps =
+    Number(branch._count?.users ?? 0) +
+    Number(branch._count?.departments ?? 0) +
+    Number(branch._count?.patients ?? 0) +
+    Number(branch._count?.wards ?? 0) +
+    Number(branch._count?.oTs ?? 0) +
+    Number(branch._count?.beds ?? 0);
+
+  return (
+    <ModalShell title="Delete Branch" description="Deletion is blocked if the branch has any dependent data." onClose={onClose}>
+      {err ? (
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
+          <AlertTriangle className="mt-0.5 h-4 w-4" />
+          <div className="min-w-0">{err}</div>
+        </div>
+      ) : null}
+
+      <div className="rounded-xl border border-xc-border bg-xc-panel/20 p-4">
+        <div className="text-sm font-semibold text-xc-text">
+          {branch.name} <span className="font-mono text-xs text-xc-muted">({branch.code})</span>
+        </div>
+
+        <div className="mt-2 flex flex-wrap gap-2">
+          <Pill label="Users" value={Number(branch._count?.users ?? 0)} />
+          <Pill label="Depts" value={Number(branch._count?.departments ?? 0)} />
+          <Pill label="Beds" value={Number(branch._count?.beds ?? 0)} />
+        </div>
+
+        <div className="mt-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-warn-rgb)/0.35)] bg-[rgb(var(--xc-warn-rgb)/0.12)] px-3 py-2 text-sm text-xc-text">
+          <AlertTriangle className="mt-0.5 h-4 w-4 text-[rgb(var(--xc-warn))]" />
+          <div className="min-w-0">
+            If this branch already has configured data, deletion will be rejected. Prefer disabling access or retiring via governance.
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 flex items-center justify-end gap-2">
+        <Button variant="outline" onClick={onClose} disabled={busy}>
+          Cancel
+        </Button>
+        <Button variant="destructive" onClick={onConfirm} disabled={busy || deps > 0}>
+          {deps > 0 ? "Cannot Delete (Has Data)" : busy ? "Deleting…" : "Delete"}
+        </Button>
+      </div>
+    </ModalShell>
+  );
+}
+
 function BranchEditorModal({
   mode,
   open,
@@ -174,7 +289,7 @@ function BranchEditorModal({
   onClose: () => void;
   onSaved: () => Promise<void> | void;
 }) {
-  const { toast } = useToast(); // Initialized toast hook
+  const { toast } = useToast();
   const [busy, setBusy] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
   const [manualCode, setManualCode] = React.useState(false);
@@ -205,7 +320,6 @@ function BranchEditorModal({
     });
   }, [open, initial]);
 
-  // Auto-generate code (CREATE only) until manual override
   React.useEffect(() => {
     if (!open) return;
     if (mode !== "create") return;
@@ -269,17 +383,22 @@ function BranchEditorModal({
       }
 
       await onSaved();
-      
-      // Added Toast success message
+
       toast({
         title: mode === "create" ? "Branch Created" : "Branch Updated",
         description: `Successfully ${mode === "create" ? "created" : "updated"} branch "${form.name}"`,
+        variant: "success",
       });
 
+      // close modal immediately so user sees toast right away
       onClose();
+
+      // refresh in background (do not block toast)
+      void Promise.resolve(onSaved()).catch(() => { });
+
     } catch (e: any) {
       setErr(e?.message || "Save failed");
-      // Optional: Add error toast here if you want dual notification
+      toast({ variant: "destructive", title: "Save failed", description: e?.message || "Save failed" });
     } finally {
       setBusy(false);
     }
@@ -338,11 +457,7 @@ function BranchEditorModal({
 
             <div className="grid gap-2">
               <Label>City</Label>
-              <Input
-                value={form.city}
-                onChange={(e) => setForm((s) => ({ ...s, city: e.target.value }))}
-                placeholder="e.g. Bengaluru"
-              />
+              <Input value={form.city} onChange={(e) => setForm((s) => ({ ...s, city: e.target.value }))} placeholder="e.g. Bengaluru" />
             </div>
           </div>
 
@@ -350,7 +465,7 @@ function BranchEditorModal({
             <div className="flex items-center justify-between">
               <Label>Branch Code</Label>
               {mode === "create" && !manualCode && form.code ? (
-                <span className="text-[10px] text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                <span className="flex items-center gap-1 text-[10px] text-indigo-600 dark:text-indigo-400">
                   <Wand2 className="h-3 w-3" /> Auto-generated
                 </span>
               ) : null}
@@ -437,154 +552,26 @@ function BranchEditorModal({
           </div>
         </div>
 
-        <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={onClose} disabled={busy}>
-            Cancel
-          </Button>
+        {/* Match Policies modal footer layout */}
+        <DialogFooter>
+          <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
+            <Button variant="outline" onClick={onClose} disabled={busy}>
+              Cancel
+            </Button>
 
-          <Button
-            onClick={() => void onSubmit()}
-            disabled={busy}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/20 gap-2"
-          >
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            {mode === "create" ? "Create Branch" : "Save Changes"}
-          </Button>
+            <Button variant="primary" onClick={() => void onSubmit()} disabled={busy} className="gap-2">
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {mode === "create" ? "Create Branch" : "Save Changes"}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-function ModalShell({
-  title,
-  description,
-  children,
-  onClose,
-}: {
-  title: string;
-  description?: string;
-  children: React.ReactNode;
-  onClose: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-xl rounded-2xl border border-xc-border bg-xc-card shadow-elev-2">
-        <div className="p-5">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <div className="text-lg font-semibold tracking-tight text-xc-text">{title}</div>
-              {description ? <div className="mt-1 text-sm text-xc-muted">{description}</div> : null}
-            </div>
-            <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
-              ✕
-            </Button>
-          </div>
-        </div>
-        <div className="px-5 pb-5">{children}</div>
-      </div>
-    </div>
-  );
-}
-
-function DeleteConfirmModal({
-  open,
-  branch,
-  onClose,
-  onDeleted,
-}: {
-  open: boolean;
-  branch: BranchRow | null;
-  onClose: () => void;
-  onDeleted: () => Promise<void> | void;
-}) {
-  const { toast } = useToast(); // Initialized toast hook
-  const [busy, setBusy] = React.useState(false);
-  const [err, setErr] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    if (open) {
-      setErr(null);
-      setBusy(false);
-    }
-  }, [open]);
-
-  async function onConfirm() {
-    if (!branch?.id) return;
-    setErr(null);
-    setBusy(true);
-    try {
-      await apiFetch(`/api/branches/${branch.id}`, { method: "DELETE" });
-      await onDeleted();
-      
-      // Added Toast success message
-      toast({
-        title: "Branch Deleted",
-        description: `Successfully deleted branch "${branch.name}"`,
-      });
-
-      onClose();
-    } catch (e: any) {
-      setErr(e?.message || "Delete failed");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  if (!open || !branch) return null;
-
-  const deps =
-    Number(branch._count?.users ?? 0) +
-    Number(branch._count?.departments ?? 0) +
-    Number(branch._count?.patients ?? 0) +
-    Number(branch._count?.wards ?? 0) +
-    Number(branch._count?.oTs ?? 0) +
-    Number(branch._count?.beds ?? 0);
-
-  return (
-    <ModalShell
-      title="Delete Branch"
-      description="Deletion is blocked if the branch has any dependent data."
-      onClose={onClose}
-    >
-      {err ? (
-        <div className="mb-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
-          <AlertTriangle className="mt-0.5 h-4 w-4" />
-          <div className="min-w-0">{err}</div>
-        </div>
-      ) : null}
-
-      <div className="rounded-xl border border-xc-border bg-xc-panel/20 p-4">
-        <div className="text-sm font-semibold text-xc-text">
-          {branch.name} <span className="font-mono text-xs text-xc-muted">({branch.code})</span>
-        </div>
-        <div className="mt-2 flex flex-wrap gap-2">
-          <Pill label="Users" value={Number(branch._count?.users ?? 0)} />
-          <Pill label="Depts" value={Number(branch._count?.departments ?? 0)} />
-          <Pill label="Beds" value={Number(branch._count?.beds ?? 0)} />
-        </div>
-
-        <div className="mt-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-warn-rgb)/0.35)] bg-[rgb(var(--xc-warn-rgb)/0.12)] px-3 py-2 text-sm text-xc-text">
-          <AlertTriangle className="mt-0.5 h-4 w-4 text-[rgb(var(--xc-warn))]" />
-          <div className="min-w-0">
-            If this branch already has configured data, deletion will be rejected. Prefer disabling access or retiring via governance.
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-5 flex items-center justify-end gap-2">
-        <Button variant="outline" onClick={onClose} disabled={busy}>
-          Cancel
-        </Button>
-        <Button variant="destructive" onClick={onConfirm} disabled={busy || deps > 0}>
-          {deps > 0 ? "Cannot Delete (Has Data)" : busy ? "Deleting…" : "Delete"}
-        </Button>
-      </div>
-    </ModalShell>
-  );
-}
-
 export default function BranchesPage() {
+  const { toast } = useToast();
   const user = useAuthStore((s) => s.user);
 
   // IMPORTANT: support both shapes coming from IAM / store
@@ -599,24 +586,37 @@ export default function BranchesPage() {
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<BranchRow | null>(null);
+  const filtered = React.useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return rows;
 
-  async function refresh() {
+    return (rows ?? []).filter((b) => {
+      const hay = `${b.code} ${b.name} ${b.city}`.toLowerCase();
+      return hay.includes(s);
+    });
+  }, [rows, q]);
+  async function refresh(showToast = false) {
     setErr(null);
     setLoading(true);
     try {
-      const data = await apiFetch<BranchRow[]>(
-        `/api/branches${q.trim() ? `?q=${encodeURIComponent(q.trim())}` : ""}`,
-      );
-      setRows([...data].sort((a, b) => (a.name || "").localeCompare(b.name || "")));
+      const data = await apiFetch<BranchRow[]>("/api/branches");
+      const sorted = [...(data ?? [])].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+      setRows(sorted);
+
+      if (showToast) {
+        toast({ title: "Branches refreshed", description: `Loaded ${sorted.length} branches.` });
+      }
     } catch (e: any) {
-      setErr(e?.message || "Failed to load branches");
+      const msg = e?.message || "Failed to load branches";
+      setErr(msg);
+      toast({ variant: "destructive", title: "Refresh failed", description: msg });
     } finally {
       setLoading(false);
     }
   }
 
   React.useEffect(() => {
-    refresh();
+    void refresh(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -627,34 +627,28 @@ export default function BranchesPage() {
   return (
     <AppShell title="Branches">
       <div className="grid gap-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0">
-            <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-2xl border border-xc-border bg-xc-panel/30">
-                <IconBuilding className="h-5 w-5 text-xc-accent" />
-              </span>
-              <div>
-                <div className="text-3xl font-semibold tracking-tight">Branches</div>
-                <div className="mt-1 text-sm text-xc-muted">
-                  All users, departments, wards, and beds are created under a branch.
-                </div>
+        {/* Header (match Policies header structure) */}
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-xc-border bg-xc-panel/30">
+              <IconBuilding className="h-5 w-5 text-xc-accent" />
+            </span>
+            <div className="min-w-0">
+              <div className="text-3xl font-semibold tracking-tight">Branches</div>
+              <div className="mt-1 text-sm text-xc-muted">
+                All users, departments, wards, and beds are created under a branch.
               </div>
-            </div>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Pill label="Branches" value={rows.length} />
-              <Pill label="Users" value={totalUsers} />
-              <Pill label="Departments" value={totalDepartments} />
-              <Pill label="Beds" value={totalBeds} />
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" onClick={refresh} disabled={loading}>
+            <Button variant="outline" className="px-5 gap-2" onClick={() => void refresh(true)} disabled={loading}>
+              <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
               Refresh
             </Button>
+
             {isSuperAdmin ? (
-              <Button onClick={() => setCreateOpen(true)} className="gap-2">
+              <Button variant="primary" className="px-5 gap-2" onClick={() => setCreateOpen(true)}>
                 <IconPlus className="h-4 w-4" />
                 Create Branch
               </Button>
@@ -662,158 +656,195 @@ export default function BranchesPage() {
           </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Branch Registry</CardTitle>
-            <CardDescription>
+        {/* Overview (match Policies Overview card) */}
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base">Overview</CardTitle>
+            <CardDescription className="text-sm">
               Search branches and open details. Only Super Admin can create, edit, or delete branches.
             </CardDescription>
           </CardHeader>
 
-          <CardContent>
-            {err ? (
-              <div className="mb-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
-                <AlertTriangle className="mt-0.5 h-4 w-4" />
-                <div className="min-w-0">{err}</div>
+          <CardContent className="grid gap-4">
+            <div className="grid gap-3 md:grid-cols-3">
+              <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-3 dark:border-blue-900/50 dark:bg-blue-900/10">
+                <div className="text-xs font-medium text-blue-600 dark:text-blue-400">Total Branches</div>
+                <div className="mt-1 text-lg font-bold text-blue-700 dark:text-blue-300">{rows.length}</div>
               </div>
-            ) : null}
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 dark:border-emerald-900/50 dark:bg-emerald-900/10">
+                <div className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Total Users</div>
+                <div className="mt-1 text-lg font-bold text-emerald-700 dark:text-emerald-300">{totalUsers}</div>
+              </div>
+              <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-3 dark:border-rose-900/50 dark:bg-rose-900/10">
+                <div className="text-xs font-medium text-rose-600 dark:text-rose-400">Total Beds</div>
+                <div className="mt-1 text-lg font-bold text-rose-700 dark:text-rose-300">{totalBeds}</div>
+              </div>
 
-            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-              <div className="relative w-full md:max-w-md">
+            </div>
+
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="relative w-full lg:max-w-md">
                 <IconSearch className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-xc-muted" />
                 <Input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") refresh();
+                    if (e.key === "Enter") e.preventDefault();
                   }}
-                  placeholder="Search by code, name, or city"
+                  placeholder="Search by code, name, or city…"
                   className="pl-10"
                 />
               </div>
-              <Button variant="secondary" className="gap-2" onClick={refresh} disabled={loading}>
-                <IconSearch className="h-4 w-4" />
-                Search
-              </Button>
-            </div>
 
-            <div className="mt-4 overflow-x-auto rounded-xl border border-xc-border">
-              <table className="w-full text-sm">
-                <thead className="bg-xc-panel/20 text-left text-xc-muted">
-                  <tr>
-                    <th className="px-4 py-3">Code</th>
-                    <th className="px-4 py-3">Branch</th>
-                    <th className="px-4 py-3">City</th>
-                    <th className="px-4 py-3">Overview</th>
-                    <th className="px-4 py-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((b) => {
-                    return (
-                      <tr key={b.id} className="border-t border-xc-border hover:bg-[rgb(var(--xc-hover-rgb)/0.06)]">
-                        <td className="px-4 py-3">
-                          <span className="inline-flex rounded-lg border border-xc-border bg-xc-panel/20 px-2.5 py-1 font-mono text-xs text-xc-text">
-                            {b.code}
-                          </span>
-                        </td>
-
-                        <td className="px-4 py-3">
-                          <div className="font-semibold text-xc-text">{b.name}</div>
-                        </td>
-
-                        <td className="px-4 py-3 text-xc-text">{b.city}</td>
-
-                        <td className="px-4 py-3">
-                          <div className="flex flex-wrap gap-2">
-                            <Pill label="Users" value={Number(b._count?.users ?? 0)} />
-                            <Pill label="Depts" value={Number(b._count?.departments ?? 0)} />
-                            <Pill label="Beds" value={Number(b._count?.beds ?? 0)} />
-                          </div>
-                        </td>
-
-                        <td className="px-4 py-3">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button asChild variant="outline" size="sm" className="gap-2">
-                              <Link href={`/superadmin/branches/${b.id}`}>
-                                Details <IconChevronRight className="h-4 w-4" />
-                              </Link>
-                            </Button>
-
-                            {isSuperAdmin ? (
-                              <>
-                                <Button
-                                  variant="secondary"
-                                  size="sm"
-                                  className="gap-2"
-                                  onClick={() => {
-                                    setSelected(b);
-                                    setEditOpen(true);
-                                  }}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                  Edit
-                                </Button>
-
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  className="gap-2"
-                                  onClick={() => {
-                                    setSelected(b);
-                                    setDeleteOpen(true);
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                  Delete
-                                </Button>
-                              </>
-                            ) : null}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-
-                  {!rows.length ? (
-                    <tr>
-                      <td colSpan={5} className="px-4 py-10 text-center text-sm text-xc-muted">
-                        {loading ? "Loading branches…" : "No branches found."}
-                      </td>
-                    </tr>
-                  ) : null}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="mt-4 rounded-2xl border border-xc-border bg-xc-panel/20 p-5">
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold text-xc-text">Recommended onboarding order</div>
-                  <div className="mt-1 text-sm text-xc-muted">
-                    Create branches first, then set up departments, staff, wards/beds, and finally IAM users scoped to the branch.
-                  </div>
-                </div>
-                <Button asChild variant="outline" className="self-start md:self-auto">
-                  <Link href="/admin/facility">Open Branch Admin Setup</Link>
-                </Button>
+              {/* optional helper text on the right */}
+              <div className="text-xs text-xc-muted">
+                Showing <span className="font-semibold tabular-nums text-xc-text">{filtered.length}</span> of{" "}
+                <span className="font-semibold tabular-nums text-xc-text">{rows.length}</span>
               </div>
             </div>
+
+
+            {err ? (
+              <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
+                <AlertTriangle className="mt-0.5 h-4 w-4" />
+                <div className="min-w-0">{err}</div>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
+
+        {/* Table (match Policies table card style) */}
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Branch Registry</CardTitle>
+            <CardDescription className="text-sm">Click Details to open branch configuration and scoped data.</CardDescription>
+          </CardHeader>
+          <Separator />
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-xc-panel/20 text-xs text-xc-muted">
+                <tr>
+                  <th className="px-4 py-3 text-left font-semibold">Code</th>
+                  <th className="px-4 py-3 text-left font-semibold">Branch</th>
+                  <th className="px-4 py-3 text-left font-semibold">City</th>
+                  <th className="px-4 py-3 text-left font-semibold">Overview</th>
+                  <th className="px-4 py-3 text-right font-semibold">Action</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {!filtered.length ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-10 text-center text-sm text-xc-muted">
+                      {loading ? "Loading branches…" : "No branches found."}
+                    </td>
+                  </tr>
+                ) : null}
+
+                {filtered.map((b) => (
+                  <tr key={b.id} className="border-t border-xc-border hover:bg-xc-panel/20">
+                    <td className="px-4 py-3">
+                      <span className="inline-flex rounded-lg border border-xc-border bg-xc-panel/20 px-2.5 py-1 font-mono text-xs text-xc-text">
+                        {b.code}
+                      </span>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <div className="font-semibold text-xc-text">{b.name}</div>
+                    </td>
+
+                    <td className="px-4 py-3 text-xc-muted">{b.city}</td>
+
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-2">
+                        <Pill label="Users" value={Number(b._count?.users ?? 0)} />
+                        <Pill label="Depts" value={Number(b._count?.departments ?? 0)} />
+                        <Pill label="Beds" value={Number(b._count?.beds ?? 0)} />
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button asChild variant="outline" className="px-3 gap-2">
+                          <Link href={`/superadmin/branches/${b.id}`}>
+                            Details <IconChevronRight className="h-4 w-4" />
+                          </Link>
+                        </Button>
+
+                        {isSuperAdmin ? (
+                          <>
+                            <Button
+                              variant="secondary"
+                              className="px-3 gap-2"
+                              onClick={() => {
+                                setSelected(b);
+                                setEditOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                              Edit
+                            </Button>
+
+                            <Button
+                              variant="destructive"
+                              className="px-3 gap-2"
+                              onClick={() => {
+                                setSelected(b);
+                                setDeleteOpen(true);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Delete
+                            </Button>
+                          </>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+
+        {/* Optional: keep your onboarding card (already matches style) */}
+        <div className="rounded-2xl border border-xc-border bg-xc-panel/20 p-5">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-xc-text">Recommended onboarding order</div>
+              <div className="mt-1 text-sm text-xc-muted">
+                Create branches first, then set up departments, staff, wards/beds, and finally IAM users scoped to the branch.
+              </div>
+            </div>
+            <Button asChild variant="outline" className="self-start md:self-auto">
+              <Link href="/admin/facility">Open Branch Admin Setup</Link>
+            </Button>
+          </div>
+        </div>
       </div>
 
-      <BranchEditorModal mode="create" open={createOpen} initial={null} onClose={() => setCreateOpen(false)} onSaved={refresh} />
-      <BranchEditorModal mode="edit" open={editOpen} initial={selected} onClose={() => setEditOpen(false)} onSaved={refresh} />
-      <DeleteConfirmModal open={deleteOpen} branch={selected} onClose={() => setDeleteOpen(false)} onDeleted={refresh} />
+      <BranchEditorModal
+        mode="create"
+        open={createOpen}
+        initial={null}
+        onClose={() => setCreateOpen(false)}
+        onSaved={() => refresh(false)}   // ✅ no extra “Branches refreshed” toast
+      />
+      <BranchEditorModal
+        mode="edit"
+        open={editOpen}
+        initial={selected}
+        onClose={() => setEditOpen(false)}
+        onSaved={() => refresh(false)}   // ✅ no extra “Branches refreshed” toast
+      />
+      <DeleteConfirmModal
+        open={deleteOpen}
+        branch={selected}
+        onClose={() => setDeleteOpen(false)}
+        onDeleted={() => refresh(false)} // ✅ no extra “Branches refreshed” toast
+      />
+
     </AppShell>
   );
 }
-
-function setRows(data: BranchRow[]) {
-  throw new Error("Function not implemented.");
-}
-function setErr(msg: any) {
-  throw new Error("Function not implemented.");
-}
-

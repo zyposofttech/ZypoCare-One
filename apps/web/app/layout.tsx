@@ -11,15 +11,12 @@ export const metadata: Metadata = {
   description: "ExcelCare Hospital Management System",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased bg-xc-bg text-xc-text`}>
-        <ThemeProvider>{children}<Toaster /></ThemeProvider>
+        <ThemeProvider>{children}</ThemeProvider>
+        <Toaster />
       </body>
     </html>
   );

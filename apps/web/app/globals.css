@@ -14,17 +14,17 @@
   --xc-panel: 247 247 248; /* sidebar/topbar */
   --xc-card: 255 255 255;
   --xc-border: 229 231 235;
-  --xc-text: 17 24 39;
+  --xc-text: 39 39 42;
   --xc-muted: 64 64 64;
 
   /* ExcelCare primary blue */
-  --xc-accent: 79 70 229;
-  --xc-accent2: 104 109 212;
-  --xc-ring:165 250;
+  --xc-accent: 0 122 255;
+  --xc-accent2: 46 147 255;
   --xc-ring: 122 183 255;
+  
 
-  --xc-danger: 220 38 38;
-  --xc-warn: 245 158 11;
+  --xc-danger: 246 55 55;
+  --xc-warn: 249 115 22;
   --xc-ok: 22 163 74;
 
   /* Used for ChatGPT-like hover backgrounds */
@@ -40,11 +40,11 @@
   --xc-text: 236 240 241;   /* near-white */
   --xc-muted: 232 232 237;  /* gray-400 */
 
-  --xc-accent: 79 70 229;
-  --xc-accent2: 104 109 212;
+  --xc-accent: 146 79 247;
+  --xc-accent2: 186 143 250;
   --xc-ring: 122 183 255;
 
-  --xc-danger: 248 113 113; /* red-400 */
+  --xc-danger: 246 55 55; /* red-400 */
   --xc-warn: 251 191 36;    /* amber-400 */
   --xc-ok: 34 197 94;       /* green-500 */
 

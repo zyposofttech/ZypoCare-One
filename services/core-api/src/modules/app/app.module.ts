@@ -10,6 +10,7 @@ import { StatutoryModule } from "../statutory/statutory.module";
 import { HealthController } from "./health.controller";
 import { IamModule } from "../iam/iam.module";
 import { BranchModule } from "../branch/branch.module";
+import { GovernanceModule } from "../governance/governance.module";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -22,6 +23,7 @@ import { BranchModule } from "../branch/branch.module";
     StatutoryModule,
     IamModule,
     BranchModule,
+    GovernanceModule,
   ],
   controllers: [HealthController],
 })

@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { ToastHost } from "@/components/ToastHost";
 import {
   IconBed,
   IconBrain,
@@ -58,6 +59,10 @@ const NAV_WORKSPACES: NavNode[] = [
       { label: "Overview", href: "/superadmin/dashboard" },
       { label: "Branches", href: "/superadmin/branches" },
       { label: "Policy Governance", href: "/superadmin/policy" },
+      { label: "Policy Presets", href: "/superadmin/policy/presets"},
+      { label: "Policies", href: "/superadmin/policy/policies" },
+      { label: "Approvals", href: "/superadmin/policy/approvals" },
+      { label: "Audit Trail", href: "/superadmin/policy/audit" },
       { label: "Reports", href: "/superadmin/reports" },
     ],
   },
@@ -66,6 +71,7 @@ const NAV_WORKSPACES: NavNode[] = [
     href: "/admin",
     icon: IconBuilding,
     children: [
+      { label: "Policy Overrides", href: "/admin/policy" },
       { label: "Facility Setup", href: "/admin/facility" },
       { label: "Departments", href: "/admin/departments" },
       { label: "Staff Directory", href: "/admin/staff" },
@@ -268,8 +274,8 @@ function NavBadge({ badge }: { badge?: NavNode["badge"] }) {
     tone === "new"
       ? "border-xc-accent/40 bg-xc-accent/15 text-xc-accent"
       : tone === "soon"
-      ? "border-xc-border/80 bg-[rgb(var(--xc-hover-rgb)/0.04)] text-xc-muted"
-      : "border-xc-border/80 bg-[rgb(var(--xc-hover-rgb)/0.04)] text-xc-muted";
+        ? "border-xc-border/80 bg-[rgb(var(--xc-hover-rgb)/0.04)] text-xc-muted"
+        : "border-xc-border/80 bg-[rgb(var(--xc-hover-rgb)/0.04)] text-xc-muted";
 
   return (
     <span
@@ -692,7 +698,7 @@ export function AppShell({
                   variant="primary"
                   size="sm"
                   onClick={() => router.push(pathname)}
-                  className="rounded-full"
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition"
                 >
                   <IconPlus className="h-4 w-4" />
                   Create
@@ -722,4 +728,6 @@ export function AppShell({
       </div>
     </div>
   );
+
+<ToastHost />
 }

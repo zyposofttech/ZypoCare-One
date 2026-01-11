@@ -3,24 +3,36 @@
 import * as React from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { apiFetch } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth/store";
 import { cn } from "@/lib/cn";
+import { useToast } from "@/components/ui/use-toast";
+
 import { IconBuilding, IconChevronRight } from "@/components/icons";
 import {
   AlertTriangle,
+  ArrowLeft,
+  Check,
+  CheckCircle2,
+  Copy,
   Mail,
   MapPin,
   Pencil,
   Phone,
+  RefreshCw,
+  ShieldCheck,
   Trash2,
-  ArrowLeft,
-  Copy,
-  Check
+  Users,
+  Layers,
+  BedDouble,
+  FlaskConical,
+  ClipboardList,
 } from "lucide-react";
 
 // --- Types ---
@@ -57,7 +69,6 @@ type BranchForm = {
 };
 
 // --- Utilities ---
-
 const pillTones = {
   indigo:
     "border-indigo-200/70 bg-indigo-50/70 text-indigo-700 dark:border-indigo-900/40 dark:bg-indigo-900/20 dark:text-indigo-200",
@@ -69,6 +80,8 @@ const pillTones = {
     "border-rose-200/70 bg-rose-50/70 text-rose-700 dark:border-rose-900/40 dark:bg-rose-900/20 dark:text-rose-200",
   cyan:
     "border-cyan-200/70 bg-cyan-50/70 text-cyan-700 dark:border-cyan-900/40 dark:bg-cyan-900/20 dark:text-cyan-200",
+  zinc:
+    "border-zinc-200/70 bg-zinc-50/70 text-zinc-700 dark:border-zinc-800/60 dark:bg-zinc-900/30 dark:text-zinc-200",
 };
 
 function MetricPill({
@@ -82,7 +95,7 @@ function MetricPill({
 }) {
   return (
     <span className={cn("inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs", pillTones[tone])}>
-      <span className="font-semibold">{value}</span>
+      <span className="font-semibold tabular-nums">{value}</span>
       <span className="opacity-90">{label}</span>
     </span>
   );
@@ -104,29 +117,137 @@ function valOrDash(v?: string | null) {
   return s ? s : "—";
 }
 
-// --- Small Components ---
+function qsBranch(branchId: string) {
+  // Prefer branchId scoping for pages that support it
+  return branchId ? `?branchId=${encodeURIComponent(branchId)}` : "";
+}
 
+function countOf(row: BranchRow | null, k: keyof BranchCounts) {
+  return Number(row?._count?.[k] ?? 0) || 0;
+}
+
+function readinessFlag(ok: boolean) {
+  return ok ? (
+    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50/70 px-2 py-0.5 text-[11px] text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200">
+      <CheckCircle2 className="h-3.5 w-3.5" />
+      Ready
+    </span>
+  ) : (
+    <span className="inline-flex items-center gap-1 rounded-full border border-amber-200/70 bg-amber-50/70 px-2 py-0.5 text-[11px] text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200">
+      <AlertTriangle className="h-3.5 w-3.5" />
+      Pending
+    </span>
+  );
+}
+
+// --- Small Components ---
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = React.useState(false);
-  const onCopy = () => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+
+  const onCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // ignore clipboard errors
+    }
   };
 
   return (
     <button
       onClick={onCopy}
-      className="ml-2 inline-flex h-4 w-4 items-center justify-center rounded text-xc-muted hover:bg-xc-panel hover:text-xc-text transition-colors"
-      title="Copy ID"
+      className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-md text-xc-muted hover:bg-xc-panel hover:text-xc-text transition-colors"
+      title="Copy"
     >
-      {copied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+      {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
     </button>
   );
 }
 
-// --- Modals (Unchanged Logic) ---
+function InfoTile({
+  label,
+  value,
+  className,
+  icon,
+  tone,
+}: {
+  label: string;
+  value: React.ReactNode;
+  className?: string;
+  icon?: React.ReactNode;
+  tone?: "indigo" | "emerald" | "cyan" | "zinc";
+}) {
+  const toneCls =
+    tone === "indigo"
+      ? "border-indigo-200/50 bg-indigo-50/40 dark:border-indigo-900/35 dark:bg-indigo-900/15"
+      : tone === "emerald"
+        ? "border-emerald-200/50 bg-emerald-50/40 dark:border-emerald-900/35 dark:bg-emerald-900/15"
+        : tone === "cyan"
+          ? "border-cyan-200/50 bg-cyan-50/40 dark:border-cyan-900/35 dark:bg-cyan-900/15"
+          : "border-xc-border bg-xc-panel/15";
 
+  return (
+    <div className={cn("rounded-xl border p-4", toneCls, className)}>
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-xc-muted">
+        {icon ? <span className="text-xc-muted">{icon}</span> : null}
+        <span>{label}</span>
+      </div>
+      <div className="mt-2">{value}</div>
+    </div>
+  );
+}
+
+function ModuleCard({
+  title,
+  description,
+  count,
+  icon,
+  href,
+  tone = "zinc",
+}: {
+  title: string;
+  description: string;
+  count: number;
+  icon: React.ReactNode;
+  href: string;
+  tone?: keyof typeof pillTones;
+}) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "group block rounded-2xl border border-xc-border bg-xc-panel/20 p-4 transition-all",
+        "hover:bg-xc-panel/35 hover:shadow-elev-2 hover:-translate-y-0.5",
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="grid h-9 w-9 place-items-center rounded-xl border border-xc-border bg-xc-panel/25">
+              {icon}
+            </span>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-xc-text group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                {title}
+              </div>
+              <div className="mt-1 text-sm text-xc-muted">{description}</div>
+            </div>
+          </div>
+          <div className="mt-3">
+            <MetricPill label="Records" value={count} tone={tone} />
+          </div>
+        </div>
+
+        <div className="mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-transparent group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/50 transition-colors">
+          <IconChevronRight className="h-4 w-4 text-xc-muted group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all group-hover:translate-x-0.5" />
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+// --- Modals (same logic, now with toasts) ---
 function ModalShell({
   title,
   description,
@@ -169,6 +290,8 @@ function EditBranchModal({
   onClose: () => void;
   onSaved: () => Promise<void> | void;
 }) {
+  const { toast } = useToast();
+
   const [busy, setBusy] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
   const [form, setForm] = React.useState<BranchForm>({
@@ -219,10 +342,19 @@ function EditBranchModal({
           contactEmail: cleanOptional(form.contactEmail),
         }),
       });
-      await onSaved();
+
+      toast({
+        title: "Branch Updated",
+        description: `Successfully updated "${form.name.trim()}"`,
+        variant: "success" as any,
+      });
+
       onClose();
+      void Promise.resolve(onSaved()).catch(() => {});
     } catch (e: any) {
-      setErr(e?.message || "Update failed");
+      const msg = e?.message || "Update failed";
+      setErr(msg);
+      toast({ title: "Update failed", description: msg, variant: "destructive" as any });
     } finally {
       setBusy(false);
     }
@@ -268,7 +400,7 @@ function EditBranchModal({
             placeholder="Address line for this campus"
             className={cn(
               "mt-1 min-h-[90px] w-full rounded-lg border border-xc-border bg-transparent px-3 py-2 text-sm text-xc-text outline-none",
-              "focus-visible:ring-2 focus-visible:ring-xc-ring"
+              "focus-visible:ring-2 focus-visible:ring-xc-ring",
             )}
           />
           <div className="mt-1 text-xs text-xc-muted">Optional. Visible in branch profile and exports.</div>
@@ -329,6 +461,8 @@ function DeleteConfirmModal({
   onClose: () => void;
   onDeleted: () => Promise<void> | void;
 }) {
+  const { toast } = useToast();
+
   const [busy, setBusy] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
 
@@ -345,10 +479,19 @@ function DeleteConfirmModal({
     setBusy(true);
     try {
       await apiFetch(`/api/branches/${branch.id}`, { method: "DELETE" });
+
+      toast({
+        title: "Branch Deleted",
+        description: `Deleted "${branch.name}"`,
+        variant: "success" as any,
+      });
+
       await onDeleted();
       onClose();
     } catch (e: any) {
-      setErr(e?.message || "Delete failed");
+      const msg = e?.message || "Delete failed";
+      setErr(msg);
+      toast({ title: "Delete failed", description: msg, variant: "destructive" as any });
     } finally {
       setBusy(false);
     }
@@ -365,11 +508,7 @@ function DeleteConfirmModal({
     Number(branch._count?.beds ?? 0);
 
   return (
-    <ModalShell
-      title="Delete Branch"
-      description="Deletion is allowed only when the branch has no dependent data."
-      onClose={onClose}
-    >
+    <ModalShell title="Delete Branch" description="Deletion is allowed only when the branch has no dependent data." onClose={onClose}>
       {err ? (
         <div className="mb-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
           <AlertTriangle className="mt-0.5 h-4 w-4" />
@@ -405,14 +544,14 @@ function DeleteConfirmModal({
 }
 
 // --- Main Page Component ---
-
 export default function BranchDetailPage() {
+  const { toast } = useToast();
+
   const user = useAuthStore((s) => s.user);
   const isSuperAdmin =
     user?.role === "SUPER_ADMIN" ||
     (user as any)?.roleCode === "SUPER_ADMIN" ||
     (Array.isArray((user as any)?.roles) && (user as any).roles.includes("SUPER_ADMIN"));
-
 
   const router = useRouter();
   const params = useParams();
@@ -425,24 +564,34 @@ export default function BranchDetailPage() {
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
 
-  async function refresh() {
+  async function refresh(showToast = false) {
     if (!id) return;
     setErr(null);
     setLoading(true);
     try {
-      const data = await apiFetch<BranchRow>(`/api/branches/${id}`);
+      const data = await apiFetch<BranchRow>(`/api/branches/${encodeURIComponent(id)}`);
       setRow(data);
+
+      if (showToast) {
+        toast({
+          title: "Branch refreshed",
+          description: "Loaded latest branch details.",
+          variant: "info" as any,
+          duration: 1800,
+        });
+      }
     } catch (e: any) {
-      setErr(e?.message || "Failed to load branch");
+      const msg = e?.message || "Failed to load branch";
+      setErr(msg);
       setRow(null);
+      if (showToast) toast({ title: "Refresh failed", description: msg, variant: "destructive" as any });
     } finally {
-      // Small delay prevents UI flashing, feels smoother
-      setTimeout(() => setLoading(false), 200);
+      setLoading(false);
     }
   }
 
   React.useEffect(() => {
-    refresh();
+    void refresh(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -454,10 +603,28 @@ export default function BranchDetailPage() {
     Number(row?._count?.oTs ?? 0) +
     Number(row?._count?.beds ?? 0);
 
+  const readyDepts = countOf(row, "departments") > 0;
+  const readyStaff = countOf(row, "users") > 0; // proxy (you can change to staff count later)
+  const readyWards = countOf(row, "wards") > 0;
+  const readyBeds = countOf(row, "beds") > 0;
+
+  const branchScoped = {
+    departments: `/admin/departments${qsBranch(id)}`,
+    staff: `/admin/staff${qsBranch(id)}`,
+    wards: `/admin/wards${qsBranch(id)}`,
+    users: `/admin/users${qsBranch(id)}`,
+    ot: `/admin/ot${qsBranch(id)}`,
+    labs: `/admin/labs${qsBranch(id)}`,
+    policyOverrides: `/admin/policy-overrides${qsBranch(id)}`,
+    policies: `/superadmin/policy/policies`, // global, but can open in new
+    approvals: `/superadmin/policy/approvals`,
+    audit: `/superadmin/policy/audit`,
+  };
+
   return (
-    <AppShell title="Branch Details">
+    <AppShell title="Branch Dashboard">
       <div className="grid gap-6">
-        {/* --- Header Section (Design Preserved) --- */}
+        {/* Header */}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <div className="flex items-center gap-3">
@@ -471,7 +638,7 @@ export default function BranchDetailPage() {
                     Branches
                   </Link>
                   <span className="mx-2 text-xc-muted/60">/</span>
-                  <span className="text-xc-text">Details</span>
+                  <span className="text-xc-text">Dashboard</span>
                 </div>
 
                 <div className="mt-1 text-3xl font-semibold tracking-tight">
@@ -492,26 +659,29 @@ export default function BranchDetailPage() {
                       className={cn(
                         "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] border",
                         deps > 0
-                          ? "border-emerald-200/70 bg-emerald-50/70 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200"
-                          : "border-zinc-200/70 bg-zinc-50/70 text-zinc-700 dark:border-zinc-800/60 dark:bg-zinc-900/30 dark:text-zinc-200"
+                          ? pillTones.emerald
+                          : pillTones.zinc,
                       )}
                     >
                       {deps > 0 ? "Active" : "Empty"}
                     </span>
                   </div>
                 ) : loading ? (
-                  <div className="mt-2 flex gap-2"><Skeleton className="h-5 w-20" /><Skeleton className="h-5 w-20" /></div>
+                  <div className="mt-2 flex gap-2">
+                    <Skeleton className="h-5 w-20" />
+                    <Skeleton className="h-5 w-20" />
+                  </div>
                 ) : null}
               </div>
             </div>
 
             {!loading && row ? (
               <div className="mt-3 flex flex-wrap gap-2">
-                <MetricPill label="Users" value={Number(row._count?.users ?? 0)} tone="indigo" />
-                <MetricPill label="Departments" value={Number(row._count?.departments ?? 0)} tone="emerald" />
-                <MetricPill label="Patients" value={Number(row._count?.patients ?? 0)} tone="rose" />
-                <MetricPill label="Wards" value={Number(row._count?.wards ?? 0)} tone="amber" />
-                <MetricPill label="Beds" value={Number(row._count?.beds ?? 0)} tone="cyan" />
+                <MetricPill label="Users" value={countOf(row, "users")} tone="indigo" />
+                <MetricPill label="Departments" value={countOf(row, "departments")} tone="emerald" />
+                <MetricPill label="Patients" value={countOf(row, "patients")} tone="rose" />
+                <MetricPill label="Wards" value={countOf(row, "wards")} tone="amber" />
+                <MetricPill label="Beds" value={countOf(row, "beds")} tone="cyan" />
               </div>
             ) : null}
 
@@ -527,9 +697,12 @@ export default function BranchDetailPage() {
             <Button variant="outline" className="gap-2" onClick={() => router.back()}>
               <ArrowLeft className="h-4 w-4" /> Go Back
             </Button>
-            <Button variant="outline" onClick={refresh} disabled={loading}>
+
+            <Button variant="outline" className="gap-2" onClick={() => void refresh(true)} disabled={loading}>
+              <RefreshCw className={cn("h-4 w-4", loading ? "animate-spin" : "")} />
               Refresh
             </Button>
+
             {isSuperAdmin && !loading && row ? (
               <>
                 <Button variant="secondary" className="gap-2" onClick={() => setEditOpen(true)}>
@@ -545,23 +718,51 @@ export default function BranchDetailPage() {
           </div>
         </div>
 
-        {/* --- Main Content Grid --- */}
-        <div className="grid gap-4 lg:grid-cols-3">
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Branch Profile</CardTitle>
-              <CardDescription>All operational and clinical data is scoped under this branch.</CardDescription>
+        {/* KPI Cards */}
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Setup Health</CardTitle>
+              <CardDescription className="text-xs">Operational readiness for this branch.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-xc-muted">Departments</span>
+                {readinessFlag(readyDepts)}
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-xc-muted">Users/Staff</span>
+                {readinessFlag(readyStaff)}
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-xc-muted">Wards</span>
+                {readinessFlag(readyWards)}
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-xc-muted">Beds</span>
+                {readinessFlag(readyBeds)}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="overflow-hidden md:col-span-3">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Branch Snapshot</CardTitle>
+              <CardDescription className="text-xs">Identifiers, contacts, timestamps.</CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4"><Skeleton className="h-14" /><Skeleton className="h-14" /></div>
-                  <Skeleton className="h-20" />
+                <div className="grid gap-3 md:grid-cols-3">
+                  <Skeleton className="h-16" />
+                  <Skeleton className="h-16" />
+                  <Skeleton className="h-16" />
                 </div>
               ) : row ? (
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-3">
                   <InfoTile
                     label="Branch ID"
+                    icon={<ClipboardList className="h-4 w-4" />}
+                    tone="zinc"
                     value={
                       <div className="flex items-center">
                         <span className="font-mono text-xs break-all">{row.id}</span>
@@ -569,17 +770,51 @@ export default function BranchDetailPage() {
                       </div>
                     }
                   />
-                  <InfoTile label="Branch Code" value={<span className="font-mono text-sm font-semibold">{row.code}</span>} />
+                  <InfoTile
+                    label="Code"
+                    icon={<Layers className="h-4 w-4" />}
+                    tone="indigo"
+                    value={<span className="font-mono text-sm font-semibold">{row.code}</span>}
+                  />
+                  <InfoTile
+                    label="Updated"
+                    tone="zinc"
+                    value={<span className="text-sm text-xc-text">{fmtDate(row.updatedAt)}</span>}
+                  />
+                </div>
+              ) : (
+                <div className="text-sm text-xc-muted">No data.</div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Dashboard Grid */}
+        <div className="grid gap-4 lg:grid-cols-3">
+          {/* Profile + Contacts */}
+          <Card className="lg:col-span-2 overflow-hidden">
+            <CardHeader>
+              <CardTitle>Branch Profile</CardTitle>
+              <CardDescription>All clinical and operational data is scoped under this branch.</CardDescription>
+            </CardHeader>
+            <Separator />
+            <CardContent className="pt-6">
+              {loading ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Skeleton className="h-14" />
+                    <Skeleton className="h-14" />
+                  </div>
+                  <Skeleton className="h-20" />
+                </div>
+              ) : row ? (
+                <div className="grid gap-4 md:grid-cols-2">
                   <InfoTile label="Name" value={<span className="text-sm font-semibold">{row.name}</span>} />
                   <InfoTile label="City" value={<span className="text-sm font-semibold">{row.city}</span>} />
 
                   <InfoTile
                     label="Address"
-                    value={
-                      <div className="text-sm text-xc-text">
-                        {valOrDash(row.address)}
-                      </div>
-                    }
+                    value={<div className="text-sm text-xc-text">{valOrDash(row.address)}</div>}
                     className="md:col-span-2"
                     icon={<MapPin className="h-4 w-4" />}
                     tone="indigo"
@@ -590,7 +825,7 @@ export default function BranchDetailPage() {
                     value={
                       <div className="text-sm text-xc-text">
                         <div>{valOrDash(row.contactPhone1)}</div>
-                        <div className="text-xc-muted">{row.contactPhone2?.trim() ? row.contactPhone2 : ""}</div>
+                        {row.contactPhone2?.trim() ? <div className="text-xc-muted">{row.contactPhone2}</div> : null}
                         {!row.contactPhone1?.trim() && !row.contactPhone2?.trim() ? <span>—</span> : null}
                       </div>
                     }
@@ -614,28 +849,107 @@ export default function BranchDetailPage() {
             </CardContent>
           </Card>
 
-          <Card className="h-full flex flex-col">
-            <CardHeader>
-              <CardTitle>Quick Setup</CardTitle>
-              <CardDescription>Continue masters setup for this branch.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1">
-              <div className="grid gap-3">
-                <Step href="/admin/departments" title="Departments" desc="Define clinical & non-clinical departments." />
-                <Step href="/admin/staff" title="Staff Directory" desc="Create doctors, nursing, operations staff." />
-                <Step href="/admin/wards" title="Wards & Beds" desc="Setup wards, bed board, OT/Lab masters." />
-                <Step href="/admin/users" title="Users & Roles" desc="Create app users scoped to this branch." />
-              </div>
+          {/* Right column: Modules + Governance */}
+          <div className="grid gap-4">
+            <Card className="overflow-hidden">
+              <CardHeader>
+                <CardTitle>Branch Modules</CardTitle>
+                <CardDescription>Open modules scoped to this branch.</CardDescription>
+              </CardHeader>
+              <Separator />
+              <CardContent className="pt-6 grid gap-3">
+                <ModuleCard
+                  title="Departments"
+                  description="Clinical & non-clinical departments"
+                  count={countOf(row, "departments")}
+                  icon={<Layers className="h-4 w-4 text-xc-accent" />}
+                  href={branchScoped.departments}
+                  tone="emerald"
+                />
+                <ModuleCard
+                  title="Users & Roles"
+                  description="App users scoped to this branch"
+                  count={countOf(row, "users")}
+                  icon={<Users className="h-4 w-4 text-xc-accent" />}
+                  href={branchScoped.users}
+                  tone="indigo"
+                />
+                <ModuleCard
+                  title="Wards"
+                  description="Wards & allocation structure"
+                  count={countOf(row, "wards")}
+                  icon={<BedDouble className="h-4 w-4 text-xc-accent" />}
+                  href={branchScoped.wards}
+                  tone="amber"
+                />
+                <ModuleCard
+                  title="Beds"
+                  description="Bed board and mapping"
+                  count={countOf(row, "beds")}
+                  icon={<BedDouble className="h-4 w-4 text-xc-accent" />}
+                  href={branchScoped.wards}
+                  tone="cyan"
+                />
+                <ModuleCard
+                  title="Laboratory"
+                  description="Labs, tests, instruments"
+                  count={0}
+                  icon={<FlaskConical className="h-4 w-4 text-xc-accent" />}
+                  href={branchScoped.labs}
+                  tone="zinc"
+                />
+              </CardContent>
+            </Card>
 
-              <div className="mt-5 rounded-xl border border-xc-border bg-xc-panel/15 p-4 text-sm text-xc-muted">
-                <strong>Tip:</strong> For multi-branch rollout, complete master setup per branch and then assign IAM users to the correct branchId.
-              </div>
-            </CardContent>
-          </Card>
+            <Card className="overflow-hidden">
+              <CardHeader>
+                <CardTitle>Governance</CardTitle>
+                <CardDescription>Policies and approvals related to this branch.</CardDescription>
+              </CardHeader>
+              <Separator />
+              <CardContent className="pt-6 grid gap-3">
+                <Link
+                  href={branchScoped.policyOverrides}
+                  className="group flex items-center justify-between rounded-2xl border border-xc-border bg-xc-panel/20 p-4 hover:bg-xc-panel/35 hover:shadow-elev-2 transition-all"
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="grid h-9 w-9 place-items-center rounded-xl border border-xc-border bg-xc-panel/25">
+                      <ShieldCheck className="h-4 w-4 text-xc-accent" />
+                    </span>
+                    <div>
+                      <div className="text-sm font-semibold text-xc-text group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                        Policy Overrides
+                      </div>
+                      <div className="mt-1 text-sm text-xc-muted">Branch-specific exceptions and rollouts</div>
+                    </div>
+                  </div>
+                  <IconChevronRight className="h-4 w-4 text-xc-muted group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
+                </Link>
+
+                <div className="rounded-2xl border border-xc-border bg-xc-panel/15 p-4 text-sm text-xc-muted">
+                  <div className="font-semibold text-xc-text">Super Admin shortcuts</div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <Button asChild variant="outline" className="gap-2">
+                      <Link href={branchScoped.policies}>Policies</Link>
+                    </Button>
+                    <Button asChild variant="outline" className="gap-2">
+                      <Link href={branchScoped.approvals}>Approvals</Link>
+                    </Button>
+                    <Button asChild variant="outline" className="gap-2">
+                      <Link href={branchScoped.audit}>Audit Trail</Link>
+                    </Button>
+                  </div>
+                  <div className="mt-2 text-xs">
+                    Tip: Use Policy Overrides for branch-level deviations; keep definitions global.
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
 
-      <EditBranchModal open={editOpen} branch={row} onClose={() => setEditOpen(false)} onSaved={refresh} />
+      <EditBranchModal open={editOpen} branch={row} onClose={() => setEditOpen(false)} onSaved={() => refresh(false)} />
 
       <DeleteConfirmModal
         open={deleteOpen}
@@ -646,59 +960,5 @@ export default function BranchDetailPage() {
         }}
       />
     </AppShell>
-  );
-}
-
-function InfoTile({
-  label,
-  value,
-  className,
-  icon,
-  tone,
-}: {
-  label: string;
-  value: React.ReactNode;
-  className?: string;
-  icon?: React.ReactNode;
-  tone?: "indigo" | "emerald" | "cyan";
-}) {
-  const toneCls =
-    tone === "indigo"
-      ? "border-indigo-200/50 bg-indigo-50/40 dark:border-indigo-900/35 dark:bg-indigo-900/15"
-      : tone === "emerald"
-        ? "border-emerald-200/50 bg-emerald-50/40 dark:border-emerald-900/35 dark:bg-emerald-900/15"
-        : tone === "cyan"
-          ? "border-cyan-200/50 bg-cyan-50/40 dark:border-cyan-900/35 dark:bg-cyan-900/15"
-          : "border-xc-border bg-xc-panel/15";
-
-  return (
-    <div className={cn("rounded-xl border p-4", toneCls, className)}>
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-xc-muted">
-        {icon ? <span className="text-xc-muted">{icon}</span> : null}
-        <span>{label}</span>
-      </div>
-      <div className="mt-2">{value}</div>
-    </div>
-  );
-}
-
-function Step({ href, title, desc }: { href: string; title: string; desc: string }) {
-  return (
-    <Link
-      href={href}
-      className="group block relative overflow-hidden rounded-2xl border border-xc-border bg-xc-panel/20 p-4 transition-all duration-300 hover:shadow-lg hover:border-indigo-400/50 hover:-translate-y-1 hover:bg-xc-panel/40"
-    >
-      <div className="flex items-start justify-between gap-3 relative z-10">
-        <div className="min-w-0">
-          <div className="text-sm font-semibold text-xc-text group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-            {title}
-          </div>
-          <div className="mt-1 text-sm text-xc-muted">{desc}</div>
-        </div>
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-transparent group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/50 transition-colors">
-          <IconChevronRight className="h-4 w-4 text-xc-muted group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all group-hover:translate-x-0.5" />
-        </div>
-      </div>
-    </Link>
   );
 }

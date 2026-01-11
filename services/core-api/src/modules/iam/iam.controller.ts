@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Post, Body, Param, Query, Req, UseGuards } from "@nestjs/common";
+import { Controller, Get, Patch, Post, Body, Param, Query, Req, UseGuards, UnauthorizedException } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { PrincipalGuard } from "../auth/principal.guard";
 import { PermissionsGuard } from "../auth/permissions.guard";
@@ -15,7 +15,9 @@ export class IamController {
   constructor(private readonly iam: IamService) {}
 
   private principal(req: any): Principal {
-    return req.principal as Principal;
+    const p = req?.principal as Principal | undefined;
+    if (!p) throw new UnauthorizedException("Missing principal on request");
+    return p;
   }
 
   @Get("roles")
@@ -31,11 +33,15 @@ export class IamController {
   }
 
   @Get("branches")
-  @Permissions(PERM.IAM_USER_READ)
   async branches(@Req() req: any) {
     return this.iam.listBranches(this.principal(req));
   }
 
+  @Get("branches/:id")
+  async branch(@Param("id") id: string, @Req() req: any) {
+    return this.iam.getBranch(this.principal(req), id);
+  }
+  
   @Get("users")
   @Permissions(PERM.IAM_USER_READ)
   async users(@Query("q") q: string | undefined, @Req() req: any) {
