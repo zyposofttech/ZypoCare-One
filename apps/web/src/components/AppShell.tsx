@@ -68,6 +68,34 @@ const NAV_WORKSPACES: NavNode[] = [
     ],
   },
   {
+    label: "Infrastructure Setup",
+    href: "/superadmin/infrastructure",
+    icon: IconBuilding,
+    children: [
+      { label: "Overview", href: "/superadmin/infrastructure" },
+
+      { label: "Locations (Building)", href: "/superadmin/infrastructure/locations" },
+      { label: "Unit Types", href: "/superadmin/infrastructure/unit-types" },
+
+      { label: "Units", href: "/superadmin/infrastructure/units" },
+      { label: "Rooms / Bays", href: "/superadmin/infrastructure/rooms" },
+      { label: "Resources", href: "/superadmin/infrastructure/resources" },
+
+      { label: "Bed States + Housekeeping Gate", href: "/superadmin/infrastructure/bed-policy" },
+      { label: "OT Scheduling", href: "/superadmin/infrastructure/ot" },
+
+      { label: "Diagnostics Configuration", href: "/superadmin/infrastructure/diagnostics" },
+      { label: "Equipment Register", href: "/superadmin/infrastructure/equipment" },
+
+      { label: "Service Items", href: "/superadmin/infrastructure/service-items" },
+      { label: "Charge Master", href: "/superadmin/infrastructure/charge-master" },
+      { label: "Fix-It Queue", href: "/superadmin/infrastructure/fixit" },
+
+      { label: "Bulk Import (CSV/XLS)", href: "/superadmin/infrastructure/import" },
+      { label: "Go-Live Validator", href: "/superadmin/infrastructure/go-live" },
+    ],
+  },
+  {
     label: "Branch Admin",
     href: "/admin",
     icon: IconBuilding,
@@ -77,12 +105,12 @@ const NAV_WORKSPACES: NavNode[] = [
       { label: "Departments", href: "/admin/departments" },
       { label: "Staff Directory", href: "/admin/staff" },
       { label: "Specialties", href: "/admin/specialties" },
-      { label: "Wards", href: "/admin/wards", badge: { label: "Soon", tone: "soon" } },
+      { label: "Wards", href: "/admin/wards" },
       { label: "Beds", href: "/admin/beds", badge: { label: "New", tone: "new" } },
-      { label: "OT Setup", href: "/admin/ot", badge: { label: "Soon", tone: "soon" } },
-      { label: "Labs Setup", href: "/admin/labs", badge: { label: "Soon", tone: "soon" } },
+      { label: "OT Setup", href: "/admin/ot" },
+      { label: "Labs Setup", href: "/admin/labs" },
       { label: "Users & Roles", href: "/admin/users" },
-      { label: "Duty Rosters", href: "/admin/duty", badge: { label: "Soon", tone: "soon" } },
+      { label: "Duty Rosters", href: "/admin/duty" },
       { label: "Settings", href: "/admin/settings" },
     ],
   },

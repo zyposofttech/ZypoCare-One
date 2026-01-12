@@ -40,12 +40,12 @@ enum FacilityCategory {
 }
 
 enum BedState {
-  VACANT
+  AVAILABLE
   OCCUPIED
   CLEANING
   MAINTENANCE
+  INACTIVE
 }
-
 enum OutboxStatus {
   PENDING
   PROCESSING
@@ -93,20 +93,20 @@ model Branch {
   // ✅ Policy Governance (opposite relations)
   policyVersions        PolicyVersion[]        @relation("PolicyVersion_Branch")
   policyVersionBranches PolicyVersionBranch[]  @relation("PolicyTarget_Branch")
-  // ---------------- Infrastructure (Setup Studio) ----------------
-  locationNodes         LocationNode[]
-  unitTypesEnabled      BranchUnitType[]
-  units                 Unit[]
-  unitRooms             UnitRoom[]
-  unitResources         UnitResource[]
-  equipmentAssets       EquipmentAsset[]
-  serviceItems          ServiceItem[]
-  chargeMasterItems     ChargeMasterItem[]
-  serviceMappings       ServiceChargeMapping[]
-  fixItTasks            FixItTask[]
-  importJobs            BulkImportJob[]
-  procedureBookings     ProcedureBooking[]
-  goLiveReports         GoLiveReport[]
+  // Infrastructure (Admin onboarding)
+  locationNodes        LocationNode[]
+  branchUnitTypes      BranchUnitType[]
+  units                Unit[]
+  unitRooms            UnitRoom[]
+  unitResources        UnitResource[]
+  procedureBookings    ProcedureBooking[]
+  equipmentAssets      EquipmentAsset[]
+  chargeMasterItems    ChargeMasterItem[]
+  serviceItems         ServiceItem[]
+  serviceChargeMappings ServiceChargeMapping[]
+  fixItTasks           FixItTask[]
+  bulkImportJobs       BulkImportJob[]
+  goLiveReports        GoLiveReport[]
 }
 
 model FacilityCatalog {
@@ -410,7 +410,7 @@ model Bed {
   room     Room   @relation(fields: [roomId], references: [id])
 
   code     String
-  state    BedState @default(VACANT)
+  state    BedState @default(AVAILABLE)
   isActive Boolean  @default(true)
 
   createdAt DateTime @default(now())
@@ -796,63 +796,59 @@ enum LocationKind {
 }
 
 model LocationNode {
-  id       String @id @default(cuid())
+  id       String      @id @default(cuid())
   branchId String
-  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  branch   Branch      @relation(fields: [branchId], references: [id])
 
-  kind LocationKind
-
+  kind     LocationKind
   parentId String?
-  parent   LocationNode?  @relation("LocationParent", fields: [parentId], references: [id], onDelete: SetNull)
-  children LocationNode[] @relation("LocationParent")
+  parent   LocationNode? @relation("LocationTree", fields: [parentId], references: [id])
+  children LocationNode[] @relation("LocationTree")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   revisions LocationNodeRevision[]
-
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  EquipmentAsset EquipmentAsset[]
 
   @@index([branchId, kind])
   @@index([branchId, parentId])
 }
 
 model LocationNodeRevision {
-  id     String       @id @default(cuid())
-  nodeId String
-  node   LocationNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  nodeId       String
+  node         LocationNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
 
-  // Effective-dated identity + label
-  code String @db.VarChar(64)
-  name String @db.VarChar(160)
+  code         String
+  name         String
+  isActive     Boolean @default(true)
 
-  isActive Boolean @default(true)
-
-  // Effective dating
-  effectiveFrom DateTime  @default(now())
+  effectiveFrom DateTime
   effectiveTo   DateTime?
 
   createdByUserId String?
   createdByUser   User?   @relation("LocationRevisionCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
 
-  createdAt DateTime @default(now())
+    createdAt DateTime @default(now())
 
   @@index([nodeId, effectiveFrom])
   @@index([code])
 }
 
+
+
 // ---------------- Unit Types Enablement ----------------
 
 model UnitTypeCatalog {
-  id   String @id @default(cuid())
-  code String @unique @db.VarChar(16) // e.g., WARD, ICU, OT, LAB, IMAG
-  name String @db.VarChar(120)
+  id                  String  @id @default(cuid())
+  code                String  @unique @db.VarChar(32)
+  name                String  @db.VarChar(120)
 
-  // Defaults for UI + validation
   usesRoomsDefault     Boolean @default(true)
   schedulableByDefault Boolean @default(false)
 
-  sortOrder Int     @default(0)
-  isActive  Boolean @default(true)
+  isActive             Boolean @default(true)
+  sortOrder            Int     @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -864,21 +860,20 @@ model UnitTypeCatalog {
 }
 
 model BranchUnitType {
-  id String @id @default(cuid())
-
-  branchId String
-  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  id         String @id @default(cuid())
+  branchId   String
+  branch     Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
   unitTypeId String
   unitType   UnitTypeCatalog @relation(fields: [unitTypeId], references: [id], onDelete: Cascade)
 
-  isEnabled Boolean  @default(true)
-  enabledAt DateTime @default(now())
+  isEnabled  Boolean @default(true)
+  enabledAt  DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([branchId, unitTypeId])
+  @@unique([branchId, unitTypeId], name: "branchId_unitTypeId")
   @@index([branchId, isEnabled])
 }
 
@@ -905,94 +900,63 @@ enum UnitResourceState {
 }
 
 model Unit {
-  id       String @id @default(cuid())
-  branchId String
-  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  id           String @id @default(cuid())
+  branchId     String
+  branch       Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
   departmentId String
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
 
-  unitTypeId String
-  unitType   UnitTypeCatalog @relation(fields: [unitTypeId], references: [id], onDelete: Restrict)
+  unitTypeId   String
+  unitType     UnitTypeCatalog @relation(fields: [unitTypeId], references: [id], onDelete: Restrict)
 
-  code String @db.VarChar(48) // e.g., WARD-MED-01
-  name String @db.VarChar(160)
+  code         String @db.VarChar(32)
+  name         String @db.VarChar(160)
 
-  usesRooms Boolean @default(true)
-  isActive  Boolean @default(true)
-
-  rooms     UnitRoom[]
-  resources UnitResource[] // open-bay resources (roomId null)
-
-  equipment EquipmentAsset[]
-  bookings  ProcedureBooking[]
+  usesRooms    Boolean @default(true)
+  isActive     Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([branchId, code])
+  rooms     UnitRoom[]
+  resources UnitResource[]
+  bookings  ProcedureBooking[]
+
+  @@unique([branchId, code], name: "branchId_unitCode")
   @@index([branchId, departmentId, isActive])
-  @@index([branchId, unitTypeId, isActive])
 }
 
 model UnitRoom {
-  id     String @id @default(cuid())
-  unitId String
-  unit   Unit   @relation(fields: [unitId], references: [id], onDelete: Cascade)
-
-  // Convenience for scoping + search
+  id       String @id @default(cuid())
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  code String @db.VarChar(64) // e.g., WARD-MED-01-R012
-  name String @db.VarChar(160)
+  unitId   String
+  unit     Unit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  code     String @db.VarChar(64)
+  name     String @db.VarChar(160)
 
   isActive Boolean @default(true)
 
-  resources UnitResource[]
-  equipment EquipmentAsset[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([unitId, code])
+  resources UnitResource[]
+
+  @@unique([unitId, code], name: "unitId_roomCode")
   @@index([branchId, unitId, isActive])
 }
 
-model UnitResource {
-  id String @id @default(cuid())
-
-  branchId String
-  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
-
-  unitId String
-  unit   Unit   @relation(fields: [unitId], references: [id], onDelete: Cascade)
-
-  roomId String?
-  room   UnitRoom? @relation(fields: [roomId], references: [id], onDelete: SetNull)
-
-  resourceType UnitResourceType
-  code         String           @db.VarChar(80) // e.g., WARD-MED-01-R012-B001 or WARD-MED-01-B001
-  name         String           @db.VarChar(160)
-
-  state         UnitResourceState @default(AVAILABLE)
-  isActive      Boolean           @default(true)
-  isSchedulable Boolean           @default(false)
-
-  bookings ProcedureBooking[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Uniqueness depends on mode:
-  // - room-mode: unique(roomId, code)
-  // - open-bay: unique(unitId, code) when roomId is null
-  @@unique([unitId, code])
-  @@index([branchId, unitId, roomId, isActive])
-  @@index([branchId, resourceType, state])
-}
+model UnitResource
 
 // ---------------- Equipment Register ----------------
+enum EquipmentCategory {
+  GENERAL
+  RADIOLOGY
+  ULTRASOUND
+}
 
 enum EquipmentOperationalStatus {
   OPERATIONAL
@@ -1000,66 +964,59 @@ enum EquipmentOperationalStatus {
   MAINTENANCE
   RETIRED
 }
-
-enum EquipmentComplianceCategory {
-  GENERAL
-  RADIOLOGY
-  ULTRASOUND
+enum EquipmentOperationalStatus {
+  OPERATIONAL
+  DOWN
+  MAINTENANCE
+  RETIRED
 }
 
 model EquipmentAsset {
-  id String @id @default(cuid())
-
+  id       String @id @default(cuid())
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  code String @db.VarChar(64)
-  name String @db.VarChar(160)
+  code     String @db.VarChar(64)
+  name     String @db.VarChar(160)
 
-  category EquipmentComplianceCategory @default(GENERAL)
+  category EquipmentCategory @default(GENERAL)
 
-  make   String? @db.VarChar(120)
-  model  String? @db.VarChar(120)
-  serial String? @db.VarChar(120)
+  make   String?
+  model  String?
+  serial String?
 
-  ownerDepartmentId String?
   ownerDepartment   Department? @relation("EquipmentOwnerDepartment", fields: [ownerDepartmentId], references: [id], onDelete: SetNull)
+  ownerDepartmentId String?
 
-  unitId String?
-  unit   Unit?   @relation(fields: [unitId], references: [id], onDelete: SetNull)
-
-  roomId String?
-  room   UnitRoom? @relation(fields: [roomId], references: [id], onDelete: SetNull)
-
+  unitId       String?
+  roomId       String?
   locationNodeId String?
-  locationNode   LocationNode? @relation(fields: [locationNodeId], references: [id], onDelete: SetNull)
 
   operationalStatus EquipmentOperationalStatus @default(OPERATIONAL)
 
-  // Maintenance / Contracts
-  amcVendor       String?   @db.VarChar(160)
-  amcValidFrom    DateTime?
-  amcValidTo      DateTime?
+  amcVendor     String?
+  amcValidFrom  DateTime?
+  amcValidTo    DateTime?
   warrantyValidTo DateTime?
+
   pmFrequencyDays Int?
   nextPmDueAt     DateTime?
 
-  // Compliance (Hard blockers for schedulable)
-  aerbLicenseNo String?   @db.VarChar(64)
+  aerbLicenseNo String?
   aerbValidTo   DateTime?
-  pcpndtRegNo   String?   @db.VarChar(64)
+
+  pcpndtRegNo   String?
   pcpndtValidTo DateTime?
 
   isSchedulable Boolean @default(false)
 
-  downtimeTickets DowntimeTicket[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([branchId, code])
-  @@index([branchId, category, operationalStatus])
-  @@index([branchId, unitId, roomId])
+  downtimeTickets DowntimeTicket[]
+
+  @@unique([branchId, code], name: "branchId_equipmentCode")
+  @@index([branchId, category])
 }
 
 enum DowntimeStatus {
@@ -1068,16 +1025,15 @@ enum DowntimeStatus {
 }
 
 model DowntimeTicket {
-  id String @id @default(cuid())
-
+  id      String @id @default(cuid())
   assetId String
   asset   EquipmentAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
-  status DowntimeStatus @default(OPEN)
-  reason String         @db.VarChar(240)
-  notes  String?
+  reason  String
+  notes   String?
+  status  DowntimeStatus @default(OPEN)
 
-  openedAt DateTime  @default(now())
+  openedAt DateTime @default(now())
   closedAt DateTime?
 
   createdAt DateTime @default(now())
@@ -1093,69 +1049,64 @@ model ChargeMasterItem {
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  code String @db.VarChar(64)
-  name String @db.VarChar(160)
+  code     String @db.VarChar(48)
+  name     String @db.VarChar(160)
 
-  category String? @db.VarChar(120)
-  unit     String? @db.VarChar(40)
-
+  category String?
+  unit     String?
   isActive Boolean @default(true)
-
-  mappings ServiceChargeMapping[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([branchId, code])
+  mappings ServiceChargeMapping[]
+
+  @@unique([branchId, code], name: "branchId_code")
   @@index([branchId, isActive])
 }
-
 model ServiceItem {
   id       String @id @default(cuid())
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  code String @db.VarChar(64)
-  name String @db.VarChar(160)
+  code     String @db.VarChar(48)
+  name     String @db.VarChar(160)
 
-  category String  @db.VarChar(120)
-  unit     String? @db.VarChar(40)
+  category String @db.VarChar(80)
+  unit     String?
 
   isOrderable Boolean @default(true)
   isActive    Boolean @default(true)
 
-  mappings ServiceChargeMapping[]
-  fixIts   FixItTask[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([branchId, code])
+  mappings ServiceChargeMapping[]
+  fixIts   FixItTask[]
+
+  @@unique([branchId, code], name: "branchId_serviceCode")
   @@index([branchId, category, isActive])
 }
 
 model ServiceChargeMapping {
-  id String @id @default(cuid())
-
+  id       String @id @default(cuid())
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  serviceItemId String
-  serviceItem   ServiceItem @relation(fields: [serviceItemId], references: [id], onDelete: Cascade)
+  serviceItemId      String
+  serviceItem        ServiceItem @relation(fields: [serviceItemId], references: [id], onDelete: Cascade)
 
   chargeMasterItemId String
   chargeMasterItem   ChargeMasterItem @relation(fields: [chargeMasterItemId], references: [id], onDelete: Cascade)
 
-  effectiveFrom DateTime  @default(now())
+  effectiveFrom DateTime
   effectiveTo   DateTime?
-
-  version Int @default(1)
+  version       Int @default(1)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([branchId, serviceItemId, effectiveFrom])
-  @@index([branchId, chargeMasterItemId])
 }
 
 // ---------------- Fix-It Queue ----------------
@@ -1172,35 +1123,39 @@ enum FixItStatus {
 }
 
 model FixItTask {
-  id String @id @default(cuid())
-
+  id       String @id @default(cuid())
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  type   FixItType
-  status FixItStatus @default(OPEN)
+  type     FixItTaskType
+  status   FixItStatus @default(OPEN)
 
-  title   String @db.VarChar(200)
-  details Json?
+  title    String
+  details  Json?
 
   serviceItemId String?
   serviceItem   ServiceItem? @relation(fields: [serviceItemId], references: [id], onDelete: SetNull)
 
   assignedToUserId String?
-  assignedToUser   User?   @relation("FixItAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  assignedToUser   User? @relation("FixItAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
 
   resolvedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([branchId, status, type])
-  @@index([serviceItemId])
+  @@index([branchId, status])
 }
 
 // ---------------- Bulk Import Jobs ----------------
 
-enum ImportEntityType {
+enum BulkImportStatus {
+  VALIDATED
+  COMMITTED
+  FAILED
+}
+
+enum BulkImportEntityType {
   LOCATIONS
   UNITS
   ROOMS
@@ -1210,40 +1165,34 @@ enum ImportEntityType {
   CHARGE_MASTER
 }
 
-enum ImportJobStatus {
-  DRAFT
-  VALIDATED
-  COMMITTED
-  FAILED
-}
-
 model BulkImportJob {
-  id String @id @default(cuid())
-
+  id       String @id @default(cuid())
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  entityType ImportEntityType
-  status     ImportJobStatus  @default(DRAFT)
+  entityType BulkImportEntityType
+  status     BulkImportStatus @default(VALIDATED)
 
-  fileName String?
-  payload  Json? // raw rows
-  errors   Json? // row-wise errors
+  fileName   String?
 
-  totalRows   Int @default(0)
-  validRows   Int @default(0)
-  invalidRows Int @default(0)
+  payload    Json
+  errors     Json?
 
+  totalRows  Int
+  validRows  Int
+  invalidRows Int
+
+  committedAt DateTime?
   createdByUserId String?
   createdByUser   User?   @relation("ImportJobCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
 
-  committedAt DateTime?
-
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([branchId, entityType, status])
 }
+
 
 // ---------------- Scheduling (OT / Procedure-capable Units) ----------------
 
@@ -1254,46 +1203,41 @@ enum BookingStatus {
 }
 
 model ProcedureBooking {
-  id String @id @default(cuid())
+  id         String @id @default(cuid())
+  branchId   String
+  branch     Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  branchId String
-  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
-
-  unitId String
-  unit   Unit   @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  unitId     String
+  unit       Unit @relation(fields: [unitId], references: [id], onDelete: Cascade)
 
   resourceId String
-  resource   UnitResource @relation(fields: [resourceId], references: [id], onDelete: Restrict)
+  resource   UnitResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
 
-  // Optional linkage for future
   patientId    String?
   departmentId String?
 
-  startAt DateTime
-  endAt   DateTime
+  startAt    DateTime
+  endAt      DateTime
+  status     BookingStatus @default(SCHEDULED)
 
-  status BookingStatus @default(SCHEDULED)
-
-  // Strict at scheduling time (default)
-  consentOk    Boolean @default(false)
+  consentOk   Boolean @default(false)
   anesthesiaOk Boolean @default(false)
-  checklistOk  Boolean @default(false)
+  checklistOk Boolean @default(false)
 
   createdByUserId String?
   createdByUser   User?   @relation("BookingCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  cancelledAt DateTime?
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-  @@index([branchId, unitId, resourceId, startAt, endAt])
-  @@index([status])
+  @@index([branchId, resourceId, startAt, endAt])
+  @@index([branchId, unitId, startAt])
 }
 
 // ---------------- Go-Live Validator Snapshot ----------------
 
 model GoLiveReport {
-  id String @id @default(cuid())
-
+  id       String @id @default(cuid())
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
@@ -1305,7 +1249,7 @@ model GoLiveReport {
   createdByUserId String?
   createdByUser   User?   @relation("GoLiveCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
 
-  createdAt DateTime @default(now())
+    createdAt DateTime @default(now())
 
   @@index([branchId, createdAt])
 }

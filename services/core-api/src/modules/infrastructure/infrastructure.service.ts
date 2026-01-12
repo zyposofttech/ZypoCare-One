@@ -54,7 +54,7 @@ export class InfrastructureService {
     @Inject("PRISMA") private prisma: PrismaClient,
     private audit: AuditService,
     private policyEngine: PolicyEngineService,
-  ) {}
+  ) { }
 
   private resolveBranchId(principal: Principal, requestedBranchId?: string | null) {
     if (principal.roleScope === "BRANCH") {
@@ -101,6 +101,76 @@ export class InfrastructureService {
     }));
   }
 
+  async getLocationTree(principal: Principal, branchIdParam: string, at?: string) {
+    const branchId = this.resolveBranchId(principal, branchIdParam ?? null);
+    const when = at ? new Date(at) : new Date();
+
+    const nodes = await this.prisma.locationNode.findMany({
+      where: { branchId },
+      select: {
+        id: true,
+        kind: true,
+        parentId: true,
+        revisions: {
+          where: {
+            effectiveFrom: { lte: when },
+            OR: [{ effectiveTo: null }, { effectiveTo: { gt: when } }],
+          },
+          orderBy: [{ effectiveFrom: "desc" }],
+          take: 1,
+          select: { code: true, name: true, isActive: true, effectiveFrom: true, effectiveTo: true },
+        },
+      },
+      orderBy: [{ createdAt: "asc" }],
+    });
+
+    type TreeNode = {
+      id: string;
+      kind: any;
+      parentId: string | null;
+      code: string;
+      name: string;
+      isActive: boolean;
+      effectiveFrom: Date;
+      effectiveTo: Date | null;
+      children: TreeNode[];
+    };
+
+    const byId = new Map<string, TreeNode>();
+
+    for (const n of nodes) {
+      const cur = n.revisions?.[0];
+      if (!cur) continue;
+      byId.set(n.id, {
+        id: n.id,
+        kind: n.kind,
+        parentId: n.parentId ?? null,
+        code: cur.code,
+        name: cur.name,
+        isActive: cur.isActive,
+        effectiveFrom: cur.effectiveFrom,
+        effectiveTo: cur.effectiveTo,
+        children: [],
+      });
+    }
+
+    const roots: TreeNode[] = [];
+    for (const node of byId.values()) {
+      if (node.parentId && byId.has(node.parentId)) {
+        byId.get(node.parentId)!.children.push(node);
+      } else {
+        roots.push(node);
+      }
+    }
+
+    const sortRec = (arr: TreeNode[]) => {
+      arr.sort((a, b) => a.code.localeCompare(b.code));
+      for (const x of arr) sortRec(x.children);
+    };
+    sortRec(roots);
+
+    return roots;
+  }
   private async assertLocationCodeUnique(branchId: string, code: string, effectiveFrom: Date, effectiveTo: Date | null, excludeNodeId?: string) {
     // Ensure no OTHER node has an overlapping effective revision with the same code.
     const overlaps = await this.prisma.locationNodeRevision.findMany({
@@ -123,8 +193,8 @@ export class InfrastructureService {
     }
   }
 
-  async createLocation(principal: Principal, dto: CreateLocationNodeDto) {
-    const branchId = this.resolveBranchId(principal, null);
+  async createLocation(principal: Principal, dto: CreateLocationNodeDto, branchIdParam: string) {
+    const branchId = this.resolveBranchId(principal, branchIdParam ?? null);
 
     const parent = dto.parentId
       ? await this.prisma.locationNode.findFirst({ where: { id: dto.parentId, branchId }, select: { id: true, kind: true } })
@@ -245,6 +315,8 @@ export class InfrastructureService {
 
     return { id: node.id, kind: node.kind, parentId: node.parentId, current: newRev };
   }
+
+
 
   // ---------------------------------------------------------------------------
   // Unit Type catalog + enablement
@@ -573,8 +645,8 @@ export class InfrastructureService {
     });
   }
 
-  async createEquipment(principal: Principal, dto: CreateEquipmentAssetDto) {
-    const branchId = this.resolveBranchId(principal, null);
+  async createEquipment(principal: Principal, dto: CreateEquipmentAssetDto, branchIdParam?: string) {
+    const branchId = this.resolveBranchId(principal, branchIdParam ?? null);
     const code = canonicalizeCode(dto.code);
 
     this.enforceEquipmentSchedulable(dto);
@@ -582,28 +654,28 @@ export class InfrastructureService {
     const created = await this.prisma.equipmentAsset.create({
       data: {
         branchId,
-        code,
-        name: dto.name.trim(),
-        category: dto.category as any,
-        make: dto.make ?? null,
-        model: dto.model ?? null,
-        serial: dto.serial ?? null,
-        ownerDepartmentId: dto.ownerDepartmentId ?? null,
-        unitId: dto.unitId ?? null,
-        roomId: dto.roomId ?? null,
-        locationNodeId: dto.locationNodeId ?? null,
-        operationalStatus: (dto.operationalStatus ?? "OPERATIONAL") as any,
-        amcVendor: dto.amcVendor ?? null,
-        amcValidFrom: dto.amcValidFrom ? new Date(dto.amcValidFrom) : null,
-        amcValidTo: dto.amcValidTo ? new Date(dto.amcValidTo) : null,
-        warrantyValidTo: dto.warrantyValidTo ? new Date(dto.warrantyValidTo) : null,
-        pmFrequencyDays: dto.pmFrequencyDays ?? null,
-        nextPmDueAt: dto.nextPmDueAt ? new Date(dto.nextPmDueAt) : null,
-        aerbLicenseNo: dto.aerbLicenseNo ?? null,
-        aerbValidTo: dto.aerbValidTo ? new Date(dto.aerbValidTo) : null,
-        pcpndtRegNo: dto.pcpndtRegNo ?? null,
-        pcpndtValidTo: dto.pcpndtValidTo ? new Date(dto.pcpndtValidTo) : null,
-        isSchedulable: dto.isSchedulable ?? false,
+      code: dto.code,
+      name: dto.name,
+      category: dto.category,
+      make: dto.make,
+      model: dto.model,
+      serial: dto.serial,
+      ownerDepartmentId: dto.ownerDepartmentId,
+      locationNodeId: dto.locationNodeId ?? null,
+      unitId: dto.unitId ?? null,
+      roomId: dto.roomId ?? null,
+      operationalStatus: dto.operationalStatus,
+      amcVendor: dto.amcVendor ?? null,
+      amcValidFrom: dto.amcValidFrom ? new Date(dto.amcValidFrom) : null,
+      amcValidTo: dto.amcValidTo ? new Date(dto.amcValidTo) : null,
+      warrantyValidTo: dto.warrantyValidTo ? new Date(dto.warrantyValidTo) : null,
+      pmFrequencyDays: dto.pmFrequencyDays ?? null,
+      nextPmDueAt: dto.nextPmDueAt ? new Date(dto.nextPmDueAt) : null,
+      aerbLicenseNo: dto.aerbLicenseNo ?? null,
+      aerbValidTo: dto.aerbValidTo ? new Date(dto.aerbValidTo) : null,
+      pcpndtRegNo: dto.pcpndtRegNo ?? null,
+      pcpndtValidTo: dto.pcpndtValidTo ? new Date(dto.pcpndtValidTo) : null,
+      isSchedulable: dto.isSchedulable ?? false,
       },
     });
 
@@ -699,8 +771,8 @@ export class InfrastructureService {
   // Charge Master + Service Items + Fix-It (unmapped => Fix-It queue)
   // ---------------------------------------------------------------------------
 
-  async createChargeMasterItem(principal: Principal, dto: CreateChargeMasterItemDto) {
-    const branchId = this.resolveBranchId(principal, null);
+  async createChargeMasterItem(principal: Principal, dto: CreateChargeMasterItemDto, branchIdParam: string) {
+    const branchId = this.resolveBranchId(principal, branchIdParam ?? null);
     const code = canonicalizeCode(dto.code);
 
     const created = await this.prisma.chargeMasterItem.create({
@@ -711,15 +783,15 @@ export class InfrastructureService {
     return created;
   }
 
-  async listChargeMasterItems(principal: Principal, q: { q?: string }) {
-    const branchId = this.resolveBranchId(principal, null);
+  async listChargeMasterItems(principal: Principal, q: { branchId: string; q?: string }) {
+    const branchId = this.resolveBranchId(principal, q.branchId ?? null);
     const where: any = { branchId, isActive: true };
     if (q.q) where.OR = [{ name: { contains: q.q, mode: "insensitive" } }, { code: { contains: q.q, mode: "insensitive" } }];
     return this.prisma.chargeMasterItem.findMany({ where, orderBy: [{ name: "asc" }] });
   }
 
-  async createServiceItem(principal: Principal, dto: CreateServiceItemDto) {
-    const branchId = this.resolveBranchId(principal, null);
+  async createServiceItem(principal: Principal, dto: CreateServiceItemDto, branchIdParam: string) {
+    const branchId = this.resolveBranchId(principal, branchIdParam ?? null);
     const code = canonicalizeCode(dto.code);
 
     const created = await this.prisma.serviceItem.create({
@@ -777,8 +849,8 @@ export class InfrastructureService {
     return created;
   }
 
-  async listServiceItems(principal: Principal, q: { q?: string; includeInactive?: boolean }) {
-    const branchId = this.resolveBranchId(principal, null);
+  async listServiceItems(principal: Principal, q: { branchId: string; q?: string; includeInactive?: boolean }) {
+    const branchId = this.resolveBranchId(principal, q.branchId ?? null);
     const where: any = { branchId };
     if (!q.includeInactive) where.isActive = true;
     if (q.q) where.OR = [{ name: { contains: q.q, mode: "insensitive" } }, { code: { contains: q.q, mode: "insensitive" } }];
@@ -814,16 +886,30 @@ export class InfrastructureService {
   }
 
   async upsertServiceChargeMapping(principal: Principal, dto: UpsertServiceChargeMappingDto) {
-    const branchId = this.resolveBranchId(principal, null);
+    const svc = await this.prisma.serviceItem.findUnique({
+      where: { id: dto.serviceItemId },
+      select: { id: true, branchId: true },
+    });
+    if (!svc) throw new BadRequestException("Invalid serviceItemId");
 
-    const service = await this.prisma.serviceItem.findFirst({ where: { id: dto.serviceItemId, branchId }, select: { id: true } });
-    if (!service) throw new BadRequestException("Invalid serviceItemId for your branch");
+    const branchId = this.resolveBranchId(principal, svc.branchId);
 
-    const cm = await this.prisma.chargeMasterItem.findFirst({ where: { id: dto.chargeMasterItemId, branchId }, select: { id: true } });
-    if (!cm) throw new BadRequestException("Invalid chargeMasterItemId for your branch");
+    const cm = await this.prisma.chargeMasterItem.findFirst({
+      where: { id: dto.chargeMasterItemId, branchId },
+      select: { id: true },
+    });
+    if (!cm) throw new BadRequestException("Invalid chargeMasterItemId for this branch");
 
     const effectiveFrom = dto.effectiveFrom ? new Date(dto.effectiveFrom) : new Date();
     const effectiveTo = dto.effectiveTo ? new Date(dto.effectiveTo) : null;
+
+    // version increment
+    const last = await this.prisma.serviceChargeMapping.findFirst({
+      where: { branchId, serviceItemId: dto.serviceItemId },
+      orderBy: [{ version: "desc" }],
+      select: { version: true },
+    });
+    const nextVersion = (last?.version ?? 0) + 1;
 
     // Ensure no overlapping mappings for this service
     const existingOverlap = await this.prisma.serviceChargeMapping.findFirst({
@@ -866,8 +952,8 @@ export class InfrastructureService {
     return created;
   }
 
-  async listFixIts(principal: Principal, q: { status?: string }) {
-    const branchId = this.resolveBranchId(principal, null);
+  async listFixIts(principal: Principal, q: { branchId: string; status?: string }) {
+    const branchId = this.resolveBranchId(principal, q.branchId ?? null);
     const where: any = { branchId };
     if (q.status) where.status = q.status as any;
 
@@ -918,8 +1004,8 @@ export class InfrastructureService {
     if (violations.length) throw new BadRequestException(violations.join(" "));
   }
 
-  async listBookings(principal: Principal, q: { unitId?: string; resourceId?: string; from?: string; to?: string }) {
-    const branchId = this.resolveBranchId(principal, null);
+  async listBookings(principal: Principal, q: { branchId: string; unitId?: string; resourceId?: string; from?: string; to?: string }) {
+    const branchId = this.resolveBranchId(principal, q.branchId ?? null);
     const where: any = { branchId };
     if (q.unitId) where.unitId = q.unitId;
     if (q.resourceId) where.resourceId = q.resourceId;
@@ -930,62 +1016,111 @@ export class InfrastructureService {
     return this.prisma.procedureBooking.findMany({ where, orderBy: [{ startAt: "asc" }] });
   }
 
-  async createBooking(principal: Principal, dto: CreateProcedureBookingDto) {
-    const branchId = this.resolveBranchId(principal, null);
+ async createBooking(principal: Principal, dto: CreateProcedureBookingDto) {
+  // 1) Validate unit (and derive branchId in a GLOBAL-safe way)
+  const unit = await this.prisma.unit.findUnique({
+    where: { id: dto.unitId },
+    select: { id: true, branchId: true, isActive: true },
+  });
+  if (!unit || !unit.isActive) throw new BadRequestException("Invalid unitId");
 
-    await this.enforcePrechecksStrict(branchId, dto);
+  const branchId = this.resolveBranchId(principal, unit.branchId);
 
-    const unit = await this.prisma.unit.findFirst({ where: { id: dto.unitId, branchId, isActive: true }, select: { id: true } });
-    if (!unit) throw new BadRequestException("Invalid unitId");
+  // 2) Pre-check blockers/warnings (you said defaults should be strict at scheduling time)
+  await this.enforcePrechecksStrict(branchId, dto);
 
-    const res = await this.prisma.unitResource.findFirst({
-      where: { id: dto.resourceId, branchId, isActive: true, isSchedulable: true },
-      select: { id: true },
-    });
-    if (!res) throw new BadRequestException("Invalid resourceId (must be schedulable and active)");
+  // 3) Validate resource belongs to SAME branch + SAME unit, is active and schedulable
+  const res = await this.prisma.unitResource.findFirst({
+    where: {
+      id: dto.resourceId,
+      branchId,
+      unitId: dto.unitId, // important: prevents scheduling a resource from another unit
+      isActive: true,
+      isSchedulable: true,
+    },
+    select: { id: true },
+  });
+  if (!res) throw new BadRequestException("Invalid resourceId (must be schedulable, active, and belong to the selected unit)");
 
-    const startAt = new Date(dto.startAt);
-    const endAt = new Date(dto.endAt);
-    if (!(startAt < endAt)) throw new BadRequestException("Invalid time window (startAt must be before endAt)");
-
-    // Conflict detection
-    const existing = await this.prisma.procedureBooking.findMany({
-      where: {
-        branchId,
-        resourceId: dto.resourceId,
-        status: "SCHEDULED" as any,
-        OR: [
-          { startAt: { lt: endAt }, endAt: { gt: startAt } }, // overlap
-        ],
-      },
-      select: { id: true, startAt: true, endAt: true },
-      take: 1,
-    });
-    if (existing.length) throw new BadRequestException("Scheduling conflict detected for this resource.");
-
-    const booking = await this.prisma.procedureBooking.create({
-      data: {
-        branchId,
-        unitId: dto.unitId,
-        resourceId: dto.resourceId,
-        patientId: dto.patientId ?? null,
-        departmentId: dto.departmentId ?? null,
-        startAt,
-        endAt,
-        status: "SCHEDULED" as any,
-        consentOk: dto.consentOk,
-        anesthesiaOk: dto.anesthesiaOk,
-        checklistOk: dto.checklistOk,
-        createdByUserId: principal.userId,
-      },
-    });
-
-    await this.audit.log({ branchId, actorUserId: principal.userId, action: "INFRA_SCHED_CREATE", entity: "ProcedureBooking", entityId: booking.id, meta: dto });
-    return booking;
+  // 4) Validate time window
+  const startAt = new Date(dto.startAt);
+  const endAt = new Date(dto.endAt);
+  if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
+    throw new BadRequestException("Invalid startAt/endAt");
+  }
+  if (!(startAt < endAt)) {
+    throw new BadRequestException("Invalid time window (startAt must be before endAt)");
   }
 
+  // 5) Conflict detection (strict)
+  const conflict = await this.prisma.procedureBooking.findFirst({
+    where: {
+      branchId,
+      resourceId: dto.resourceId,
+      status: "SCHEDULED" as any,
+      // overlap condition: existing.start < new.end && existing.end > new.start
+      startAt: { lt: endAt },
+      endAt: { gt: startAt },
+    },
+    select: { id: true, startAt: true, endAt: true },
+  });
+  if (conflict) {
+    throw new BadRequestException("Scheduling conflict detected for this resource.");
+  }
+
+  // 6) Create booking
+  const booking = await this.prisma.procedureBooking.create({
+    data: {
+      branchId,
+      unitId: dto.unitId,
+      resourceId: dto.resourceId,
+      patientId: dto.patientId ?? null,
+      departmentId: dto.departmentId ?? null,
+      startAt,
+      endAt,
+      status: "SCHEDULED" as any,
+
+      // strict defaults: treat undefined as false
+      consentOk: !!dto.consentOk,
+      anesthesiaOk: !!dto.anesthesiaOk,
+      checklistOk: !!dto.checklistOk,
+
+      createdByUserId: principal.userId,
+    },
+  });
+
+  await this.audit.log({
+    branchId,
+    actorUserId: principal.userId,
+    action: "INFRA_SCHED_CREATE",
+    entity: "ProcedureBooking",
+    entityId: booking.id,
+    meta: {
+      unitId: dto.unitId,
+      resourceId: dto.resourceId,
+      startAt: dto.startAt,
+      endAt: dto.endAt,
+      patientId: dto.patientId ?? null,
+      departmentId: dto.departmentId ?? null,
+      consentOk: !!dto.consentOk,
+      anesthesiaOk: !!dto.anesthesiaOk,
+      checklistOk: !!dto.checklistOk,
+    },
+  });
+
+  return booking;
+}
+
+
   async cancelBooking(principal: Principal, id: string, reason: string) {
-    const branchId = this.resolveBranchId(principal, null);
+    const bookingAny = await this.prisma.procedureBooking.findUnique({
+      where: { id },
+      select: { id: true, branchId: true, status: true },
+    });
+    if (!bookingAny) throw new NotFoundException("Booking not found");
+
+    const branchId = this.resolveBranchId(principal, bookingAny.branchId);
+
 
     const booking = await this.prisma.procedureBooking.findFirst({ where: { id, branchId }, select: { id: true, status: true } });
     if (!booking) throw new NotFoundException("Booking not found");
@@ -1004,8 +1139,8 @@ export class InfrastructureService {
   // Imports (validate + commit): backend validates; UI parses CSV/XLS to JSON rows.
   // ---------------------------------------------------------------------------
 
-  async validateImport(principal: Principal, dto: ValidateImportDto) {
-    const branchId = this.resolveBranchId(principal, null);
+  async validateImport(principal: Principal, dto: ValidateImportDto, branchIdParam: string) {
+    const branchId = this.resolveBranchId(principal, branchIdParam ?? null);
 
     const rows = Array.isArray(dto.rows) ? dto.rows : [];
     if (!rows.length) throw new BadRequestException("No rows provided");
@@ -1059,60 +1194,88 @@ export class InfrastructureService {
   }
 
   async commitImport(principal: Principal, jobId: string) {
-    const branchId = this.resolveBranchId(principal, null);
+  const jobAny = await this.prisma.bulkImportJob.findUnique({
+    where: { id: jobId },
+    select: { id: true, branchId: true, status: true, entityType: true, payload: true, errors: true },
+  });
+  if (!jobAny) throw new NotFoundException("Import job not found");
 
-    const job = await this.prisma.bulkImportJob.findFirst({ where: { id: jobId, branchId }, select: { id: true, status: true, entityType: true, payload: true, errors: true } });
-    if (!job) throw new NotFoundException("Import job not found");
-    if (job.status !== ("VALIDATED" as any)) throw new BadRequestException("Import job must be VALIDATED before COMMIT");
+  const branchId = this.resolveBranchId(principal, jobAny.branchId);
 
-    const rows = (job.payload as any[]) || [];
-    const errors = (job.errors as any[]) || [];
-    if (errors.length) throw new BadRequestException("Fix validation errors before committing");
-
-    await this.prisma.$transaction(async (tx) => {
-      if (job.entityType === "UNITS") {
-        for (const r of rows) {
-          await tx.unit.create({
-            data: {
-              branchId,
-              departmentId: r.departmentId,
-              unitTypeId: r.unitTypeId,
-              code: assertUnitCode(r.code),
-              name: String(r.name).trim(),
-              usesRooms: r.usesRooms ?? true,
-              isActive: r.isActive ?? true,
-            },
-          });
-        }
-      }
-
-      if (job.entityType === "CHARGE_MASTER") {
-        for (const r of rows) {
-          await tx.chargeMasterItem.upsert({
-            where: { branchId_code: { branchId, code: canonicalizeCode(r.code) } } as any,
-            update: { name: String(r.name).trim(), category: r.category ?? null, unit: r.unit ?? null, isActive: r.isActive ?? true },
-            create: { branchId, code: canonicalizeCode(r.code), name: String(r.name).trim(), category: r.category ?? null, unit: r.unit ?? null, isActive: r.isActive ?? true },
-          });
-        }
-      }
-
-      await tx.bulkImportJob.update({
-        where: { id: jobId },
-        data: { status: "COMMITTED" as any, committedAt: new Date() },
-      });
-    });
-
-    await this.audit.log({ branchId, actorUserId: principal.userId, action: "INFRA_IMPORT_COMMIT", entity: "BulkImportJob", entityId: jobId, meta: { entityType: job.entityType, rows: rows.length } });
-
-    return { ok: true, jobId };
+  if (jobAny.status !== ("VALIDATED" as any)) {
+    throw new BadRequestException("Import job must be VALIDATED before COMMIT");
   }
+
+  const rows = (jobAny.payload as any[]) || [];
+  const errors = (jobAny.errors as any[]) || [];
+  if (errors.length) throw new BadRequestException("Fix validation errors before committing");
+
+  const entityType = jobAny.entityType as any;
+
+  await this.prisma.$transaction(async (tx) => {
+    if (entityType === "UNITS") {
+      for (const r of rows) {
+        await tx.unit.create({
+          data: {
+            branchId,
+            departmentId: r.departmentId,
+            unitTypeId: r.unitTypeId,
+            code: assertUnitCode(r.code),
+            name: String(r.name).trim(),
+            usesRooms: r.usesRooms ?? true,
+            isActive: r.isActive ?? true,
+          },
+        });
+      }
+    } else if (entityType === "CHARGE_MASTER") {
+      for (const r of rows) {
+        await tx.chargeMasterItem.upsert({
+          where: { branchId_code: { branchId, code: canonicalizeCode(r.code) } } as any,
+          update: {
+            name: String(r.name).trim(),
+            category: r.category ?? null,
+            unit: r.unit ?? null,
+            isActive: r.isActive ?? true,
+          },
+          create: {
+            branchId,
+            code: canonicalizeCode(r.code),
+            name: String(r.name).trim(),
+            category: r.category ?? null,
+            unit: r.unit ?? null,
+            isActive: r.isActive ?? true,
+          },
+        });
+      }
+    } else {
+      throw new BadRequestException(`Unsupported import entityType: ${entityType}`);
+    }
+
+    await tx.bulkImportJob.update({
+      where: { id: jobId },
+      data: { status: "COMMITTED" as any, committedAt: new Date() },
+    });
+  });
+
+  await this.audit.log({
+    branchId,
+    actorUserId: principal.userId,
+    action: "INFRA_IMPORT_COMMIT",
+    entity: "BulkImportJob",
+    entityId: jobId,
+    meta: { jobId, entityType },
+  });
+
+  return { jobId, status: "COMMITTED" };
+}
+
 
   // ---------------------------------------------------------------------------
   // Go-Live Validator (preview + snapshot)
   // ---------------------------------------------------------------------------
 
-  async runGoLive(principal: Principal, dto: RunGoLiveDto) {
-    const branchId = this.resolveBranchId(principal, null);
+  async runGoLive(principal: Principal, dto: RunGoLiveDto, branchIdParam: string) {
+    const branchId = this.resolveBranchId(principal, branchIdParam ?? null);
 
     const [
       enabledUnitTypes,
@@ -1186,4 +1349,6 @@ export class InfrastructureService {
 
     return out;
   }
+
+
 }

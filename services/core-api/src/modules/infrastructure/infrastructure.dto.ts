@@ -214,11 +214,11 @@ export class CreateEquipmentAssetDto {
   @IsIn(["GENERAL", "RADIOLOGY", "ULTRASOUND"])
   category!: "GENERAL" | "RADIOLOGY" | "ULTRASOUND";
 
-  @IsOptional() @IsString() make?: string;
-  @IsOptional() @IsString() model?: string;
-  @IsOptional() @IsString() serial?: string;
+  @IsString() make!: string;
+  @IsString() model!: string;
+  @IsString() serial!: string;
 
-  @IsOptional() @IsString() ownerDepartmentId?: string | null;
+  @IsString() ownerDepartmentId!: string;
   @IsOptional() @IsString() unitId?: string | null;
   @IsOptional() @IsString() roomId?: string | null;
   @IsOptional() @IsString() locationNodeId?: string | null;
@@ -245,7 +245,7 @@ export class CreateEquipmentAssetDto {
   isSchedulable?: boolean;
 }
 
-export class UpdateEquipmentAssetDto extends PartialType(CreateEquipmentAssetDto) {}
+export class UpdateEquipmentAssetDto extends PartialType(CreateEquipmentAssetDto) { }
 
 
 

@@ -66,6 +66,11 @@ export class IamSeedService implements OnModuleInit {
       { code: PERM.GOV_POLICY_SUBMIT, name: "Submit policy changes", category: "Governance" },
       { code: PERM.GOV_POLICY_APPROVE, name: "Approve policy changes", category: "Governance" },
       { code: PERM.GOV_POLICY_AUDIT_READ, name: "Read policy audit", category: "Governance" },
+      { code: PERM.INFRA_LOCATION_READ, name: "Read locations", category: "Infrastructure" },
+      { code: PERM.INFRA_LOCATION_CREATE, name: "Create locations", category: "Infrastructure" },
+      { code: PERM.INFRA_LOCATION_REVISE, name: "Revise locations (effective-dated)", category: "Infrastructure" },
+      { code: PERM.INFRA_LOCATION_RETIRE, name: "Retire locations (end-date)", category: "Infrastructure" },
+
     ];
 
     for (const p of permissions) {
@@ -129,6 +134,11 @@ export class IamSeedService implements OnModuleInit {
               PERM.DEPARTMENT_SPECIALTY_READ,
               PERM.SPECIALTY_READ,
               PERM.STAFF_READ,
+              PERM.INFRA_LOCATION_READ,
+              PERM.INFRA_LOCATION_CREATE,
+              PERM.INFRA_LOCATION_REVISE,
+              PERM.INFRA_LOCATION_RETIRE,
+
             ];
 
 
