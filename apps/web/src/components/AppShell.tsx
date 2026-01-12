@@ -494,7 +494,7 @@ export function AppShell({
           </div>
           <div className="flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 py-2.5 text-[10px] text-zinc-500">
              <div>Use arrow keys to navigate</div>
-             <div>ZypoCare One v4.2</div>
+             <div>Zypocare OS v4.2</div>
           </div>
         </DialogContent>
       </Dialog>
@@ -534,7 +534,7 @@ export function AppShell({
                     collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
                   )}
                 >
-                  <div className="truncate text-sm font-semibold tracking-tight">ZypoCare One</div>
+                  <div className="truncate text-sm font-semibold tracking-tight">ExcelCare</div>
                   <div className="mt-0.5 truncate text-xs text-xc-muted">
                     {user?.role ? user.role.replaceAll("_", " ") : "SUPER ADMIN"}
                   </div>

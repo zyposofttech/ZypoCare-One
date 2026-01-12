@@ -499,6 +499,226 @@ exports.Prisma.PolicyVersionBranchScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.LocationNodeScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  kind: 'kind',
+  parentId: 'parentId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.LocationNodeRevisionScalarFieldEnum = {
+  id: 'id',
+  nodeId: 'nodeId',
+  code: 'code',
+  name: 'name',
+  isActive: 'isActive',
+  effectiveFrom: 'effectiveFrom',
+  effectiveTo: 'effectiveTo',
+  createdByUserId: 'createdByUserId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.UnitTypeCatalogScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  usesRoomsDefault: 'usesRoomsDefault',
+  schedulableByDefault: 'schedulableByDefault',
+  sortOrder: 'sortOrder',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BranchUnitTypeScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  unitTypeId: 'unitTypeId',
+  isEnabled: 'isEnabled',
+  enabledAt: 'enabledAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.UnitScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  departmentId: 'departmentId',
+  unitTypeId: 'unitTypeId',
+  code: 'code',
+  name: 'name',
+  usesRooms: 'usesRooms',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.UnitRoomScalarFieldEnum = {
+  id: 'id',
+  unitId: 'unitId',
+  branchId: 'branchId',
+  code: 'code',
+  name: 'name',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.UnitResourceScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  unitId: 'unitId',
+  roomId: 'roomId',
+  resourceType: 'resourceType',
+  code: 'code',
+  name: 'name',
+  state: 'state',
+  isActive: 'isActive',
+  isSchedulable: 'isSchedulable',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EquipmentAssetScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  code: 'code',
+  name: 'name',
+  category: 'category',
+  make: 'make',
+  model: 'model',
+  serial: 'serial',
+  ownerDepartmentId: 'ownerDepartmentId',
+  unitId: 'unitId',
+  roomId: 'roomId',
+  locationNodeId: 'locationNodeId',
+  operationalStatus: 'operationalStatus',
+  amcVendor: 'amcVendor',
+  amcValidFrom: 'amcValidFrom',
+  amcValidTo: 'amcValidTo',
+  warrantyValidTo: 'warrantyValidTo',
+  pmFrequencyDays: 'pmFrequencyDays',
+  nextPmDueAt: 'nextPmDueAt',
+  aerbLicenseNo: 'aerbLicenseNo',
+  aerbValidTo: 'aerbValidTo',
+  pcpndtRegNo: 'pcpndtRegNo',
+  pcpndtValidTo: 'pcpndtValidTo',
+  isSchedulable: 'isSchedulable',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DowntimeTicketScalarFieldEnum = {
+  id: 'id',
+  assetId: 'assetId',
+  status: 'status',
+  reason: 'reason',
+  notes: 'notes',
+  openedAt: 'openedAt',
+  closedAt: 'closedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ChargeMasterItemScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  code: 'code',
+  name: 'name',
+  category: 'category',
+  unit: 'unit',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ServiceItemScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  code: 'code',
+  name: 'name',
+  category: 'category',
+  unit: 'unit',
+  isOrderable: 'isOrderable',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ServiceChargeMappingScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  serviceItemId: 'serviceItemId',
+  chargeMasterItemId: 'chargeMasterItemId',
+  effectiveFrom: 'effectiveFrom',
+  effectiveTo: 'effectiveTo',
+  version: 'version',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.FixItTaskScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  type: 'type',
+  status: 'status',
+  title: 'title',
+  details: 'details',
+  serviceItemId: 'serviceItemId',
+  assignedToUserId: 'assignedToUserId',
+  resolvedAt: 'resolvedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BulkImportJobScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  entityType: 'entityType',
+  status: 'status',
+  fileName: 'fileName',
+  payload: 'payload',
+  errors: 'errors',
+  totalRows: 'totalRows',
+  validRows: 'validRows',
+  invalidRows: 'invalidRows',
+  createdByUserId: 'createdByUserId',
+  committedAt: 'committedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ProcedureBookingScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  unitId: 'unitId',
+  resourceId: 'resourceId',
+  patientId: 'patientId',
+  departmentId: 'departmentId',
+  startAt: 'startAt',
+  endAt: 'endAt',
+  status: 'status',
+  consentOk: 'consentOk',
+  anesthesiaOk: 'anesthesiaOk',
+  checklistOk: 'checklistOk',
+  createdByUserId: 'createdByUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.GoLiveReportScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  score: 'score',
+  blockers: 'blockers',
+  warnings: 'warnings',
+  snapshot: 'snapshot',
+  createdByUserId: 'createdByUserId',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -597,6 +817,85 @@ exports.PolicyVersionStatus = exports.$Enums.PolicyVersionStatus = {
   RETIRED: 'RETIRED'
 };
 
+exports.LocationKind = exports.$Enums.LocationKind = {
+  CAMPUS: 'CAMPUS',
+  BUILDING: 'BUILDING',
+  FLOOR: 'FLOOR',
+  ZONE: 'ZONE'
+};
+
+exports.UnitResourceType = exports.$Enums.UnitResourceType = {
+  BED: 'BED',
+  BAY: 'BAY',
+  CHAIR: 'CHAIR',
+  OT_TABLE: 'OT_TABLE',
+  PROCEDURE_TABLE: 'PROCEDURE_TABLE',
+  DIALYSIS_STATION: 'DIALYSIS_STATION',
+  RECOVERY_BAY: 'RECOVERY_BAY',
+  EXAM_SLOT: 'EXAM_SLOT',
+  INCUBATOR: 'INCUBATOR'
+};
+
+exports.UnitResourceState = exports.$Enums.UnitResourceState = {
+  AVAILABLE: 'AVAILABLE',
+  OCCUPIED: 'OCCUPIED',
+  CLEANING: 'CLEANING',
+  MAINTENANCE: 'MAINTENANCE',
+  INACTIVE: 'INACTIVE'
+};
+
+exports.EquipmentComplianceCategory = exports.$Enums.EquipmentComplianceCategory = {
+  GENERAL: 'GENERAL',
+  RADIOLOGY: 'RADIOLOGY',
+  ULTRASOUND: 'ULTRASOUND'
+};
+
+exports.EquipmentOperationalStatus = exports.$Enums.EquipmentOperationalStatus = {
+  OPERATIONAL: 'OPERATIONAL',
+  DOWN: 'DOWN',
+  MAINTENANCE: 'MAINTENANCE',
+  RETIRED: 'RETIRED'
+};
+
+exports.DowntimeStatus = exports.$Enums.DowntimeStatus = {
+  OPEN: 'OPEN',
+  CLOSED: 'CLOSED'
+};
+
+exports.FixItType = exports.$Enums.FixItType = {
+  SERVICE_CHARGE_MAPPING_MISSING: 'SERVICE_CHARGE_MAPPING_MISSING'
+};
+
+exports.FixItStatus = exports.$Enums.FixItStatus = {
+  OPEN: 'OPEN',
+  IN_PROGRESS: 'IN_PROGRESS',
+  RESOLVED: 'RESOLVED',
+  DISMISSED: 'DISMISSED'
+};
+
+exports.ImportEntityType = exports.$Enums.ImportEntityType = {
+  LOCATIONS: 'LOCATIONS',
+  UNITS: 'UNITS',
+  ROOMS: 'ROOMS',
+  RESOURCES: 'RESOURCES',
+  EQUIPMENT: 'EQUIPMENT',
+  SERVICE_ITEMS: 'SERVICE_ITEMS',
+  CHARGE_MASTER: 'CHARGE_MASTER'
+};
+
+exports.ImportJobStatus = exports.$Enums.ImportJobStatus = {
+  DRAFT: 'DRAFT',
+  VALIDATED: 'VALIDATED',
+  COMMITTED: 'COMMITTED',
+  FAILED: 'FAILED'
+};
+
+exports.BookingStatus = exports.$Enums.BookingStatus = {
+  SCHEDULED: 'SCHEDULED',
+  CANCELLED: 'CANCELLED',
+  COMPLETED: 'COMPLETED'
+};
+
 exports.Prisma.ModelName = {
   Branch: 'Branch',
   FacilityCatalog: 'FacilityCatalog',
@@ -629,7 +928,23 @@ exports.Prisma.ModelName = {
   RoleTemplatePermission: 'RoleTemplatePermission',
   PolicyDefinition: 'PolicyDefinition',
   PolicyVersion: 'PolicyVersion',
-  PolicyVersionBranch: 'PolicyVersionBranch'
+  PolicyVersionBranch: 'PolicyVersionBranch',
+  LocationNode: 'LocationNode',
+  LocationNodeRevision: 'LocationNodeRevision',
+  UnitTypeCatalog: 'UnitTypeCatalog',
+  BranchUnitType: 'BranchUnitType',
+  Unit: 'Unit',
+  UnitRoom: 'UnitRoom',
+  UnitResource: 'UnitResource',
+  EquipmentAsset: 'EquipmentAsset',
+  DowntimeTicket: 'DowntimeTicket',
+  ChargeMasterItem: 'ChargeMasterItem',
+  ServiceItem: 'ServiceItem',
+  ServiceChargeMapping: 'ServiceChargeMapping',
+  FixItTask: 'FixItTask',
+  BulkImportJob: 'BulkImportJob',
+  ProcedureBooking: 'ProcedureBooking',
+  GoLiveReport: 'GoLiveReport'
 };
 
 /**

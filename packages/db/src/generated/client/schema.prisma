@@ -91,8 +91,22 @@ model Branch {
   auditEvents      AuditEvent[]
 
   // ✅ Policy Governance (opposite relations)
-  policyVersions        PolicyVersion[]       @relation("PolicyVersion_Branch")
-  policyVersionBranches PolicyVersionBranch[] @relation("PolicyTarget_Branch")
+  policyVersions        PolicyVersion[]        @relation("PolicyVersion_Branch")
+  policyVersionBranches PolicyVersionBranch[]  @relation("PolicyTarget_Branch")
+  // ---------------- Infrastructure (Setup Studio) ----------------
+  locationNodes         LocationNode[]
+  unitTypesEnabled      BranchUnitType[]
+  units                 Unit[]
+  unitRooms             UnitRoom[]
+  unitResources         UnitResource[]
+  equipmentAssets       EquipmentAsset[]
+  serviceItems          ServiceItem[]
+  chargeMasterItems     ChargeMasterItem[]
+  serviceMappings       ServiceChargeMapping[]
+  fixItTasks            FixItTask[]
+  importJobs            BulkImportJob[]
+  procedureBookings     ProcedureBooking[]
+  goLiveReports         GoLiveReport[]
 }
 
 model FacilityCatalog {
@@ -157,6 +171,10 @@ model Department {
   departmentSpecialties DepartmentSpecialty[]
 
   doctorAssignments DepartmentDoctor[]
+
+  // ---------------- Infrastructure (Setup Studio) ----------------
+  units          Unit[]
+  equipmentOwned EquipmentAsset[] @relation("EquipmentOwnerDepartment")
 
   @@unique([branchId, facilityId, code])
   @@index([branchId, facilityId, isActive])
@@ -290,6 +308,13 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // ---------------- Infrastructure (Setup Studio) ----------------
+  createdLocationRevisions LocationNodeRevision[] @relation("LocationRevisionCreatedBy")
+  createdImportJobs        BulkImportJob[]        @relation("ImportJobCreatedBy")
+  assignedFixIts           FixItTask[]            @relation("FixItAssignedTo")
+  createdBookings          ProcedureBooking[]     @relation("BookingCreatedBy")
+  createdGoLiveReports     GoLiveReport[]         @relation("GoLiveCreatedBy")
 }
 
 model Patient {
@@ -757,4 +782,530 @@ model PolicyVersionBranch {
 
   @@unique([policyVersionId, branchId])
   @@index([branchId])
+}
+
+// ---------------------------------------------------------------------------
+// Infrastructure / Setup Studio (Admin Branch Onboarding)
+// ---------------------------------------------------------------------------
+
+enum LocationKind {
+  CAMPUS
+  BUILDING
+  FLOOR
+  ZONE
+}
+
+model LocationNode {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  kind LocationKind
+
+  parentId String?
+  parent   LocationNode?  @relation("LocationParent", fields: [parentId], references: [id], onDelete: SetNull)
+  children LocationNode[] @relation("LocationParent")
+
+  revisions LocationNodeRevision[]
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  EquipmentAsset EquipmentAsset[]
+
+  @@index([branchId, kind])
+  @@index([branchId, parentId])
+}
+
+model LocationNodeRevision {
+  id     String       @id @default(cuid())
+  nodeId String
+  node   LocationNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  // Effective-dated identity + label
+  code String @db.VarChar(64)
+  name String @db.VarChar(160)
+
+  isActive Boolean @default(true)
+
+  // Effective dating
+  effectiveFrom DateTime  @default(now())
+  effectiveTo   DateTime?
+
+  createdByUserId String?
+  createdByUser   User?   @relation("LocationRevisionCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([nodeId, effectiveFrom])
+  @@index([code])
+}
+
+// ---------------- Unit Types Enablement ----------------
+
+model UnitTypeCatalog {
+  id   String @id @default(cuid())
+  code String @unique @db.VarChar(16) // e.g., WARD, ICU, OT, LAB, IMAG
+  name String @db.VarChar(120)
+
+  // Defaults for UI + validation
+  usesRoomsDefault     Boolean @default(true)
+  schedulableByDefault Boolean @default(false)
+
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branchLinks BranchUnitType[]
+  units       Unit[]
+
+  @@index([isActive, sortOrder])
+}
+
+model BranchUnitType {
+  id String @id @default(cuid())
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  unitTypeId String
+  unitType   UnitTypeCatalog @relation(fields: [unitTypeId], references: [id], onDelete: Cascade)
+
+  isEnabled Boolean  @default(true)
+  enabledAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([branchId, unitTypeId])
+  @@index([branchId, isEnabled])
+}
+
+// ---------------- Units / Rooms / Resources ----------------
+
+enum UnitResourceType {
+  BED
+  BAY
+  CHAIR
+  OT_TABLE
+  PROCEDURE_TABLE
+  DIALYSIS_STATION
+  RECOVERY_BAY
+  EXAM_SLOT
+  INCUBATOR
+}
+
+enum UnitResourceState {
+  AVAILABLE
+  OCCUPIED
+  CLEANING
+  MAINTENANCE
+  INACTIVE
+}
+
+model Unit {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+
+  unitTypeId String
+  unitType   UnitTypeCatalog @relation(fields: [unitTypeId], references: [id], onDelete: Restrict)
+
+  code String @db.VarChar(48) // e.g., WARD-MED-01
+  name String @db.VarChar(160)
+
+  usesRooms Boolean @default(true)
+  isActive  Boolean @default(true)
+
+  rooms     UnitRoom[]
+  resources UnitResource[] // open-bay resources (roomId null)
+
+  equipment EquipmentAsset[]
+  bookings  ProcedureBooking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([branchId, code])
+  @@index([branchId, departmentId, isActive])
+  @@index([branchId, unitTypeId, isActive])
+}
+
+model UnitRoom {
+  id     String @id @default(cuid())
+  unitId String
+  unit   Unit   @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  // Convenience for scoping + search
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  code String @db.VarChar(64) // e.g., WARD-MED-01-R012
+  name String @db.VarChar(160)
+
+  isActive Boolean @default(true)
+
+  resources UnitResource[]
+  equipment EquipmentAsset[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([unitId, code])
+  @@index([branchId, unitId, isActive])
+}
+
+model UnitResource {
+  id String @id @default(cuid())
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  unitId String
+  unit   Unit   @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  roomId String?
+  room   UnitRoom? @relation(fields: [roomId], references: [id], onDelete: SetNull)
+
+  resourceType UnitResourceType
+  code         String           @db.VarChar(80) // e.g., WARD-MED-01-R012-B001 or WARD-MED-01-B001
+  name         String           @db.VarChar(160)
+
+  state         UnitResourceState @default(AVAILABLE)
+  isActive      Boolean           @default(true)
+  isSchedulable Boolean           @default(false)
+
+  bookings ProcedureBooking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Uniqueness depends on mode:
+  // - room-mode: unique(roomId, code)
+  // - open-bay: unique(unitId, code) when roomId is null
+  @@unique([unitId, code])
+  @@index([branchId, unitId, roomId, isActive])
+  @@index([branchId, resourceType, state])
+}
+
+// ---------------- Equipment Register ----------------
+
+enum EquipmentOperationalStatus {
+  OPERATIONAL
+  DOWN
+  MAINTENANCE
+  RETIRED
+}
+
+enum EquipmentComplianceCategory {
+  GENERAL
+  RADIOLOGY
+  ULTRASOUND
+}
+
+model EquipmentAsset {
+  id String @id @default(cuid())
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  code String @db.VarChar(64)
+  name String @db.VarChar(160)
+
+  category EquipmentComplianceCategory @default(GENERAL)
+
+  make   String? @db.VarChar(120)
+  model  String? @db.VarChar(120)
+  serial String? @db.VarChar(120)
+
+  ownerDepartmentId String?
+  ownerDepartment   Department? @relation("EquipmentOwnerDepartment", fields: [ownerDepartmentId], references: [id], onDelete: SetNull)
+
+  unitId String?
+  unit   Unit?   @relation(fields: [unitId], references: [id], onDelete: SetNull)
+
+  roomId String?
+  room   UnitRoom? @relation(fields: [roomId], references: [id], onDelete: SetNull)
+
+  locationNodeId String?
+  locationNode   LocationNode? @relation(fields: [locationNodeId], references: [id], onDelete: SetNull)
+
+  operationalStatus EquipmentOperationalStatus @default(OPERATIONAL)
+
+  // Maintenance / Contracts
+  amcVendor       String?   @db.VarChar(160)
+  amcValidFrom    DateTime?
+  amcValidTo      DateTime?
+  warrantyValidTo DateTime?
+  pmFrequencyDays Int?
+  nextPmDueAt     DateTime?
+
+  // Compliance (Hard blockers for schedulable)
+  aerbLicenseNo String?   @db.VarChar(64)
+  aerbValidTo   DateTime?
+  pcpndtRegNo   String?   @db.VarChar(64)
+  pcpndtValidTo DateTime?
+
+  isSchedulable Boolean @default(false)
+
+  downtimeTickets DowntimeTicket[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([branchId, code])
+  @@index([branchId, category, operationalStatus])
+  @@index([branchId, unitId, roomId])
+}
+
+enum DowntimeStatus {
+  OPEN
+  CLOSED
+}
+
+model DowntimeTicket {
+  id String @id @default(cuid())
+
+  assetId String
+  asset   EquipmentAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  status DowntimeStatus @default(OPEN)
+  reason String         @db.VarChar(240)
+  notes  String?
+
+  openedAt DateTime  @default(now())
+  closedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([assetId, status])
+}
+
+// ---------------- Service Catalog + Charge Master + Mapping ----------------
+
+model ChargeMasterItem {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  code String @db.VarChar(64)
+  name String @db.VarChar(160)
+
+  category String? @db.VarChar(120)
+  unit     String? @db.VarChar(40)
+
+  isActive Boolean @default(true)
+
+  mappings ServiceChargeMapping[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([branchId, code])
+  @@index([branchId, isActive])
+}
+
+model ServiceItem {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  code String @db.VarChar(64)
+  name String @db.VarChar(160)
+
+  category String  @db.VarChar(120)
+  unit     String? @db.VarChar(40)
+
+  isOrderable Boolean @default(true)
+  isActive    Boolean @default(true)
+
+  mappings ServiceChargeMapping[]
+  fixIts   FixItTask[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([branchId, code])
+  @@index([branchId, category, isActive])
+}
+
+model ServiceChargeMapping {
+  id String @id @default(cuid())
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  serviceItemId String
+  serviceItem   ServiceItem @relation(fields: [serviceItemId], references: [id], onDelete: Cascade)
+
+  chargeMasterItemId String
+  chargeMasterItem   ChargeMasterItem @relation(fields: [chargeMasterItemId], references: [id], onDelete: Cascade)
+
+  effectiveFrom DateTime  @default(now())
+  effectiveTo   DateTime?
+
+  version Int @default(1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([branchId, serviceItemId, effectiveFrom])
+  @@index([branchId, chargeMasterItemId])
+}
+
+// ---------------- Fix-It Queue ----------------
+
+enum FixItType {
+  SERVICE_CHARGE_MAPPING_MISSING
+}
+
+enum FixItStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  DISMISSED
+}
+
+model FixItTask {
+  id String @id @default(cuid())
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  type   FixItType
+  status FixItStatus @default(OPEN)
+
+  title   String @db.VarChar(200)
+  details Json?
+
+  serviceItemId String?
+  serviceItem   ServiceItem? @relation(fields: [serviceItemId], references: [id], onDelete: SetNull)
+
+  assignedToUserId String?
+  assignedToUser   User?   @relation("FixItAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+
+  resolvedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([branchId, status, type])
+  @@index([serviceItemId])
+}
+
+// ---------------- Bulk Import Jobs ----------------
+
+enum ImportEntityType {
+  LOCATIONS
+  UNITS
+  ROOMS
+  RESOURCES
+  EQUIPMENT
+  SERVICE_ITEMS
+  CHARGE_MASTER
+}
+
+enum ImportJobStatus {
+  DRAFT
+  VALIDATED
+  COMMITTED
+  FAILED
+}
+
+model BulkImportJob {
+  id String @id @default(cuid())
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  entityType ImportEntityType
+  status     ImportJobStatus  @default(DRAFT)
+
+  fileName String?
+  payload  Json? // raw rows
+  errors   Json? // row-wise errors
+
+  totalRows   Int @default(0)
+  validRows   Int @default(0)
+  invalidRows Int @default(0)
+
+  createdByUserId String?
+  createdByUser   User?   @relation("ImportJobCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  committedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([branchId, entityType, status])
+}
+
+// ---------------- Scheduling (OT / Procedure-capable Units) ----------------
+
+enum BookingStatus {
+  SCHEDULED
+  CANCELLED
+  COMPLETED
+}
+
+model ProcedureBooking {
+  id String @id @default(cuid())
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  unitId String
+  unit   Unit   @relation(fields: [unitId], references: [id], onDelete: Restrict)
+
+  resourceId String
+  resource   UnitResource @relation(fields: [resourceId], references: [id], onDelete: Restrict)
+
+  // Optional linkage for future
+  patientId    String?
+  departmentId String?
+
+  startAt DateTime
+  endAt   DateTime
+
+  status BookingStatus @default(SCHEDULED)
+
+  // Strict at scheduling time (default)
+  consentOk    Boolean @default(false)
+  anesthesiaOk Boolean @default(false)
+  checklistOk  Boolean @default(false)
+
+  createdByUserId String?
+  createdByUser   User?   @relation("BookingCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([branchId, unitId, resourceId, startAt, endAt])
+  @@index([status])
+}
+
+// ---------------- Go-Live Validator Snapshot ----------------
+
+model GoLiveReport {
+  id String @id @default(cuid())
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  score    Int
+  blockers Json
+  warnings Json
+  snapshot Json
+
+  createdByUserId String?
+  createdByUser   User?   @relation("GoLiveCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([branchId, createdAt])
 }
