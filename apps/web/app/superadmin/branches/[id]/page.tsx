@@ -18,71 +18,119 @@ import { IconBuilding, IconChevronRight } from "@/components/icons";
 import {
   AlertTriangle,
   ArrowLeft,
+  Building2,
   Check,
   CheckCircle2,
+  ClipboardList,
   Copy,
-  Mail,
+  Layers,
   MapPin,
   Pencil,
-  Phone,
   RefreshCw,
   ShieldCheck,
   Trash2,
-  Users,
-  Layers,
-  BedDouble,
-  FlaskConical,
-  ClipboardList,
+  Wand2,
 } from "lucide-react";
 
-// --- Types ---
-type BranchCounts = {
-  users?: number;
-  departments?: number;
-  patients?: number;
-  wards?: number;
-  oTs?: number;
-  beds?: number;
-};
+// ---------------- Types ----------------
+
+type BranchCounts = Record<string, number | undefined>;
 
 type BranchRow = {
   id: string;
   code: string;
   name: string;
   city: string;
+
+  gstNumber?: string | null;
+
   address?: string | null;
   contactPhone1?: string | null;
   contactPhone2?: string | null;
   contactEmail?: string | null;
+
   createdAt?: string;
   updatedAt?: string;
+
   _count?: BranchCounts;
+
+  // fallback if API sends direct counts
+  facilitiesCount?: number;
+  departmentsCount?: number;
+  specialtiesCount?: number;
 };
 
 type BranchForm = {
   name: string;
   city: string;
+  gstNumber: string;
   address: string;
   contactPhone1: string;
   contactPhone2: string;
   contactEmail: string;
 };
 
-// --- Utilities ---
+// ---------------- Utilities ----------------
+
 const pillTones = {
-  indigo:
-    "border-indigo-200/70 bg-indigo-50/70 text-indigo-700 dark:border-indigo-900/40 dark:bg-indigo-900/20 dark:text-indigo-200",
+  sky: "border-sky-200/70 bg-sky-50/70 text-sky-700 dark:border-sky-900/40 dark:bg-sky-900/20 dark:text-sky-200",
   emerald:
     "border-emerald-200/70 bg-emerald-50/70 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200",
+  violet:
+    "border-violet-200/70 bg-violet-50/70 text-violet-700 dark:border-violet-900/40 dark:bg-violet-900/20 dark:text-violet-200",
+  zinc: "border-zinc-200/70 bg-zinc-50/70 text-zinc-700 dark:border-zinc-800/60 dark:bg-zinc-900/30 dark:text-zinc-200",
   amber:
-    "border-amber-200/70 bg-amber-50/70 text-amber-700 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200",
-  rose:
-    "border-rose-200/70 bg-rose-50/70 text-rose-700 dark:border-rose-900/40 dark:bg-rose-900/20 dark:text-rose-200",
-  cyan:
-    "border-cyan-200/70 bg-cyan-50/70 text-cyan-700 dark:border-cyan-900/40 dark:bg-cyan-900/20 dark:text-cyan-200",
-  zinc:
-    "border-zinc-200/70 bg-zinc-50/70 text-zinc-700 dark:border-zinc-800/60 dark:bg-zinc-900/30 dark:text-zinc-200",
+    "border-amber-200/70 bg-amber-50/70 text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200",
 };
+
+function Skeleton({ className }: { className?: string }) {
+  return <div className={cn("animate-pulse rounded bg-zinc-200 dark:bg-zinc-800", className)} />;
+}
+
+function fmtDate(v?: string) {
+  if (!v) return "—";
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return v;
+  return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(d);
+}
+
+function valOrDash(v?: string | null) {
+  const s = String(v ?? "").trim();
+  return s ? s : "—";
+}
+
+function safeNum(v: any) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function countOf(row: BranchRow | null, kind: "facilities" | "departments" | "specialties") {
+  if (!row) return 0;
+
+  // direct counts if API supplies them
+  if (kind === "facilities" && row.facilitiesCount != null) return safeNum(row.facilitiesCount);
+  if (kind === "departments" && row.departmentsCount != null) return safeNum(row.departmentsCount);
+  if (kind === "specialties" && row.specialtiesCount != null) return safeNum(row.specialtiesCount);
+
+  const c = row._count || {};
+
+  // facilities count varies by schema naming
+  if (kind === "facilities") {
+    return safeNum(
+      c.facilities ??
+        c.branchFacilities ??
+        c.branchFacility ??
+        c.facilityLinks ??
+        c.facilitySetup ??
+        c.facilitySetupLinks,
+    );
+  }
+
+  if (kind === "departments") return safeNum(c.departments ?? c.department);
+  if (kind === "specialties") return safeNum(c.specialties ?? c.specialty);
+
+  return 0;
+}
 
 function MetricPill({
   label,
@@ -101,32 +149,7 @@ function MetricPill({
   );
 }
 
-function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded bg-zinc-200 dark:bg-zinc-800", className)} />;
-}
-
-function fmtDate(v?: string) {
-  if (!v) return "—";
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return v;
-  return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(d);
-}
-
-function valOrDash(v?: string | null) {
-  const s = String(v ?? "").trim();
-  return s ? s : "—";
-}
-
-function qsBranch(branchId: string) {
-  // Prefer branchId scoping for pages that support it
-  return branchId ? `?branchId=${encodeURIComponent(branchId)}` : "";
-}
-
-function countOf(row: BranchRow | null, k: keyof BranchCounts) {
-  return Number(row?._count?.[k] ?? 0) || 0;
-}
-
-function readinessFlag(ok: boolean) {
+function readinessFlag(ok: boolean, note?: string) {
   return ok ? (
     <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50/70 px-2 py-0.5 text-[11px] text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200">
       <CheckCircle2 className="h-3.5 w-3.5" />
@@ -135,12 +158,26 @@ function readinessFlag(ok: boolean) {
   ) : (
     <span className="inline-flex items-center gap-1 rounded-full border border-amber-200/70 bg-amber-50/70 px-2 py-0.5 text-[11px] text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200">
       <AlertTriangle className="h-3.5 w-3.5" />
-      Pending
+      Pending{note ? ` • ${note}` : ""}
     </span>
   );
 }
 
-// --- Small Components ---
+function normalizeGSTIN(input: string) {
+  return String(input || "").trim().toUpperCase();
+}
+
+function validateGSTIN(gstin: string): string | null {
+  const v = normalizeGSTIN(gstin);
+  if (!v) return "GST Number (GSTIN) is required";
+  if (v.length !== 15) return "GSTIN must be exactly 15 characters";
+  const re = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+  if (!re.test(v)) return "Please enter a valid GSTIN (example: 29ABCDE1234F1Z5)";
+  return null;
+}
+
+// ---------------- Small Components ----------------
+
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = React.useState(false);
 
@@ -150,7 +187,7 @@ function CopyButton({ text }: { text: string }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      // ignore clipboard errors
+      // ignore
     }
   };
 
@@ -159,6 +196,7 @@ function CopyButton({ text }: { text: string }) {
       onClick={onCopy}
       className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-md text-xc-muted hover:bg-xc-panel hover:text-xc-text transition-colors"
       title="Copy"
+      type="button"
     >
       {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
     </button>
@@ -208,7 +246,7 @@ function ModuleCard({
 }: {
   title: string;
   description: string;
-  count: number;
+  count?: number;
   icon: React.ReactNode;
   href: string;
   tone?: keyof typeof pillTones;
@@ -234,9 +272,12 @@ function ModuleCard({
               <div className="mt-1 text-sm text-xc-muted">{description}</div>
             </div>
           </div>
-          <div className="mt-3">
-            <MetricPill label="Records" value={count} tone={tone} />
-          </div>
+
+          {typeof count === "number" ? (
+            <div className="mt-3">
+              <MetricPill label="Records" value={count} tone={tone} />
+            </div>
+          ) : null}
         </div>
 
         <div className="mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-transparent group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/50 transition-colors">
@@ -247,7 +288,8 @@ function ModuleCard({
   );
 }
 
-// --- Modals (same logic, now with toasts) ---
+// ---------------- Modals ----------------
+
 function ModalShell({
   title,
   description,
@@ -297,6 +339,7 @@ function EditBranchModal({
   const [form, setForm] = React.useState<BranchForm>({
     name: "",
     city: "",
+    gstNumber: "",
     address: "",
     contactPhone1: "",
     contactPhone2: "",
@@ -310,6 +353,7 @@ function EditBranchModal({
     setForm({
       name: branch.name ?? "",
       city: branch.city ?? "",
+      gstNumber: branch.gstNumber ?? "",
       address: branch.address ?? "",
       contactPhone1: branch.contactPhone1 ?? "",
       contactPhone2: branch.contactPhone2 ?? "",
@@ -329,6 +373,9 @@ function EditBranchModal({
     if (!form.name.trim()) return setErr("Branch name is required");
     if (!form.city.trim()) return setErr("City is required");
 
+    const gstErr = validateGSTIN(form.gstNumber);
+    if (gstErr) return setErr(gstErr);
+
     setBusy(true);
     try {
       await apiFetch(`/api/branches/${branch.id}`, {
@@ -336,6 +383,7 @@ function EditBranchModal({
         body: JSON.stringify({
           name: form.name.trim(),
           city: form.city.trim(),
+          gstNumber: normalizeGSTIN(form.gstNumber),
           address: cleanOptional(form.address),
           contactPhone1: cleanOptional(form.contactPhone1),
           contactPhone2: cleanOptional(form.contactPhone2),
@@ -345,8 +393,7 @@ function EditBranchModal({
 
       toast({
         title: "Branch Updated",
-        description: `Successfully updated "${form.name.trim()}"`,
-        variant: "success" as any,
+        description: `Updated "${form.name.trim()}"`,
       });
 
       onClose();
@@ -365,7 +412,7 @@ function EditBranchModal({
   return (
     <ModalShell
       title="Edit Branch"
-      description="Update address & contact details. Branch code is immutable in production."
+      description="Update GSTIN, address & contact details. Branch code is immutable."
       onClose={onClose}
     >
       {err ? (
@@ -383,13 +430,33 @@ function EditBranchModal({
           </div>
           <div>
             <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">City</div>
-            <Input value={form.city} onChange={(e) => setForm((s) => ({ ...s, city: e.target.value }))} className="mt-1" />
+            <Input
+              value={form.city}
+              onChange={(e) => setForm((s) => ({ ...s, city: e.target.value }))}
+              className="mt-1"
+            />
           </div>
         </div>
 
         <div>
           <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">Branch name</div>
-          <Input value={form.name} onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))} className="mt-1" />
+          <Input
+            value={form.name}
+            onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
+            className="mt-1"
+          />
+        </div>
+
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">GST Number (GSTIN)</div>
+          <Input
+            value={form.gstNumber}
+            onChange={(e) => setForm((s) => ({ ...s, gstNumber: e.target.value.toUpperCase() }))}
+            placeholder="29ABCDE1234F1Z5"
+            maxLength={15}
+            className="mt-1 font-mono"
+          />
+          <div className="mt-1 text-xs text-xc-muted">Used in Accounting, invoices, statutory reporting.</div>
         </div>
 
         <div>
@@ -403,7 +470,6 @@ function EditBranchModal({
               "focus-visible:ring-2 focus-visible:ring-xc-ring",
             )}
           />
-          <div className="mt-1 text-xs text-xc-muted">Optional. Visible in branch profile and exports.</div>
         </div>
 
         <div className="grid gap-3 md:grid-cols-2">
@@ -473,6 +539,9 @@ function DeleteConfirmModal({
     }
   }, [open]);
 
+  const deps =
+    countOf(branch, "facilities") + countOf(branch, "departments") + countOf(branch, "specialties");
+
   async function onConfirm() {
     if (!branch?.id) return;
     setErr(null);
@@ -483,7 +552,6 @@ function DeleteConfirmModal({
       toast({
         title: "Branch Deleted",
         description: `Deleted "${branch.name}"`,
-        variant: "success" as any,
       });
 
       await onDeleted();
@@ -499,16 +567,12 @@ function DeleteConfirmModal({
 
   if (!open || !branch) return null;
 
-  const deps =
-    Number(branch._count?.users ?? 0) +
-    Number(branch._count?.departments ?? 0) +
-    Number(branch._count?.patients ?? 0) +
-    Number(branch._count?.wards ?? 0) +
-    Number(branch._count?.oTs ?? 0) +
-    Number(branch._count?.beds ?? 0);
-
   return (
-    <ModalShell title="Delete Branch" description="Deletion is allowed only when the branch has no dependent data." onClose={onClose}>
+    <ModalShell
+      title="Delete Branch"
+      description="Deletion is allowed only when there is no Facilities/Departments/Specialties setup for this branch."
+      onClose={onClose}
+    >
       {err ? (
         <div className="mb-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
           <AlertTriangle className="mt-0.5 h-4 w-4" />
@@ -524,11 +588,19 @@ function DeleteConfirmModal({
         <div className="mt-2 text-sm text-xc-muted">City: {branch.city}</div>
 
         <div className="mt-3 flex flex-wrap gap-2">
-          <MetricPill label="Users" value={Number(branch._count?.users ?? 0)} tone="indigo" />
-          <MetricPill label="Departments" value={Number(branch._count?.departments ?? 0)} tone="emerald" />
-          <MetricPill label="Wards" value={Number(branch._count?.wards ?? 0)} tone="amber" />
-          <MetricPill label="Beds" value={Number(branch._count?.beds ?? 0)} tone="cyan" />
+          <MetricPill label="Facilities" value={countOf(branch, "facilities")} tone="sky" />
+          <MetricPill label="Departments" value={countOf(branch, "departments")} tone="emerald" />
+          <MetricPill label="Specialties" value={countOf(branch, "specialties")} tone="violet" />
         </div>
+
+        {deps > 0 ? (
+          <div className="mt-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-warn-rgb)/0.35)] bg-[rgb(var(--xc-warn-rgb)/0.12)] px-3 py-2 text-sm text-xc-text">
+            <AlertTriangle className="mt-0.5 h-4 w-4 text-[rgb(var(--xc-warn))]" />
+            <div className="min-w-0">
+              This branch already has setup data. Delete is blocked. Use governance/retirement instead.
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="mt-5 flex items-center justify-end gap-2">
@@ -536,14 +608,15 @@ function DeleteConfirmModal({
           Cancel
         </Button>
         <Button variant="destructive" onClick={onConfirm} disabled={busy || deps > 0}>
-          {deps > 0 ? "Cannot Delete (Has Data)" : busy ? "Deleting…" : "Delete"}
+          {deps > 0 ? "Cannot Delete (Has Setup)" : busy ? "Deleting…" : "Delete"}
         </Button>
       </div>
     </ModalShell>
   );
 }
 
-// --- Main Page Component ---
+// ---------------- Page ----------------
+
 export default function BranchDetailPage() {
   const { toast } = useToast();
 
@@ -564,6 +637,12 @@ export default function BranchDetailPage() {
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
 
+  const facilitySetupHref = `/superadmin/branches/${encodeURIComponent(id)}/facility-setup`;
+  const policyOverridesHref = `/admin/policy-overrides?branchId=${encodeURIComponent(id)}`;
+  const policiesHref = `/superadmin/policy/policies`;
+  const approvalsHref = `/superadmin/policy/approvals`;
+  const auditHref = `/superadmin/policy/audit`;
+
   async function refresh(showToast = false) {
     if (!id) return;
     setErr(null);
@@ -576,7 +655,6 @@ export default function BranchDetailPage() {
         toast({
           title: "Branch refreshed",
           description: "Loaded latest branch details.",
-          variant: "info" as any,
           duration: 1800,
         });
       }
@@ -595,31 +673,16 @@ export default function BranchDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const deps =
-    Number(row?._count?.users ?? 0) +
-    Number(row?._count?.departments ?? 0) +
-    Number(row?._count?.patients ?? 0) +
-    Number(row?._count?.wards ?? 0) +
-    Number(row?._count?.oTs ?? 0) +
-    Number(row?._count?.beds ?? 0);
+  const facilities = countOf(row, "facilities");
+  const departments = countOf(row, "departments");
+  const specialties = countOf(row, "specialties");
 
-  const readyDepts = countOf(row, "departments") > 0;
-  const readyStaff = countOf(row, "users") > 0; // proxy (you can change to staff count later)
-  const readyWards = countOf(row, "wards") > 0;
-  const readyBeds = countOf(row, "beds") > 0;
+  const readyFacilities = facilities > 0;
+  const readyDepartments = departments > 0;
+  const readySpecialties = specialties > 0;
 
-  const branchScoped = {
-    departments: `/admin/departments${qsBranch(id)}`,
-    staff: `/admin/staff${qsBranch(id)}`,
-    wards: `/admin/wards${qsBranch(id)}`,
-    users: `/admin/users${qsBranch(id)}`,
-    ot: `/admin/ot${qsBranch(id)}`,
-    labs: `/admin/labs${qsBranch(id)}`,
-    policyOverrides: `/admin/policy-overrides${qsBranch(id)}`,
-    policies: `/superadmin/policy/policies`, // global, but can open in new
-    approvals: `/superadmin/policy/approvals`,
-    audit: `/superadmin/policy/audit`,
-  };
+  // We can’t know mapping completeness from branch counts alone; this is a safe minimum signal.
+  const readyMapping = readyDepartments && readySpecialties;
 
   return (
     <AppShell title="Branch Dashboard">
@@ -638,7 +701,7 @@ export default function BranchDetailPage() {
                     Branches
                   </Link>
                   <span className="mx-2 text-xc-muted/60">/</span>
-                  <span className="text-xc-text">Dashboard</span>
+                  <span className="text-xc-text">Details</span>
                 </div>
 
                 <div className="mt-1 text-3xl font-semibold tracking-tight">
@@ -658,12 +721,10 @@ export default function BranchDetailPage() {
                     <span
                       className={cn(
                         "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] border",
-                        deps > 0
-                          ? pillTones.emerald
-                          : pillTones.zinc,
+                        readyFacilities || readyDepartments || readySpecialties ? pillTones.emerald : pillTones.zinc,
                       )}
                     >
-                      {deps > 0 ? "Active" : "Empty"}
+                      {readyFacilities || readyDepartments || readySpecialties ? "Configured" : "New"}
                     </span>
                   </div>
                 ) : loading ? (
@@ -677,11 +738,9 @@ export default function BranchDetailPage() {
 
             {!loading && row ? (
               <div className="mt-3 flex flex-wrap gap-2">
-                <MetricPill label="Users" value={countOf(row, "users")} tone="indigo" />
-                <MetricPill label="Departments" value={countOf(row, "departments")} tone="emerald" />
-                <MetricPill label="Patients" value={countOf(row, "patients")} tone="rose" />
-                <MetricPill label="Wards" value={countOf(row, "wards")} tone="amber" />
-                <MetricPill label="Beds" value={countOf(row, "beds")} tone="cyan" />
+                <MetricPill label="Facilities" value={facilities} tone="sky" />
+                <MetricPill label="Departments" value={departments} tone="emerald" />
+                <MetricPill label="Specialties" value={specialties} tone="violet" />
               </div>
             ) : null}
 
@@ -703,6 +762,15 @@ export default function BranchDetailPage() {
               Refresh
             </Button>
 
+            {isSuperAdmin ? (
+              <Button asChild className="gap-2">
+                <Link href={facilitySetupHref}>
+                  <Wand2 className="h-4 w-4" />
+                  Facility Setup
+                </Link>
+              </Button>
+            ) : null}
+
             {isSuperAdmin && !loading && row ? (
               <>
                 <Button variant="secondary" className="gap-2" onClick={() => setEditOpen(true)}>
@@ -723,24 +791,24 @@ export default function BranchDetailPage() {
           <Card className="overflow-hidden">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">Setup Health</CardTitle>
-              <CardDescription className="text-xs">Operational readiness for this branch.</CardDescription>
+              <CardDescription className="text-xs">Super Admin setup readiness for this branch.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-2">
               <div className="flex items-center justify-between text-sm">
+                <span className="text-xc-muted">Facilities</span>
+                {readinessFlag(readyFacilities)}
+              </div>
+              <div className="flex items-center justify-between text-sm">
                 <span className="text-xc-muted">Departments</span>
-                {readinessFlag(readyDepts)}
+                {readinessFlag(readyDepartments)}
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-xc-muted">Users/Staff</span>
-                {readinessFlag(readyStaff)}
+                <span className="text-xc-muted">Specialties Catalog</span>
+                {readinessFlag(readySpecialties)}
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-xc-muted">Wards</span>
-                {readinessFlag(readyWards)}
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-xc-muted">Beds</span>
-                {readinessFlag(readyBeds)}
+                <span className="text-xc-muted">Dept ↔ Specialty Mapping</span>
+                {readinessFlag(readyMapping, "Review in Setup")}
               </div>
             </CardContent>
           </Card>
@@ -748,7 +816,7 @@ export default function BranchDetailPage() {
           <Card className="overflow-hidden md:col-span-3">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">Branch Snapshot</CardTitle>
-              <CardDescription className="text-xs">Identifiers, contacts, timestamps.</CardDescription>
+              <CardDescription className="text-xs">Identifiers, GSTIN, timestamps.</CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -777,9 +845,15 @@ export default function BranchDetailPage() {
                     value={<span className="font-mono text-sm font-semibold">{row.code}</span>}
                   />
                   <InfoTile
-                    label="Updated"
-                    tone="zinc"
-                    value={<span className="text-sm text-xc-text">{fmtDate(row.updatedAt)}</span>}
+                    label="GSTIN"
+                    icon={<Building2 className="h-4 w-4" />}
+                    tone="emerald"
+                    value={
+                      <div className="flex items-center">
+                        <span className="font-mono text-sm font-semibold">{valOrDash(row.gstNumber)}</span>
+                        {row.gstNumber ? <CopyButton text={row.gstNumber} /> : null}
+                      </div>
+                    }
                   />
                 </div>
               ) : (
@@ -795,7 +869,7 @@ export default function BranchDetailPage() {
           <Card className="lg:col-span-2 overflow-hidden">
             <CardHeader>
               <CardTitle>Branch Profile</CardTitle>
-              <CardDescription>All clinical and operational data is scoped under this branch.</CardDescription>
+              <CardDescription>Accounting and operational identity for this campus.</CardDescription>
             </CardHeader>
             <Separator />
             <CardContent className="pt-6">
@@ -811,6 +885,14 @@ export default function BranchDetailPage() {
                 <div className="grid gap-4 md:grid-cols-2">
                   <InfoTile label="Name" value={<span className="text-sm font-semibold">{row.name}</span>} />
                   <InfoTile label="City" value={<span className="text-sm font-semibold">{row.city}</span>} />
+
+                  <InfoTile
+                    label="GSTIN"
+                    value={<span className="font-mono text-sm font-semibold">{valOrDash(row.gstNumber)}</span>}
+                    className="md:col-span-2"
+                    icon={<Building2 className="h-4 w-4" />}
+                    tone="emerald"
+                  />
 
                   <InfoTile
                     label="Address"
@@ -829,15 +911,13 @@ export default function BranchDetailPage() {
                         {!row.contactPhone1?.trim() && !row.contactPhone2?.trim() ? <span>—</span> : null}
                       </div>
                     }
-                    icon={<Phone className="h-4 w-4" />}
-                    tone="emerald"
+                    tone="cyan"
                   />
 
                   <InfoTile
                     label="Contact Email"
                     value={<div className="text-sm text-xc-text">{valOrDash(row.contactEmail)}</div>}
-                    icon={<Mail className="h-4 w-4" />}
-                    tone="cyan"
+                    tone="zinc"
                   />
 
                   <InfoTile label="Created At" value={<span className="text-sm text-xc-text">{fmtDate(row.createdAt)}</span>} />
@@ -849,54 +929,46 @@ export default function BranchDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Right column: Modules + Governance */}
+          {/* Right column: Setup + Governance */}
           <div className="grid gap-4">
             <Card className="overflow-hidden">
               <CardHeader>
-                <CardTitle>Branch Modules</CardTitle>
-                <CardDescription>Open modules scoped to this branch.</CardDescription>
+                <CardTitle>Branch Setup</CardTitle>
+                <CardDescription>Super Admin configuration (before Branch Admin onboarding).</CardDescription>
               </CardHeader>
               <Separator />
               <CardContent className="pt-6 grid gap-3">
                 <ModuleCard
-                  title="Departments"
-                  description="Clinical & non-clinical departments"
-                  count={countOf(row, "departments")}
+                  title="Facility Setup"
+                  description="Facilities → Departments → Specialties → Mapping"
+                  count={undefined}
+                  icon={<Wand2 className="h-4 w-4 text-xc-accent" />}
+                  href={facilitySetupHref}
+                  tone="zinc"
+                />
+                <ModuleCard
+                  title="Facilities Enabled"
+                  description="Branch facility catalog (enabled)"
+                  count={facilities}
                   icon={<Layers className="h-4 w-4 text-xc-accent" />}
-                  href={branchScoped.departments}
+                  href={facilitySetupHref}
+                  tone="sky"
+                />
+                <ModuleCard
+                  title="Departments"
+                  description="Departments created under facilities"
+                  count={departments}
+                  icon={<Layers className="h-4 w-4 text-xc-accent" />}
+                  href={facilitySetupHref}
                   tone="emerald"
                 />
                 <ModuleCard
-                  title="Users & Roles"
-                  description="App users scoped to this branch"
-                  count={countOf(row, "users")}
-                  icon={<Users className="h-4 w-4 text-xc-accent" />}
-                  href={branchScoped.users}
-                  tone="indigo"
-                />
-                <ModuleCard
-                  title="Wards"
-                  description="Wards & allocation structure"
-                  count={countOf(row, "wards")}
-                  icon={<BedDouble className="h-4 w-4 text-xc-accent" />}
-                  href={branchScoped.wards}
-                  tone="amber"
-                />
-                <ModuleCard
-                  title="Beds"
-                  description="Bed board and mapping"
-                  count={countOf(row, "beds")}
-                  icon={<BedDouble className="h-4 w-4 text-xc-accent" />}
-                  href={branchScoped.wards}
-                  tone="cyan"
-                />
-                <ModuleCard
-                  title="Laboratory"
-                  description="Labs, tests, instruments"
-                  count={0}
-                  icon={<FlaskConical className="h-4 w-4 text-xc-accent" />}
-                  href={branchScoped.labs}
-                  tone="zinc"
+                  title="Specialties Catalog"
+                  description="Branch-level specialties (master list)"
+                  count={specialties}
+                  icon={<Layers className="h-4 w-4 text-xc-accent" />}
+                  href={facilitySetupHref}
+                  tone="violet"
                 />
               </CardContent>
             </Card>
@@ -904,12 +976,12 @@ export default function BranchDetailPage() {
             <Card className="overflow-hidden">
               <CardHeader>
                 <CardTitle>Governance</CardTitle>
-                <CardDescription>Policies and approvals related to this branch.</CardDescription>
+                <CardDescription>Policies and approvals remain global; branch overrides are scoped here.</CardDescription>
               </CardHeader>
               <Separator />
               <CardContent className="pt-6 grid gap-3">
                 <Link
-                  href={branchScoped.policyOverrides}
+                  href={policyOverridesHref}
                   className="group flex items-center justify-between rounded-2xl border border-xc-border bg-xc-panel/20 p-4 hover:bg-xc-panel/35 hover:shadow-elev-2 transition-all"
                 >
                   <div className="flex items-start gap-3">
@@ -929,19 +1001,17 @@ export default function BranchDetailPage() {
                 <div className="rounded-2xl border border-xc-border bg-xc-panel/15 p-4 text-sm text-xc-muted">
                   <div className="font-semibold text-xc-text">Super Admin shortcuts</div>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <Button asChild variant="outline" className="gap-2">
-                      <Link href={branchScoped.policies}>Policies</Link>
+                    <Button asChild variant="outline">
+                      <Link href={policiesHref}>Policies</Link>
                     </Button>
-                    <Button asChild variant="outline" className="gap-2">
-                      <Link href={branchScoped.approvals}>Approvals</Link>
+                    <Button asChild variant="outline">
+                      <Link href={approvalsHref}>Approvals</Link>
                     </Button>
-                    <Button asChild variant="outline" className="gap-2">
-                      <Link href={branchScoped.audit}>Audit Trail</Link>
+                    <Button asChild variant="outline">
+                      <Link href={auditHref}>Audit Trail</Link>
                     </Button>
                   </div>
-                  <div className="mt-2 text-xs">
-                    Tip: Use Policy Overrides for branch-level deviations; keep definitions global.
-                  </div>
+                  <div className="mt-2 text-xs">Tip: Keep definitions global; use overrides only for branch deviations.</div>
                 </div>
               </CardContent>
             </Card>

@@ -1,36 +1,48 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./modules/app/app.module";
 import { ValidationPipe } from "@nestjs/common";
-// import { CorrelationMiddleware } from "./common/correlation.middleware"; // <-- The Error was here
-import { correlation } from "./common/correlation.middleware"; // <-- Correct Import
+import { correlation } from "./common/correlation.middleware";
 import { PrismaClient } from "@excelcare/db";
+// 1. IMPORT SWAGGER MODULES
+import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 
 async function bootstrap() {
-  // 1. DEBUG: Print the Database URL being used
   console.log("------------------------------------------------------------------");
   console.log("🛑 DEBUG: DATABASE_URL is:", process.env.DATABASE_URL);
   console.log("------------------------------------------------------------------");
 
   const app = await NestFactory.create(AppModule);
   
-  // 2. Global Config
   app.setGlobalPrefix(process.env.API_GLOBAL_PREFIX || "api");
   app.enableCors({
     origin: process.env.CORS_ORIGIN || "http://localhost:3000",
     credentials: true,
   });
   
-  // 3. Register Middleware (Function style)
   app.use(correlation); 
-  
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-  // 4. START SERVER
+  // ==================================================
+  // 2. ADD SWAGGER CONFIGURATION HERE
+  // ==================================================
+  const config = new DocumentBuilder()
+    .setTitle('ZypoCare One API')
+    .setDescription('API documentation for the ZypoCare Hospital Management System')
+    .setVersion('1.0')
+    .addBearerAuth() // Adds the "Authorize" button for JWT tokens
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  
+  // This sets up Swagger at /docs (e.g., http://localhost:4000/docs)
+  SwaggerModule.setup('docs', app, document);
+  // ==================================================
+
   const port = process.env.PORT || 4000;
   await app.listen(port);
   console.log(`🚀 Server running on http://localhost:${port}/${process.env.API_GLOBAL_PREFIX || "api"}`);
+  console.log(`📄 Swagger UI available at http://localhost:${port}/docs`); // Log the URL
 
-  // 5. MANUAL DB CHECK (Runs after server starts)
   checkDatabase();
 }
 

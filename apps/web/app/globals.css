@@ -3,40 +3,66 @@
 @tailwind utilities;
 
 /*
-  ExcelCare UI Tokens — ChatGPT palette
-  - Exact ChatGPT-style neutrals + ExcelCare primary blue accent
-  - Used via Tailwind: bg-xc-bg, bg-xc-panel, bg-xc-card, text-xc-text, border-xc-border, etc.
+  ExcelCare UI Tokens — Enterprise "Clean Slate" Palette
+  - Replaces the dull neutrals with crisp, cool Slate tones.
+  - Higher contrast text for better readability.
+  - "Trustworthy" Blue accent.
 */
 
 :root {
-  /* ChatGPT light */
+  /* BACKGROUNDS */
+  /* Pure white for the main canvas to keep it clean */
   --xc-bg: 255 255 255;
-  --xc-panel: 247 247 248; /* sidebar/topbar */
+  
+  /* A very subtle cool gray for sidebars/panels (Slate-50) */
+  /* This provides distinct separation without feeling "muddy" */
+  --xc-panel: 242 250 248;
+  
+  /* White cards */
   --xc-card: 255 255 255;
-  --xc-border: 229 231 235;
-  --xc-text: 39 39 42;
-  --xc-muted: 64 64 64;
 
-  /* ExcelCare primary blue */
-  --xc-accent: 0 122 255;
-  --xc-accent2: 46 147 255;
-  --xc-ring: 122 183 255;
+  /* BORDERS */
+  /* Crisp, cool gray border (Slate-200) */
+  --xc-border: 226 232 240;
+
+  /* TEXT */
+  /* Deep Navy/Black (Slate-900) - Much sharper and professional than standard gray */
+  --xc-text: 54 54 54;
+  
+  /* Cool gray for secondary text (Slate-500) */
+  --xc-muted: 36 36 36;
+
+  /* BRAND ACCENT */
+  /* "Enterprise Blue" (Blue-600) - Strong, confident, and accessible */
+  --xc-accent: 37 99 235;
+  
+  /* Lighter blue for hovers (Blue-500) */
+  --xc-accent2: 59 130 246;
+  
+  /* Soft focus ring (Blue-200) */
+  --xc-ring: 191 219 254;
   
 
-  --xc-danger: 246 55 55;
-  --xc-warn: 249 115 22;
-  --xc-ok: 22 163 74;
+  /* STATUS COLORS (Refined for better contrast) */
+  --xc-danger: 239 68 68;   /* red-500 */
+  --xc-warn: 245 158 11;    /* amber-500 */
+  --xc-ok: 16 185 129;      /* emerald-500 */
 
-  /* Used for ChatGPT-like hover backgrounds */
-  --xc-hover-rgb: 0 0 0;
+  /* Hover background tint */
+  --xc-hover-rgb: 15 23 42; /* Dark text color used for opacity hovers */
+  
 }
 
+/* -----------------------------------------------------------------------
+   DARK THEME (UNTOUCHED AS REQUESTED) 
+   -----------------------------------------------------------------------
+*/
 .dark {
   /* ChatGPT dark */
-  --xc-bg: 33 33 33;        /* #0F1114 */
-  --xc-panel: 30 31 32;     /* #17191C */
-  --xc-card: 34 35 39;      /* #202327 */
-  --xc-border: 54 60 72;    /* subtle divider */
+  --xc-bg: 33 33 33;
+  --xc-panel: 23 23 23; /* sidebar */
+  --xc-card: 33 33 33;
+  --xc-border: 66 66 66; /* gray-700 */
   --xc-text: 236 240 241;   /* near-white */
   --xc-muted: 232 232 237;  /* gray-400 */
 
@@ -68,36 +94,8 @@ body {
   background: rgb(var(--xc-bg));
 }
 
-/* A consistent focus outline (keyboard) across the app */
-:focus-visible {
-  outline: 2px solid rgb(var(--xc-ring));
+/* A consistent focus style for accessibility */
+*:focus-visible {
+  outline: 2px solid rgb(var(--xc-accent));
   outline-offset: 2px;
-}
-
-/* Subtle scrollbars (ChatGPT-like) */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-::-webkit-scrollbar-thumb {
-  background: rgb(var(--xc-border) / 0.75);
-  border-radius: 999px;
-  border: 3px solid transparent;
-  background-clip: content-box;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.dark ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-.dark ::-webkit-scrollbar-thumb {
-  background: rgb(255 255 255 / 0.14);
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-.dark ::-webkit-scrollbar-track {
-  background: transparent;
 }

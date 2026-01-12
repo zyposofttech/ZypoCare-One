@@ -7,8 +7,8 @@ import { Toaster } from "@/components/ui/toaster";
 const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "ExcelCare Hospital",
-  description: "ExcelCare Hospital Management System",
+  title: "ZypoCare One",
+  description: "Unified Hospital Management System",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

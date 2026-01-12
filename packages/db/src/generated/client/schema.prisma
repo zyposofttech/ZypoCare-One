@@ -33,6 +33,12 @@ enum EncounterType {
   ER
 }
 
+enum FacilityCategory {
+  SERVICE
+  CLINICAL
+  SUPPORT
+}
+
 enum BedState {
   VACANT
   OCCUPIED
@@ -52,6 +58,9 @@ model Branch {
   code String @unique @db.VarChar(32)
   name String
   city String
+
+  /// India GSTIN (15 characters). Used by Accounting/Tax.
+  gstNumber String? @db.VarChar(15)
 
   address       String? @db.VarChar(240)
   contactPhone1 String? @db.VarChar(20)
@@ -74,74 +83,145 @@ model Branch {
   Bed         Bed[]
   Admission   Admission[]
 
-  facilities     Facility[]
-  rooms          Room[]
+  // Facilities enabled for this branch (multi-select from FacilityCatalog)
+  branchFacilities BranchFacility[]
+  rooms            Room[]
   // Opposite relations (required for Prisma validation)
-  statutoryCases StatutoryCase[]
-  auditEvents    AuditEvent[]
+  statutoryCases   StatutoryCase[]
+  auditEvents      AuditEvent[]
 
   // ✅ Policy Governance (opposite relations)
   policyVersions        PolicyVersion[]       @relation("PolicyVersion_Branch")
   policyVersionBranches PolicyVersionBranch[] @relation("PolicyTarget_Branch")
 }
 
-model Facility {
-  id       String @id @default(cuid())
+model FacilityCatalog {
+  id       String           @id @default(cuid())
+  code     String           @unique @db.VarChar(48)
+  name     String           @db.VarChar(160)
+  category FacilityCategory
+
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Branch enablement (multi-select)
+  branchLinks BranchFacility[]
+
+  // Departments created under this facility
+  departments Department[]
+
+  @@index([category, isActive, sortOrder])
+}
+
+model BranchFacility {
+  id String @id @default(cuid())
+
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  code String
-  name String
-  type String?
+  facilityId String
+  facility   FacilityCatalog @relation(fields: [facilityId], references: [id], onDelete: Cascade)
 
-  addressLine1 String?
-  addressLine2 String?
-  city         String
-  state        String?
-  postalCode   String?
-  phone        String?
-  email        String?
+  isEnabled Boolean  @default(true)
+  enabledAt DateTime @default(now())
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([branchId, facilityId])
+  @@index([branchId, isEnabled])
+  @@index([facilityId, isEnabled])
+}
+
+model Department {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  facilityId String
+  facility   FacilityCatalog @relation(fields: [facilityId], references: [id])
+  code       String
+  name       String
+
+  headStaffId String?
+  headStaff   Staff?  @relation("DepartmentHead", fields: [headStaffId], references: [id], onDelete: SetNull)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  staff                 Staff[]               @relation("DepartmentStaff")
+  departmentSpecialties DepartmentSpecialty[]
+
+  doctorAssignments DepartmentDoctor[]
+
+  @@unique([branchId, facilityId, code])
+  @@index([branchId, facilityId, isActive])
+}
+
+model DepartmentDoctor {
+  id String @id @default(cuid())
+
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  staffId String
+  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  isPrimary  Boolean  @default(false)
+  assignedAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([departmentId, staffId])
+  @@index([departmentId])
+  @@index([staffId])
+}
+
+model Specialty {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  code     String
+  name     String
   isActive Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Staff can optionally be tagged to a primary specialty
+  staff Staff[]
+
+  // Mapping to Departments (many-to-many)
+  departmentLinks DepartmentSpecialty[]
+
   @@unique([branchId, code])
   @@index([branchId, isActive])
 }
 
-model Department {
-  id        String   @id @default(cuid())
-  branchId  String
-  branch    Branch   @relation(fields: [branchId], references: [id])
-  code      String
-  name      String
-  isActive  Boolean  @default(true)
+model DepartmentSpecialty {
+  id String @id @default(cuid())
+
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  specialtyId String
+  specialty   Specialty @relation(fields: [specialtyId], references: [id], onDelete: Cascade)
+
+  isPrimary Boolean @default(false)
+  isActive  Boolean @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  staff       Staff[]
-  specialties Specialty[]
-
-  @@unique([branchId, code])
-}
-
-model Specialty {
-  id           String      @id @default(cuid())
-  branchId     String
-  branch       Branch      @relation(fields: [branchId], references: [id])
-  departmentId String?
-  department   Department? @relation(fields: [departmentId], references: [id])
-  code         String
-  name         String
-  isActive     Boolean     @default(true)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-
-  staff Staff[]
-
-  @@unique([branchId, code])
+  @@unique([departmentId, specialtyId])
+  @@index([departmentId, isActive])
+  @@index([specialtyId, isActive])
 }
 
 model Staff {
@@ -149,16 +229,21 @@ model Staff {
   branchId     String
   branch       Branch      @relation(fields: [branchId], references: [id])
   departmentId String?
-  department   Department? @relation(fields: [departmentId], references: [id])
+  department   Department? @relation("DepartmentStaff", fields: [departmentId], references: [id])
   specialtyId  String?
   specialty    Specialty?  @relation(fields: [specialtyId], references: [id])
 
-  empCode     String
-  name        String
-  designation String
-  phone       String?
-  email       String?
-  isActive    Boolean @default(true)
+  empCode           String
+  name              String
+  designation       String
+  phone             String?
+  email             String?
+  isActive          Boolean            @default(true)
+  // Doctor assignment to departments (many-to-many)
+  doctorAssignments DepartmentDoctor[]
+
+  // Departments where this staff is Head of Department
+  headedDepartments Department[] @relation("DepartmentHead")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

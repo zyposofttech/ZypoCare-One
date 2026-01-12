@@ -42,6 +42,12 @@ class CreateBranchDto {
   @IsString()
   city!: string;
 
+  @IsString()
+  @Matches(/^\d{2}[A-Z]{5}\d{4}[A-Z][A-Z0-9]Z[A-Z0-9]$/, {
+    message: "gstNumber must be a valid 15-character GSTIN (e.g. 29ABCDE1234F1Z5)",
+  })
+  gstNumber!: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(240)
@@ -71,6 +77,13 @@ class UpdateBranchDto {
   @IsOptional()
   @IsString()
   city?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{2}[A-Z]{5}\d{4}[A-Z][A-Z0-9]Z[A-Z0-9]$/, {
+    message: "gstNumber must be a valid 15-character GSTIN (e.g. 29ABCDE1234F1Z5)",
+  })
+  gstNumber?: string;
 
   @IsOptional()
   @IsString()

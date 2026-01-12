@@ -11,6 +11,8 @@ type BranchCountsRaw = {
   wards: number;
   oTs: number;
   Bed: number; // Prisma relation field name in schema is "Bed"
+  branchFacilities: number;
+  Specialty: number;
 };
 
 function normalizeBranchCode(input: string) {
@@ -34,6 +36,8 @@ export type BranchCounts = {
   wards: number;
   oTs: number;
   beds: number;
+  facilities: number;
+  specialties: number;
 };
 
 export type BranchRow = Branch & {
@@ -49,7 +53,18 @@ function normalizeCounts(raw?: BranchCountsRaw | null): BranchCounts | undefined
     wards: raw.wards ?? 0,
     oTs: raw.oTs ?? 0,
     beds: (raw as any).Bed ?? 0,
+    facilities: (raw as any).branchFacilities ?? 0,
+    specialties: (raw as any).Specialty ?? 0,
   };
+}
+
+function normalizeGstNumber(input: string) {
+  const gst = String(input || "").trim().toUpperCase();
+  // GSTIN (India) – 15 chars
+  if (!/^\d{2}[A-Z]{5}\d{4}[A-Z][A-Z0-9]Z[A-Z0-9]$/.test(gst)) {
+    throw new BadRequestException("Invalid GSTIN. Example: 29ABCDE1234F1Z5");
+  }
+  return gst;
 }
 
 @Injectable()
@@ -81,6 +96,8 @@ export class BranchService {
             wards: true,
             oTs: true,
             Bed: true,
+            branchFacilities: true,
+            Specialty: true,
           },
         },
       },
@@ -105,6 +122,8 @@ export class BranchService {
             wards: true,
             oTs: true,
             Bed: true,
+            branchFacilities: true,
+            Specialty: true,
           },
         },
       },
@@ -123,6 +142,7 @@ export class BranchService {
       code: string;
       name: string;
       city: string;
+      gstNumber: string;
       address?: string;
       contactPhone1?: string;
       contactPhone2?: string;
@@ -133,6 +153,7 @@ export class BranchService {
     const code = normalizeBranchCode(input.code);
     const name = String(input.name || "").trim();
     const city = String(input.city || "").trim();
+    const gstNumber = normalizeGstNumber(input.gstNumber);
 
     if (!name) throw new BadRequestException("name is required");
     if (!city) throw new BadRequestException("city is required");
@@ -148,6 +169,7 @@ export class BranchService {
           code,
           name,
           city,
+          gstNumber,
           address: address ?? null,
           contactPhone1: contactPhone1 ?? null,
           contactPhone2: contactPhone2 ?? null,
@@ -165,6 +187,7 @@ export class BranchService {
           code: created.code,
           name: created.name,
           city: created.city,
+          gstNumber: created.gstNumber,
           address: created.address,
           contactPhone1: created.contactPhone1,
           contactPhone2: created.contactPhone2,
@@ -186,6 +209,7 @@ export class BranchService {
     input: {
       name?: string;
       city?: string;
+      gstNumber?: string;
       address?: string;
       contactPhone1?: string;
       contactPhone2?: string;
@@ -208,6 +232,10 @@ export class BranchService {
       const v = input.city.trim();
       if (!v) throw new BadRequestException("city cannot be empty");
       patch.city = v;
+    }
+
+    if (typeof input.gstNumber === "string") {
+      patch.gstNumber = normalizeGstNumber(input.gstNumber);
     }
 
     if (input.address !== undefined) patch.address = cleanOptional(input.address) ?? null;

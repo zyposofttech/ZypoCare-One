@@ -19,20 +19,23 @@ import { useAuthStore } from "@/lib/auth/store";
 import { IconBuilding, IconChevronRight, IconPlus, IconSearch } from "@/components/icons";
 import { AlertTriangle, Building2, Loader2, Pencil, RefreshCw, Trash2, Wand2 } from "lucide-react";
 
-type BranchCounts = {
-  users?: number;
-  departments?: number;
-  patients?: number;
-  wards?: number;
-  oTs?: number;
-  beds?: number;
-};
+/**
+ * IMPORTANT:
+ * Backend counts naming can vary depending on Prisma relations.
+ * This UI supports a few common shapes:
+ *  - _count.facilities | _count.branchFacilities
+ *  - _count.specialties
+ *  - _count.departments
+ */
+type BranchCounts = Record<string, number | undefined>;
 
 type BranchRow = {
   id: string;
   code: string;
   name: string;
   city: string;
+
+  gstNumber?: string | null;
 
   address?: string | null;
   contactPhone1?: string | null;
@@ -41,13 +44,21 @@ type BranchRow = {
 
   createdAt?: string;
   updatedAt?: string;
+
   _count?: BranchCounts;
+
+  // fallback shape if your API sends these directly
+  facilitiesCount?: number;
+  departmentsCount?: number;
+  specialtiesCount?: number;
 };
 
 type BranchForm = {
   code: string;
   name: string;
   city: string;
+
+  gstNumber: string;
 
   address: string;
   contactPhone1: string;
@@ -65,6 +76,24 @@ function validateCode(code: string): string | null {
   if (!/^[A-Z0-9][A-Z0-9-]{1,31}$/.test(v)) {
     return "Code must be 2–32 chars, letters/numbers/hyphen (example: BLR-EC)";
   }
+  return null;
+}
+
+function normalizeGSTIN(input: string) {
+  return String(input || "").trim().toUpperCase();
+}
+
+/**
+ * GSTIN format (India): 15 chars
+ * Common validation regex (not perfect but strong enough for UI):
+ *  2 digits + 5 letters + 4 digits + 1 letter + 1 alnum(1-9A-Z) + 'Z' + 1 alnum
+ */
+function validateGSTIN(gstin: string): string | null {
+  const v = normalizeGSTIN(gstin);
+  if (!v) return "GST Number (GSTIN) is required";
+  if (v.length !== 15) return "GSTIN must be exactly 15 characters";
+  const re = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+  if (!re.test(v)) return "Please enter a valid GSTIN (example: 29ABCDE1234F1Z5)";
   return null;
 }
 
@@ -128,14 +157,12 @@ function deriveBranchCode(name: string, city: string): string {
 function pillTone(label: string) {
   const l = (label || "").toLowerCase();
 
-  if (l.includes("branch"))
-    return "border-indigo-200/70 bg-indigo-50/70 text-indigo-700 dark:border-indigo-900/50 dark:bg-indigo-950/25 dark:text-indigo-200";
-  if (l.includes("user"))
+  if (l.includes("facility"))
     return "border-sky-200/70 bg-sky-50/70 text-sky-700 dark:border-sky-900/50 dark:bg-sky-950/25 dark:text-sky-200";
   if (l.includes("dept"))
     return "border-emerald-200/70 bg-emerald-50/70 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/25 dark:text-emerald-200";
-  if (l.includes("bed"))
-    return "border-amber-200/70 bg-amber-50/70 text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-200";
+  if (l.includes("special"))
+    return "border-violet-200/70 bg-violet-50/70 text-violet-700 dark:border-violet-900/50 dark:bg-violet-950/25 dark:text-violet-200";
 
   return "border-xc-border bg-xc-panel/30 text-xc-muted";
 }
@@ -149,8 +176,28 @@ function Pill({ label, value }: { label: string; value: number }) {
   );
 }
 
-function countSum(rows: BranchRow[], key: keyof BranchCounts) {
-  return rows.reduce((acc, r) => acc + (Number(r._count?.[key] ?? 0) || 0), 0);
+function safeNum(v: any) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function countOf(row: BranchRow, kind: "facilities" | "departments" | "specialties") {
+  // direct counts from API (if present)
+  if (kind === "facilities" && row.facilitiesCount != null) return safeNum(row.facilitiesCount);
+  if (kind === "departments" && row.departmentsCount != null) return safeNum(row.departmentsCount);
+  if (kind === "specialties" && row.specialtiesCount != null) return safeNum(row.specialtiesCount);
+
+  // _count variants
+  const c = row._count || {};
+  if (kind === "facilities") return safeNum(c.facilities ?? c.branchFacilities ?? c.branchFacility ?? c.facilityLinks);
+  if (kind === "departments") return safeNum(c.departments ?? c.department);
+  if (kind === "specialties") return safeNum(c.specialties ?? c.specialty);
+
+  return 0;
+}
+
+function countSum(rows: BranchRow[], kind: "facilities" | "departments" | "specialties") {
+  return rows.reduce((acc, r) => acc + countOf(r, kind), 0);
 }
 
 function ModalShell({
@@ -214,10 +261,10 @@ function DeleteConfirmModal({
       await apiFetch(`/api/branches/${branch.id}`, { method: "DELETE" });
       await onDeleted();
       toast({
-  title: "Branch Deleted",
-  description: `Successfully deleted branch "${branch.name}"`,
-  variant: "success",
-});
+        title: "Branch Deleted",
+        description: `Successfully deleted branch "${branch.name}"`,
+        variant: "success",
+      });
       onClose();
     } catch (e: any) {
       setErr(e?.message || "Delete failed");
@@ -228,16 +275,10 @@ function DeleteConfirmModal({
 
   if (!open || !branch) return null;
 
-  const deps =
-    Number(branch._count?.users ?? 0) +
-    Number(branch._count?.departments ?? 0) +
-    Number(branch._count?.patients ?? 0) +
-    Number(branch._count?.wards ?? 0) +
-    Number(branch._count?.oTs ?? 0) +
-    Number(branch._count?.beds ?? 0);
+  const deps = countOf(branch, "facilities") + countOf(branch, "departments") + countOf(branch, "specialties");
 
   return (
-    <ModalShell title="Delete Branch" description="Deletion is blocked if the branch has any dependent data." onClose={onClose}>
+    <ModalShell title="Delete Branch" description="Deletion is blocked if the branch has any configured setup data." onClose={onClose}>
       {err ? (
         <div className="mb-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
           <AlertTriangle className="mt-0.5 h-4 w-4" />
@@ -251,15 +292,15 @@ function DeleteConfirmModal({
         </div>
 
         <div className="mt-2 flex flex-wrap gap-2">
-          <Pill label="Users" value={Number(branch._count?.users ?? 0)} />
-          <Pill label="Depts" value={Number(branch._count?.departments ?? 0)} />
-          <Pill label="Beds" value={Number(branch._count?.beds ?? 0)} />
+          <Pill label="Facilities" value={countOf(branch, "facilities")} />
+          <Pill label="Depts" value={countOf(branch, "departments")} />
+          <Pill label="Specialties" value={countOf(branch, "specialties")} />
         </div>
 
         <div className="mt-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-warn-rgb)/0.35)] bg-[rgb(var(--xc-warn-rgb)/0.12)] px-3 py-2 text-sm text-xc-text">
           <AlertTriangle className="mt-0.5 h-4 w-4 text-[rgb(var(--xc-warn))]" />
           <div className="min-w-0">
-            If this branch already has configured data, deletion will be rejected. Prefer disabling access or retiring via governance.
+            If this branch already has Facilities/Departments/Specialties configured, deletion will be rejected. Prefer retiring via governance instead of deleting.
           </div>
         </div>
       </div>
@@ -269,7 +310,7 @@ function DeleteConfirmModal({
           Cancel
         </Button>
         <Button variant="destructive" onClick={onConfirm} disabled={busy || deps > 0}>
-          {deps > 0 ? "Cannot Delete (Has Data)" : busy ? "Deleting…" : "Delete"}
+          {deps > 0 ? "Cannot Delete (Has Setup Data)" : busy ? "Deleting…" : "Delete"}
         </Button>
       </div>
     </ModalShell>
@@ -298,6 +339,7 @@ function BranchEditorModal({
     code: initial?.code ?? "",
     name: initial?.name ?? "",
     city: initial?.city ?? "",
+    gstNumber: initial?.gstNumber ?? "",
     address: initial?.address ?? "",
     contactPhone1: initial?.contactPhone1 ?? "",
     contactPhone2: initial?.contactPhone2 ?? "",
@@ -313,6 +355,7 @@ function BranchEditorModal({
       code: initial?.code ?? "",
       name: initial?.name ?? "",
       city: initial?.city ?? "",
+      gstNumber: initial?.gstNumber ?? "",
       address: initial?.address ?? "",
       contactPhone1: initial?.contactPhone1 ?? "",
       contactPhone2: initial?.contactPhone2 ?? "",
@@ -339,6 +382,10 @@ function BranchEditorModal({
 
     if (!form.name.trim()) return setErr("Branch name is required");
     if (!form.city.trim()) return setErr("City is required");
+
+    const gstErr = validateGSTIN(form.gstNumber);
+    if (gstErr) return setErr(gstErr);
+
     if (!form.address.trim()) return setErr("Branch address is required");
 
     const p1 = validatePhone(form.contactPhone1, "Contact number 1");
@@ -361,6 +408,7 @@ function BranchEditorModal({
             code: normalizeCode(form.code),
             name: form.name.trim(),
             city: form.city.trim(),
+            gstNumber: normalizeGSTIN(form.gstNumber),
             address: form.address.trim(),
             contactPhone1: form.contactPhone1.trim(),
             contactPhone2: form.contactPhone2.trim() || null,
@@ -374,6 +422,7 @@ function BranchEditorModal({
           body: JSON.stringify({
             name: form.name.trim(),
             city: form.city.trim(),
+            gstNumber: normalizeGSTIN(form.gstNumber),
             address: form.address.trim(),
             contactPhone1: form.contactPhone1.trim(),
             contactPhone2: form.contactPhone2.trim() || null,
@@ -390,12 +439,10 @@ function BranchEditorModal({
         variant: "success",
       });
 
-      // close modal immediately so user sees toast right away
       onClose();
 
-      // refresh in background (do not block toast)
-      void Promise.resolve(onSaved()).catch(() => { });
-
+      // refresh list after close
+      void Promise.resolve(onSaved()).catch(() => {});
     } catch (e: any) {
       setErr(e?.message || "Save failed");
       toast({ variant: "destructive", title: "Save failed", description: e?.message || "Save failed" });
@@ -418,7 +465,8 @@ function BranchEditorModal({
       }}
     >
       <DialogContent
-        className="sm:max-w-[560px] border-indigo-200/50 dark:border-indigo-800/50 shadow-2xl shadow-indigo-500/10"
+        // ✅ CHANGED: w-[95vw] ensures mobile fit, max-h-[85vh] + overflow-y-auto handles scrolling
+        className="w-[95vw] sm:max-w-[600px] max-h-[85vh] overflow-y-auto border-indigo-200/50 dark:border-indigo-800/50 shadow-2xl shadow-indigo-500/10"
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
@@ -430,7 +478,7 @@ function BranchEditorModal({
           </DialogTitle>
           <DialogDescription>
             {mode === "create"
-              ? "Set up a new hospital branch. Code is auto-generated from City + Branch Name, but you can customize it."
+              ? "Create the branch first (including GSTIN). Then configure Facilities, Departments, and Specialties."
               : "Update branch details and contact information."}
           </DialogDescription>
         </DialogHeader>
@@ -445,7 +493,8 @@ function BranchEditorModal({
         ) : null}
 
         <div className="grid gap-5">
-          <div className="grid grid-cols-2 gap-4">
+          {/* ✅ CHANGED: grid-cols-1 for mobile (stack), sm:grid-cols-2 for desktop (side-by-side) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label>Branch Name</Label>
               <Input
@@ -506,6 +555,19 @@ function BranchEditorModal({
             </p>
           </div>
 
+          {/* GSTIN */}
+          <div className="grid gap-2">
+            <Label>GST Number (GSTIN)</Label>
+            <Input
+              value={form.gstNumber}
+              onChange={(e) => setForm((s) => ({ ...s, gstNumber: e.target.value.toUpperCase() }))}
+              placeholder="e.g. 29ABCDE1234F1Z5"
+              maxLength={15}
+              className="font-mono"
+            />
+            <p className="text-[11px] text-xc-muted">Used in Accounting, invoices, and statutory reporting.</p>
+          </div>
+
           <div className="grid gap-2">
             <Label>Branch Address</Label>
             <Input
@@ -521,7 +583,8 @@ function BranchEditorModal({
           <div className="grid gap-4">
             <div className="text-sm font-semibold text-xc-text">Contact Details</div>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* ✅ CHANGED: grid-cols-1 for mobile, sm:grid-cols-2 for desktop */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Contact Number 1</Label>
                 <Input
@@ -552,8 +615,8 @@ function BranchEditorModal({
           </div>
         </div>
 
-        {/* Match Policies modal footer layout */}
         <DialogFooter>
+          {/* Footer already uses flex-col-reverse which is good for mobile */}
           <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
             <Button variant="outline" onClick={onClose} disabled={busy}>
               Cancel
@@ -569,12 +632,10 @@ function BranchEditorModal({
     </Dialog>
   );
 }
-
 export default function BranchesPage() {
   const { toast } = useToast();
   const user = useAuthStore((s) => s.user);
 
-  // IMPORTANT: support both shapes coming from IAM / store
   const isSuperAdmin = user?.role === "SUPER_ADMIN" || (user as any)?.roleCode === "SUPER_ADMIN";
 
   const [q, setQ] = React.useState("");
@@ -586,15 +647,17 @@ export default function BranchesPage() {
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<BranchRow | null>(null);
+
   const filtered = React.useMemo(() => {
     const s = q.trim().toLowerCase();
     if (!s) return rows;
 
     return (rows ?? []).filter((b) => {
-      const hay = `${b.code} ${b.name} ${b.city}`.toLowerCase();
+      const hay = `${b.code} ${b.name} ${b.city} ${b.gstNumber ?? ""}`.toLowerCase();
       return hay.includes(s);
     });
   }, [rows, q]);
+
   async function refresh(showToast = false) {
     setErr(null);
     setLoading(true);
@@ -620,14 +683,14 @@ export default function BranchesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const totalUsers = countSum(rows, "users");
+  const totalFacilities = countSum(rows, "facilities");
   const totalDepartments = countSum(rows, "departments");
-  const totalBeds = countSum(rows, "beds");
+  const totalSpecialties = countSum(rows, "specialties");
 
   return (
     <AppShell title="Branches">
       <div className="grid gap-6">
-        {/* Header (match Policies header structure) */}
+        {/* Header */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-center gap-3">
             <span className="grid h-10 w-10 place-items-center rounded-2xl border border-xc-border bg-xc-panel/30">
@@ -636,12 +699,13 @@ export default function BranchesPage() {
             <div className="min-w-0">
               <div className="text-3xl font-semibold tracking-tight">Branches</div>
               <div className="mt-1 text-sm text-xc-muted">
-                All users, departments, wards, and beds are created under a branch.
+                Super Admin creates Branch, configures Facilities, Departments and Specialties.
               </div>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            {/* Keep outline for compatibility; you can later switch this to variant="info" once button variants are extended */}
             <Button variant="outline" className="px-5 gap-2" onClick={() => void refresh(true)} disabled={loading}>
               <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
               Refresh
@@ -656,12 +720,12 @@ export default function BranchesPage() {
           </div>
         </div>
 
-        {/* Overview (match Policies Overview card) */}
+        {/* Overview */}
         <Card className="overflow-hidden">
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Overview</CardTitle>
             <CardDescription className="text-sm">
-              Search branches and open details. Only Super Admin can create, edit, or delete branches.
+              Search branches and open details. Only Super Admin can create, edit, delete and configure branch setup.
             </CardDescription>
           </CardHeader>
 
@@ -671,15 +735,16 @@ export default function BranchesPage() {
                 <div className="text-xs font-medium text-blue-600 dark:text-blue-400">Total Branches</div>
                 <div className="mt-1 text-lg font-bold text-blue-700 dark:text-blue-300">{rows.length}</div>
               </div>
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 dark:border-emerald-900/50 dark:bg-emerald-900/10">
-                <div className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Total Users</div>
-                <div className="mt-1 text-lg font-bold text-emerald-700 dark:text-emerald-300">{totalUsers}</div>
-              </div>
-              <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-3 dark:border-rose-900/50 dark:bg-rose-900/10">
-                <div className="text-xs font-medium text-rose-600 dark:text-rose-400">Total Beds</div>
-                <div className="mt-1 text-lg font-bold text-rose-700 dark:text-rose-300">{totalBeds}</div>
+
+              <div className="rounded-xl border border-sky-200 bg-sky-50/50 p-3 dark:border-sky-900/50 dark:bg-sky-900/10">
+                <div className="text-xs font-medium text-sky-600 dark:text-sky-400">Total Facilities</div>
+                <div className="mt-1 text-lg font-bold text-sky-700 dark:text-sky-300">{totalFacilities}</div>
               </div>
 
+              <div className="rounded-xl border border-violet-200 bg-violet-50/50 p-3 dark:border-violet-900/50 dark:bg-violet-900/10">
+                <div className="text-xs font-medium text-violet-600 dark:text-violet-400">Total Specialties</div>
+                <div className="mt-1 text-lg font-bold text-violet-700 dark:text-violet-300">{totalSpecialties}</div>
+              </div>
             </div>
 
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -691,18 +756,16 @@ export default function BranchesPage() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") e.preventDefault();
                   }}
-                  placeholder="Search by code, name, or city…"
+                  placeholder="Search by code, name, city, or GSTIN…"
                   className="pl-10"
                 />
               </div>
 
-              {/* optional helper text on the right */}
               <div className="text-xs text-xc-muted">
                 Showing <span className="font-semibold tabular-nums text-xc-text">{filtered.length}</span> of{" "}
                 <span className="font-semibold tabular-nums text-xc-text">{rows.length}</span>
               </div>
             </div>
-
 
             {err ? (
               <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
@@ -713,11 +776,11 @@ export default function BranchesPage() {
           </CardContent>
         </Card>
 
-        {/* Table (match Policies table card style) */}
+        {/* Table */}
         <Card className="overflow-hidden">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Branch Registry</CardTitle>
-            <CardDescription className="text-sm">Click Details to open branch configuration and scoped data.</CardDescription>
+            <CardDescription className="text-sm">Use Facility Setup to configure Facilities → Departments → Specialties → Mapping.</CardDescription>
           </CardHeader>
           <Separator />
 
@@ -728,7 +791,8 @@ export default function BranchesPage() {
                   <th className="px-4 py-3 text-left font-semibold">Code</th>
                   <th className="px-4 py-3 text-left font-semibold">Branch</th>
                   <th className="px-4 py-3 text-left font-semibold">City</th>
-                  <th className="px-4 py-3 text-left font-semibold">Overview</th>
+                  <th className="px-4 py-3 text-left font-semibold">GSTIN</th>
+                  <th className="px-4 py-3 text-left font-semibold">Setup</th>
                   <th className="px-4 py-3 text-right font-semibold">Action</th>
                 </tr>
               </thead>
@@ -736,7 +800,7 @@ export default function BranchesPage() {
               <tbody>
                 {!filtered.length ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-10 text-center text-sm text-xc-muted">
+                    <td colSpan={6} className="px-4 py-10 text-center text-sm text-xc-muted">
                       {loading ? "Loading branches…" : "No branches found."}
                     </td>
                   </tr>
@@ -745,7 +809,7 @@ export default function BranchesPage() {
                 {filtered.map((b) => (
                   <tr key={b.id} className="border-t border-xc-border hover:bg-xc-panel/20">
                     <td className="px-4 py-3">
-                      <span className="inline-flex rounded-lg border border-xc-border bg-xc-panel/20 px-2.5 py-1 font-mono text-xs text-xc-text">
+                      <span className="inline-flex rounded-lg border border-xc-border bg-xc-accent/20 px-2.5 py-1 font-mono text-xs text-xc-text">
                         {b.code}
                       </span>
                     </td>
@@ -757,10 +821,14 @@ export default function BranchesPage() {
                     <td className="px-4 py-3 text-xc-muted">{b.city}</td>
 
                     <td className="px-4 py-3">
+                      <span className="font-mono text-xs text-xc-text">{b.gstNumber || "-"}</span>
+                    </td>
+
+                    <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-2">
-                        <Pill label="Users" value={Number(b._count?.users ?? 0)} />
-                        <Pill label="Depts" value={Number(b._count?.departments ?? 0)} />
-                        <Pill label="Beds" value={Number(b._count?.beds ?? 0)} />
+                        <Pill label="Facilities" value={countOf(b, "facilities")} />
+                        <Pill label="Depts" value={countOf(b, "departments")} />
+                        <Pill label="Specialties" value={countOf(b, "specialties")} />
                       </div>
                     </td>
 
@@ -786,6 +854,10 @@ export default function BranchesPage() {
                               Edit
                             </Button>
 
+                            <Button asChild variant="outline" className="px-3">
+                              <Link href={`/superadmin/branches/${encodeURIComponent(b.id)}/facility-setup`}>Facility Setup</Link>
+                            </Button>
+
                             <Button
                               variant="destructive"
                               className="px-3 gap-2"
@@ -808,43 +880,22 @@ export default function BranchesPage() {
           </div>
         </Card>
 
-        {/* Optional: keep your onboarding card (already matches style) */}
+        {/* Onboarding callout */}
         <div className="rounded-2xl border border-xc-border bg-xc-panel/20 p-5">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-xc-text">Recommended onboarding order</div>
+              <div className="text-sm font-semibold text-xc-text">Recommended setup order</div>
               <div className="mt-1 text-sm text-xc-muted">
-                Create branches first, then set up departments, staff, wards/beds, and finally IAM users scoped to the branch.
+                1) Create Branch (GSTIN) → 2) Facility Setup (Facilities → Departments → Specialties → Mapping) → 3) Branch Admin config (later).
               </div>
             </div>
-            <Button asChild variant="outline" className="self-start md:self-auto">
-              <Link href="/admin/facility">Open Branch Admin Setup</Link>
-            </Button>
           </div>
         </div>
       </div>
 
-      <BranchEditorModal
-        mode="create"
-        open={createOpen}
-        initial={null}
-        onClose={() => setCreateOpen(false)}
-        onSaved={() => refresh(false)}   // ✅ no extra “Branches refreshed” toast
-      />
-      <BranchEditorModal
-        mode="edit"
-        open={editOpen}
-        initial={selected}
-        onClose={() => setEditOpen(false)}
-        onSaved={() => refresh(false)}   // ✅ no extra “Branches refreshed” toast
-      />
-      <DeleteConfirmModal
-        open={deleteOpen}
-        branch={selected}
-        onClose={() => setDeleteOpen(false)}
-        onDeleted={() => refresh(false)} // ✅ no extra “Branches refreshed” toast
-      />
-
+      <BranchEditorModal mode="create" open={createOpen} initial={null} onClose={() => setCreateOpen(false)} onSaved={() => refresh(false)} />
+      <BranchEditorModal mode="edit" open={editOpen} initial={selected} onClose={() => setEditOpen(false)} onSaved={() => refresh(false)} />
+      <DeleteConfirmModal open={deleteOpen} branch={selected} onClose={() => setDeleteOpen(false)} onDeleted={() => refresh(false)} />
     </AppShell>
   );
 }

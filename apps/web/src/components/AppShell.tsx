@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"; // Added Dialog imports
 import { ToastHost } from "@/components/ToastHost";
 import {
   IconBed,
@@ -223,6 +224,36 @@ const NAV_GROUPS: NavGroup[] = [
   { title: "Governance & Ops", items: NAV_GOVERN },
 ];
 
+// --- Command Center Helpers ---
+
+// Flatten the navigation tree for searching
+const ALL_NAV_ITEMS = NAV_GROUPS.flatMap((group) =>
+  group.items.flatMap((item) => {
+    const results = [
+      {
+        label: item.label,
+        href: item.href,
+        icon: item.icon,
+        group: group.title,
+        type: "Parent",
+      },
+    ];
+    if (item.children) {
+      results.push(
+        ...item.children.map((child) => ({
+          label: child.label,
+          href: child.href,
+          icon: item.icon, // Inherit icon from parent module
+          group: group.title,
+          type: "Child",
+          parent: item.label,
+        }))
+      );
+    }
+    return results;
+  })
+);
+
 // --- Helpers ---
 
 function isActivePath(pathname: string, href: string) {
@@ -309,7 +340,10 @@ export function AppShell({
   const [openMap, setOpenMap] = React.useState<Record<string, boolean>>({});
   const [groupOpenMap, setGroupOpenMap] = React.useState<Record<string, boolean>>({});
   const [navQuery, setNavQuery] = React.useState("");
-  const [topQuery, setTopQuery] = React.useState("");
+  
+  // Command Center State
+  const [commandOpen, setCommandOpen] = React.useState(false);
+  const [commandQuery, setCommandQuery] = React.useState("");
 
   // Hydrate state from local storage on mount
   React.useEffect(() => {
@@ -322,6 +356,18 @@ export function AppShell({
         "Governance & Ops": true,
       })
     );
+  }, []);
+
+  // Keyboard Shortcut Effect (Ctrl+K / Cmd+K)
+  React.useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setCommandOpen((open) => !open);
+      }
+    };
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
   }, []);
 
   function toggleCollapsed() {
@@ -347,6 +393,19 @@ export function AppShell({
       return next;
     });
   }
+
+  // Filter Command Center Results
+  const filteredCommandItems = React.useMemo(() => {
+    const q = commandQuery.trim().toLowerCase();
+    if (!q) return [];
+    
+    // Simple relevance scoring could be added here, currently just substring match
+    return ALL_NAV_ITEMS.filter(item => 
+      item.label.toLowerCase().includes(q) || 
+      (item.parent && item.parent.toLowerCase().includes(q)) ||
+      item.group.toLowerCase().includes(q)
+    ).slice(0, 10); // Limit to top 10 results
+  }, [commandQuery]);
 
   const visibleGroups = React.useMemo(() => {
     const q = navQuery.trim().toLowerCase();
@@ -374,6 +433,72 @@ export function AppShell({
 
   return (
     <div className="h-screen overflow-hidden bg-xc-bg text-xc-text">
+      {/* Command Center Dialog */}
+      <Dialog open={commandOpen} onOpenChange={setCommandOpen}>
+        <DialogContent className="p-0 gap-0 overflow-hidden max-w-2xl bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-2xl">
+          <DialogTitle className="sr-only">Command Center</DialogTitle>
+          <div className="flex items-center border-b border-zinc-200 dark:border-zinc-800 px-4 py-1">
+            <IconSearch className="mr-2 h-5 w-5 shrink-0 text-zinc-400" />
+            <input 
+              className="flex h-12 w-full bg-transparent py-3 text-base outline-none placeholder:text-zinc-400 text-zinc-900 dark:text-zinc-100" 
+              placeholder="Type a command or search..." 
+              value={commandQuery}
+              onChange={(e) => setCommandQuery(e.target.value)}
+              autoFocus
+            />
+            <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border border-zinc-200 bg-zinc-100 px-1.5 font-mono text-[10px] font-medium text-zinc-500 opacity-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
+              <span className="text-xs">ESC</span>
+            </kbd>
+          </div>
+          <div className="max-h-[300px] overflow-y-auto p-2">
+            {!commandQuery && (
+               <div className="py-12 text-center text-sm text-zinc-500">
+                 <IconKeyboard className="mx-auto h-8 w-8 mb-3 opacity-50" />
+                 <p>Type to search across apps, pages, and commands.</p>
+               </div>
+            )}
+            
+            {commandQuery && filteredCommandItems.length === 0 && (
+               <div className="py-6 text-center text-sm text-zinc-500">
+                 No results found for "{commandQuery}"
+               </div>
+            )}
+
+            {filteredCommandItems.length > 0 && (
+              <div className="space-y-1">
+                <h4 className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Suggestions</h4>
+                {filteredCommandItems.map((item, i) => (
+                  <button
+                    key={item.href + i}
+                    onClick={() => {
+                      router.push(item.href);
+                      setCommandOpen(false);
+                      setCommandQuery("");
+                    }}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-left"
+                  >
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
+                      <item.icon className="h-4 w-4 text-zinc-500" />
+                    </div>
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <span className="font-medium truncate">{item.label}</span>
+                      <span className="text-xs text-zinc-400 truncate">
+                        {item.group} {item.parent ? ` / ${item.parent}` : ""}
+                      </span>
+                    </div>
+                    <IconChevronRight className="h-4 w-4 text-zinc-400 opacity-0 group-hover:opacity-100" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 py-2.5 text-[10px] text-zinc-500">
+             <div>Use arrow keys to navigate</div>
+             <div>ZypoCare One v4.2</div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex h-screen min-w-0">
         {/* Sidebar */}
         <aside
@@ -409,7 +534,7 @@ export function AppShell({
                     collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
                   )}
                 >
-                  <div className="truncate text-sm font-semibold tracking-tight">ExcelCare</div>
+                  <div className="truncate text-sm font-semibold tracking-tight">ZypoCare One</div>
                   <div className="mt-0.5 truncate text-xs text-xc-muted">
                     {user?.role ? user.role.replaceAll("_", " ") : "SUPER ADMIN"}
                   </div>
@@ -444,7 +569,7 @@ export function AppShell({
                   onChange={(e) => setNavQuery(e.target.value)}
                   placeholder="Search modules"
                   className={cn(
-                    "h-10 pl-10 rounded-full",
+                    "h-10 pl-10 rounded-lg",
                     "bg-xc-card border-xc-border",
                     "focus-visible:ring-2 focus-visible:ring-xc-ring"
                   )}
@@ -671,14 +796,15 @@ export function AppShell({
               <div className="hidden min-w-0 flex-1 px-3 md:flex">
                 <div className="relative w-full max-w-[720px]">
                   <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-xc-muted" />
+                  {/* Updated Header Input to trigger Command Center */}
                   <Input
-                    value={topQuery}
-                    onChange={(e) => setTopQuery(e.target.value)}
+                    onClick={() => setCommandOpen(true)} // Open Command on click
+                    readOnly // Prevent typing directly, use modal instead
                     placeholder="Search… (Ctrl/Cmd + K)"
                     className={cn(
-                      "h-10 pl-10 rounded-full",
+                      "h-10 pl-10 rounded-lg cursor-pointer",
                       "bg-xc-card border-xc-border",
-                      "focus-visible:ring-2 focus-visible:ring-xc-ring"
+                      "focus-visible:ring-2 focus-visible:ring-xc-ring hover:bg-zinc-50 dark:hover:bg-zinc-800"
                     )}
                   />
                 </div>
@@ -686,22 +812,13 @@ export function AppShell({
 
               <div className="ml-auto flex items-center gap-2">
                 <Button
-                  variant="ghost"
+                  variant="primary"
                   size="sm"
-                  onClick={() => router.push("/superadmin")}
-                  className="rounded-full"
+                  onClick={() => setCommandOpen(true)} // Updated Button to Open Command
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition"
                 >
                   <IconKeyboard className="h-4 w-4" />
                   Command Center
-                </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => router.push(pathname)}
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition"
-                >
-                  <IconPlus className="h-4 w-4" />
-                  Create
                 </Button>
                 <ThemeToggle />
                 <Button
@@ -726,8 +843,7 @@ export function AppShell({
           </main>
         </div>
       </div>
+      <ToastHost />
     </div>
   );
-
-<ToastHost />
 }

@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { AuditModule } from "../audit/audit.module";
+import { AuthModule } from "../auth/auth.module";
 import { AccessPolicyService } from "../auth/access-policy.service";
 import { PrincipalGuard } from "../auth/principal.guard";
 import { PermissionsGuard } from "../auth/permissions.guard";
@@ -8,8 +9,8 @@ import { IamService } from "./iam.service";
 import { IamSeedService } from "./iam.seed";
 
 @Module({
-  imports: [AuditModule],
+  imports: [AuditModule, AuthModule],
   controllers: [IamController],
-  providers: [IamService, AccessPolicyService, PrincipalGuard, PermissionsGuard, IamSeedService],
+  providers: [IamService, IamSeedService],
 })
 export class IamModule {}

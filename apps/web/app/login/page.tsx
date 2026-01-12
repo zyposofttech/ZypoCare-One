@@ -17,13 +17,11 @@ import {
   ShieldCheck,
   Globe,
   ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api";
 type AuthView = "LOGIN" | "FORGOT";
 
-// ... (BrandPattern and StatusBadge components remain the same) ...
 function BrandPattern() {
   return (
     <div className="absolute inset-0 z-0 overflow-hidden opacity-30 dark:opacity-20">
@@ -33,6 +31,51 @@ function BrandPattern() {
 }
 
 function StatusBadge() {
+  const [status, setStatus] = React.useState<'loading' | 'online' | 'offline'>('loading');
+
+  React.useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        // Fetches the NestJS HealthController @ /health (via proxy /api/health)
+        const res = await fetch("/api/health");
+        if (res.ok) {
+          setStatus('online');
+        } else {
+          setStatus('offline');
+        }
+      } catch (error) {
+        setStatus('offline');
+      }
+    };
+
+    checkHealth();
+    // Optional: Re-check every 30 seconds
+    const interval = setInterval(checkHealth, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (status === 'offline') {
+    return (
+      <div className="flex items-center gap-2 rounded-full border border-red-200 bg-red-50/80 px-3 py-1 text-[11px] font-medium text-red-600 backdrop-blur-md transition dark:border-red-900/30 dark:bg-red-900/20 dark:text-red-400 cursor-not-allowed" title="Cannot connect to server">
+        <span className="relative flex h-2 w-2">
+           {/* Static red dot for offline */}
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
+        </span>
+        System Offline
+      </div>
+    );
+  }
+
+  if (status === 'loading') {
+    return (
+       <div className="flex items-center gap-2 rounded-full border border-zinc-200 bg-white/50 px-3 py-1 text-[11px] font-medium text-zinc-500 backdrop-blur-md dark:border-white/10 dark:bg-white/5 dark:text-zinc-400">
+         <Loader2 className="h-2.5 w-2.5 animate-spin" />
+         Checking Systems...
+       </div>
+    );
+  }
+
+  // Default: Online (Green)
   return (
     <div className="flex items-center gap-2 rounded-full border border-zinc-200 bg-white/50 px-3 py-1 text-[11px] font-medium text-zinc-600 backdrop-blur-md transition hover:bg-white/80 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:bg-white/10 cursor-help" title="All systems operational">
       <span className="relative flex h-2 w-2">
@@ -60,7 +103,6 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  // ✅ REDIRECT LOGIC: Only runs when store is ready and user is logged in
   React.useEffect(() => {
     if (isHydrated && user) {
       if (user.mustChangePassword) {
@@ -85,7 +127,6 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      // Handle non-JSON responses (like 404/500 HTML pages)
       const contentType = res.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
         throw new Error("Service unavailable. Please try again later.");
@@ -106,7 +147,6 @@ export default function LoginPage() {
       }
 
       if (loggedInUser) {
-        // Just update store. The useEffect will handle the redirect.
         login(loggedInUser, accessToken ?? null);
       }
       
@@ -116,7 +156,6 @@ export default function LoginPage() {
     }
   }
 
-  // ... (Return JSX same as before) ...
   return (
     <div className="flex h-screen w-full overflow-hidden bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
       
@@ -195,7 +234,7 @@ export default function LoginPage() {
                   <div className="group relative">
                     <Mail className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-zinc-400 transition group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400" />
                     <Input 
-                        placeholder="name@hospital.com" 
+                        placeholder="Enter your email" 
                         type="email" 
                         className="pl-9 h-11 bg-zinc-50 border-zinc-200 focus:border-indigo-500 focus:ring-indigo-500/20 dark:bg-zinc-900 dark:border-zinc-800 dark:focus:border-indigo-400"
                         value={email}
@@ -215,7 +254,7 @@ export default function LoginPage() {
                   <div className="group relative">
                     <Lock className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-zinc-400 transition group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400" />
                     <Input 
-                        placeholder="••••••••" 
+                        placeholder="Enter your password" 
                         type="password" 
                         className="pl-9 h-11 bg-zinc-50 border-zinc-200 focus:border-indigo-500 focus:ring-indigo-500/20 dark:bg-zinc-900 dark:border-zinc-800 dark:focus:border-indigo-400"
                         value={password}
@@ -254,7 +293,6 @@ export default function LoginPage() {
             </form>
           )}
 
-           {/* FORGOT PASSWORD VIEW (Keep existing logic) */}
            {view === "FORGOT" && (
             <div className="space-y-6 animate-in slide-in-from-left-4 fade-in duration-300">
                <div className="space-y-1.5">

@@ -127,6 +127,7 @@ exports.Prisma.BranchScalarFieldEnum = {
   code: 'code',
   name: 'name',
   city: 'city',
+  gstNumber: 'gstNumber',
   address: 'address',
   contactPhone1: 'contactPhone1',
   contactPhone2: 'contactPhone2',
@@ -135,20 +136,23 @@ exports.Prisma.BranchScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.FacilityScalarFieldEnum = {
+exports.Prisma.FacilityCatalogScalarFieldEnum = {
   id: 'id',
-  branchId: 'branchId',
   code: 'code',
   name: 'name',
-  type: 'type',
-  addressLine1: 'addressLine1',
-  addressLine2: 'addressLine2',
-  city: 'city',
-  state: 'state',
-  postalCode: 'postalCode',
-  phone: 'phone',
-  email: 'email',
+  category: 'category',
   isActive: 'isActive',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BranchFacilityScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  facilityId: 'facilityId',
+  isEnabled: 'isEnabled',
+  enabledAt: 'enabledAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -156,9 +160,21 @@ exports.Prisma.FacilityScalarFieldEnum = {
 exports.Prisma.DepartmentScalarFieldEnum = {
   id: 'id',
   branchId: 'branchId',
+  facilityId: 'facilityId',
   code: 'code',
   name: 'name',
+  headStaffId: 'headStaffId',
   isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DepartmentDoctorScalarFieldEnum = {
+  id: 'id',
+  departmentId: 'departmentId',
+  staffId: 'staffId',
+  isPrimary: 'isPrimary',
+  assignedAt: 'assignedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -166,9 +182,18 @@ exports.Prisma.DepartmentScalarFieldEnum = {
 exports.Prisma.SpecialtyScalarFieldEnum = {
   id: 'id',
   branchId: 'branchId',
-  departmentId: 'departmentId',
   code: 'code',
   name: 'name',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DepartmentSpecialtyScalarFieldEnum = {
+  id: 'id',
+  departmentId: 'departmentId',
+  specialtyId: 'specialtyId',
+  isPrimary: 'isPrimary',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -503,6 +528,12 @@ exports.Prisma.JsonNullValueFilter = {
   JsonNull: Prisma.JsonNull,
   AnyNull: Prisma.AnyNull
 };
+exports.FacilityCategory = exports.$Enums.FacilityCategory = {
+  SERVICE: 'SERVICE',
+  CLINICAL: 'CLINICAL',
+  SUPPORT: 'SUPPORT'
+};
+
 exports.EncounterType = exports.$Enums.EncounterType = {
   OPD: 'OPD',
   IPD: 'IPD',
@@ -568,9 +599,12 @@ exports.PolicyVersionStatus = exports.$Enums.PolicyVersionStatus = {
 
 exports.Prisma.ModelName = {
   Branch: 'Branch',
-  Facility: 'Facility',
+  FacilityCatalog: 'FacilityCatalog',
+  BranchFacility: 'BranchFacility',
   Department: 'Department',
+  DepartmentDoctor: 'DepartmentDoctor',
   Specialty: 'Specialty',
+  DepartmentSpecialty: 'DepartmentSpecialty',
   Staff: 'Staff',
   User: 'User',
   Patient: 'Patient',
