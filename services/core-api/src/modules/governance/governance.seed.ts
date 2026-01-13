@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger, OnModuleInit } from "@nestjs/common";
-import type { PrismaClient } from "@excelcare/db";
+import type { PrismaClient } from "@zypocare/db";
 
 /**
  * DEV seed for Policy Governance.

@@ -78,7 +78,7 @@ export default function Page() {
           <div className="min-w-0">
             <div className="text-4xl font-semibold tracking-tight">Admin Dashboard</div>
             <div className="mt-3 max-w-2xl text-sm leading-6 text-xc-muted">
-              A comfort-first command center for ExcelCare hospital operations, integrations, and
+              A comfort-first command center for hospital operations, integrations, and
               enterprise-grade governance.
             </div>
           </div>

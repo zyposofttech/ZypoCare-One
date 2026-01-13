@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Literal, Optional, List, Dict, Any
 
-app = FastAPI(title="ExcelCare AI Copilot", version="0.1.1")
+app = FastAPI(title="ZypoCare AI Copilot", version="0.1.1")
 
 class ContextPack(BaseModel):
   role: Literal["DOCTOR","NURSE","BILLING","OPS","SUPER_ADMIN"]

@@ -25,8 +25,8 @@ function valuesFor(templateId: PolicyTemplateId, override?: Record<string, any>)
 
 export const POLICY_PACKS: PolicyPack[] = [
   {
-    id: "excelcare_recommended_baseline",
-    name: "ExcelCare Recommended Baseline",
+    id: "zypocare_recommended_baseline",
+    name: "ZypoCare Recommended Baseline",
     tag: "Recommended",
     description:
       "A balanced default pack for most hospitals: controlled exports, emergency access with audit, and reasonable retention settings.",

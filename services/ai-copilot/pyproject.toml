@@ -1,6 +1,6 @@
 [project]
-name = "excelcare-ai-copilot"
+name = "zypocare-ai-copilot"
 version = "0.1.1"
-description = "Role-aware AI Copilot service for ExcelCare HIMS"
+description = "Role-aware AI Copilot service for ZypoCare HIMS"
 requires-python = ">=3.10"
 dependencies = ["fastapi>=0.110","uvicorn[standard]>=0.27","pydantic>=2.6"]

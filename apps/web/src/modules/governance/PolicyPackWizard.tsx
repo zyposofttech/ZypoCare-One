@@ -135,7 +135,7 @@ function BreakGlassEditor({ value, onChange }: { value: any; onChange: (v: any) 
         <Input
           value={value.notifyEmail || ""}
           onChange={(e) => onChange({ ...value, notifyEmail: e.target.value })}
-          placeholder="compliance@excelcare.local"
+          placeholder="compliance@zypocare.local"
         />
         <div className="text-xs text-xc-muted">If set, system can notify for each break-glass event.</div>
       </div>
@@ -515,7 +515,7 @@ export function PolicyPackWizard({
                       <Textarea
                         value={installNote}
                         onChange={(e) => setInstallNote(e.target.value)}
-                        placeholder="Example: Baseline pack installed for ExcelCare Hospital (drafts)."
+                        placeholder="Example: Baseline pack installed for Hospital (drafts)."
                         className="min-h-[90px]"
                       />
                       <div className="text-xs text-xc-muted">

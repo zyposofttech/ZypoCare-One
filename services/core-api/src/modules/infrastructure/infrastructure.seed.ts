@@ -1,5 +1,5 @@
 import { Inject, Injectable, OnModuleInit } from "@nestjs/common";
-import type { PrismaClient } from "@excelcare/db";
+import type { PrismaClient } from "@zypocare/db";
 import { INFRA_POLICY } from "./infrastructure.constants";
 
 const UNIT_TYPES = [

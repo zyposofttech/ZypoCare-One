@@ -32,32 +32,13 @@ import {
   Trash2,
 } from "lucide-react";
 
-/* -------------------------------------------------------------------------- */
-/*                         IMPORTANT: API ENDPOINTS                            */
-/* -------------------------------------------------------------------------- */
-/**
- * Adjust these if your backend uses different routes.
- * The page expects:
- * - tree(branchId) => returns either nested tree or flat items.
- * - create endpoints per type
- * - revise(id) => effective-dated change
- * - retire(id) => effectiveTo/end-dating
- */
 const LOC_API = {
   tree: (branchId: string) => `/api/infrastructure/locations/tree?branchId=${encodeURIComponent(branchId)}`,
-
-  createCampus: `/api/infrastructure/locations/campuses`,
-  createBuilding: `/api/infrastructure/locations/buildings`,
-  createFloor: `/api/infrastructure/locations/floors`,
-  createZone: `/api/infrastructure/locations/zones`,
-
-  revise: (id: string) => `/api/infrastructure/locations/${encodeURIComponent(id)}/revise`,
-  retire: (id: string) => `/api/infrastructure/locations/${encodeURIComponent(id)}/retire`,
+  create: (branchId: string) => `/api/infrastructure/locations?branchId=${encodeURIComponent(branchId)}`,
+  update: (id: string) => `/api/infrastructure/locations/${encodeURIComponent(id)}`,
 };
 
-/* -------------------------------------------------------------------------- */
-/*                                   Types                                    */
-/* -------------------------------------------------------------------------- */
+
 
 type BranchRow = {
   id: string;
@@ -347,29 +328,58 @@ type RetireState = {
   node: LocationNode | null;
 };
 
-function suggestCode(kind: LocationType, siblings: LocationNode[]) {
-  // Convention suggestion (can be changed; backend validates):
-  // Campus: C01, C02...
-  // Building: B01...
-  // Floor: F01...
-  // Zone: 01, 02... numeric
-  const existing = new Set(
-    siblings.map((s) => String(s.code ?? "").trim().toUpperCase()).filter(Boolean)
-  );
-
-  const pad2 = (n: number) => String(n).padStart(2, "0");
-  for (let i = 1; i < 200; i++) {
-    const code =
-      kind === "CAMPUS" ? `C${pad2(i)}` :
-      kind === "BUILDING" ? `B${pad2(i)}` :
-      kind === "FLOOR" ? `F${pad2(i)}` :
-      `${pad2(i)}`;
-
-    if (!existing.has(code.toUpperCase())) return code;
-  }
-  return kind === "ZONE" ? "01" : "X01";
+function tailSegment(fullCode: string) {
+  const s = String(fullCode ?? "").trim();
+  if (!s) return "";
+  const parts = s.split("-").filter(Boolean);
+  return parts.length ? parts[parts.length - 1] : s;
 }
 
+function composeFullCodeForCreate(kind: LocationType, segmentRaw: string, parentFullCode?: string | null) {
+  const seg = String(segmentRaw ?? "").trim().toUpperCase();
+  if (!seg) return "";
+  if (kind === "CAMPUS") return seg;
+
+  const parent = String(parentFullCode ?? "").trim().toUpperCase();
+  if (!parent) return seg;
+
+  return `${parent}-${seg}`;
+}
+
+function suggestCode(kind: LocationType, siblings: LocationNode[]) {
+  // Suggest segment codes. Backend composes the full code using parent code + segment.
+  // We must compare against the sibling *segments* (tail of full code), not the full codes.
+  const pad2 = (n: number) => String(n).padStart(2, "0");
+
+  if (kind === "ZONE") {
+    const existing = new Set(
+      siblings
+        .map((s) => tailSegment(s.code))
+        .map((seg) => {
+          const n = Number.parseInt(String(seg ?? "").trim(), 10);
+          return Number.isFinite(n) ? String(n) : "";
+        })
+        .filter(Boolean),
+    );
+
+    for (let i = 1; i < 500; i++) {
+      const norm = String(i);
+      if (!existing.has(norm)) return pad2(i);
+    }
+    return "01";
+  }
+
+  const existing = new Set(siblings.map((s) => tailSegment(s.code).toUpperCase()).filter(Boolean));
+
+  const prefix =
+    kind === "CAMPUS" ? "C" : kind === "BUILDING" ? "B" : kind === "FLOOR" ? "F" : "X";
+
+  for (let i = 1; i < 500; i++) {
+    const seg = `${prefix}${pad2(i)}`;
+    if (!existing.has(seg)) return seg;
+  }
+  return `${prefix}01`;
+}
 /* -------------------------------------------------------------------------- */
 /*                                   Page                                     */
 /* -------------------------------------------------------------------------- */
@@ -502,81 +512,130 @@ export default function SuperAdminInfrastructureLocations() {
     );
   }
 
-  function TreeRow({
-    node,
-    depth,
-    hasChildren,
-    children,
-  }: {
-    node: LocationNode;
-    depth: number;
-    hasChildren: boolean;
-    children?: React.ReactNode;
-  }) {
-    const active = isActiveNow(node);
-    const isSel = selectedId === node.id;
+ function TreeRow({
+  node,
+  depth,
+  hasChildren,
+  children,
+}: {
+  node: LocationNode;
+  depth: number;
+  hasChildren: boolean;
+  children?: React.ReactNode;
+}) {
+  const active = isActiveNow(node);
+  const isSel = selectedId === node.id;
 
-    return (
-      <div>
-        <button
-          type="button"
-          onClick={() => setSelectedId(node.id)}
-          className={cn(
-            "w-full rounded-xl border px-3 py-2 text-left transition-all",
-            "border-xc-border bg-xc-panel/15 hover:bg-xc-panel/25",
-            isSel && "border-indigo-200/60 bg-indigo-50/40 dark:border-indigo-900/35 dark:bg-indigo-900/15",
-          )}
-          style={{ marginLeft: depth * 14 }}
-        >
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                {hasChildren ? (
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggle(node.id);
-                    }}
-                    className="grid h-6 w-6 place-items-center rounded-lg border border-xc-border bg-xc-panel/20 hover:bg-xc-panel/30"
-                    title={expanded[node.id] ? "Collapse" : "Expand"}
-                  >
-                    {expanded[node.id] ? <ChevronDown className="h-4 w-4 text-xc-muted" /> : <ChevronRight className="h-4 w-4 text-xc-muted" />}
-                  </span>
-                ) : (
-                  <span className="grid h-6 w-6 place-items-center rounded-lg border border-xc-border bg-xc-panel/10">
-                    <span className="h-1.5 w-1.5 rounded-full bg-xc-muted/60" />
-                  </span>
-                )}
+  const Accent =
+    node.type === "CAMPUS"
+      ? "bg-indigo-500/70 dark:bg-indigo-400/60"
+      : node.type === "BUILDING"
+      ? "bg-cyan-500/70 dark:bg-cyan-400/60"
+      : node.type === "FLOOR"
+      ? "bg-emerald-500/70 dark:bg-emerald-400/60"
+      : "bg-amber-500/70 dark:bg-amber-400/60";
 
-                <span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones[typeTone(node.type)])}>
-                  {typeLabel(node.type)}
-                </span>
+  const Glyph =
+    node.type === "CAMPUS"
+      ? MapPin
+      : node.type === "BUILDING"
+      ? Building2
+      : node.type === "FLOOR"
+      ? Layers
+      : CheckCircle2;
 
-                <span className="font-mono text-xs text-xc-muted">{node.code}</span>
+  const childCount = hasChildren
+    ? node.type === "CAMPUS"
+      ? (node.buildings?.length ?? 0)
+      : node.type === "BUILDING"
+      ? (node.floors?.length ?? 0)
+      : (node.zones?.length ?? 0)
+    : 0;
 
-                <span className={cn("truncate text-sm font-semibold", active ? "text-xc-text" : "text-xc-muted")}>
-                  {node.name}
-                </span>
-              </div>
-            </div>
+  const childLabel = node.type === "CAMPUS" ? "Buildings" : node.type === "BUILDING" ? "Floors" : "Zones";
 
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setSelectedId(node.id)}
+        className={cn(
+          "relative w-full rounded-xl border px-3 py-2 text-left transition-all",
+          "border-xc-border bg-xc-panel/15 hover:bg-xc-panel/25",
+          isSel &&
+            "ring-1 ring-indigo-400/50 border-indigo-200/60 bg-indigo-50/40 dark:border-indigo-900/35 dark:bg-indigo-900/15",
+        )}
+        style={{ marginLeft: depth * 4 }}
+      >
+        <span className={cn("absolute left-0 top-2 bottom-2 w-1 rounded-full", Accent)} />
+
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              {rowPill(node)}
+              {hasChildren ? (
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggle(node.id);
+                  }}
+                  className="grid h-7 w-7 place-items-center rounded-xl border border-xc-border bg-xc-panel/20 hover:bg-xc-panel/30"
+                  title={expanded[node.id] ? "Collapse" : "Expand"}
+                >
+                  {expanded[node.id] ? (
+                    <ChevronDown className="h-4 w-4 text-xc-muted" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-xc-muted" />
+                  )}
+                </span>
+              ) : (
+                <span className="grid h-7 w-7 place-items-center rounded-xl border border-xc-border bg-xc-panel/10">
+                  <span className="h-1.5 w-1.5 rounded-full bg-xc-muted/60" />
+                </span>
+              )}
+
+              <span className={cn("grid h-7 w-7 place-items-center rounded-xl border", pillTones[typeTone(node.type)])}>
+                <Glyph className="h-4 w-4" />
+              </span>
+
+              <span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones[typeTone(node.type)])}>
+                {typeLabel(node.type)}
+              </span>
+
+              <span className="font-mono text-xs text-xc-muted" title={node.code}>
+                {node.code}
+              </span>
+
+              <span className={cn("truncate text-sm font-semibold", active ? "text-xc-text" : "text-xc-muted")}>
+                {node.name}
+              </span>
+
+              {hasChildren ? (
+                <span className="hidden sm:inline-flex items-center rounded-full border border-xc-border bg-xc-panel/10 px-2 py-0.5 text-[11px] text-xc-muted">
+                  {childCount} {childLabel}
+                </span>
+              ) : null}
             </div>
           </div>
 
-          <div className="mt-2 flex items-center gap-2 text-xs text-xc-muted">
-            <CalendarClock className="h-4 w-4" />
-            <span>From: {fmtDateTime(node.effectiveFrom)}</span>
-            <span className="text-xc-muted/60">•</span>
-            <span>To: {fmtDateTime(node.effectiveTo)}</span>
-          </div>
-        </button>
+          <div className="flex items-center gap-2">{rowPill(node)}</div>
+        </div>
 
-        {hasChildren && expanded[node.id] ? <div className="mt-2 grid gap-2">{children}</div> : null}
-      </div>
-    );
-  }
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-xc-muted">
+          <CalendarClock className="h-4 w-4" />
+          <span>From: {fmtDateTime(node.effectiveFrom)}</span>
+          <span className="text-xc-muted/60">•</span>
+          <span>To: {fmtDateTime(node.effectiveTo)}</span>
+        </div>
+      </button>
+
+      {hasChildren && expanded[node.id] ? (
+        <div className="mt-2 grid gap-2 border-l border-xc-border/60 pl-4" style={{ marginLeft: depth * 10 + 10 }}>
+          {children}
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
   function renderTree() {
     return campuses.map((c) => (
@@ -643,19 +702,10 @@ export default function SuperAdminInfrastructureLocations() {
     name: string;
     effectiveFrom: string; // ISO
   }) {
-    const url =
-      payload.kind === "CAMPUS"
-        ? LOC_API.createCampus
-        : payload.kind === "BUILDING"
-          ? LOC_API.createBuilding
-          : payload.kind === "FLOOR"
-            ? LOC_API.createFloor
-            : LOC_API.createZone;
-
-    await apiFetch(url, {
+    await apiFetch(LOC_API.create(payload.branchId), {
       method: "POST",
       body: JSON.stringify({
-        branchId: payload.branchId,
+        kind: payload.kind,
         parentId: payload.parentId ?? null,
         code: payload.code,
         name: payload.name,
@@ -670,8 +720,8 @@ export default function SuperAdminInfrastructureLocations() {
     name: string;
     effectiveFrom: string; // ISO
   }) {
-    await apiFetch(LOC_API.revise(payload.id), {
-      method: "POST",
+    await apiFetch(LOC_API.update(payload.id), {
+      method: "PATCH",
       body: JSON.stringify({
         code: payload.code,
         name: payload.name,
@@ -681,11 +731,16 @@ export default function SuperAdminInfrastructureLocations() {
   }
 
   async function retireLocation(payload: { id: string; effectiveTo: string }) {
-    await apiFetch(LOC_API.retire(payload.id), {
-      method: "POST",
-      body: JSON.stringify({ effectiveTo: payload.effectiveTo }),
+    // Backend uses effective-dated revisions. We create a final version effective now, ending at effectiveTo.
+    await apiFetch(LOC_API.update(payload.id), {
+      method: "PATCH",
+      body: JSON.stringify({
+        effectiveFrom: new Date().toISOString(),
+        effectiveTo: payload.effectiveTo,
+      }),
     });
   }
+
 
   /* -------------------------------------------------------------------------- */
   /*                                   Render                                   */
@@ -814,7 +869,7 @@ export default function SuperAdminInfrastructureLocations() {
 
                 <div className="flex items-center gap-2">
                   <Button
-                    variant="outline"
+                    variant="primary"
                     size="sm"
                     className="gap-2"
                     disabled={!selectedBranch}
@@ -1048,10 +1103,19 @@ export default function SuperAdminInfrastructureLocations() {
               const nameErr = validateName(v.name);
               if (nameErr) throw new Error(nameErr);
 
-              if (!isUniqueCodeWithinBranch(v.code)) {
-                throw new Error("Duplicate code: location codes must be unique within the branch.");
+              const parentFull = createState.parentId
+                ? allNodes.find((n) => n.id === createState.parentId)?.code ?? ""
+                : "";
+
+              const proposedFull = composeFullCodeForCreate(createState.kind, v.code, parentFull);
+
+              if (!proposedFull) {
+                throw new Error("Invalid code.");
               }
 
+              if (!isUniqueCodeWithinBranch(proposedFull)) {
+                throw new Error("Duplicate code: location code already exists for the selected parent path.");
+              }
               const iso = toIsoFromLocal(v.effectiveFrom);
               if (!iso) throw new Error("Invalid effective date/time.");
 
@@ -1190,12 +1254,61 @@ function CreateModal({
   onCreate: (v: { code: string; name: string; effectiveFrom: string }) => void;
   busy: boolean;
 }) {
+  const codeRef = React.useRef<HTMLInputElement | null>(null);
+
+  const parent = React.useMemo(() => {
+    if (!parentId) return null;
+    return allNodes.find((n) => n.id === parentId) || null;
+  }, [parentId, allNodes]);
+
+  const parentFullCode = parent?.code ?? "";
+  const parentParts = React.useMemo(() => {
+    const parts = String(parentFullCode ?? "").split("-").filter(Boolean);
+    return {
+      campus: parts[0] || "",
+      building: parts[1] || "",
+      floor: parts[2] || "",
+    };
+  }, [parentFullCode]);
+
   const [code, setCode] = React.useState(() => suggestCode(kind, siblings));
   const [name, setName] = React.useState("");
   const [effectiveFrom, setEffectiveFrom] = React.useState(nowLocalDateTime());
 
+  const fullPreview = React.useMemo(
+    () => composeFullCodeForCreate(kind, code, parentFullCode),
+    [kind, code, parentFullCode],
+  );
+
+  const fullConflict = React.useMemo(() => {
+    if (!fullPreview) return false;
+    const full = fullPreview.trim().toUpperCase();
+    return allNodes.some((n) => String(n.code ?? "").trim().toUpperCase() == full);
+  }, [fullPreview, allNodes]);
+
   const codeErr = validateCode(kind, code);
   const nameErr = validateName(name);
+
+  const suggestNow = () => {
+    const next = suggestCode(kind, siblings);
+    setCode(next);
+    requestAnimationFrame(() => codeRef.current?.focus());
+  };
+
+  const PatternChip = ({
+    label,
+    value,
+    tone,
+  }: {
+    label: string;
+    value: string;
+    tone: keyof typeof pillTones;
+  }) => (
+    <span className={cn("inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs", pillTones[tone])}>
+      <span className="text-xc-muted">{label}:</span>
+      <span className="font-mono text-[11px] text-xc-text">{value || "—"}</span>
+    </span>
+  );
 
   return (
     <ModalShell
@@ -1206,46 +1319,78 @@ function CreateModal({
     >
       <div className="grid gap-4">
         <div className="rounded-2xl border border-xc-border bg-xc-panel/15 p-4 text-sm text-xc-muted">
-          Suggested code pattern:
+          <div className="font-semibold text-xc-text">Suggested code pattern</div>
           <div className="mt-2 flex flex-wrap gap-2">
-            <span className={cn("rounded-full border px-3 py-1 text-xs", pillTones.indigo)}>Campus: C01</span>
-            <span className={cn("rounded-full border px-3 py-1 text-xs", pillTones.cyan)}>Building: B01</span>
-            <span className={cn("rounded-full border px-3 py-1 text-xs", pillTones.emerald)}>Floor: F01</span>
-            <span className={cn("rounded-full border px-3 py-1 text-xs", pillTones.amber)}>Zone: 01 (numeric)</span>
+            <PatternChip
+              label="Campus"
+              value={kind === "CAMPUS" ? code || "C01" : parentParts.campus || "C01"}
+              tone="indigo"
+            />
+            <PatternChip
+              label="Building"
+              value={kind === "BUILDING" ? code || "B01" : parentParts.building || (kind === "CAMPUS" ? "—" : "B01")}
+              tone="cyan"
+            />
+            <PatternChip
+              label="Floor"
+              value={kind === "FLOOR" ? code || "F01" : parentParts.floor || (kind === "ZONE" ? "F01" : "—")}
+              tone="emerald"
+            />
+            <PatternChip label="Zone" value={kind === "ZONE" ? code || "01" : "—"} tone="amber" />
+          </div>
+          <div className="mt-3 text-xs">
+            You enter only the <span className="font-semibold text-xc-text">segment</span> (e.g.,{" "}
+            <span className="font-mono">F04</span>). The backend composes the full code using the parent path.
           </div>
         </div>
 
         <div className="grid gap-2">
           <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">Code</div>
           <div className="flex items-center gap-2">
-            <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="e.g., C01" className="h-11 rounded-xl" />
-            <Button
-              variant="outline"
-              className="h-11"
-              onClick={() => setCode(suggestCode(kind, siblings))}
-              type="button"
-            >
+            <Input
+              ref={codeRef}
+              value={code}
+              onChange={(e) => setCode(kind === "ZONE" ? e.target.value : e.target.value.toUpperCase())}
+              placeholder={kind === "ZONE" ? "e.g., 01" : kind === "CAMPUS" ? "e.g., C01" : kind === "BUILDING" ? "e.g., B01" : "e.g., F01"}
+              className="h-11 rounded-xl"
+            />
+            <Button variant="outline" className="h-11" onClick={suggestNow} type="button">
               Suggest
             </Button>
           </div>
+
           {codeErr ? <div className="text-xs text-[rgb(var(--xc-danger))]">{codeErr}</div> : null}
+          {!codeErr && fullConflict ? (
+            <div className="text-xs text-[rgb(var(--xc-danger))]">
+              This code is already used for the selected parent path.
+            </div>
+          ) : null}
+
           <div className="text-xs text-xc-muted">
-            Unique within branch (backend enforced). For Zone: numeric only.
+            Full code preview: <span className="font-mono text-xc-text">{fullPreview || "—"}</span>
           </div>
         </div>
 
         <div className="grid gap-2">
           <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">Name</div>
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={`Enter ${typeLabel(kind)} name`} className="h-11 rounded-xl" />
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={`Enter ${typeLabel(kind)} name`}
+            className="h-11 rounded-xl"
+          />
           {nameErr ? <div className="text-xs text-[rgb(var(--xc-danger))]">{nameErr}</div> : null}
         </div>
 
         <div className="grid gap-2">
           <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">Effective From</div>
-          <Input type="datetime-local" value={effectiveFrom} onChange={(e) => setEffectiveFrom(e.target.value)} className="h-11 rounded-xl" />
-          <div className="text-xs text-xc-muted">
-            Creation is effective-dated. To change later, use “Revise”.
-          </div>
+          <Input
+            type="datetime-local"
+            value={effectiveFrom}
+            onChange={(e) => setEffectiveFrom(e.target.value)}
+            className="h-11 rounded-xl"
+          />
+          <div className="text-xs text-xc-muted">Creation is effective-dated. To change later, use “Revise”.</div>
         </div>
 
         <div className="flex items-center justify-end gap-2 pt-2">
@@ -1255,7 +1400,7 @@ function CreateModal({
           <Button
             onClick={() => onCreate({ code, name, effectiveFrom })}
             type="button"
-            disabled={busy || !!codeErr || !!nameErr}
+            disabled={busy || !!codeErr || !!nameErr || fullConflict}
           >
             Create
           </Button>
@@ -1264,6 +1409,7 @@ function CreateModal({
     </ModalShell>
   );
 }
+
 
 function ReviseModal({
   node,

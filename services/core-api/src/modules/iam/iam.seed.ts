@@ -1,5 +1,5 @@
 import { Inject, Injectable, OnModuleInit } from "@nestjs/common";
-import type { PrismaClient } from "@excelcare/db";
+import type { PrismaClient } from "@zypocare/db";
 import { PERM, ROLE } from "./iam.constants";
 import { generateTempPassword, hashPassword } from "./password.util";
 
@@ -161,7 +161,7 @@ export class IamSeedService implements OnModuleInit {
       : null;
 
     if (superV1) {
-      const email = "superadmin@excelcare.local";
+      const email = "superadmin@zypocare.local";
       const existing = await this.prisma.user.findUnique({ where: { email } });
 
       const temp = "ChangeMe@123";

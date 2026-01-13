@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Query, Inject } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { IsIn, IsString } from "class-validator";
-import type { PrismaClient } from "@excelcare/db";
+import type { PrismaClient } from "@zypocare/db";
 import { AuditService } from "../audit/audit.service";
 import { Roles } from "../auth/roles.decorator";
 

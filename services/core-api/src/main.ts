@@ -2,7 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./modules/app/app.module";
 import { ValidationPipe } from "@nestjs/common";
 import { correlation } from "./common/correlation.middleware";
-import { PrismaClient } from "@excelcare/db";
+import { PrismaClient } from "@zypocare/db";
 // 1. IMPORT SWAGGER MODULES
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 

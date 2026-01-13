@@ -15,7 +15,7 @@ import {
   IconBed,
   IconBrain,
   IconBuilding,
-  IconExcelCare,
+  IconZypoCare,
   IconChart,
   IconChevronDown,
   IconChevronRight,
@@ -553,7 +553,7 @@ export function AppShell({
                 )}
               >
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-xc-border bg-xc-card">
-                  <IconExcelCare className="h-5 w-5 text-xc-accent" />
+                  <IconZypoCare className="h-5 w-5 text-xc-accent" />
                 </div>
 
                 <div
@@ -562,7 +562,7 @@ export function AppShell({
                     collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
                   )}
                 >
-                  <div className="truncate text-sm font-semibold tracking-tight">ExcelCare</div>
+                  <div className="truncate text-sm font-semibold tracking-tight">ZypoCare ONE</div>
                   <div className="mt-0.5 truncate text-xs text-xc-muted">
                     {user?.role ? user.role.replaceAll("_", " ") : "SUPER ADMIN"}
                   </div>
@@ -773,7 +773,7 @@ export function AppShell({
               {!collapsed ? (
                 <>
                   <div className="grid h-9 w-9 place-items-center rounded-full bg-xc-card border border-xc-border text-xs font-semibold">
-                    {(user?.name || "ExcelCare")
+                    {(user?.name || "ZypoCare")
                       .split(" ")
                       .slice(0, 2)
                       .map((p) => p[0])

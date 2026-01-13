@@ -1,29 +1,29 @@
 services:
   postgres:
     image: postgres:16
-    container_name: excelcare-postgres
+    container_name: zypocare-postgres
     environment:
-      POSTGRES_DB: excelcare
-      POSTGRES_USER: excelcare
-      POSTGRES_PASSWORD: excelcare_dev_password
+      POSTGRES_DB: zypocare
+      POSTGRES_USER: zypocare
+      POSTGRES_PASSWORD: zypocare_dev_password
     ports: ["5433:5433"]
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
   redis:
     image: redis:7-alpine
-    container_name: excelcare-redis
+    container_name: zypocare-redis
     ports: ["6379:6379"]
 
   nats:
     image: nats:2
-    container_name: excelcare-nats
+    container_name: zypocare-nats
     command: ["-js"]
     ports: ["4222:4222", "8222:8222"]
 
   keycloak:
     image: quay.io/keycloak/keycloak:25.0
-    container_name: excelcare-keycloak
+    container_name: zypocare-keycloak
     command: ["start-dev", "--import-realm"]
     environment:
       KEYCLOAK_ADMIN: admin
@@ -34,7 +34,7 @@ services:
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.101.0
-    container_name: excelcare-otel-collector
+    container_name: zypocare-otel-collector
     command: ["--config=/etc/otel-collector-config.yaml"]
     volumes:
       - ./otel/collector-config.yaml:/etc/otel-collector-config.yaml:ro
@@ -42,14 +42,14 @@ services:
 
   prometheus:
     image: prom/prometheus:v2.54.1
-    container_name: excelcare-prometheus
+    container_name: zypocare-prometheus
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports: ["9090:9090"]
 
   grafana:
     image: grafana/grafana:11.2.0
-    container_name: excelcare-grafana
+    container_name: zypocare-grafana
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
@@ -59,7 +59,7 @@ services:
 
   jaeger:
     image: jaegertracing/all-in-one:1.58
-    container_name: excelcare-jaeger
+    container_name: zypocare-jaeger
     ports: ["16686:16686", "14250:14250", "14268:14268"]
 
 volumes:

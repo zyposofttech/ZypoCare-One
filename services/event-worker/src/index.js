@@ -1,6 +1,6 @@
 import { connect, StringCodec } from "nats";
-import { prisma } from "@excelcare/db";
-import { log } from "@excelcare/logging";
+import { prisma } from "@zypocare/db";
+import { log } from "@zypocare/logging";
 
 const NATS_URL = process.env.NATS_URL || "nats://localhost:4222";
 const POLL_MS = Number(process.env.OUTBOX_POLL_MS || "1000");

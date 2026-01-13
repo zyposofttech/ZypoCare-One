@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import type { PrismaClient } from "@excelcare/db";
+import type { PrismaClient } from "@zypocare/db";
 @Injectable()
 export class OutboxService {
   constructor(@Inject("PRISMA") private prisma: PrismaClient) {}

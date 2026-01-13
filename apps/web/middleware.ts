@@ -15,7 +15,7 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const authed = req.cookies.get("excelcare_auth")?.value === "1";
+  const authed = req.cookies.get("zypocare_auth")?.value === "1";
   if (authed) return NextResponse.next();
 
   const url = req.nextUrl.clone();

@@ -142,7 +142,7 @@ function isSuperAdmin(req: any): boolean {
   if (tokenRoles.includes("SUPER_ADMIN")) return true;
 
   // 4) resource_access (optional / client roles)
-  // Example: req.user.resource_access?.["excelcare"]?.roles
+  // Example: req.user.resource_access?.["zypocare"]?.roles
   const ra = req?.user?.resource_access;
   if (ra && typeof ra === "object") {
     for (const k of Object.keys(ra)) {

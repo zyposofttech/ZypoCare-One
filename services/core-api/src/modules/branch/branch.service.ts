@@ -1,8 +1,8 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
-import type { PrismaClient } from "@excelcare/db";
-import { Prisma } from "@excelcare/db";
+import type { PrismaClient } from "@zypocare/db";
+import { Prisma } from "@zypocare/db";
 import { AuditService } from "../audit/audit.service";
-import { Branch } from "@excelcare/db/src/generated/client";
+import { Branch } from "@zypocare/db/src/generated/client";
 
 type BranchCountsRaw = {
   users: number;

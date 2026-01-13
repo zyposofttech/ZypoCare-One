@@ -1,10 +1,10 @@
 {
-  "realm": "excelcare",
+  "realm": "zypocare",
   "enabled": true,
-  "displayName": "ExcelCare",
+  "displayName": "ZypoCare",
   "clients": [
     {
-      "clientId": "excelcare-web",
+      "clientId": "zypocare-web",
       "enabled": true,
       "publicClient": true,
       "redirectUris": [
@@ -18,7 +18,7 @@
       "directAccessGrantsEnabled": true
     },
     {
-      "clientId": "excelcare-api",
+      "clientId": "zypocare-api",
       "enabled": true,
       "publicClient": false,
       "protocol": "openid-connect",
@@ -66,7 +66,7 @@
       "username": "superadmin",
       "enabled": true,
       "emailVerified": true,
-      "email": "superadmin@excelcare.local",
+      "email": "superadmin@zypocare.local",
       "firstName": "Super",
       "lastName": "Admin",
       "credentials": [

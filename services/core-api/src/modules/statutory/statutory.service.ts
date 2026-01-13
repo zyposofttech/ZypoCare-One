@@ -1,6 +1,6 @@
 // src/modules/statutory/statutory.service.ts
 import { Inject, Injectable } from "@nestjs/common";
-import type { PrismaClient } from "@excelcare/db";
+import type { PrismaClient } from "@zypocare/db";
 import { AuditService } from "../audit/audit.service";
 
 @Injectable()

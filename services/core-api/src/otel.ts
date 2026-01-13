@@ -14,7 +14,7 @@ export async function initOtel() {
   if (process.env.OTEL_ENABLED !== "true") return;
 
   const endpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? "http://localhost:4317";
-  const serviceName = process.env.OTEL_SERVICE_NAME ?? "excelcare-core-api";
+  const serviceName = process.env.OTEL_SERVICE_NAME ?? "zypocare-core-api";
 
   const sdk = new NodeSDK({
     resource: new Resource({ [SemanticResourceAttributes.SERVICE_NAME]: serviceName }),

@@ -33,11 +33,11 @@ type AuthState = {
 };
 
 function setAuthCookie() {
-  document.cookie = `excelcare_auth=1; Path=/; SameSite=Lax`;
+  document.cookie = `zypocare_auth=1; Path=/; SameSite=Lax`;
 }
 
 function clearAuthCookie() {
-  document.cookie = `excelcare_auth=; Max-Age=0; Path=/; SameSite=Lax`;
+  document.cookie = `zypocare_auth=; Max-Age=0; Path=/; SameSite=Lax`;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -70,7 +70,7 @@ export const useAuthStore = create<AuthState>()(
       setHydrated: (state) => set({ _hasHydrated: state }),
     }),
     {
-      name: "excelcare-auth",
+      name: "zypocare-auth",
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({ user: s.user, token: s.token }),
       //  Update flag when storage is loaded

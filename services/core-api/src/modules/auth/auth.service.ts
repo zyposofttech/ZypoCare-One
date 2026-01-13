@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import type { PrismaClient } from "@excelcare/db";
+import type { PrismaClient } from "@zypocare/db";
 import { AuditService } from "../audit/audit.service";
 import { hashPassword, validatePassword, verifyPassword } from "../iam/password.util";
 

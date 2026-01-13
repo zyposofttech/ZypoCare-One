@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /*
-  ExcelCare UI Tokens — Enterprise "Clean Slate" Palette
+  ZypoCare UI Tokens — Enterprise "Clean Slate" Palette
   - Replaces the dull neutrals with crisp, cool Slate tones.
   - Higher contrast text for better readability.
   - "Trustworthy" Blue accent.
@@ -12,44 +12,44 @@
 :root {
   /* BACKGROUNDS */
   /* Pure white for the main canvas to keep it clean */
-  --xc-bg: 255 255 255;
+  --zc-bg: 255 255 255;
   
   /* A very subtle cool gray for sidebars/panels (Slate-50) */
   /* This provides distinct separation without feeling "muddy" */
-  --xc-panel: 242 250 248;
+  --zc-panel: 242 250 248;
   
   /* White cards */
-  --xc-card: 255 255 255;
+  --zc-card: 255 255 255;
 
   /* BORDERS */
   /* Crisp, cool gray border (Slate-200) */
-  --xc-border: 226 232 240;
+  --zc-border: 226 232 240;
 
   /* TEXT */
   /* Deep Navy/Black (Slate-900) - Much sharper and professional than standard gray */
-  --xc-text: 54 54 54;
+  --zc-text: 54 54 54;
   
   /* Cool gray for secondary text (Slate-500) */
-  --xc-muted: 36 36 36;
+  --zc-muted: 36 36 36;
 
   /* BRAND ACCENT */
   /* "Enterprise Blue" (Blue-600) - Strong, confident, and accessible */
-  --xc-accent: 37 99 235;
+  --zc-accent: 37 99 235;
   
   /* Lighter blue for hovers (Blue-500) */
-  --xc-accent2: 59 130 246;
+  --zc-accent2: 59 130 246;
   
   /* Soft focus ring (Blue-200) */
-  --xc-ring: 191 219 254;
+  --zc-ring: 191 219 254;
   
 
   /* STATUS COLORS (Refined for better contrast) */
-  --xc-danger: 239 68 68;   /* red-500 */
-  --xc-warn: 245 158 11;    /* amber-500 */
-  --xc-ok: 16 185 129;      /* emerald-500 */
+  --zc-danger: 239 68 68;   /* red-500 */
+  --zc-warn: 245 158 11;    /* amber-500 */
+  --zc-ok: 16 185 129;      /* emerald-500 */
 
   /* Hover background tint */
-  --xc-hover-rgb: 15 23 42; /* Dark text color used for opacity hovers */
+  --zc-hover-rgb: 15 23 42; /* Dark text color used for opacity hovers */
   
 }
 
@@ -59,22 +59,22 @@
 */
 .dark {
   /* ChatGPT dark */
-  --xc-bg: 33 33 33;
-  --xc-panel: 23 23 23; /* sidebar */
-  --xc-card: 33 33 33;
-  --xc-border: 66 66 66; /* gray-700 */
-  --xc-text: 236 240 241;   /* near-white */
-  --xc-muted: 232 232 237;  /* gray-400 */
+  --zc-bg: 33 33 33;
+  --zc-panel: 23 23 23; /* sidebar */
+  --zc-card: 33 33 33;
+  --zc-border: 66 66 66; /* gray-700 */
+  --zc-text: 236 240 241;   /* near-white */
+  --zc-muted: 232 232 237;  /* gray-400 */
 
-  --xc-accent: 146 79 247;
-  --xc-accent2: 186 143 250;
-  --xc-ring: 122 183 255;
+  --zc-accent: 146 79 247;
+  --zc-accent2: 186 143 250;
+  --zc-ring: 122 183 255;
 
-  --xc-danger: 246 55 55; /* red-400 */
-  --xc-warn: 251 191 36;    /* amber-400 */
-  --xc-ok: 34 197 94;       /* green-500 */
+  --zc-danger: 246 55 55; /* red-400 */
+  --zc-warn: 251 191 36;    /* amber-400 */
+  --zc-ok: 34 197 94;       /* green-500 */
 
-  --xc-hover-rgb: 255 255 255;
+  --zc-hover-rgb: 255 255 255;
 }
 
 html,
@@ -90,12 +90,12 @@ body {
   font-family: "Söhne", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   font-size: 14px;
   line-height: 1.5;
-  color: rgb(var(--xc-text));
-  background: rgb(var(--xc-bg));
+  color: rgb(var(--zc-text));
+  background: rgb(var(--zc-bg));
 }
 
 /* A consistent focus style for accessibility */
 *:focus-visible {
-  outline: 2px solid rgb(var(--xc-accent));
+  outline: 2px solid rgb(var(--zc-accent));
   outline-offset: 2px;
 }

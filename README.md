@@ -83,4 +83,4 @@ Ensure you have the following installed:
 Copy the example environment file:
 ```bash
 cp .env.example .env
-pnpm turbo dev --filter @excelcare/web --filter @excelcare/core-api
+pnpm turbo dev --filter @zypocare/web --filter @zypocare/core-api

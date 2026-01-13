@@ -1,5 +1,5 @@
 import { Global, Module, OnModuleDestroy } from "@nestjs/common";
-import { prisma } from "@excelcare/db";
+import { prisma } from "@zypocare/db";
 @Global()
 @Module({ providers: [{ provide: "PRISMA", useValue: prisma }], exports: ["PRISMA"] })
 export class PrismaModule implements OnModuleDestroy {

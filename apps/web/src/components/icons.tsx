@@ -32,8 +32,8 @@ export function IconDashboard(props: IconProps) {
   );
 }
 
-// ExcelCare brand mark (simple medical cross + ring) — used in sidebar/header.
-export function IconExcelCare(props: IconProps) {
+// Zypocare brand mark (simple medical cross + ring) — used in sidebar/header.
+export function IconZypoCare(props: IconProps) {
   return (
     <Svg {...props}>
       <circle cx="12" cy="12" r="9" />

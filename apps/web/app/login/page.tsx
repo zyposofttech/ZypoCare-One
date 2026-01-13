@@ -168,7 +168,7 @@ export default function LoginPage() {
               <Command className="h-6 w-6" />
             </div>
             <div className="text-xl">
-              ExcelCare<span className="font-normal text-zinc-500 dark:text-zinc-400">OS</span>
+              ZypoCare<span className="font-normal text-zinc-500 dark:text-zinc-400"> ONE</span>
             </div>
           </div>
           <StatusBadge />
@@ -198,7 +198,7 @@ export default function LoginPage() {
           </div>
         </div>
         <div className="relative z-10 text-xs text-zinc-400 dark:text-zinc-500">
-           © 2026 ExcelCare Systems Inc. • Enterprise Build v4.2.0
+           © 2026 ZypoSoft Technologies. • Enterprise Build v4.2.0
         </div>
       </div>
 

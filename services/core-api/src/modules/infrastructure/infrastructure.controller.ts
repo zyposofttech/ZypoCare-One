@@ -62,7 +62,6 @@ export class InfrastructureController {
   ) {
     return this.svc.listLocations(this.principal(req), { branchId, kind, at });
   }
-
   @Get(["infrastructure/locations/tree", "infra/locations/tree"])
   @Permissions(PERM.INFRA_LOCATION_READ)
   async locationTree(
@@ -70,7 +69,90 @@ export class InfrastructureController {
     @Query("branchId") branchId: string,
     @Query("at") at?: string,
   ) {
-    return this.svc.getLocationTree(this.principal(req), branchId, at);
+    const roots: any[] = await this.svc.getLocationTree(this.principal(req), branchId, at);
+
+    // Adapt service shape (kind + children[]) -> UI shape (type + buildings/floors/zones)
+    const mapNode = (n: any): any => {
+      const type = n.type ?? n.kind; // service uses kind
+      const base: any = {
+        id: n.id,
+        branchId,
+        type,
+        parentId: n.parentId ?? null,
+        code: n.code,
+        name: n.name,
+        isActive: n.isActive,
+        effectiveFrom: n.effectiveFrom,
+        effectiveTo: n.effectiveTo,
+      };
+
+      const kids: any[] = Array.isArray(n.children) ? n.children : [];
+
+      if (type === "CAMPUS") base.buildings = kids.filter((x) => (x.kind ?? x.type) === "BUILDING").map(mapNode);
+      if (type === "BUILDING") base.floors = kids.filter((x) => (x.kind ?? x.type) === "FLOOR").map(mapNode);
+      if (type === "FLOOR") base.zones = kids.filter((x) => (x.kind ?? x.type) === "ZONE").map(mapNode);
+
+      return base;
+    };
+
+    const campuses = roots
+      .filter((r) => (r.kind ?? r.type) === "CAMPUS")
+      .map(mapNode);
+
+    return { campuses };
+  }
+
+  /**
+   * UI compatibility endpoints expected by your page.tsx
+   * - UI sends branchId in BODY (not query) and does not send kind (it is implied by the endpoint)
+   */
+
+  @Post(["infrastructure/locations/campuses", "infra/locations/campuses"])
+  @Permissions(PERM.INFRA_LOCATION_CREATE)
+  async createCampus(@Req() req: any, @Body() body: any) {
+    const { branchId, ...rest } = body || {};
+    return this.svc.createLocation(this.principal(req), { ...rest, kind: "CAMPUS" } as any, branchId);
+  }
+
+  @Post(["infrastructure/locations/buildings", "infra/locations/buildings"])
+  @Permissions(PERM.INFRA_LOCATION_CREATE)
+  async createBuilding(@Req() req: any, @Body() body: any) {
+    const { branchId, ...rest } = body || {};
+    return this.svc.createLocation(this.principal(req), { ...rest, kind: "BUILDING" } as any, branchId);
+  }
+
+  @Post(["infrastructure/locations/floors", "infra/locations/floors"])
+  @Permissions(PERM.INFRA_LOCATION_CREATE)
+  async createFloor(@Req() req: any, @Body() body: any) {
+    const { branchId, ...rest } = body || {};
+    return this.svc.createLocation(this.principal(req), { ...rest, kind: "FLOOR" } as any, branchId);
+  }
+
+  @Post(["infrastructure/locations/zones", "infra/locations/zones"])
+  @Permissions(PERM.INFRA_LOCATION_CREATE)
+  async createZone(@Req() req: any, @Body() body: any) {
+    const { branchId, ...rest } = body || {};
+    return this.svc.createLocation(this.principal(req), { ...rest, kind: "ZONE" } as any, branchId);
+  }
+
+  @Post(["infrastructure/locations/:id/revise", "infra/locations/:id/revise"])
+  @Permissions(PERM.INFRA_LOCATION_UPDATE)
+  async reviseLocation(@Req() req: any, @Param("id") id: string, @Body() body: any) {
+    // UI sends: { code, name, effectiveFrom }
+    return this.svc.updateLocation(this.principal(req), id, body);
+  }
+
+  @Post(["infrastructure/locations/:id/retire", "infra/locations/:id/retire"])
+  @Permissions(PERM.INFRA_LOCATION_UPDATE)
+  async retireLocation(@Req() req: any, @Param("id") id: string, @Body() body: any) {
+    // UI sends: { effectiveTo }
+    // We interpret "retire effective at X" as: create a new revision starting at X with isActive=false.
+    const effectiveTo = body?.effectiveTo;
+    return this.svc.updateLocation(this.principal(req), id, {
+      isActive: false,
+      effectiveFrom: effectiveTo,
+      effectiveTo: null,
+    } as any);
   }
 
   @Post(["infrastructure/locations", "infra/locations"])
