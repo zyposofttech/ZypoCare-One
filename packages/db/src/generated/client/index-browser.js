@@ -127,11 +127,11 @@ exports.Prisma.BranchScalarFieldEnum = {
   code: 'code',
   name: 'name',
   city: 'city',
-  gstNumber: 'gstNumber',
   address: 'address',
   contactPhone1: 'contactPhone1',
   contactPhone2: 'contactPhone2',
   contactEmail: 'contactEmail',
+  gstNumber: 'gstNumber',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -179,21 +179,22 @@ exports.Prisma.DepartmentDoctorScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.SpecialtyScalarFieldEnum = {
-  id: 'id',
-  branchId: 'branchId',
-  code: 'code',
-  name: 'name',
-  isActive: 'isActive',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
 exports.Prisma.DepartmentSpecialtyScalarFieldEnum = {
   id: 'id',
   departmentId: 'departmentId',
   specialtyId: 'specialtyId',
   isPrimary: 'isPrimary',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SpecialtyScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  departmentId: 'departmentId',
+  code: 'code',
+  name: 'name',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -526,8 +527,8 @@ exports.Prisma.UnitTypeCatalogScalarFieldEnum = {
   name: 'name',
   usesRoomsDefault: 'usesRoomsDefault',
   schedulableByDefault: 'schedulableByDefault',
-  sortOrder: 'sortOrder',
   isActive: 'isActive',
+  sortOrder: 'sortOrder',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -557,8 +558,8 @@ exports.Prisma.UnitScalarFieldEnum = {
 
 exports.Prisma.UnitRoomScalarFieldEnum = {
   id: 'id',
-  unitId: 'unitId',
   branchId: 'branchId',
+  unitId: 'unitId',
   code: 'code',
   name: 'name',
   isActive: 'isActive',
@@ -613,9 +614,9 @@ exports.Prisma.EquipmentAssetScalarFieldEnum = {
 exports.Prisma.DowntimeTicketScalarFieldEnum = {
   id: 'id',
   assetId: 'assetId',
-  status: 'status',
   reason: 'reason',
   notes: 'notes',
+  status: 'status',
   openedAt: 'openedAt',
   closedAt: 'closedAt',
   createdAt: 'createdAt',
@@ -684,8 +685,8 @@ exports.Prisma.BulkImportJobScalarFieldEnum = {
   totalRows: 'totalRows',
   validRows: 'validRows',
   invalidRows: 'invalidRows',
-  createdByUserId: 'createdByUserId',
   committedAt: 'committedAt',
+  createdByUserId: 'createdByUserId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -704,8 +705,8 @@ exports.Prisma.ProcedureBookingScalarFieldEnum = {
   anesthesiaOk: 'anesthesiaOk',
   checklistOk: 'checklistOk',
   createdByUserId: 'createdByUserId',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  cancelledAt: 'cancelledAt',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.GoLiveReportScalarFieldEnum = {
@@ -844,7 +845,7 @@ exports.UnitResourceState = exports.$Enums.UnitResourceState = {
   INACTIVE: 'INACTIVE'
 };
 
-exports.EquipmentComplianceCategory = exports.$Enums.EquipmentComplianceCategory = {
+exports.EquipmentCategory = exports.$Enums.EquipmentCategory = {
   GENERAL: 'GENERAL',
   RADIOLOGY: 'RADIOLOGY',
   ULTRASOUND: 'ULTRASOUND'
@@ -862,7 +863,7 @@ exports.DowntimeStatus = exports.$Enums.DowntimeStatus = {
   CLOSED: 'CLOSED'
 };
 
-exports.FixItType = exports.$Enums.FixItType = {
+exports.FixItTaskType = exports.$Enums.FixItTaskType = {
   SERVICE_CHARGE_MAPPING_MISSING: 'SERVICE_CHARGE_MAPPING_MISSING'
 };
 
@@ -873,7 +874,7 @@ exports.FixItStatus = exports.$Enums.FixItStatus = {
   DISMISSED: 'DISMISSED'
 };
 
-exports.ImportEntityType = exports.$Enums.ImportEntityType = {
+exports.BulkImportEntityType = exports.$Enums.BulkImportEntityType = {
   LOCATIONS: 'LOCATIONS',
   UNITS: 'UNITS',
   ROOMS: 'ROOMS',
@@ -883,8 +884,7 @@ exports.ImportEntityType = exports.$Enums.ImportEntityType = {
   CHARGE_MASTER: 'CHARGE_MASTER'
 };
 
-exports.ImportJobStatus = exports.$Enums.ImportJobStatus = {
-  DRAFT: 'DRAFT',
+exports.BulkImportStatus = exports.$Enums.BulkImportStatus = {
   VALIDATED: 'VALIDATED',
   COMMITTED: 'COMMITTED',
   FAILED: 'FAILED'
@@ -902,8 +902,8 @@ exports.Prisma.ModelName = {
   BranchFacility: 'BranchFacility',
   Department: 'Department',
   DepartmentDoctor: 'DepartmentDoctor',
-  Specialty: 'Specialty',
   DepartmentSpecialty: 'DepartmentSpecialty',
+  Specialty: 'Specialty',
   Staff: 'Staff',
   User: 'User',
   Patient: 'Patient',

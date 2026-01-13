@@ -13,7 +13,7 @@ export class FacilitySetupService {
   constructor(
     @Inject("PRISMA") private prisma: PrismaClient,
     private audit: AuditService,
-  ) {}
+  ) { }
 
   private resolveBranchId(principal: Principal, requestedBranchId?: string | null) {
     if (principal.roleScope === "BRANCH") {
@@ -566,9 +566,12 @@ export class FacilitySetupService {
 
     const rows = await this.prisma.departmentSpecialty.findMany({
       where: { departmentId, isActive: true },
-      include: { specialty: { select: { id: true, code: true, name: true, isActive: true } } },
       orderBy: [{ isPrimary: "desc" }, { specialty: { name: "asc" } }],
+      include: {
+        specialty: { select: { id: true, code: true, name: true, isActive: true } },
+      },
     });
+
 
     return {
       department: dept,

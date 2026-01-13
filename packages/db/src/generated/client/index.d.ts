@@ -39,15 +39,15 @@ export type Department = $Result.DefaultSelection<Prisma.$DepartmentPayload>
  */
 export type DepartmentDoctor = $Result.DefaultSelection<Prisma.$DepartmentDoctorPayload>
 /**
- * Model Specialty
- * 
- */
-export type Specialty = $Result.DefaultSelection<Prisma.$SpecialtyPayload>
-/**
  * Model DepartmentSpecialty
  * 
  */
 export type DepartmentSpecialty = $Result.DefaultSelection<Prisma.$DepartmentSpecialtyPayload>
+/**
+ * Model Specialty
+ * 
+ */
+export type Specialty = $Result.DefaultSelection<Prisma.$SpecialtyPayload>
 /**
  * Model Staff
  * 
@@ -396,13 +396,13 @@ export const UnitResourceState: {
 export type UnitResourceState = (typeof UnitResourceState)[keyof typeof UnitResourceState]
 
 
-export const EquipmentComplianceCategory: {
+export const EquipmentCategory: {
   GENERAL: 'GENERAL',
   RADIOLOGY: 'RADIOLOGY',
   ULTRASOUND: 'ULTRASOUND'
 };
 
-export type EquipmentComplianceCategory = (typeof EquipmentComplianceCategory)[keyof typeof EquipmentComplianceCategory]
+export type EquipmentCategory = (typeof EquipmentCategory)[keyof typeof EquipmentCategory]
 
 
 export const EquipmentOperationalStatus: {
@@ -423,11 +423,11 @@ export const DowntimeStatus: {
 export type DowntimeStatus = (typeof DowntimeStatus)[keyof typeof DowntimeStatus]
 
 
-export const FixItType: {
+export const FixItTaskType: {
   SERVICE_CHARGE_MAPPING_MISSING: 'SERVICE_CHARGE_MAPPING_MISSING'
 };
 
-export type FixItType = (typeof FixItType)[keyof typeof FixItType]
+export type FixItTaskType = (typeof FixItTaskType)[keyof typeof FixItTaskType]
 
 
 export const FixItStatus: {
@@ -440,7 +440,7 @@ export const FixItStatus: {
 export type FixItStatus = (typeof FixItStatus)[keyof typeof FixItStatus]
 
 
-export const ImportEntityType: {
+export const BulkImportEntityType: {
   LOCATIONS: 'LOCATIONS',
   UNITS: 'UNITS',
   ROOMS: 'ROOMS',
@@ -450,17 +450,16 @@ export const ImportEntityType: {
   CHARGE_MASTER: 'CHARGE_MASTER'
 };
 
-export type ImportEntityType = (typeof ImportEntityType)[keyof typeof ImportEntityType]
+export type BulkImportEntityType = (typeof BulkImportEntityType)[keyof typeof BulkImportEntityType]
 
 
-export const ImportJobStatus: {
-  DRAFT: 'DRAFT',
+export const BulkImportStatus: {
   VALIDATED: 'VALIDATED',
   COMMITTED: 'COMMITTED',
   FAILED: 'FAILED'
 };
 
-export type ImportJobStatus = (typeof ImportJobStatus)[keyof typeof ImportJobStatus]
+export type BulkImportStatus = (typeof BulkImportStatus)[keyof typeof BulkImportStatus]
 
 
 export const BookingStatus: {
@@ -529,9 +528,9 @@ export type UnitResourceState = $Enums.UnitResourceState
 
 export const UnitResourceState: typeof $Enums.UnitResourceState
 
-export type EquipmentComplianceCategory = $Enums.EquipmentComplianceCategory
+export type EquipmentCategory = $Enums.EquipmentCategory
 
-export const EquipmentComplianceCategory: typeof $Enums.EquipmentComplianceCategory
+export const EquipmentCategory: typeof $Enums.EquipmentCategory
 
 export type EquipmentOperationalStatus = $Enums.EquipmentOperationalStatus
 
@@ -541,21 +540,21 @@ export type DowntimeStatus = $Enums.DowntimeStatus
 
 export const DowntimeStatus: typeof $Enums.DowntimeStatus
 
-export type FixItType = $Enums.FixItType
+export type FixItTaskType = $Enums.FixItTaskType
 
-export const FixItType: typeof $Enums.FixItType
+export const FixItTaskType: typeof $Enums.FixItTaskType
 
 export type FixItStatus = $Enums.FixItStatus
 
 export const FixItStatus: typeof $Enums.FixItStatus
 
-export type ImportEntityType = $Enums.ImportEntityType
+export type BulkImportEntityType = $Enums.BulkImportEntityType
 
-export const ImportEntityType: typeof $Enums.ImportEntityType
+export const BulkImportEntityType: typeof $Enums.BulkImportEntityType
 
-export type ImportJobStatus = $Enums.ImportJobStatus
+export type BulkImportStatus = $Enums.BulkImportStatus
 
-export const ImportJobStatus: typeof $Enums.ImportJobStatus
+export const BulkImportStatus: typeof $Enums.BulkImportStatus
 
 export type BookingStatus = $Enums.BookingStatus
 
@@ -735,16 +734,6 @@ export class PrismaClient<
   get departmentDoctor(): Prisma.DepartmentDoctorDelegate<ExtArgs>;
 
   /**
-   * `prisma.specialty`: Exposes CRUD operations for the **Specialty** model.
-    * Example usage:
-    * ```ts
-    * // Fetch zero or more Specialties
-    * const specialties = await prisma.specialty.findMany()
-    * ```
-    */
-  get specialty(): Prisma.SpecialtyDelegate<ExtArgs>;
-
-  /**
    * `prisma.departmentSpecialty`: Exposes CRUD operations for the **DepartmentSpecialty** model.
     * Example usage:
     * ```ts
@@ -753,6 +742,16 @@ export class PrismaClient<
     * ```
     */
   get departmentSpecialty(): Prisma.DepartmentSpecialtyDelegate<ExtArgs>;
+
+  /**
+   * `prisma.specialty`: Exposes CRUD operations for the **Specialty** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Specialties
+    * const specialties = await prisma.specialty.findMany()
+    * ```
+    */
+  get specialty(): Prisma.SpecialtyDelegate<ExtArgs>;
 
   /**
    * `prisma.staff`: Exposes CRUD operations for the **Staff** model.
@@ -1609,8 +1608,8 @@ export namespace Prisma {
     BranchFacility: 'BranchFacility',
     Department: 'Department',
     DepartmentDoctor: 'DepartmentDoctor',
-    Specialty: 'Specialty',
     DepartmentSpecialty: 'DepartmentSpecialty',
+    Specialty: 'Specialty',
     Staff: 'Staff',
     User: 'User',
     Patient: 'Patient',
@@ -1667,7 +1666,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "branch" | "facilityCatalog" | "branchFacility" | "department" | "departmentDoctor" | "specialty" | "departmentSpecialty" | "staff" | "user" | "patient" | "encounter" | "ward" | "room" | "bed" | "admission" | "oT" | "asset" | "tariffPlan" | "serviceCatalogItem" | "tariffRate" | "consentRecord" | "rtbfRequest" | "statutoryCase" | "auditEvent" | "outboxEvent" | "permission" | "roleTemplate" | "roleTemplateVersion" | "roleTemplatePermission" | "policyDefinition" | "policyVersion" | "policyVersionBranch" | "locationNode" | "locationNodeRevision" | "unitTypeCatalog" | "branchUnitType" | "unit" | "unitRoom" | "unitResource" | "equipmentAsset" | "downtimeTicket" | "chargeMasterItem" | "serviceItem" | "serviceChargeMapping" | "fixItTask" | "bulkImportJob" | "procedureBooking" | "goLiveReport"
+      modelProps: "branch" | "facilityCatalog" | "branchFacility" | "department" | "departmentDoctor" | "departmentSpecialty" | "specialty" | "staff" | "user" | "patient" | "encounter" | "ward" | "room" | "bed" | "admission" | "oT" | "asset" | "tariffPlan" | "serviceCatalogItem" | "tariffRate" | "consentRecord" | "rtbfRequest" | "statutoryCase" | "auditEvent" | "outboxEvent" | "permission" | "roleTemplate" | "roleTemplateVersion" | "roleTemplatePermission" | "policyDefinition" | "policyVersion" | "policyVersionBranch" | "locationNode" | "locationNodeRevision" | "unitTypeCatalog" | "branchUnitType" | "unit" | "unitRoom" | "unitResource" | "equipmentAsset" | "downtimeTicket" | "chargeMasterItem" | "serviceItem" | "serviceChargeMapping" | "fixItTask" | "bulkImportJob" | "procedureBooking" | "goLiveReport"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2021,76 +2020,6 @@ export namespace Prisma {
           }
         }
       }
-      Specialty: {
-        payload: Prisma.$SpecialtyPayload<ExtArgs>
-        fields: Prisma.SpecialtyFieldRefs
-        operations: {
-          findUnique: {
-            args: Prisma.SpecialtyFindUniqueArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload> | null
-          }
-          findUniqueOrThrow: {
-            args: Prisma.SpecialtyFindUniqueOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload>
-          }
-          findFirst: {
-            args: Prisma.SpecialtyFindFirstArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload> | null
-          }
-          findFirstOrThrow: {
-            args: Prisma.SpecialtyFindFirstOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload>
-          }
-          findMany: {
-            args: Prisma.SpecialtyFindManyArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload>[]
-          }
-          create: {
-            args: Prisma.SpecialtyCreateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload>
-          }
-          createMany: {
-            args: Prisma.SpecialtyCreateManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          createManyAndReturn: {
-            args: Prisma.SpecialtyCreateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload>[]
-          }
-          delete: {
-            args: Prisma.SpecialtyDeleteArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload>
-          }
-          update: {
-            args: Prisma.SpecialtyUpdateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload>
-          }
-          deleteMany: {
-            args: Prisma.SpecialtyDeleteManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          updateMany: {
-            args: Prisma.SpecialtyUpdateManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          upsert: {
-            args: Prisma.SpecialtyUpsertArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload>
-          }
-          aggregate: {
-            args: Prisma.SpecialtyAggregateArgs<ExtArgs>
-            result: $Utils.Optional<AggregateSpecialty>
-          }
-          groupBy: {
-            args: Prisma.SpecialtyGroupByArgs<ExtArgs>
-            result: $Utils.Optional<SpecialtyGroupByOutputType>[]
-          }
-          count: {
-            args: Prisma.SpecialtyCountArgs<ExtArgs>
-            result: $Utils.Optional<SpecialtyCountAggregateOutputType> | number
-          }
-        }
-      }
       DepartmentSpecialty: {
         payload: Prisma.$DepartmentSpecialtyPayload<ExtArgs>
         fields: Prisma.DepartmentSpecialtyFieldRefs
@@ -2158,6 +2087,76 @@ export namespace Prisma {
           count: {
             args: Prisma.DepartmentSpecialtyCountArgs<ExtArgs>
             result: $Utils.Optional<DepartmentSpecialtyCountAggregateOutputType> | number
+          }
+        }
+      }
+      Specialty: {
+        payload: Prisma.$SpecialtyPayload<ExtArgs>
+        fields: Prisma.SpecialtyFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SpecialtyFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SpecialtyFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload>
+          }
+          findFirst: {
+            args: Prisma.SpecialtyFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SpecialtyFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload>
+          }
+          findMany: {
+            args: Prisma.SpecialtyFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload>[]
+          }
+          create: {
+            args: Prisma.SpecialtyCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload>
+          }
+          createMany: {
+            args: Prisma.SpecialtyCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SpecialtyCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload>[]
+          }
+          delete: {
+            args: Prisma.SpecialtyDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload>
+          }
+          update: {
+            args: Prisma.SpecialtyUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload>
+          }
+          deleteMany: {
+            args: Prisma.SpecialtyDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SpecialtyUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.SpecialtyUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpecialtyPayload>
+          }
+          aggregate: {
+            args: Prisma.SpecialtyAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSpecialty>
+          }
+          groupBy: {
+            args: Prisma.SpecialtyGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SpecialtyGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SpecialtyCountArgs<ExtArgs>
+            result: $Utils.Optional<SpecialtyCountAggregateOutputType> | number
           }
         }
       }
@@ -5211,17 +5210,17 @@ export namespace Prisma {
     policyVersions: number
     policyVersionBranches: number
     locationNodes: number
-    unitTypesEnabled: number
+    branchUnitTypes: number
     units: number
     unitRooms: number
     unitResources: number
-    equipmentAssets: number
-    serviceItems: number
-    chargeMasterItems: number
-    serviceMappings: number
-    fixItTasks: number
-    importJobs: number
     procedureBookings: number
+    equipmentAssets: number
+    chargeMasterItems: number
+    serviceItems: number
+    serviceChargeMappings: number
+    fixItTasks: number
+    bulkImportJobs: number
     goLiveReports: number
   }
 
@@ -5245,17 +5244,17 @@ export namespace Prisma {
     policyVersions?: boolean | BranchCountOutputTypeCountPolicyVersionsArgs
     policyVersionBranches?: boolean | BranchCountOutputTypeCountPolicyVersionBranchesArgs
     locationNodes?: boolean | BranchCountOutputTypeCountLocationNodesArgs
-    unitTypesEnabled?: boolean | BranchCountOutputTypeCountUnitTypesEnabledArgs
+    branchUnitTypes?: boolean | BranchCountOutputTypeCountBranchUnitTypesArgs
     units?: boolean | BranchCountOutputTypeCountUnitsArgs
     unitRooms?: boolean | BranchCountOutputTypeCountUnitRoomsArgs
     unitResources?: boolean | BranchCountOutputTypeCountUnitResourcesArgs
-    equipmentAssets?: boolean | BranchCountOutputTypeCountEquipmentAssetsArgs
-    serviceItems?: boolean | BranchCountOutputTypeCountServiceItemsArgs
-    chargeMasterItems?: boolean | BranchCountOutputTypeCountChargeMasterItemsArgs
-    serviceMappings?: boolean | BranchCountOutputTypeCountServiceMappingsArgs
-    fixItTasks?: boolean | BranchCountOutputTypeCountFixItTasksArgs
-    importJobs?: boolean | BranchCountOutputTypeCountImportJobsArgs
     procedureBookings?: boolean | BranchCountOutputTypeCountProcedureBookingsArgs
+    equipmentAssets?: boolean | BranchCountOutputTypeCountEquipmentAssetsArgs
+    chargeMasterItems?: boolean | BranchCountOutputTypeCountChargeMasterItemsArgs
+    serviceItems?: boolean | BranchCountOutputTypeCountServiceItemsArgs
+    serviceChargeMappings?: boolean | BranchCountOutputTypeCountServiceChargeMappingsArgs
+    fixItTasks?: boolean | BranchCountOutputTypeCountFixItTasksArgs
+    bulkImportJobs?: boolean | BranchCountOutputTypeCountBulkImportJobsArgs
     goLiveReports?: boolean | BranchCountOutputTypeCountGoLiveReportsArgs
   }
 
@@ -5406,7 +5405,7 @@ export namespace Prisma {
   /**
    * BranchCountOutputType without action
    */
-  export type BranchCountOutputTypeCountUnitTypesEnabledArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type BranchCountOutputTypeCountBranchUnitTypesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: BranchUnitTypeWhereInput
   }
 
@@ -5434,15 +5433,15 @@ export namespace Prisma {
   /**
    * BranchCountOutputType without action
    */
-  export type BranchCountOutputTypeCountEquipmentAssetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: EquipmentAssetWhereInput
+  export type BranchCountOutputTypeCountProcedureBookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProcedureBookingWhereInput
   }
 
   /**
    * BranchCountOutputType without action
    */
-  export type BranchCountOutputTypeCountServiceItemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: ServiceItemWhereInput
+  export type BranchCountOutputTypeCountEquipmentAssetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EquipmentAssetWhereInput
   }
 
   /**
@@ -5455,7 +5454,14 @@ export namespace Prisma {
   /**
    * BranchCountOutputType without action
    */
-  export type BranchCountOutputTypeCountServiceMappingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type BranchCountOutputTypeCountServiceItemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ServiceItemWhereInput
+  }
+
+  /**
+   * BranchCountOutputType without action
+   */
+  export type BranchCountOutputTypeCountServiceChargeMappingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ServiceChargeMappingWhereInput
   }
 
@@ -5469,15 +5475,8 @@ export namespace Prisma {
   /**
    * BranchCountOutputType without action
    */
-  export type BranchCountOutputTypeCountImportJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type BranchCountOutputTypeCountBulkImportJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: BulkImportJobWhereInput
-  }
-
-  /**
-   * BranchCountOutputType without action
-   */
-  export type BranchCountOutputTypeCountProcedureBookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: ProcedureBookingWhereInput
   }
 
   /**
@@ -5534,16 +5533,18 @@ export namespace Prisma {
 
   export type DepartmentCountOutputType = {
     staff: number
-    departmentSpecialties: number
+    specialties: number
     doctorAssignments: number
+    departmentSpecialties: number
     units: number
     equipmentOwned: number
   }
 
   export type DepartmentCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     staff?: boolean | DepartmentCountOutputTypeCountStaffArgs
-    departmentSpecialties?: boolean | DepartmentCountOutputTypeCountDepartmentSpecialtiesArgs
+    specialties?: boolean | DepartmentCountOutputTypeCountSpecialtiesArgs
     doctorAssignments?: boolean | DepartmentCountOutputTypeCountDoctorAssignmentsArgs
+    departmentSpecialties?: boolean | DepartmentCountOutputTypeCountDepartmentSpecialtiesArgs
     units?: boolean | DepartmentCountOutputTypeCountUnitsArgs
     equipmentOwned?: boolean | DepartmentCountOutputTypeCountEquipmentOwnedArgs
   }
@@ -5569,8 +5570,8 @@ export namespace Prisma {
   /**
    * DepartmentCountOutputType without action
    */
-  export type DepartmentCountOutputTypeCountDepartmentSpecialtiesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: DepartmentSpecialtyWhereInput
+  export type DepartmentCountOutputTypeCountSpecialtiesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SpecialtyWhereInput
   }
 
   /**
@@ -5578,6 +5579,13 @@ export namespace Prisma {
    */
   export type DepartmentCountOutputTypeCountDoctorAssignmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: DepartmentDoctorWhereInput
+  }
+
+  /**
+   * DepartmentCountOutputType without action
+   */
+  export type DepartmentCountOutputTypeCountDepartmentSpecialtiesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DepartmentSpecialtyWhereInput
   }
 
   /**
@@ -6198,13 +6206,11 @@ export namespace Prisma {
   export type LocationNodeCountOutputType = {
     children: number
     revisions: number
-    EquipmentAsset: number
   }
 
   export type LocationNodeCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     children?: boolean | LocationNodeCountOutputTypeCountChildrenArgs
     revisions?: boolean | LocationNodeCountOutputTypeCountRevisionsArgs
-    EquipmentAsset?: boolean | LocationNodeCountOutputTypeCountEquipmentAssetArgs
   }
 
   // Custom InputTypes
@@ -6230,13 +6236,6 @@ export namespace Prisma {
    */
   export type LocationNodeCountOutputTypeCountRevisionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: LocationNodeRevisionWhereInput
-  }
-
-  /**
-   * LocationNodeCountOutputType without action
-   */
-  export type LocationNodeCountOutputTypeCountEquipmentAssetArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: EquipmentAssetWhereInput
   }
 
 
@@ -6287,14 +6286,12 @@ export namespace Prisma {
   export type UnitCountOutputType = {
     rooms: number
     resources: number
-    equipment: number
     bookings: number
   }
 
   export type UnitCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     rooms?: boolean | UnitCountOutputTypeCountRoomsArgs
     resources?: boolean | UnitCountOutputTypeCountResourcesArgs
-    equipment?: boolean | UnitCountOutputTypeCountEquipmentArgs
     bookings?: boolean | UnitCountOutputTypeCountBookingsArgs
   }
 
@@ -6326,13 +6323,6 @@ export namespace Prisma {
   /**
    * UnitCountOutputType without action
    */
-  export type UnitCountOutputTypeCountEquipmentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: EquipmentAssetWhereInput
-  }
-
-  /**
-   * UnitCountOutputType without action
-   */
   export type UnitCountOutputTypeCountBookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ProcedureBookingWhereInput
   }
@@ -6344,12 +6334,10 @@ export namespace Prisma {
 
   export type UnitRoomCountOutputType = {
     resources: number
-    equipment: number
   }
 
   export type UnitRoomCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     resources?: boolean | UnitRoomCountOutputTypeCountResourcesArgs
-    equipment?: boolean | UnitRoomCountOutputTypeCountEquipmentArgs
   }
 
   // Custom InputTypes
@@ -6368,13 +6356,6 @@ export namespace Prisma {
    */
   export type UnitRoomCountOutputTypeCountResourcesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: UnitResourceWhereInput
-  }
-
-  /**
-   * UnitRoomCountOutputType without action
-   */
-  export type UnitRoomCountOutputTypeCountEquipmentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: EquipmentAssetWhereInput
   }
 
 
@@ -6530,11 +6511,11 @@ export namespace Prisma {
     code: string | null
     name: string | null
     city: string | null
-    gstNumber: string | null
     address: string | null
     contactPhone1: string | null
     contactPhone2: string | null
     contactEmail: string | null
+    gstNumber: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -6544,11 +6525,11 @@ export namespace Prisma {
     code: string | null
     name: string | null
     city: string | null
-    gstNumber: string | null
     address: string | null
     contactPhone1: string | null
     contactPhone2: string | null
     contactEmail: string | null
+    gstNumber: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -6558,11 +6539,11 @@ export namespace Prisma {
     code: number
     name: number
     city: number
-    gstNumber: number
     address: number
     contactPhone1: number
     contactPhone2: number
     contactEmail: number
+    gstNumber: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -6574,11 +6555,11 @@ export namespace Prisma {
     code?: true
     name?: true
     city?: true
-    gstNumber?: true
     address?: true
     contactPhone1?: true
     contactPhone2?: true
     contactEmail?: true
+    gstNumber?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -6588,11 +6569,11 @@ export namespace Prisma {
     code?: true
     name?: true
     city?: true
-    gstNumber?: true
     address?: true
     contactPhone1?: true
     contactPhone2?: true
     contactEmail?: true
+    gstNumber?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -6602,11 +6583,11 @@ export namespace Prisma {
     code?: true
     name?: true
     city?: true
-    gstNumber?: true
     address?: true
     contactPhone1?: true
     contactPhone2?: true
     contactEmail?: true
+    gstNumber?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -6689,11 +6670,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber: string | null
     address: string | null
     contactPhone1: string | null
     contactPhone2: string | null
     contactEmail: string | null
+    gstNumber: string | null
     createdAt: Date
     updatedAt: Date
     _count: BranchCountAggregateOutputType | null
@@ -6720,11 +6701,11 @@ export namespace Prisma {
     code?: boolean
     name?: boolean
     city?: boolean
-    gstNumber?: boolean
     address?: boolean
     contactPhone1?: boolean
     contactPhone2?: boolean
     contactEmail?: boolean
+    gstNumber?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     departments?: boolean | Branch$departmentsArgs<ExtArgs>
@@ -6746,17 +6727,17 @@ export namespace Prisma {
     policyVersions?: boolean | Branch$policyVersionsArgs<ExtArgs>
     policyVersionBranches?: boolean | Branch$policyVersionBranchesArgs<ExtArgs>
     locationNodes?: boolean | Branch$locationNodesArgs<ExtArgs>
-    unitTypesEnabled?: boolean | Branch$unitTypesEnabledArgs<ExtArgs>
+    branchUnitTypes?: boolean | Branch$branchUnitTypesArgs<ExtArgs>
     units?: boolean | Branch$unitsArgs<ExtArgs>
     unitRooms?: boolean | Branch$unitRoomsArgs<ExtArgs>
     unitResources?: boolean | Branch$unitResourcesArgs<ExtArgs>
-    equipmentAssets?: boolean | Branch$equipmentAssetsArgs<ExtArgs>
-    serviceItems?: boolean | Branch$serviceItemsArgs<ExtArgs>
-    chargeMasterItems?: boolean | Branch$chargeMasterItemsArgs<ExtArgs>
-    serviceMappings?: boolean | Branch$serviceMappingsArgs<ExtArgs>
-    fixItTasks?: boolean | Branch$fixItTasksArgs<ExtArgs>
-    importJobs?: boolean | Branch$importJobsArgs<ExtArgs>
     procedureBookings?: boolean | Branch$procedureBookingsArgs<ExtArgs>
+    equipmentAssets?: boolean | Branch$equipmentAssetsArgs<ExtArgs>
+    chargeMasterItems?: boolean | Branch$chargeMasterItemsArgs<ExtArgs>
+    serviceItems?: boolean | Branch$serviceItemsArgs<ExtArgs>
+    serviceChargeMappings?: boolean | Branch$serviceChargeMappingsArgs<ExtArgs>
+    fixItTasks?: boolean | Branch$fixItTasksArgs<ExtArgs>
+    bulkImportJobs?: boolean | Branch$bulkImportJobsArgs<ExtArgs>
     goLiveReports?: boolean | Branch$goLiveReportsArgs<ExtArgs>
     _count?: boolean | BranchCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["branch"]>
@@ -6766,11 +6747,11 @@ export namespace Prisma {
     code?: boolean
     name?: boolean
     city?: boolean
-    gstNumber?: boolean
     address?: boolean
     contactPhone1?: boolean
     contactPhone2?: boolean
     contactEmail?: boolean
+    gstNumber?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["branch"]>
@@ -6780,11 +6761,11 @@ export namespace Prisma {
     code?: boolean
     name?: boolean
     city?: boolean
-    gstNumber?: boolean
     address?: boolean
     contactPhone1?: boolean
     contactPhone2?: boolean
     contactEmail?: boolean
+    gstNumber?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -6809,17 +6790,17 @@ export namespace Prisma {
     policyVersions?: boolean | Branch$policyVersionsArgs<ExtArgs>
     policyVersionBranches?: boolean | Branch$policyVersionBranchesArgs<ExtArgs>
     locationNodes?: boolean | Branch$locationNodesArgs<ExtArgs>
-    unitTypesEnabled?: boolean | Branch$unitTypesEnabledArgs<ExtArgs>
+    branchUnitTypes?: boolean | Branch$branchUnitTypesArgs<ExtArgs>
     units?: boolean | Branch$unitsArgs<ExtArgs>
     unitRooms?: boolean | Branch$unitRoomsArgs<ExtArgs>
     unitResources?: boolean | Branch$unitResourcesArgs<ExtArgs>
-    equipmentAssets?: boolean | Branch$equipmentAssetsArgs<ExtArgs>
-    serviceItems?: boolean | Branch$serviceItemsArgs<ExtArgs>
-    chargeMasterItems?: boolean | Branch$chargeMasterItemsArgs<ExtArgs>
-    serviceMappings?: boolean | Branch$serviceMappingsArgs<ExtArgs>
-    fixItTasks?: boolean | Branch$fixItTasksArgs<ExtArgs>
-    importJobs?: boolean | Branch$importJobsArgs<ExtArgs>
     procedureBookings?: boolean | Branch$procedureBookingsArgs<ExtArgs>
+    equipmentAssets?: boolean | Branch$equipmentAssetsArgs<ExtArgs>
+    chargeMasterItems?: boolean | Branch$chargeMasterItemsArgs<ExtArgs>
+    serviceItems?: boolean | Branch$serviceItemsArgs<ExtArgs>
+    serviceChargeMappings?: boolean | Branch$serviceChargeMappingsArgs<ExtArgs>
+    fixItTasks?: boolean | Branch$fixItTasksArgs<ExtArgs>
+    bulkImportJobs?: boolean | Branch$bulkImportJobsArgs<ExtArgs>
     goLiveReports?: boolean | Branch$goLiveReportsArgs<ExtArgs>
     _count?: boolean | BranchCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -6847,17 +6828,17 @@ export namespace Prisma {
       policyVersions: Prisma.$PolicyVersionPayload<ExtArgs>[]
       policyVersionBranches: Prisma.$PolicyVersionBranchPayload<ExtArgs>[]
       locationNodes: Prisma.$LocationNodePayload<ExtArgs>[]
-      unitTypesEnabled: Prisma.$BranchUnitTypePayload<ExtArgs>[]
+      branchUnitTypes: Prisma.$BranchUnitTypePayload<ExtArgs>[]
       units: Prisma.$UnitPayload<ExtArgs>[]
       unitRooms: Prisma.$UnitRoomPayload<ExtArgs>[]
       unitResources: Prisma.$UnitResourcePayload<ExtArgs>[]
-      equipmentAssets: Prisma.$EquipmentAssetPayload<ExtArgs>[]
-      serviceItems: Prisma.$ServiceItemPayload<ExtArgs>[]
-      chargeMasterItems: Prisma.$ChargeMasterItemPayload<ExtArgs>[]
-      serviceMappings: Prisma.$ServiceChargeMappingPayload<ExtArgs>[]
-      fixItTasks: Prisma.$FixItTaskPayload<ExtArgs>[]
-      importJobs: Prisma.$BulkImportJobPayload<ExtArgs>[]
       procedureBookings: Prisma.$ProcedureBookingPayload<ExtArgs>[]
+      equipmentAssets: Prisma.$EquipmentAssetPayload<ExtArgs>[]
+      chargeMasterItems: Prisma.$ChargeMasterItemPayload<ExtArgs>[]
+      serviceItems: Prisma.$ServiceItemPayload<ExtArgs>[]
+      serviceChargeMappings: Prisma.$ServiceChargeMappingPayload<ExtArgs>[]
+      fixItTasks: Prisma.$FixItTaskPayload<ExtArgs>[]
+      bulkImportJobs: Prisma.$BulkImportJobPayload<ExtArgs>[]
       goLiveReports: Prisma.$GoLiveReportPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -6865,14 +6846,11 @@ export namespace Prisma {
       code: string
       name: string
       city: string
-      /**
-       * India GSTIN (15 characters). Used by Accounting/Tax.
-       */
-      gstNumber: string | null
       address: string | null
       contactPhone1: string | null
       contactPhone2: string | null
       contactEmail: string | null
+      gstNumber: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["branch"]>
@@ -7258,17 +7236,17 @@ export namespace Prisma {
     policyVersions<T extends Branch$policyVersionsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$policyVersionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PolicyVersionPayload<ExtArgs>, T, "findMany"> | Null>
     policyVersionBranches<T extends Branch$policyVersionBranchesArgs<ExtArgs> = {}>(args?: Subset<T, Branch$policyVersionBranchesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PolicyVersionBranchPayload<ExtArgs>, T, "findMany"> | Null>
     locationNodes<T extends Branch$locationNodesArgs<ExtArgs> = {}>(args?: Subset<T, Branch$locationNodesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LocationNodePayload<ExtArgs>, T, "findMany"> | Null>
-    unitTypesEnabled<T extends Branch$unitTypesEnabledArgs<ExtArgs> = {}>(args?: Subset<T, Branch$unitTypesEnabledArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BranchUnitTypePayload<ExtArgs>, T, "findMany"> | Null>
+    branchUnitTypes<T extends Branch$branchUnitTypesArgs<ExtArgs> = {}>(args?: Subset<T, Branch$branchUnitTypesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BranchUnitTypePayload<ExtArgs>, T, "findMany"> | Null>
     units<T extends Branch$unitsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$unitsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UnitPayload<ExtArgs>, T, "findMany"> | Null>
     unitRooms<T extends Branch$unitRoomsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$unitRoomsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UnitRoomPayload<ExtArgs>, T, "findMany"> | Null>
     unitResources<T extends Branch$unitResourcesArgs<ExtArgs> = {}>(args?: Subset<T, Branch$unitResourcesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UnitResourcePayload<ExtArgs>, T, "findMany"> | Null>
-    equipmentAssets<T extends Branch$equipmentAssetsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$equipmentAssetsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EquipmentAssetPayload<ExtArgs>, T, "findMany"> | Null>
-    serviceItems<T extends Branch$serviceItemsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$serviceItemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ServiceItemPayload<ExtArgs>, T, "findMany"> | Null>
-    chargeMasterItems<T extends Branch$chargeMasterItemsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$chargeMasterItemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChargeMasterItemPayload<ExtArgs>, T, "findMany"> | Null>
-    serviceMappings<T extends Branch$serviceMappingsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$serviceMappingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ServiceChargeMappingPayload<ExtArgs>, T, "findMany"> | Null>
-    fixItTasks<T extends Branch$fixItTasksArgs<ExtArgs> = {}>(args?: Subset<T, Branch$fixItTasksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FixItTaskPayload<ExtArgs>, T, "findMany"> | Null>
-    importJobs<T extends Branch$importJobsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$importJobsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BulkImportJobPayload<ExtArgs>, T, "findMany"> | Null>
     procedureBookings<T extends Branch$procedureBookingsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$procedureBookingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProcedureBookingPayload<ExtArgs>, T, "findMany"> | Null>
+    equipmentAssets<T extends Branch$equipmentAssetsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$equipmentAssetsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EquipmentAssetPayload<ExtArgs>, T, "findMany"> | Null>
+    chargeMasterItems<T extends Branch$chargeMasterItemsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$chargeMasterItemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChargeMasterItemPayload<ExtArgs>, T, "findMany"> | Null>
+    serviceItems<T extends Branch$serviceItemsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$serviceItemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ServiceItemPayload<ExtArgs>, T, "findMany"> | Null>
+    serviceChargeMappings<T extends Branch$serviceChargeMappingsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$serviceChargeMappingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ServiceChargeMappingPayload<ExtArgs>, T, "findMany"> | Null>
+    fixItTasks<T extends Branch$fixItTasksArgs<ExtArgs> = {}>(args?: Subset<T, Branch$fixItTasksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FixItTaskPayload<ExtArgs>, T, "findMany"> | Null>
+    bulkImportJobs<T extends Branch$bulkImportJobsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$bulkImportJobsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BulkImportJobPayload<ExtArgs>, T, "findMany"> | Null>
     goLiveReports<T extends Branch$goLiveReportsArgs<ExtArgs> = {}>(args?: Subset<T, Branch$goLiveReportsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GoLiveReportPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -7303,11 +7281,11 @@ export namespace Prisma {
     readonly code: FieldRef<"Branch", 'String'>
     readonly name: FieldRef<"Branch", 'String'>
     readonly city: FieldRef<"Branch", 'String'>
-    readonly gstNumber: FieldRef<"Branch", 'String'>
     readonly address: FieldRef<"Branch", 'String'>
     readonly contactPhone1: FieldRef<"Branch", 'String'>
     readonly contactPhone2: FieldRef<"Branch", 'String'>
     readonly contactEmail: FieldRef<"Branch", 'String'>
+    readonly gstNumber: FieldRef<"Branch", 'String'>
     readonly createdAt: FieldRef<"Branch", 'DateTime'>
     readonly updatedAt: FieldRef<"Branch", 'DateTime'>
   }
@@ -8004,9 +7982,9 @@ export namespace Prisma {
   }
 
   /**
-   * Branch.unitTypesEnabled
+   * Branch.branchUnitTypes
    */
-  export type Branch$unitTypesEnabledArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Branch$branchUnitTypesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the BranchUnitType
      */
@@ -8084,6 +8062,26 @@ export namespace Prisma {
   }
 
   /**
+   * Branch.procedureBookings
+   */
+  export type Branch$procedureBookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProcedureBooking
+     */
+    select?: ProcedureBookingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProcedureBookingInclude<ExtArgs> | null
+    where?: ProcedureBookingWhereInput
+    orderBy?: ProcedureBookingOrderByWithRelationInput | ProcedureBookingOrderByWithRelationInput[]
+    cursor?: ProcedureBookingWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ProcedureBookingScalarFieldEnum | ProcedureBookingScalarFieldEnum[]
+  }
+
+  /**
    * Branch.equipmentAssets
    */
   export type Branch$equipmentAssetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -8101,26 +8099,6 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: EquipmentAssetScalarFieldEnum | EquipmentAssetScalarFieldEnum[]
-  }
-
-  /**
-   * Branch.serviceItems
-   */
-  export type Branch$serviceItemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the ServiceItem
-     */
-    select?: ServiceItemSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: ServiceItemInclude<ExtArgs> | null
-    where?: ServiceItemWhereInput
-    orderBy?: ServiceItemOrderByWithRelationInput | ServiceItemOrderByWithRelationInput[]
-    cursor?: ServiceItemWhereUniqueInput
-    take?: number
-    skip?: number
-    distinct?: ServiceItemScalarFieldEnum | ServiceItemScalarFieldEnum[]
   }
 
   /**
@@ -8144,9 +8122,29 @@ export namespace Prisma {
   }
 
   /**
-   * Branch.serviceMappings
+   * Branch.serviceItems
    */
-  export type Branch$serviceMappingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Branch$serviceItemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ServiceItem
+     */
+    select?: ServiceItemSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ServiceItemInclude<ExtArgs> | null
+    where?: ServiceItemWhereInput
+    orderBy?: ServiceItemOrderByWithRelationInput | ServiceItemOrderByWithRelationInput[]
+    cursor?: ServiceItemWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ServiceItemScalarFieldEnum | ServiceItemScalarFieldEnum[]
+  }
+
+  /**
+   * Branch.serviceChargeMappings
+   */
+  export type Branch$serviceChargeMappingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the ServiceChargeMapping
      */
@@ -8184,9 +8182,9 @@ export namespace Prisma {
   }
 
   /**
-   * Branch.importJobs
+   * Branch.bulkImportJobs
    */
-  export type Branch$importJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Branch$bulkImportJobsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the BulkImportJob
      */
@@ -8201,26 +8199,6 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: BulkImportJobScalarFieldEnum | BulkImportJobScalarFieldEnum[]
-  }
-
-  /**
-   * Branch.procedureBookings
-   */
-  export type Branch$procedureBookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the ProcedureBooking
-     */
-    select?: ProcedureBookingSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: ProcedureBookingInclude<ExtArgs> | null
-    where?: ProcedureBookingWhereInput
-    orderBy?: ProcedureBookingOrderByWithRelationInput | ProcedureBookingOrderByWithRelationInput[]
-    cursor?: ProcedureBookingWhereUniqueInput
-    take?: number
-    skip?: number
-    distinct?: ProcedureBookingScalarFieldEnum | ProcedureBookingScalarFieldEnum[]
   }
 
   /**
@@ -10463,8 +10441,9 @@ export namespace Prisma {
     facility?: boolean | FacilityCatalogDefaultArgs<ExtArgs>
     headStaff?: boolean | Department$headStaffArgs<ExtArgs>
     staff?: boolean | Department$staffArgs<ExtArgs>
-    departmentSpecialties?: boolean | Department$departmentSpecialtiesArgs<ExtArgs>
+    specialties?: boolean | Department$specialtiesArgs<ExtArgs>
     doctorAssignments?: boolean | Department$doctorAssignmentsArgs<ExtArgs>
+    departmentSpecialties?: boolean | Department$departmentSpecialtiesArgs<ExtArgs>
     units?: boolean | Department$unitsArgs<ExtArgs>
     equipmentOwned?: boolean | Department$equipmentOwnedArgs<ExtArgs>
     _count?: boolean | DepartmentCountOutputTypeDefaultArgs<ExtArgs>
@@ -10502,8 +10481,9 @@ export namespace Prisma {
     facility?: boolean | FacilityCatalogDefaultArgs<ExtArgs>
     headStaff?: boolean | Department$headStaffArgs<ExtArgs>
     staff?: boolean | Department$staffArgs<ExtArgs>
-    departmentSpecialties?: boolean | Department$departmentSpecialtiesArgs<ExtArgs>
+    specialties?: boolean | Department$specialtiesArgs<ExtArgs>
     doctorAssignments?: boolean | Department$doctorAssignmentsArgs<ExtArgs>
+    departmentSpecialties?: boolean | Department$departmentSpecialtiesArgs<ExtArgs>
     units?: boolean | Department$unitsArgs<ExtArgs>
     equipmentOwned?: boolean | Department$equipmentOwnedArgs<ExtArgs>
     _count?: boolean | DepartmentCountOutputTypeDefaultArgs<ExtArgs>
@@ -10521,8 +10501,9 @@ export namespace Prisma {
       facility: Prisma.$FacilityCatalogPayload<ExtArgs>
       headStaff: Prisma.$StaffPayload<ExtArgs> | null
       staff: Prisma.$StaffPayload<ExtArgs>[]
-      departmentSpecialties: Prisma.$DepartmentSpecialtyPayload<ExtArgs>[]
+      specialties: Prisma.$SpecialtyPayload<ExtArgs>[]
       doctorAssignments: Prisma.$DepartmentDoctorPayload<ExtArgs>[]
+      departmentSpecialties: Prisma.$DepartmentSpecialtyPayload<ExtArgs>[]
       units: Prisma.$UnitPayload<ExtArgs>[]
       equipmentOwned: Prisma.$EquipmentAssetPayload<ExtArgs>[]
     }
@@ -10904,8 +10885,9 @@ export namespace Prisma {
     facility<T extends FacilityCatalogDefaultArgs<ExtArgs> = {}>(args?: Subset<T, FacilityCatalogDefaultArgs<ExtArgs>>): Prisma__FacilityCatalogClient<$Result.GetResult<Prisma.$FacilityCatalogPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     headStaff<T extends Department$headStaffArgs<ExtArgs> = {}>(args?: Subset<T, Department$headStaffArgs<ExtArgs>>): Prisma__StaffClient<$Result.GetResult<Prisma.$StaffPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     staff<T extends Department$staffArgs<ExtArgs> = {}>(args?: Subset<T, Department$staffArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StaffPayload<ExtArgs>, T, "findMany"> | Null>
-    departmentSpecialties<T extends Department$departmentSpecialtiesArgs<ExtArgs> = {}>(args?: Subset<T, Department$departmentSpecialtiesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DepartmentSpecialtyPayload<ExtArgs>, T, "findMany"> | Null>
+    specialties<T extends Department$specialtiesArgs<ExtArgs> = {}>(args?: Subset<T, Department$specialtiesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "findMany"> | Null>
     doctorAssignments<T extends Department$doctorAssignmentsArgs<ExtArgs> = {}>(args?: Subset<T, Department$doctorAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DepartmentDoctorPayload<ExtArgs>, T, "findMany"> | Null>
+    departmentSpecialties<T extends Department$departmentSpecialtiesArgs<ExtArgs> = {}>(args?: Subset<T, Department$departmentSpecialtiesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DepartmentSpecialtyPayload<ExtArgs>, T, "findMany"> | Null>
     units<T extends Department$unitsArgs<ExtArgs> = {}>(args?: Subset<T, Department$unitsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UnitPayload<ExtArgs>, T, "findMany"> | Null>
     equipmentOwned<T extends Department$equipmentOwnedArgs<ExtArgs> = {}>(args?: Subset<T, Department$equipmentOwnedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EquipmentAssetPayload<ExtArgs>, T, "findMany"> | Null>
     /**
@@ -11299,23 +11281,23 @@ export namespace Prisma {
   }
 
   /**
-   * Department.departmentSpecialties
+   * Department.specialties
    */
-  export type Department$departmentSpecialtiesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Department$specialtiesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the DepartmentSpecialty
+     * Select specific fields to fetch from the Specialty
      */
-    select?: DepartmentSpecialtySelect<ExtArgs> | null
+    select?: SpecialtySelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: DepartmentSpecialtyInclude<ExtArgs> | null
-    where?: DepartmentSpecialtyWhereInput
-    orderBy?: DepartmentSpecialtyOrderByWithRelationInput | DepartmentSpecialtyOrderByWithRelationInput[]
-    cursor?: DepartmentSpecialtyWhereUniqueInput
+    include?: SpecialtyInclude<ExtArgs> | null
+    where?: SpecialtyWhereInput
+    orderBy?: SpecialtyOrderByWithRelationInput | SpecialtyOrderByWithRelationInput[]
+    cursor?: SpecialtyWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: DepartmentSpecialtyScalarFieldEnum | DepartmentSpecialtyScalarFieldEnum[]
+    distinct?: SpecialtyScalarFieldEnum | SpecialtyScalarFieldEnum[]
   }
 
   /**
@@ -11336,6 +11318,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: DepartmentDoctorScalarFieldEnum | DepartmentDoctorScalarFieldEnum[]
+  }
+
+  /**
+   * Department.departmentSpecialties
+   */
+  export type Department$departmentSpecialtiesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DepartmentSpecialty
+     */
+    select?: DepartmentSpecialtySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DepartmentSpecialtyInclude<ExtArgs> | null
+    where?: DepartmentSpecialtyWhereInput
+    orderBy?: DepartmentSpecialtyOrderByWithRelationInput | DepartmentSpecialtyOrderByWithRelationInput[]
+    cursor?: DepartmentSpecialtyWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: DepartmentSpecialtyScalarFieldEnum | DepartmentSpecialtyScalarFieldEnum[]
   }
 
   /**
@@ -12357,1013 +12359,6 @@ export namespace Prisma {
 
 
   /**
-   * Model Specialty
-   */
-
-  export type AggregateSpecialty = {
-    _count: SpecialtyCountAggregateOutputType | null
-    _min: SpecialtyMinAggregateOutputType | null
-    _max: SpecialtyMaxAggregateOutputType | null
-  }
-
-  export type SpecialtyMinAggregateOutputType = {
-    id: string | null
-    branchId: string | null
-    code: string | null
-    name: string | null
-    isActive: boolean | null
-    createdAt: Date | null
-    updatedAt: Date | null
-  }
-
-  export type SpecialtyMaxAggregateOutputType = {
-    id: string | null
-    branchId: string | null
-    code: string | null
-    name: string | null
-    isActive: boolean | null
-    createdAt: Date | null
-    updatedAt: Date | null
-  }
-
-  export type SpecialtyCountAggregateOutputType = {
-    id: number
-    branchId: number
-    code: number
-    name: number
-    isActive: number
-    createdAt: number
-    updatedAt: number
-    _all: number
-  }
-
-
-  export type SpecialtyMinAggregateInputType = {
-    id?: true
-    branchId?: true
-    code?: true
-    name?: true
-    isActive?: true
-    createdAt?: true
-    updatedAt?: true
-  }
-
-  export type SpecialtyMaxAggregateInputType = {
-    id?: true
-    branchId?: true
-    code?: true
-    name?: true
-    isActive?: true
-    createdAt?: true
-    updatedAt?: true
-  }
-
-  export type SpecialtyCountAggregateInputType = {
-    id?: true
-    branchId?: true
-    code?: true
-    name?: true
-    isActive?: true
-    createdAt?: true
-    updatedAt?: true
-    _all?: true
-  }
-
-  export type SpecialtyAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which Specialty to aggregate.
-     */
-    where?: SpecialtyWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of Specialties to fetch.
-     */
-    orderBy?: SpecialtyOrderByWithRelationInput | SpecialtyOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the start position
-     */
-    cursor?: SpecialtyWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` Specialties from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` Specialties.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Count returned Specialties
-    **/
-    _count?: true | SpecialtyCountAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the minimum value
-    **/
-    _min?: SpecialtyMinAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the maximum value
-    **/
-    _max?: SpecialtyMaxAggregateInputType
-  }
-
-  export type GetSpecialtyAggregateType<T extends SpecialtyAggregateArgs> = {
-        [P in keyof T & keyof AggregateSpecialty]: P extends '_count' | 'count'
-      ? T[P] extends true
-        ? number
-        : GetScalarType<T[P], AggregateSpecialty[P]>
-      : GetScalarType<T[P], AggregateSpecialty[P]>
-  }
-
-
-
-
-  export type SpecialtyGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: SpecialtyWhereInput
-    orderBy?: SpecialtyOrderByWithAggregationInput | SpecialtyOrderByWithAggregationInput[]
-    by: SpecialtyScalarFieldEnum[] | SpecialtyScalarFieldEnum
-    having?: SpecialtyScalarWhereWithAggregatesInput
-    take?: number
-    skip?: number
-    _count?: SpecialtyCountAggregateInputType | true
-    _min?: SpecialtyMinAggregateInputType
-    _max?: SpecialtyMaxAggregateInputType
-  }
-
-  export type SpecialtyGroupByOutputType = {
-    id: string
-    branchId: string
-    code: string
-    name: string
-    isActive: boolean
-    createdAt: Date
-    updatedAt: Date
-    _count: SpecialtyCountAggregateOutputType | null
-    _min: SpecialtyMinAggregateOutputType | null
-    _max: SpecialtyMaxAggregateOutputType | null
-  }
-
-  type GetSpecialtyGroupByPayload<T extends SpecialtyGroupByArgs> = Prisma.PrismaPromise<
-    Array<
-      PickEnumerable<SpecialtyGroupByOutputType, T['by']> &
-        {
-          [P in ((keyof T) & (keyof SpecialtyGroupByOutputType))]: P extends '_count'
-            ? T[P] extends boolean
-              ? number
-              : GetScalarType<T[P], SpecialtyGroupByOutputType[P]>
-            : GetScalarType<T[P], SpecialtyGroupByOutputType[P]>
-        }
-      >
-    >
-
-
-  export type SpecialtySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    branchId?: boolean
-    code?: boolean
-    name?: boolean
-    isActive?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
-    branch?: boolean | BranchDefaultArgs<ExtArgs>
-    staff?: boolean | Specialty$staffArgs<ExtArgs>
-    departmentLinks?: boolean | Specialty$departmentLinksArgs<ExtArgs>
-    _count?: boolean | SpecialtyCountOutputTypeDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["specialty"]>
-
-  export type SpecialtySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    branchId?: boolean
-    code?: boolean
-    name?: boolean
-    isActive?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
-    branch?: boolean | BranchDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["specialty"]>
-
-  export type SpecialtySelectScalar = {
-    id?: boolean
-    branchId?: boolean
-    code?: boolean
-    name?: boolean
-    isActive?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
-  }
-
-  export type SpecialtyInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    branch?: boolean | BranchDefaultArgs<ExtArgs>
-    staff?: boolean | Specialty$staffArgs<ExtArgs>
-    departmentLinks?: boolean | Specialty$departmentLinksArgs<ExtArgs>
-    _count?: boolean | SpecialtyCountOutputTypeDefaultArgs<ExtArgs>
-  }
-  export type SpecialtyIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    branch?: boolean | BranchDefaultArgs<ExtArgs>
-  }
-
-  export type $SpecialtyPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    name: "Specialty"
-    objects: {
-      branch: Prisma.$BranchPayload<ExtArgs>
-      staff: Prisma.$StaffPayload<ExtArgs>[]
-      departmentLinks: Prisma.$DepartmentSpecialtyPayload<ExtArgs>[]
-    }
-    scalars: $Extensions.GetPayloadResult<{
-      id: string
-      branchId: string
-      code: string
-      name: string
-      isActive: boolean
-      createdAt: Date
-      updatedAt: Date
-    }, ExtArgs["result"]["specialty"]>
-    composites: {}
-  }
-
-  type SpecialtyGetPayload<S extends boolean | null | undefined | SpecialtyDefaultArgs> = $Result.GetResult<Prisma.$SpecialtyPayload, S>
-
-  type SpecialtyCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<SpecialtyFindManyArgs, 'select' | 'include' | 'distinct'> & {
-      select?: SpecialtyCountAggregateInputType | true
-    }
-
-  export interface SpecialtyDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
-    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Specialty'], meta: { name: 'Specialty' } }
-    /**
-     * Find zero or one Specialty that matches the filter.
-     * @param {SpecialtyFindUniqueArgs} args - Arguments to find a Specialty
-     * @example
-     * // Get one Specialty
-     * const specialty = await prisma.specialty.findUnique({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findUnique<T extends SpecialtyFindUniqueArgs>(args: SelectSubset<T, SpecialtyFindUniqueArgs<ExtArgs>>): Prisma__SpecialtyClient<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
-
-    /**
-     * Find one Specialty that matches the filter or throw an error with `error.code='P2025'` 
-     * if no matches were found.
-     * @param {SpecialtyFindUniqueOrThrowArgs} args - Arguments to find a Specialty
-     * @example
-     * // Get one Specialty
-     * const specialty = await prisma.specialty.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findUniqueOrThrow<T extends SpecialtyFindUniqueOrThrowArgs>(args: SelectSubset<T, SpecialtyFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SpecialtyClient<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
-
-    /**
-     * Find the first Specialty that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {SpecialtyFindFirstArgs} args - Arguments to find a Specialty
-     * @example
-     * // Get one Specialty
-     * const specialty = await prisma.specialty.findFirst({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findFirst<T extends SpecialtyFindFirstArgs>(args?: SelectSubset<T, SpecialtyFindFirstArgs<ExtArgs>>): Prisma__SpecialtyClient<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
-
-    /**
-     * Find the first Specialty that matches the filter or
-     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {SpecialtyFindFirstOrThrowArgs} args - Arguments to find a Specialty
-     * @example
-     * // Get one Specialty
-     * const specialty = await prisma.specialty.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findFirstOrThrow<T extends SpecialtyFindFirstOrThrowArgs>(args?: SelectSubset<T, SpecialtyFindFirstOrThrowArgs<ExtArgs>>): Prisma__SpecialtyClient<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
-
-    /**
-     * Find zero or more Specialties that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {SpecialtyFindManyArgs} args - Arguments to filter and select certain fields only.
-     * @example
-     * // Get all Specialties
-     * const specialties = await prisma.specialty.findMany()
-     * 
-     * // Get first 10 Specialties
-     * const specialties = await prisma.specialty.findMany({ take: 10 })
-     * 
-     * // Only select the `id`
-     * const specialtyWithIdOnly = await prisma.specialty.findMany({ select: { id: true } })
-     * 
-     */
-    findMany<T extends SpecialtyFindManyArgs>(args?: SelectSubset<T, SpecialtyFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "findMany">>
-
-    /**
-     * Create a Specialty.
-     * @param {SpecialtyCreateArgs} args - Arguments to create a Specialty.
-     * @example
-     * // Create one Specialty
-     * const Specialty = await prisma.specialty.create({
-     *   data: {
-     *     // ... data to create a Specialty
-     *   }
-     * })
-     * 
-     */
-    create<T extends SpecialtyCreateArgs>(args: SelectSubset<T, SpecialtyCreateArgs<ExtArgs>>): Prisma__SpecialtyClient<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "create">, never, ExtArgs>
-
-    /**
-     * Create many Specialties.
-     * @param {SpecialtyCreateManyArgs} args - Arguments to create many Specialties.
-     * @example
-     * // Create many Specialties
-     * const specialty = await prisma.specialty.createMany({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     *     
-     */
-    createMany<T extends SpecialtyCreateManyArgs>(args?: SelectSubset<T, SpecialtyCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Create many Specialties and returns the data saved in the database.
-     * @param {SpecialtyCreateManyAndReturnArgs} args - Arguments to create many Specialties.
-     * @example
-     * // Create many Specialties
-     * const specialty = await prisma.specialty.createManyAndReturn({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * 
-     * // Create many Specialties and only return the `id`
-     * const specialtyWithIdOnly = await prisma.specialty.createManyAndReturn({ 
-     *   select: { id: true },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * 
-     */
-    createManyAndReturn<T extends SpecialtyCreateManyAndReturnArgs>(args?: SelectSubset<T, SpecialtyCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "createManyAndReturn">>
-
-    /**
-     * Delete a Specialty.
-     * @param {SpecialtyDeleteArgs} args - Arguments to delete one Specialty.
-     * @example
-     * // Delete one Specialty
-     * const Specialty = await prisma.specialty.delete({
-     *   where: {
-     *     // ... filter to delete one Specialty
-     *   }
-     * })
-     * 
-     */
-    delete<T extends SpecialtyDeleteArgs>(args: SelectSubset<T, SpecialtyDeleteArgs<ExtArgs>>): Prisma__SpecialtyClient<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "delete">, never, ExtArgs>
-
-    /**
-     * Update one Specialty.
-     * @param {SpecialtyUpdateArgs} args - Arguments to update one Specialty.
-     * @example
-     * // Update one Specialty
-     * const specialty = await prisma.specialty.update({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-     */
-    update<T extends SpecialtyUpdateArgs>(args: SelectSubset<T, SpecialtyUpdateArgs<ExtArgs>>): Prisma__SpecialtyClient<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "update">, never, ExtArgs>
-
-    /**
-     * Delete zero or more Specialties.
-     * @param {SpecialtyDeleteManyArgs} args - Arguments to filter Specialties to delete.
-     * @example
-     * // Delete a few Specialties
-     * const { count } = await prisma.specialty.deleteMany({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     * 
-     */
-    deleteMany<T extends SpecialtyDeleteManyArgs>(args?: SelectSubset<T, SpecialtyDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Update zero or more Specialties.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {SpecialtyUpdateManyArgs} args - Arguments to update one or more rows.
-     * @example
-     * // Update many Specialties
-     * const specialty = await prisma.specialty.updateMany({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-     */
-    updateMany<T extends SpecialtyUpdateManyArgs>(args: SelectSubset<T, SpecialtyUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Create or update one Specialty.
-     * @param {SpecialtyUpsertArgs} args - Arguments to update or create a Specialty.
-     * @example
-     * // Update or create a Specialty
-     * const specialty = await prisma.specialty.upsert({
-     *   create: {
-     *     // ... data to create a Specialty
-     *   },
-     *   update: {
-     *     // ... in case it already exists, update
-     *   },
-     *   where: {
-     *     // ... the filter for the Specialty we want to update
-     *   }
-     * })
-     */
-    upsert<T extends SpecialtyUpsertArgs>(args: SelectSubset<T, SpecialtyUpsertArgs<ExtArgs>>): Prisma__SpecialtyClient<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
-
-
-    /**
-     * Count the number of Specialties.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {SpecialtyCountArgs} args - Arguments to filter Specialties to count.
-     * @example
-     * // Count the number of Specialties
-     * const count = await prisma.specialty.count({
-     *   where: {
-     *     // ... the filter for the Specialties we want to count
-     *   }
-     * })
-    **/
-    count<T extends SpecialtyCountArgs>(
-      args?: Subset<T, SpecialtyCountArgs>,
-    ): Prisma.PrismaPromise<
-      T extends $Utils.Record<'select', any>
-        ? T['select'] extends true
-          ? number
-          : GetScalarType<T['select'], SpecialtyCountAggregateOutputType>
-        : number
-    >
-
-    /**
-     * Allows you to perform aggregations operations on a Specialty.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {SpecialtyAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
-     * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
-     * const aggregations = await prisma.user.aggregate({
-     *   _avg: {
-     *     age: true,
-     *   },
-     *   where: {
-     *     email: {
-     *       contains: "prisma.io",
-     *     },
-     *   },
-     *   orderBy: {
-     *     age: "asc",
-     *   },
-     *   take: 10,
-     * })
-    **/
-    aggregate<T extends SpecialtyAggregateArgs>(args: Subset<T, SpecialtyAggregateArgs>): Prisma.PrismaPromise<GetSpecialtyAggregateType<T>>
-
-    /**
-     * Group by Specialty.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {SpecialtyGroupByArgs} args - Group by arguments.
-     * @example
-     * // Group by city, order by createdAt, get count
-     * const result = await prisma.user.groupBy({
-     *   by: ['city', 'createdAt'],
-     *   orderBy: {
-     *     createdAt: true
-     *   },
-     *   _count: {
-     *     _all: true
-     *   },
-     * })
-     * 
-    **/
-    groupBy<
-      T extends SpecialtyGroupByArgs,
-      HasSelectOrTake extends Or<
-        Extends<'skip', Keys<T>>,
-        Extends<'take', Keys<T>>
-      >,
-      OrderByArg extends True extends HasSelectOrTake
-        ? { orderBy: SpecialtyGroupByArgs['orderBy'] }
-        : { orderBy?: SpecialtyGroupByArgs['orderBy'] },
-      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends MaybeTupleToUnion<T['by']>,
-      ByValid extends Has<ByFields, OrderFields>,
-      HavingFields extends GetHavingFields<T['having']>,
-      HavingValid extends Has<ByFields, HavingFields>,
-      ByEmpty extends T['by'] extends never[] ? True : False,
-      InputErrors extends ByEmpty extends True
-      ? `Error: "by" must not be empty.`
-      : HavingValid extends False
-      ? {
-          [P in HavingFields]: P extends ByFields
-            ? never
-            : P extends string
-            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
-            : [
-                Error,
-                'Field ',
-                P,
-                ` in "having" needs to be provided in "by"`,
-              ]
-        }[HavingFields]
-      : 'take' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "take", you also need to provide "orderBy"'
-      : 'skip' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "skip", you also need to provide "orderBy"'
-      : ByValid extends True
-      ? {}
-      : {
-          [P in OrderFields]: P extends ByFields
-            ? never
-            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-        }[OrderFields]
-    >(args: SubsetIntersection<T, SpecialtyGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSpecialtyGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-  /**
-   * Fields of the Specialty model
-   */
-  readonly fields: SpecialtyFieldRefs;
-  }
-
-  /**
-   * The delegate class that acts as a "Promise-like" for Specialty.
-   * Why is this prefixed with `Prisma__`?
-   * Because we want to prevent naming conflicts as mentioned in
-   * https://github.com/prisma/prisma-client-js/issues/707
-   */
-  export interface Prisma__SpecialtyClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: "PrismaPromise"
-    branch<T extends BranchDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BranchDefaultArgs<ExtArgs>>): Prisma__BranchClient<$Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
-    staff<T extends Specialty$staffArgs<ExtArgs> = {}>(args?: Subset<T, Specialty$staffArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StaffPayload<ExtArgs>, T, "findMany"> | Null>
-    departmentLinks<T extends Specialty$departmentLinksArgs<ExtArgs> = {}>(args?: Subset<T, Specialty$departmentLinksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DepartmentSpecialtyPayload<ExtArgs>, T, "findMany"> | Null>
-    /**
-     * Attaches callbacks for the resolution and/or rejection of the Promise.
-     * @param onfulfilled The callback to execute when the Promise is resolved.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of which ever callback is executed.
-     */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
-    /**
-     * Attaches a callback for only the rejection of the Promise.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of the callback.
-     */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
-    /**
-     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
-     * resolved value cannot be modified from the callback.
-     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
-     * @returns A Promise for the completion of the callback.
-     */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
-  }
-
-
-
-
-  /**
-   * Fields of the Specialty model
-   */ 
-  interface SpecialtyFieldRefs {
-    readonly id: FieldRef<"Specialty", 'String'>
-    readonly branchId: FieldRef<"Specialty", 'String'>
-    readonly code: FieldRef<"Specialty", 'String'>
-    readonly name: FieldRef<"Specialty", 'String'>
-    readonly isActive: FieldRef<"Specialty", 'Boolean'>
-    readonly createdAt: FieldRef<"Specialty", 'DateTime'>
-    readonly updatedAt: FieldRef<"Specialty", 'DateTime'>
-  }
-    
-
-  // Custom InputTypes
-  /**
-   * Specialty findUnique
-   */
-  export type SpecialtyFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Specialty
-     */
-    select?: SpecialtySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SpecialtyInclude<ExtArgs> | null
-    /**
-     * Filter, which Specialty to fetch.
-     */
-    where: SpecialtyWhereUniqueInput
-  }
-
-  /**
-   * Specialty findUniqueOrThrow
-   */
-  export type SpecialtyFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Specialty
-     */
-    select?: SpecialtySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SpecialtyInclude<ExtArgs> | null
-    /**
-     * Filter, which Specialty to fetch.
-     */
-    where: SpecialtyWhereUniqueInput
-  }
-
-  /**
-   * Specialty findFirst
-   */
-  export type SpecialtyFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Specialty
-     */
-    select?: SpecialtySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SpecialtyInclude<ExtArgs> | null
-    /**
-     * Filter, which Specialty to fetch.
-     */
-    where?: SpecialtyWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of Specialties to fetch.
-     */
-    orderBy?: SpecialtyOrderByWithRelationInput | SpecialtyOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for Specialties.
-     */
-    cursor?: SpecialtyWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` Specialties from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` Specialties.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of Specialties.
-     */
-    distinct?: SpecialtyScalarFieldEnum | SpecialtyScalarFieldEnum[]
-  }
-
-  /**
-   * Specialty findFirstOrThrow
-   */
-  export type SpecialtyFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Specialty
-     */
-    select?: SpecialtySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SpecialtyInclude<ExtArgs> | null
-    /**
-     * Filter, which Specialty to fetch.
-     */
-    where?: SpecialtyWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of Specialties to fetch.
-     */
-    orderBy?: SpecialtyOrderByWithRelationInput | SpecialtyOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for Specialties.
-     */
-    cursor?: SpecialtyWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` Specialties from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` Specialties.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of Specialties.
-     */
-    distinct?: SpecialtyScalarFieldEnum | SpecialtyScalarFieldEnum[]
-  }
-
-  /**
-   * Specialty findMany
-   */
-  export type SpecialtyFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Specialty
-     */
-    select?: SpecialtySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SpecialtyInclude<ExtArgs> | null
-    /**
-     * Filter, which Specialties to fetch.
-     */
-    where?: SpecialtyWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of Specialties to fetch.
-     */
-    orderBy?: SpecialtyOrderByWithRelationInput | SpecialtyOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for listing Specialties.
-     */
-    cursor?: SpecialtyWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` Specialties from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` Specialties.
-     */
-    skip?: number
-    distinct?: SpecialtyScalarFieldEnum | SpecialtyScalarFieldEnum[]
-  }
-
-  /**
-   * Specialty create
-   */
-  export type SpecialtyCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Specialty
-     */
-    select?: SpecialtySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SpecialtyInclude<ExtArgs> | null
-    /**
-     * The data needed to create a Specialty.
-     */
-    data: XOR<SpecialtyCreateInput, SpecialtyUncheckedCreateInput>
-  }
-
-  /**
-   * Specialty createMany
-   */
-  export type SpecialtyCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to create many Specialties.
-     */
-    data: SpecialtyCreateManyInput | SpecialtyCreateManyInput[]
-    skipDuplicates?: boolean
-  }
-
-  /**
-   * Specialty createManyAndReturn
-   */
-  export type SpecialtyCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Specialty
-     */
-    select?: SpecialtySelectCreateManyAndReturn<ExtArgs> | null
-    /**
-     * The data used to create many Specialties.
-     */
-    data: SpecialtyCreateManyInput | SpecialtyCreateManyInput[]
-    skipDuplicates?: boolean
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SpecialtyIncludeCreateManyAndReturn<ExtArgs> | null
-  }
-
-  /**
-   * Specialty update
-   */
-  export type SpecialtyUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Specialty
-     */
-    select?: SpecialtySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SpecialtyInclude<ExtArgs> | null
-    /**
-     * The data needed to update a Specialty.
-     */
-    data: XOR<SpecialtyUpdateInput, SpecialtyUncheckedUpdateInput>
-    /**
-     * Choose, which Specialty to update.
-     */
-    where: SpecialtyWhereUniqueInput
-  }
-
-  /**
-   * Specialty updateMany
-   */
-  export type SpecialtyUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to update Specialties.
-     */
-    data: XOR<SpecialtyUpdateManyMutationInput, SpecialtyUncheckedUpdateManyInput>
-    /**
-     * Filter which Specialties to update
-     */
-    where?: SpecialtyWhereInput
-  }
-
-  /**
-   * Specialty upsert
-   */
-  export type SpecialtyUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Specialty
-     */
-    select?: SpecialtySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SpecialtyInclude<ExtArgs> | null
-    /**
-     * The filter to search for the Specialty to update in case it exists.
-     */
-    where: SpecialtyWhereUniqueInput
-    /**
-     * In case the Specialty found by the `where` argument doesn't exist, create a new Specialty with this data.
-     */
-    create: XOR<SpecialtyCreateInput, SpecialtyUncheckedCreateInput>
-    /**
-     * In case the Specialty was found with the provided `where` argument, update it with this data.
-     */
-    update: XOR<SpecialtyUpdateInput, SpecialtyUncheckedUpdateInput>
-  }
-
-  /**
-   * Specialty delete
-   */
-  export type SpecialtyDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Specialty
-     */
-    select?: SpecialtySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SpecialtyInclude<ExtArgs> | null
-    /**
-     * Filter which Specialty to delete.
-     */
-    where: SpecialtyWhereUniqueInput
-  }
-
-  /**
-   * Specialty deleteMany
-   */
-  export type SpecialtyDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which Specialties to delete
-     */
-    where?: SpecialtyWhereInput
-  }
-
-  /**
-   * Specialty.staff
-   */
-  export type Specialty$staffArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Staff
-     */
-    select?: StaffSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: StaffInclude<ExtArgs> | null
-    where?: StaffWhereInput
-    orderBy?: StaffOrderByWithRelationInput | StaffOrderByWithRelationInput[]
-    cursor?: StaffWhereUniqueInput
-    take?: number
-    skip?: number
-    distinct?: StaffScalarFieldEnum | StaffScalarFieldEnum[]
-  }
-
-  /**
-   * Specialty.departmentLinks
-   */
-  export type Specialty$departmentLinksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the DepartmentSpecialty
-     */
-    select?: DepartmentSpecialtySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: DepartmentSpecialtyInclude<ExtArgs> | null
-    where?: DepartmentSpecialtyWhereInput
-    orderBy?: DepartmentSpecialtyOrderByWithRelationInput | DepartmentSpecialtyOrderByWithRelationInput[]
-    cursor?: DepartmentSpecialtyWhereUniqueInput
-    take?: number
-    skip?: number
-    distinct?: DepartmentSpecialtyScalarFieldEnum | DepartmentSpecialtyScalarFieldEnum[]
-  }
-
-  /**
-   * Specialty without action
-   */
-  export type SpecialtyDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Specialty
-     */
-    select?: SpecialtySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SpecialtyInclude<ExtArgs> | null
-  }
-
-
-  /**
    * Model DepartmentSpecialty
    */
 
@@ -14323,6 +13318,1046 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: DepartmentSpecialtyInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Specialty
+   */
+
+  export type AggregateSpecialty = {
+    _count: SpecialtyCountAggregateOutputType | null
+    _min: SpecialtyMinAggregateOutputType | null
+    _max: SpecialtyMaxAggregateOutputType | null
+  }
+
+  export type SpecialtyMinAggregateOutputType = {
+    id: string | null
+    branchId: string | null
+    departmentId: string | null
+    code: string | null
+    name: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SpecialtyMaxAggregateOutputType = {
+    id: string | null
+    branchId: string | null
+    departmentId: string | null
+    code: string | null
+    name: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SpecialtyCountAggregateOutputType = {
+    id: number
+    branchId: number
+    departmentId: number
+    code: number
+    name: number
+    isActive: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type SpecialtyMinAggregateInputType = {
+    id?: true
+    branchId?: true
+    departmentId?: true
+    code?: true
+    name?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SpecialtyMaxAggregateInputType = {
+    id?: true
+    branchId?: true
+    departmentId?: true
+    code?: true
+    name?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SpecialtyCountAggregateInputType = {
+    id?: true
+    branchId?: true
+    departmentId?: true
+    code?: true
+    name?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type SpecialtyAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Specialty to aggregate.
+     */
+    where?: SpecialtyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Specialties to fetch.
+     */
+    orderBy?: SpecialtyOrderByWithRelationInput | SpecialtyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SpecialtyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Specialties from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Specialties.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Specialties
+    **/
+    _count?: true | SpecialtyCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SpecialtyMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SpecialtyMaxAggregateInputType
+  }
+
+  export type GetSpecialtyAggregateType<T extends SpecialtyAggregateArgs> = {
+        [P in keyof T & keyof AggregateSpecialty]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSpecialty[P]>
+      : GetScalarType<T[P], AggregateSpecialty[P]>
+  }
+
+
+
+
+  export type SpecialtyGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SpecialtyWhereInput
+    orderBy?: SpecialtyOrderByWithAggregationInput | SpecialtyOrderByWithAggregationInput[]
+    by: SpecialtyScalarFieldEnum[] | SpecialtyScalarFieldEnum
+    having?: SpecialtyScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SpecialtyCountAggregateInputType | true
+    _min?: SpecialtyMinAggregateInputType
+    _max?: SpecialtyMaxAggregateInputType
+  }
+
+  export type SpecialtyGroupByOutputType = {
+    id: string
+    branchId: string
+    departmentId: string | null
+    code: string
+    name: string
+    isActive: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: SpecialtyCountAggregateOutputType | null
+    _min: SpecialtyMinAggregateOutputType | null
+    _max: SpecialtyMaxAggregateOutputType | null
+  }
+
+  type GetSpecialtyGroupByPayload<T extends SpecialtyGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SpecialtyGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SpecialtyGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SpecialtyGroupByOutputType[P]>
+            : GetScalarType<T[P], SpecialtyGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SpecialtySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    branchId?: boolean
+    departmentId?: boolean
+    code?: boolean
+    name?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+    department?: boolean | Specialty$departmentArgs<ExtArgs>
+    staff?: boolean | Specialty$staffArgs<ExtArgs>
+    departmentLinks?: boolean | Specialty$departmentLinksArgs<ExtArgs>
+    _count?: boolean | SpecialtyCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["specialty"]>
+
+  export type SpecialtySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    branchId?: boolean
+    departmentId?: boolean
+    code?: boolean
+    name?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+    department?: boolean | Specialty$departmentArgs<ExtArgs>
+  }, ExtArgs["result"]["specialty"]>
+
+  export type SpecialtySelectScalar = {
+    id?: boolean
+    branchId?: boolean
+    departmentId?: boolean
+    code?: boolean
+    name?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type SpecialtyInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+    department?: boolean | Specialty$departmentArgs<ExtArgs>
+    staff?: boolean | Specialty$staffArgs<ExtArgs>
+    departmentLinks?: boolean | Specialty$departmentLinksArgs<ExtArgs>
+    _count?: boolean | SpecialtyCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type SpecialtyIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    branch?: boolean | BranchDefaultArgs<ExtArgs>
+    department?: boolean | Specialty$departmentArgs<ExtArgs>
+  }
+
+  export type $SpecialtyPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Specialty"
+    objects: {
+      branch: Prisma.$BranchPayload<ExtArgs>
+      department: Prisma.$DepartmentPayload<ExtArgs> | null
+      staff: Prisma.$StaffPayload<ExtArgs>[]
+      departmentLinks: Prisma.$DepartmentSpecialtyPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      branchId: string
+      departmentId: string | null
+      code: string
+      name: string
+      isActive: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["specialty"]>
+    composites: {}
+  }
+
+  type SpecialtyGetPayload<S extends boolean | null | undefined | SpecialtyDefaultArgs> = $Result.GetResult<Prisma.$SpecialtyPayload, S>
+
+  type SpecialtyCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<SpecialtyFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: SpecialtyCountAggregateInputType | true
+    }
+
+  export interface SpecialtyDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Specialty'], meta: { name: 'Specialty' } }
+    /**
+     * Find zero or one Specialty that matches the filter.
+     * @param {SpecialtyFindUniqueArgs} args - Arguments to find a Specialty
+     * @example
+     * // Get one Specialty
+     * const specialty = await prisma.specialty.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SpecialtyFindUniqueArgs>(args: SelectSubset<T, SpecialtyFindUniqueArgs<ExtArgs>>): Prisma__SpecialtyClient<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Specialty that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {SpecialtyFindUniqueOrThrowArgs} args - Arguments to find a Specialty
+     * @example
+     * // Get one Specialty
+     * const specialty = await prisma.specialty.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SpecialtyFindUniqueOrThrowArgs>(args: SelectSubset<T, SpecialtyFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SpecialtyClient<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Specialty that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SpecialtyFindFirstArgs} args - Arguments to find a Specialty
+     * @example
+     * // Get one Specialty
+     * const specialty = await prisma.specialty.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SpecialtyFindFirstArgs>(args?: SelectSubset<T, SpecialtyFindFirstArgs<ExtArgs>>): Prisma__SpecialtyClient<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Specialty that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SpecialtyFindFirstOrThrowArgs} args - Arguments to find a Specialty
+     * @example
+     * // Get one Specialty
+     * const specialty = await prisma.specialty.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SpecialtyFindFirstOrThrowArgs>(args?: SelectSubset<T, SpecialtyFindFirstOrThrowArgs<ExtArgs>>): Prisma__SpecialtyClient<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Specialties that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SpecialtyFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Specialties
+     * const specialties = await prisma.specialty.findMany()
+     * 
+     * // Get first 10 Specialties
+     * const specialties = await prisma.specialty.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const specialtyWithIdOnly = await prisma.specialty.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SpecialtyFindManyArgs>(args?: SelectSubset<T, SpecialtyFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Specialty.
+     * @param {SpecialtyCreateArgs} args - Arguments to create a Specialty.
+     * @example
+     * // Create one Specialty
+     * const Specialty = await prisma.specialty.create({
+     *   data: {
+     *     // ... data to create a Specialty
+     *   }
+     * })
+     * 
+     */
+    create<T extends SpecialtyCreateArgs>(args: SelectSubset<T, SpecialtyCreateArgs<ExtArgs>>): Prisma__SpecialtyClient<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Specialties.
+     * @param {SpecialtyCreateManyArgs} args - Arguments to create many Specialties.
+     * @example
+     * // Create many Specialties
+     * const specialty = await prisma.specialty.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SpecialtyCreateManyArgs>(args?: SelectSubset<T, SpecialtyCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Specialties and returns the data saved in the database.
+     * @param {SpecialtyCreateManyAndReturnArgs} args - Arguments to create many Specialties.
+     * @example
+     * // Create many Specialties
+     * const specialty = await prisma.specialty.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Specialties and only return the `id`
+     * const specialtyWithIdOnly = await prisma.specialty.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SpecialtyCreateManyAndReturnArgs>(args?: SelectSubset<T, SpecialtyCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a Specialty.
+     * @param {SpecialtyDeleteArgs} args - Arguments to delete one Specialty.
+     * @example
+     * // Delete one Specialty
+     * const Specialty = await prisma.specialty.delete({
+     *   where: {
+     *     // ... filter to delete one Specialty
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SpecialtyDeleteArgs>(args: SelectSubset<T, SpecialtyDeleteArgs<ExtArgs>>): Prisma__SpecialtyClient<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Specialty.
+     * @param {SpecialtyUpdateArgs} args - Arguments to update one Specialty.
+     * @example
+     * // Update one Specialty
+     * const specialty = await prisma.specialty.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SpecialtyUpdateArgs>(args: SelectSubset<T, SpecialtyUpdateArgs<ExtArgs>>): Prisma__SpecialtyClient<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Specialties.
+     * @param {SpecialtyDeleteManyArgs} args - Arguments to filter Specialties to delete.
+     * @example
+     * // Delete a few Specialties
+     * const { count } = await prisma.specialty.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SpecialtyDeleteManyArgs>(args?: SelectSubset<T, SpecialtyDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Specialties.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SpecialtyUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Specialties
+     * const specialty = await prisma.specialty.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SpecialtyUpdateManyArgs>(args: SelectSubset<T, SpecialtyUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Specialty.
+     * @param {SpecialtyUpsertArgs} args - Arguments to update or create a Specialty.
+     * @example
+     * // Update or create a Specialty
+     * const specialty = await prisma.specialty.upsert({
+     *   create: {
+     *     // ... data to create a Specialty
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Specialty we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SpecialtyUpsertArgs>(args: SelectSubset<T, SpecialtyUpsertArgs<ExtArgs>>): Prisma__SpecialtyClient<$Result.GetResult<Prisma.$SpecialtyPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Specialties.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SpecialtyCountArgs} args - Arguments to filter Specialties to count.
+     * @example
+     * // Count the number of Specialties
+     * const count = await prisma.specialty.count({
+     *   where: {
+     *     // ... the filter for the Specialties we want to count
+     *   }
+     * })
+    **/
+    count<T extends SpecialtyCountArgs>(
+      args?: Subset<T, SpecialtyCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SpecialtyCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Specialty.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SpecialtyAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SpecialtyAggregateArgs>(args: Subset<T, SpecialtyAggregateArgs>): Prisma.PrismaPromise<GetSpecialtyAggregateType<T>>
+
+    /**
+     * Group by Specialty.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SpecialtyGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SpecialtyGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SpecialtyGroupByArgs['orderBy'] }
+        : { orderBy?: SpecialtyGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SpecialtyGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSpecialtyGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Specialty model
+   */
+  readonly fields: SpecialtyFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Specialty.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SpecialtyClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    branch<T extends BranchDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BranchDefaultArgs<ExtArgs>>): Prisma__BranchClient<$Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    department<T extends Specialty$departmentArgs<ExtArgs> = {}>(args?: Subset<T, Specialty$departmentArgs<ExtArgs>>): Prisma__DepartmentClient<$Result.GetResult<Prisma.$DepartmentPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    staff<T extends Specialty$staffArgs<ExtArgs> = {}>(args?: Subset<T, Specialty$staffArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StaffPayload<ExtArgs>, T, "findMany"> | Null>
+    departmentLinks<T extends Specialty$departmentLinksArgs<ExtArgs> = {}>(args?: Subset<T, Specialty$departmentLinksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DepartmentSpecialtyPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Specialty model
+   */ 
+  interface SpecialtyFieldRefs {
+    readonly id: FieldRef<"Specialty", 'String'>
+    readonly branchId: FieldRef<"Specialty", 'String'>
+    readonly departmentId: FieldRef<"Specialty", 'String'>
+    readonly code: FieldRef<"Specialty", 'String'>
+    readonly name: FieldRef<"Specialty", 'String'>
+    readonly isActive: FieldRef<"Specialty", 'Boolean'>
+    readonly createdAt: FieldRef<"Specialty", 'DateTime'>
+    readonly updatedAt: FieldRef<"Specialty", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Specialty findUnique
+   */
+  export type SpecialtyFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Specialty
+     */
+    select?: SpecialtySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpecialtyInclude<ExtArgs> | null
+    /**
+     * Filter, which Specialty to fetch.
+     */
+    where: SpecialtyWhereUniqueInput
+  }
+
+  /**
+   * Specialty findUniqueOrThrow
+   */
+  export type SpecialtyFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Specialty
+     */
+    select?: SpecialtySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpecialtyInclude<ExtArgs> | null
+    /**
+     * Filter, which Specialty to fetch.
+     */
+    where: SpecialtyWhereUniqueInput
+  }
+
+  /**
+   * Specialty findFirst
+   */
+  export type SpecialtyFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Specialty
+     */
+    select?: SpecialtySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpecialtyInclude<ExtArgs> | null
+    /**
+     * Filter, which Specialty to fetch.
+     */
+    where?: SpecialtyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Specialties to fetch.
+     */
+    orderBy?: SpecialtyOrderByWithRelationInput | SpecialtyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Specialties.
+     */
+    cursor?: SpecialtyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Specialties from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Specialties.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Specialties.
+     */
+    distinct?: SpecialtyScalarFieldEnum | SpecialtyScalarFieldEnum[]
+  }
+
+  /**
+   * Specialty findFirstOrThrow
+   */
+  export type SpecialtyFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Specialty
+     */
+    select?: SpecialtySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpecialtyInclude<ExtArgs> | null
+    /**
+     * Filter, which Specialty to fetch.
+     */
+    where?: SpecialtyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Specialties to fetch.
+     */
+    orderBy?: SpecialtyOrderByWithRelationInput | SpecialtyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Specialties.
+     */
+    cursor?: SpecialtyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Specialties from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Specialties.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Specialties.
+     */
+    distinct?: SpecialtyScalarFieldEnum | SpecialtyScalarFieldEnum[]
+  }
+
+  /**
+   * Specialty findMany
+   */
+  export type SpecialtyFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Specialty
+     */
+    select?: SpecialtySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpecialtyInclude<ExtArgs> | null
+    /**
+     * Filter, which Specialties to fetch.
+     */
+    where?: SpecialtyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Specialties to fetch.
+     */
+    orderBy?: SpecialtyOrderByWithRelationInput | SpecialtyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Specialties.
+     */
+    cursor?: SpecialtyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Specialties from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Specialties.
+     */
+    skip?: number
+    distinct?: SpecialtyScalarFieldEnum | SpecialtyScalarFieldEnum[]
+  }
+
+  /**
+   * Specialty create
+   */
+  export type SpecialtyCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Specialty
+     */
+    select?: SpecialtySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpecialtyInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Specialty.
+     */
+    data: XOR<SpecialtyCreateInput, SpecialtyUncheckedCreateInput>
+  }
+
+  /**
+   * Specialty createMany
+   */
+  export type SpecialtyCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Specialties.
+     */
+    data: SpecialtyCreateManyInput | SpecialtyCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Specialty createManyAndReturn
+   */
+  export type SpecialtyCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Specialty
+     */
+    select?: SpecialtySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many Specialties.
+     */
+    data: SpecialtyCreateManyInput | SpecialtyCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpecialtyIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Specialty update
+   */
+  export type SpecialtyUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Specialty
+     */
+    select?: SpecialtySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpecialtyInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Specialty.
+     */
+    data: XOR<SpecialtyUpdateInput, SpecialtyUncheckedUpdateInput>
+    /**
+     * Choose, which Specialty to update.
+     */
+    where: SpecialtyWhereUniqueInput
+  }
+
+  /**
+   * Specialty updateMany
+   */
+  export type SpecialtyUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Specialties.
+     */
+    data: XOR<SpecialtyUpdateManyMutationInput, SpecialtyUncheckedUpdateManyInput>
+    /**
+     * Filter which Specialties to update
+     */
+    where?: SpecialtyWhereInput
+  }
+
+  /**
+   * Specialty upsert
+   */
+  export type SpecialtyUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Specialty
+     */
+    select?: SpecialtySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpecialtyInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Specialty to update in case it exists.
+     */
+    where: SpecialtyWhereUniqueInput
+    /**
+     * In case the Specialty found by the `where` argument doesn't exist, create a new Specialty with this data.
+     */
+    create: XOR<SpecialtyCreateInput, SpecialtyUncheckedCreateInput>
+    /**
+     * In case the Specialty was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SpecialtyUpdateInput, SpecialtyUncheckedUpdateInput>
+  }
+
+  /**
+   * Specialty delete
+   */
+  export type SpecialtyDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Specialty
+     */
+    select?: SpecialtySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpecialtyInclude<ExtArgs> | null
+    /**
+     * Filter which Specialty to delete.
+     */
+    where: SpecialtyWhereUniqueInput
+  }
+
+  /**
+   * Specialty deleteMany
+   */
+  export type SpecialtyDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Specialties to delete
+     */
+    where?: SpecialtyWhereInput
+  }
+
+  /**
+   * Specialty.department
+   */
+  export type Specialty$departmentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Department
+     */
+    select?: DepartmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DepartmentInclude<ExtArgs> | null
+    where?: DepartmentWhereInput
+  }
+
+  /**
+   * Specialty.staff
+   */
+  export type Specialty$staffArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Staff
+     */
+    select?: StaffSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StaffInclude<ExtArgs> | null
+    where?: StaffWhereInput
+    orderBy?: StaffOrderByWithRelationInput | StaffOrderByWithRelationInput[]
+    cursor?: StaffWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: StaffScalarFieldEnum | StaffScalarFieldEnum[]
+  }
+
+  /**
+   * Specialty.departmentLinks
+   */
+  export type Specialty$departmentLinksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DepartmentSpecialty
+     */
+    select?: DepartmentSpecialtySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DepartmentSpecialtyInclude<ExtArgs> | null
+    where?: DepartmentSpecialtyWhereInput
+    orderBy?: DepartmentSpecialtyOrderByWithRelationInput | DepartmentSpecialtyOrderByWithRelationInput[]
+    cursor?: DepartmentSpecialtyWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: DepartmentSpecialtyScalarFieldEnum | DepartmentSpecialtyScalarFieldEnum[]
+  }
+
+  /**
+   * Specialty without action
+   */
+  export type SpecialtyDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Specialty
+     */
+    select?: SpecialtySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpecialtyInclude<ExtArgs> | null
   }
 
 
@@ -40139,7 +40174,6 @@ export namespace Prisma {
     parent?: boolean | LocationNode$parentArgs<ExtArgs>
     children?: boolean | LocationNode$childrenArgs<ExtArgs>
     revisions?: boolean | LocationNode$revisionsArgs<ExtArgs>
-    EquipmentAsset?: boolean | LocationNode$EquipmentAssetArgs<ExtArgs>
     _count?: boolean | LocationNodeCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["locationNode"]>
 
@@ -40168,7 +40202,6 @@ export namespace Prisma {
     parent?: boolean | LocationNode$parentArgs<ExtArgs>
     children?: boolean | LocationNode$childrenArgs<ExtArgs>
     revisions?: boolean | LocationNode$revisionsArgs<ExtArgs>
-    EquipmentAsset?: boolean | LocationNode$EquipmentAssetArgs<ExtArgs>
     _count?: boolean | LocationNodeCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type LocationNodeIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -40183,7 +40216,6 @@ export namespace Prisma {
       parent: Prisma.$LocationNodePayload<ExtArgs> | null
       children: Prisma.$LocationNodePayload<ExtArgs>[]
       revisions: Prisma.$LocationNodeRevisionPayload<ExtArgs>[]
-      EquipmentAsset: Prisma.$EquipmentAssetPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -40560,7 +40592,6 @@ export namespace Prisma {
     parent<T extends LocationNode$parentArgs<ExtArgs> = {}>(args?: Subset<T, LocationNode$parentArgs<ExtArgs>>): Prisma__LocationNodeClient<$Result.GetResult<Prisma.$LocationNodePayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     children<T extends LocationNode$childrenArgs<ExtArgs> = {}>(args?: Subset<T, LocationNode$childrenArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LocationNodePayload<ExtArgs>, T, "findMany"> | Null>
     revisions<T extends LocationNode$revisionsArgs<ExtArgs> = {}>(args?: Subset<T, LocationNode$revisionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LocationNodeRevisionPayload<ExtArgs>, T, "findMany"> | Null>
-    EquipmentAsset<T extends LocationNode$EquipmentAssetArgs<ExtArgs> = {}>(args?: Subset<T, LocationNode$EquipmentAssetArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EquipmentAssetPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -40966,26 +40997,6 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: LocationNodeRevisionScalarFieldEnum | LocationNodeRevisionScalarFieldEnum[]
-  }
-
-  /**
-   * LocationNode.EquipmentAsset
-   */
-  export type LocationNode$EquipmentAssetArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the EquipmentAsset
-     */
-    select?: EquipmentAssetSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: EquipmentAssetInclude<ExtArgs> | null
-    where?: EquipmentAssetWhereInput
-    orderBy?: EquipmentAssetOrderByWithRelationInput | EquipmentAssetOrderByWithRelationInput[]
-    cursor?: EquipmentAssetWhereUniqueInput
-    take?: number
-    skip?: number
-    distinct?: EquipmentAssetScalarFieldEnum | EquipmentAssetScalarFieldEnum[]
   }
 
   /**
@@ -42031,8 +42042,8 @@ export namespace Prisma {
     name: string | null
     usesRoomsDefault: boolean | null
     schedulableByDefault: boolean | null
-    sortOrder: number | null
     isActive: boolean | null
+    sortOrder: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -42043,8 +42054,8 @@ export namespace Prisma {
     name: string | null
     usesRoomsDefault: boolean | null
     schedulableByDefault: boolean | null
-    sortOrder: number | null
     isActive: boolean | null
+    sortOrder: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -42055,8 +42066,8 @@ export namespace Prisma {
     name: number
     usesRoomsDefault: number
     schedulableByDefault: number
-    sortOrder: number
     isActive: number
+    sortOrder: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -42077,8 +42088,8 @@ export namespace Prisma {
     name?: true
     usesRoomsDefault?: true
     schedulableByDefault?: true
-    sortOrder?: true
     isActive?: true
+    sortOrder?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -42089,8 +42100,8 @@ export namespace Prisma {
     name?: true
     usesRoomsDefault?: true
     schedulableByDefault?: true
-    sortOrder?: true
     isActive?: true
+    sortOrder?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -42101,8 +42112,8 @@ export namespace Prisma {
     name?: true
     usesRoomsDefault?: true
     schedulableByDefault?: true
-    sortOrder?: true
     isActive?: true
+    sortOrder?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -42200,8 +42211,8 @@ export namespace Prisma {
     name: string
     usesRoomsDefault: boolean
     schedulableByDefault: boolean
-    sortOrder: number
     isActive: boolean
+    sortOrder: number
     createdAt: Date
     updatedAt: Date
     _count: UnitTypeCatalogCountAggregateOutputType | null
@@ -42231,8 +42242,8 @@ export namespace Prisma {
     name?: boolean
     usesRoomsDefault?: boolean
     schedulableByDefault?: boolean
-    sortOrder?: boolean
     isActive?: boolean
+    sortOrder?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     branchLinks?: boolean | UnitTypeCatalog$branchLinksArgs<ExtArgs>
@@ -42246,8 +42257,8 @@ export namespace Prisma {
     name?: boolean
     usesRoomsDefault?: boolean
     schedulableByDefault?: boolean
-    sortOrder?: boolean
     isActive?: boolean
+    sortOrder?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["unitTypeCatalog"]>
@@ -42258,8 +42269,8 @@ export namespace Prisma {
     name?: boolean
     usesRoomsDefault?: boolean
     schedulableByDefault?: boolean
-    sortOrder?: boolean
     isActive?: boolean
+    sortOrder?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -42283,8 +42294,8 @@ export namespace Prisma {
       name: string
       usesRoomsDefault: boolean
       schedulableByDefault: boolean
-      sortOrder: number
       isActive: boolean
+      sortOrder: number
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["unitTypeCatalog"]>
@@ -42687,8 +42698,8 @@ export namespace Prisma {
     readonly name: FieldRef<"UnitTypeCatalog", 'String'>
     readonly usesRoomsDefault: FieldRef<"UnitTypeCatalog", 'Boolean'>
     readonly schedulableByDefault: FieldRef<"UnitTypeCatalog", 'Boolean'>
-    readonly sortOrder: FieldRef<"UnitTypeCatalog", 'Int'>
     readonly isActive: FieldRef<"UnitTypeCatalog", 'Boolean'>
+    readonly sortOrder: FieldRef<"UnitTypeCatalog", 'Int'>
     readonly createdAt: FieldRef<"UnitTypeCatalog", 'DateTime'>
     readonly updatedAt: FieldRef<"UnitTypeCatalog", 'DateTime'>
   }
@@ -43209,7 +43220,7 @@ export namespace Prisma {
     branchId: string
     unitTypeId: string
     isEnabled: boolean
-    enabledAt: Date
+    enabledAt: Date | null
     createdAt: Date
     updatedAt: Date
     _count: BranchUnitTypeCountAggregateOutputType | null
@@ -43285,7 +43296,7 @@ export namespace Prisma {
       branchId: string
       unitTypeId: string
       isEnabled: boolean
-      enabledAt: Date
+      enabledAt: Date | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["branchUnitType"]>
@@ -44231,7 +44242,6 @@ export namespace Prisma {
     unitType?: boolean | UnitTypeCatalogDefaultArgs<ExtArgs>
     rooms?: boolean | Unit$roomsArgs<ExtArgs>
     resources?: boolean | Unit$resourcesArgs<ExtArgs>
-    equipment?: boolean | Unit$equipmentArgs<ExtArgs>
     bookings?: boolean | Unit$bookingsArgs<ExtArgs>
     _count?: boolean | UnitCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["unit"]>
@@ -44271,7 +44281,6 @@ export namespace Prisma {
     unitType?: boolean | UnitTypeCatalogDefaultArgs<ExtArgs>
     rooms?: boolean | Unit$roomsArgs<ExtArgs>
     resources?: boolean | Unit$resourcesArgs<ExtArgs>
-    equipment?: boolean | Unit$equipmentArgs<ExtArgs>
     bookings?: boolean | Unit$bookingsArgs<ExtArgs>
     _count?: boolean | UnitCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -44289,7 +44298,6 @@ export namespace Prisma {
       unitType: Prisma.$UnitTypeCatalogPayload<ExtArgs>
       rooms: Prisma.$UnitRoomPayload<ExtArgs>[]
       resources: Prisma.$UnitResourcePayload<ExtArgs>[]
-      equipment: Prisma.$EquipmentAssetPayload<ExtArgs>[]
       bookings: Prisma.$ProcedureBookingPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -44672,7 +44680,6 @@ export namespace Prisma {
     unitType<T extends UnitTypeCatalogDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UnitTypeCatalogDefaultArgs<ExtArgs>>): Prisma__UnitTypeCatalogClient<$Result.GetResult<Prisma.$UnitTypeCatalogPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     rooms<T extends Unit$roomsArgs<ExtArgs> = {}>(args?: Subset<T, Unit$roomsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UnitRoomPayload<ExtArgs>, T, "findMany"> | Null>
     resources<T extends Unit$resourcesArgs<ExtArgs> = {}>(args?: Subset<T, Unit$resourcesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UnitResourcePayload<ExtArgs>, T, "findMany"> | Null>
-    equipment<T extends Unit$equipmentArgs<ExtArgs> = {}>(args?: Subset<T, Unit$equipmentArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EquipmentAssetPayload<ExtArgs>, T, "findMany"> | Null>
     bookings<T extends Unit$bookingsArgs<ExtArgs> = {}>(args?: Subset<T, Unit$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProcedureBookingPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -45071,26 +45078,6 @@ export namespace Prisma {
   }
 
   /**
-   * Unit.equipment
-   */
-  export type Unit$equipmentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the EquipmentAsset
-     */
-    select?: EquipmentAssetSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: EquipmentAssetInclude<ExtArgs> | null
-    where?: EquipmentAssetWhereInput
-    orderBy?: EquipmentAssetOrderByWithRelationInput | EquipmentAssetOrderByWithRelationInput[]
-    cursor?: EquipmentAssetWhereUniqueInput
-    take?: number
-    skip?: number
-    distinct?: EquipmentAssetScalarFieldEnum | EquipmentAssetScalarFieldEnum[]
-  }
-
-  /**
    * Unit.bookings
    */
   export type Unit$bookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -45137,8 +45124,8 @@ export namespace Prisma {
 
   export type UnitRoomMinAggregateOutputType = {
     id: string | null
-    unitId: string | null
     branchId: string | null
+    unitId: string | null
     code: string | null
     name: string | null
     isActive: boolean | null
@@ -45148,8 +45135,8 @@ export namespace Prisma {
 
   export type UnitRoomMaxAggregateOutputType = {
     id: string | null
-    unitId: string | null
     branchId: string | null
+    unitId: string | null
     code: string | null
     name: string | null
     isActive: boolean | null
@@ -45159,8 +45146,8 @@ export namespace Prisma {
 
   export type UnitRoomCountAggregateOutputType = {
     id: number
-    unitId: number
     branchId: number
+    unitId: number
     code: number
     name: number
     isActive: number
@@ -45172,8 +45159,8 @@ export namespace Prisma {
 
   export type UnitRoomMinAggregateInputType = {
     id?: true
-    unitId?: true
     branchId?: true
+    unitId?: true
     code?: true
     name?: true
     isActive?: true
@@ -45183,8 +45170,8 @@ export namespace Prisma {
 
   export type UnitRoomMaxAggregateInputType = {
     id?: true
-    unitId?: true
     branchId?: true
+    unitId?: true
     code?: true
     name?: true
     isActive?: true
@@ -45194,8 +45181,8 @@ export namespace Prisma {
 
   export type UnitRoomCountAggregateInputType = {
     id?: true
-    unitId?: true
     branchId?: true
+    unitId?: true
     code?: true
     name?: true
     isActive?: true
@@ -45278,8 +45265,8 @@ export namespace Prisma {
 
   export type UnitRoomGroupByOutputType = {
     id: string
-    unitId: string
     branchId: string
+    unitId: string
     code: string
     name: string
     isActive: boolean
@@ -45306,37 +45293,36 @@ export namespace Prisma {
 
   export type UnitRoomSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    unitId?: boolean
     branchId?: boolean
+    unitId?: boolean
     code?: boolean
     name?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    unit?: boolean | UnitDefaultArgs<ExtArgs>
     branch?: boolean | BranchDefaultArgs<ExtArgs>
+    unit?: boolean | UnitDefaultArgs<ExtArgs>
     resources?: boolean | UnitRoom$resourcesArgs<ExtArgs>
-    equipment?: boolean | UnitRoom$equipmentArgs<ExtArgs>
     _count?: boolean | UnitRoomCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["unitRoom"]>
 
   export type UnitRoomSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    unitId?: boolean
     branchId?: boolean
+    unitId?: boolean
     code?: boolean
     name?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    unit?: boolean | UnitDefaultArgs<ExtArgs>
     branch?: boolean | BranchDefaultArgs<ExtArgs>
+    unit?: boolean | UnitDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["unitRoom"]>
 
   export type UnitRoomSelectScalar = {
     id?: boolean
-    unitId?: boolean
     branchId?: boolean
+    unitId?: boolean
     code?: boolean
     name?: boolean
     isActive?: boolean
@@ -45345,29 +45331,27 @@ export namespace Prisma {
   }
 
   export type UnitRoomInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    unit?: boolean | UnitDefaultArgs<ExtArgs>
     branch?: boolean | BranchDefaultArgs<ExtArgs>
+    unit?: boolean | UnitDefaultArgs<ExtArgs>
     resources?: boolean | UnitRoom$resourcesArgs<ExtArgs>
-    equipment?: boolean | UnitRoom$equipmentArgs<ExtArgs>
     _count?: boolean | UnitRoomCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UnitRoomIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    unit?: boolean | UnitDefaultArgs<ExtArgs>
     branch?: boolean | BranchDefaultArgs<ExtArgs>
+    unit?: boolean | UnitDefaultArgs<ExtArgs>
   }
 
   export type $UnitRoomPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "UnitRoom"
     objects: {
-      unit: Prisma.$UnitPayload<ExtArgs>
       branch: Prisma.$BranchPayload<ExtArgs>
+      unit: Prisma.$UnitPayload<ExtArgs>
       resources: Prisma.$UnitResourcePayload<ExtArgs>[]
-      equipment: Prisma.$EquipmentAssetPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
-      unitId: string
       branchId: string
+      unitId: string
       code: string
       name: string
       isActive: boolean
@@ -45737,10 +45721,9 @@ export namespace Prisma {
    */
   export interface Prisma__UnitRoomClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    unit<T extends UnitDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UnitDefaultArgs<ExtArgs>>): Prisma__UnitClient<$Result.GetResult<Prisma.$UnitPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     branch<T extends BranchDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BranchDefaultArgs<ExtArgs>>): Prisma__BranchClient<$Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    unit<T extends UnitDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UnitDefaultArgs<ExtArgs>>): Prisma__UnitClient<$Result.GetResult<Prisma.$UnitPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     resources<T extends UnitRoom$resourcesArgs<ExtArgs> = {}>(args?: Subset<T, UnitRoom$resourcesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UnitResourcePayload<ExtArgs>, T, "findMany"> | Null>
-    equipment<T extends UnitRoom$equipmentArgs<ExtArgs> = {}>(args?: Subset<T, UnitRoom$equipmentArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EquipmentAssetPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -45771,8 +45754,8 @@ export namespace Prisma {
    */ 
   interface UnitRoomFieldRefs {
     readonly id: FieldRef<"UnitRoom", 'String'>
-    readonly unitId: FieldRef<"UnitRoom", 'String'>
     readonly branchId: FieldRef<"UnitRoom", 'String'>
+    readonly unitId: FieldRef<"UnitRoom", 'String'>
     readonly code: FieldRef<"UnitRoom", 'String'>
     readonly name: FieldRef<"UnitRoom", 'String'>
     readonly isActive: FieldRef<"UnitRoom", 'Boolean'>
@@ -46113,26 +46096,6 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: UnitResourceScalarFieldEnum | UnitResourceScalarFieldEnum[]
-  }
-
-  /**
-   * UnitRoom.equipment
-   */
-  export type UnitRoom$equipmentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the EquipmentAsset
-     */
-    select?: EquipmentAssetSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: EquipmentAssetInclude<ExtArgs> | null
-    where?: EquipmentAssetWhereInput
-    orderBy?: EquipmentAssetOrderByWithRelationInput | EquipmentAssetOrderByWithRelationInput[]
-    cursor?: EquipmentAssetWhereUniqueInput
-    take?: number
-    skip?: number
-    distinct?: EquipmentAssetScalarFieldEnum | EquipmentAssetScalarFieldEnum[]
   }
 
   /**
@@ -47245,7 +47208,7 @@ export namespace Prisma {
     branchId: string | null
     code: string | null
     name: string | null
-    category: $Enums.EquipmentComplianceCategory | null
+    category: $Enums.EquipmentCategory | null
     make: string | null
     model: string | null
     serial: string | null
@@ -47274,7 +47237,7 @@ export namespace Prisma {
     branchId: string | null
     code: string | null
     name: string | null
-    category: $Enums.EquipmentComplianceCategory | null
+    category: $Enums.EquipmentCategory | null
     make: string | null
     model: string | null
     serial: string | null
@@ -47516,7 +47479,7 @@ export namespace Prisma {
     branchId: string
     code: string
     name: string
-    category: $Enums.EquipmentComplianceCategory
+    category: $Enums.EquipmentCategory
     make: string | null
     model: string | null
     serial: string | null
@@ -47588,9 +47551,6 @@ export namespace Prisma {
     updatedAt?: boolean
     branch?: boolean | BranchDefaultArgs<ExtArgs>
     ownerDepartment?: boolean | EquipmentAsset$ownerDepartmentArgs<ExtArgs>
-    unit?: boolean | EquipmentAsset$unitArgs<ExtArgs>
-    room?: boolean | EquipmentAsset$roomArgs<ExtArgs>
-    locationNode?: boolean | EquipmentAsset$locationNodeArgs<ExtArgs>
     downtimeTickets?: boolean | EquipmentAsset$downtimeTicketsArgs<ExtArgs>
     _count?: boolean | EquipmentAssetCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["equipmentAsset"]>
@@ -47624,9 +47584,6 @@ export namespace Prisma {
     updatedAt?: boolean
     branch?: boolean | BranchDefaultArgs<ExtArgs>
     ownerDepartment?: boolean | EquipmentAsset$ownerDepartmentArgs<ExtArgs>
-    unit?: boolean | EquipmentAsset$unitArgs<ExtArgs>
-    room?: boolean | EquipmentAsset$roomArgs<ExtArgs>
-    locationNode?: boolean | EquipmentAsset$locationNodeArgs<ExtArgs>
   }, ExtArgs["result"]["equipmentAsset"]>
 
   export type EquipmentAssetSelectScalar = {
@@ -47661,18 +47618,12 @@ export namespace Prisma {
   export type EquipmentAssetInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     branch?: boolean | BranchDefaultArgs<ExtArgs>
     ownerDepartment?: boolean | EquipmentAsset$ownerDepartmentArgs<ExtArgs>
-    unit?: boolean | EquipmentAsset$unitArgs<ExtArgs>
-    room?: boolean | EquipmentAsset$roomArgs<ExtArgs>
-    locationNode?: boolean | EquipmentAsset$locationNodeArgs<ExtArgs>
     downtimeTickets?: boolean | EquipmentAsset$downtimeTicketsArgs<ExtArgs>
     _count?: boolean | EquipmentAssetCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type EquipmentAssetIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     branch?: boolean | BranchDefaultArgs<ExtArgs>
     ownerDepartment?: boolean | EquipmentAsset$ownerDepartmentArgs<ExtArgs>
-    unit?: boolean | EquipmentAsset$unitArgs<ExtArgs>
-    room?: boolean | EquipmentAsset$roomArgs<ExtArgs>
-    locationNode?: boolean | EquipmentAsset$locationNodeArgs<ExtArgs>
   }
 
   export type $EquipmentAssetPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -47680,9 +47631,6 @@ export namespace Prisma {
     objects: {
       branch: Prisma.$BranchPayload<ExtArgs>
       ownerDepartment: Prisma.$DepartmentPayload<ExtArgs> | null
-      unit: Prisma.$UnitPayload<ExtArgs> | null
-      room: Prisma.$UnitRoomPayload<ExtArgs> | null
-      locationNode: Prisma.$LocationNodePayload<ExtArgs> | null
       downtimeTickets: Prisma.$DowntimeTicketPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -47690,7 +47638,7 @@ export namespace Prisma {
       branchId: string
       code: string
       name: string
-      category: $Enums.EquipmentComplianceCategory
+      category: $Enums.EquipmentCategory
       make: string | null
       model: string | null
       serial: string | null
@@ -48078,9 +48026,6 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     branch<T extends BranchDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BranchDefaultArgs<ExtArgs>>): Prisma__BranchClient<$Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     ownerDepartment<T extends EquipmentAsset$ownerDepartmentArgs<ExtArgs> = {}>(args?: Subset<T, EquipmentAsset$ownerDepartmentArgs<ExtArgs>>): Prisma__DepartmentClient<$Result.GetResult<Prisma.$DepartmentPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
-    unit<T extends EquipmentAsset$unitArgs<ExtArgs> = {}>(args?: Subset<T, EquipmentAsset$unitArgs<ExtArgs>>): Prisma__UnitClient<$Result.GetResult<Prisma.$UnitPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
-    room<T extends EquipmentAsset$roomArgs<ExtArgs> = {}>(args?: Subset<T, EquipmentAsset$roomArgs<ExtArgs>>): Prisma__UnitRoomClient<$Result.GetResult<Prisma.$UnitRoomPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
-    locationNode<T extends EquipmentAsset$locationNodeArgs<ExtArgs> = {}>(args?: Subset<T, EquipmentAsset$locationNodeArgs<ExtArgs>>): Prisma__LocationNodeClient<$Result.GetResult<Prisma.$LocationNodePayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     downtimeTickets<T extends EquipmentAsset$downtimeTicketsArgs<ExtArgs> = {}>(args?: Subset<T, EquipmentAsset$downtimeTicketsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DowntimeTicketPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -48115,7 +48060,7 @@ export namespace Prisma {
     readonly branchId: FieldRef<"EquipmentAsset", 'String'>
     readonly code: FieldRef<"EquipmentAsset", 'String'>
     readonly name: FieldRef<"EquipmentAsset", 'String'>
-    readonly category: FieldRef<"EquipmentAsset", 'EquipmentComplianceCategory'>
+    readonly category: FieldRef<"EquipmentAsset", 'EquipmentCategory'>
     readonly make: FieldRef<"EquipmentAsset", 'String'>
     readonly model: FieldRef<"EquipmentAsset", 'String'>
     readonly serial: FieldRef<"EquipmentAsset", 'String'>
@@ -48470,51 +48415,6 @@ export namespace Prisma {
   }
 
   /**
-   * EquipmentAsset.unit
-   */
-  export type EquipmentAsset$unitArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Unit
-     */
-    select?: UnitSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: UnitInclude<ExtArgs> | null
-    where?: UnitWhereInput
-  }
-
-  /**
-   * EquipmentAsset.room
-   */
-  export type EquipmentAsset$roomArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the UnitRoom
-     */
-    select?: UnitRoomSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: UnitRoomInclude<ExtArgs> | null
-    where?: UnitRoomWhereInput
-  }
-
-  /**
-   * EquipmentAsset.locationNode
-   */
-  export type EquipmentAsset$locationNodeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the LocationNode
-     */
-    select?: LocationNodeSelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: LocationNodeInclude<ExtArgs> | null
-    where?: LocationNodeWhereInput
-  }
-
-  /**
    * EquipmentAsset.downtimeTickets
    */
   export type EquipmentAsset$downtimeTicketsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -48562,9 +48462,9 @@ export namespace Prisma {
   export type DowntimeTicketMinAggregateOutputType = {
     id: string | null
     assetId: string | null
-    status: $Enums.DowntimeStatus | null
     reason: string | null
     notes: string | null
+    status: $Enums.DowntimeStatus | null
     openedAt: Date | null
     closedAt: Date | null
     createdAt: Date | null
@@ -48574,9 +48474,9 @@ export namespace Prisma {
   export type DowntimeTicketMaxAggregateOutputType = {
     id: string | null
     assetId: string | null
-    status: $Enums.DowntimeStatus | null
     reason: string | null
     notes: string | null
+    status: $Enums.DowntimeStatus | null
     openedAt: Date | null
     closedAt: Date | null
     createdAt: Date | null
@@ -48586,9 +48486,9 @@ export namespace Prisma {
   export type DowntimeTicketCountAggregateOutputType = {
     id: number
     assetId: number
-    status: number
     reason: number
     notes: number
+    status: number
     openedAt: number
     closedAt: number
     createdAt: number
@@ -48600,9 +48500,9 @@ export namespace Prisma {
   export type DowntimeTicketMinAggregateInputType = {
     id?: true
     assetId?: true
-    status?: true
     reason?: true
     notes?: true
+    status?: true
     openedAt?: true
     closedAt?: true
     createdAt?: true
@@ -48612,9 +48512,9 @@ export namespace Prisma {
   export type DowntimeTicketMaxAggregateInputType = {
     id?: true
     assetId?: true
-    status?: true
     reason?: true
     notes?: true
+    status?: true
     openedAt?: true
     closedAt?: true
     createdAt?: true
@@ -48624,9 +48524,9 @@ export namespace Prisma {
   export type DowntimeTicketCountAggregateInputType = {
     id?: true
     assetId?: true
-    status?: true
     reason?: true
     notes?: true
+    status?: true
     openedAt?: true
     closedAt?: true
     createdAt?: true
@@ -48709,9 +48609,9 @@ export namespace Prisma {
   export type DowntimeTicketGroupByOutputType = {
     id: string
     assetId: string
-    status: $Enums.DowntimeStatus
     reason: string
     notes: string | null
+    status: $Enums.DowntimeStatus
     openedAt: Date
     closedAt: Date | null
     createdAt: Date
@@ -48738,9 +48638,9 @@ export namespace Prisma {
   export type DowntimeTicketSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     assetId?: boolean
-    status?: boolean
     reason?: boolean
     notes?: boolean
+    status?: boolean
     openedAt?: boolean
     closedAt?: boolean
     createdAt?: boolean
@@ -48751,9 +48651,9 @@ export namespace Prisma {
   export type DowntimeTicketSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     assetId?: boolean
-    status?: boolean
     reason?: boolean
     notes?: boolean
+    status?: boolean
     openedAt?: boolean
     closedAt?: boolean
     createdAt?: boolean
@@ -48764,9 +48664,9 @@ export namespace Prisma {
   export type DowntimeTicketSelectScalar = {
     id?: boolean
     assetId?: boolean
-    status?: boolean
     reason?: boolean
     notes?: boolean
+    status?: boolean
     openedAt?: boolean
     closedAt?: boolean
     createdAt?: boolean
@@ -48788,9 +48688,9 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       assetId: string
-      status: $Enums.DowntimeStatus
       reason: string
       notes: string | null
+      status: $Enums.DowntimeStatus
       openedAt: Date
       closedAt: Date | null
       createdAt: Date
@@ -49191,9 +49091,9 @@ export namespace Prisma {
   interface DowntimeTicketFieldRefs {
     readonly id: FieldRef<"DowntimeTicket", 'String'>
     readonly assetId: FieldRef<"DowntimeTicket", 'String'>
-    readonly status: FieldRef<"DowntimeTicket", 'DowntimeStatus'>
     readonly reason: FieldRef<"DowntimeTicket", 'String'>
     readonly notes: FieldRef<"DowntimeTicket", 'String'>
+    readonly status: FieldRef<"DowntimeTicket", 'DowntimeStatus'>
     readonly openedAt: FieldRef<"DowntimeTicket", 'DateTime'>
     readonly closedAt: FieldRef<"DowntimeTicket", 'DateTime'>
     readonly createdAt: FieldRef<"DowntimeTicket", 'DateTime'>
@@ -52620,7 +52520,7 @@ export namespace Prisma {
   export type FixItTaskMinAggregateOutputType = {
     id: string | null
     branchId: string | null
-    type: $Enums.FixItType | null
+    type: $Enums.FixItTaskType | null
     status: $Enums.FixItStatus | null
     title: string | null
     serviceItemId: string | null
@@ -52633,7 +52533,7 @@ export namespace Prisma {
   export type FixItTaskMaxAggregateOutputType = {
     id: string | null
     branchId: string | null
-    type: $Enums.FixItType | null
+    type: $Enums.FixItTaskType | null
     status: $Enums.FixItStatus | null
     title: string | null
     serviceItemId: string | null
@@ -52775,7 +52675,7 @@ export namespace Prisma {
   export type FixItTaskGroupByOutputType = {
     id: string
     branchId: string
-    type: $Enums.FixItType
+    type: $Enums.FixItTaskType
     status: $Enums.FixItStatus
     title: string
     details: JsonValue | null
@@ -52872,7 +52772,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       branchId: string
-      type: $Enums.FixItType
+      type: $Enums.FixItTaskType
       status: $Enums.FixItStatus
       title: string
       details: Prisma.JsonValue | null
@@ -53279,7 +53179,7 @@ export namespace Prisma {
   interface FixItTaskFieldRefs {
     readonly id: FieldRef<"FixItTask", 'String'>
     readonly branchId: FieldRef<"FixItTask", 'String'>
-    readonly type: FieldRef<"FixItTask", 'FixItType'>
+    readonly type: FieldRef<"FixItTask", 'FixItTaskType'>
     readonly status: FieldRef<"FixItTask", 'FixItStatus'>
     readonly title: FieldRef<"FixItTask", 'String'>
     readonly details: FieldRef<"FixItTask", 'Json'>
@@ -53677,14 +53577,14 @@ export namespace Prisma {
   export type BulkImportJobMinAggregateOutputType = {
     id: string | null
     branchId: string | null
-    entityType: $Enums.ImportEntityType | null
-    status: $Enums.ImportJobStatus | null
+    entityType: $Enums.BulkImportEntityType | null
+    status: $Enums.BulkImportStatus | null
     fileName: string | null
     totalRows: number | null
     validRows: number | null
     invalidRows: number | null
-    createdByUserId: string | null
     committedAt: Date | null
+    createdByUserId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -53692,14 +53592,14 @@ export namespace Prisma {
   export type BulkImportJobMaxAggregateOutputType = {
     id: string | null
     branchId: string | null
-    entityType: $Enums.ImportEntityType | null
-    status: $Enums.ImportJobStatus | null
+    entityType: $Enums.BulkImportEntityType | null
+    status: $Enums.BulkImportStatus | null
     fileName: string | null
     totalRows: number | null
     validRows: number | null
     invalidRows: number | null
-    createdByUserId: string | null
     committedAt: Date | null
+    createdByUserId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -53715,8 +53615,8 @@ export namespace Prisma {
     totalRows: number
     validRows: number
     invalidRows: number
-    createdByUserId: number
     committedAt: number
+    createdByUserId: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -53744,8 +53644,8 @@ export namespace Prisma {
     totalRows?: true
     validRows?: true
     invalidRows?: true
-    createdByUserId?: true
     committedAt?: true
+    createdByUserId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -53759,8 +53659,8 @@ export namespace Prisma {
     totalRows?: true
     validRows?: true
     invalidRows?: true
-    createdByUserId?: true
     committedAt?: true
+    createdByUserId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -53776,8 +53676,8 @@ export namespace Prisma {
     totalRows?: true
     validRows?: true
     invalidRows?: true
-    createdByUserId?: true
     committedAt?: true
+    createdByUserId?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -53872,16 +53772,16 @@ export namespace Prisma {
   export type BulkImportJobGroupByOutputType = {
     id: string
     branchId: string
-    entityType: $Enums.ImportEntityType
-    status: $Enums.ImportJobStatus
+    entityType: $Enums.BulkImportEntityType
+    status: $Enums.BulkImportStatus
     fileName: string | null
-    payload: JsonValue | null
+    payload: JsonValue
     errors: JsonValue | null
     totalRows: number
     validRows: number
     invalidRows: number
-    createdByUserId: string | null
     committedAt: Date | null
+    createdByUserId: string | null
     createdAt: Date
     updatedAt: Date
     _count: BulkImportJobCountAggregateOutputType | null
@@ -53916,8 +53816,8 @@ export namespace Prisma {
     totalRows?: boolean
     validRows?: boolean
     invalidRows?: boolean
-    createdByUserId?: boolean
     committedAt?: boolean
+    createdByUserId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     branch?: boolean | BranchDefaultArgs<ExtArgs>
@@ -53935,8 +53835,8 @@ export namespace Prisma {
     totalRows?: boolean
     validRows?: boolean
     invalidRows?: boolean
-    createdByUserId?: boolean
     committedAt?: boolean
+    createdByUserId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     branch?: boolean | BranchDefaultArgs<ExtArgs>
@@ -53954,8 +53854,8 @@ export namespace Prisma {
     totalRows?: boolean
     validRows?: boolean
     invalidRows?: boolean
-    createdByUserId?: boolean
     committedAt?: boolean
+    createdByUserId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -53978,16 +53878,16 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       branchId: string
-      entityType: $Enums.ImportEntityType
-      status: $Enums.ImportJobStatus
+      entityType: $Enums.BulkImportEntityType
+      status: $Enums.BulkImportStatus
       fileName: string | null
-      payload: Prisma.JsonValue | null
+      payload: Prisma.JsonValue
       errors: Prisma.JsonValue | null
       totalRows: number
       validRows: number
       invalidRows: number
-      createdByUserId: string | null
       committedAt: Date | null
+      createdByUserId: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["bulkImportJob"]>
@@ -54387,16 +54287,16 @@ export namespace Prisma {
   interface BulkImportJobFieldRefs {
     readonly id: FieldRef<"BulkImportJob", 'String'>
     readonly branchId: FieldRef<"BulkImportJob", 'String'>
-    readonly entityType: FieldRef<"BulkImportJob", 'ImportEntityType'>
-    readonly status: FieldRef<"BulkImportJob", 'ImportJobStatus'>
+    readonly entityType: FieldRef<"BulkImportJob", 'BulkImportEntityType'>
+    readonly status: FieldRef<"BulkImportJob", 'BulkImportStatus'>
     readonly fileName: FieldRef<"BulkImportJob", 'String'>
     readonly payload: FieldRef<"BulkImportJob", 'Json'>
     readonly errors: FieldRef<"BulkImportJob", 'Json'>
     readonly totalRows: FieldRef<"BulkImportJob", 'Int'>
     readonly validRows: FieldRef<"BulkImportJob", 'Int'>
     readonly invalidRows: FieldRef<"BulkImportJob", 'Int'>
-    readonly createdByUserId: FieldRef<"BulkImportJob", 'String'>
     readonly committedAt: FieldRef<"BulkImportJob", 'DateTime'>
+    readonly createdByUserId: FieldRef<"BulkImportJob", 'String'>
     readonly createdAt: FieldRef<"BulkImportJob", 'DateTime'>
     readonly updatedAt: FieldRef<"BulkImportJob", 'DateTime'>
   }
@@ -54770,8 +54670,8 @@ export namespace Prisma {
     anesthesiaOk: boolean | null
     checklistOk: boolean | null
     createdByUserId: string | null
+    cancelledAt: Date | null
     createdAt: Date | null
-    updatedAt: Date | null
   }
 
   export type ProcedureBookingMaxAggregateOutputType = {
@@ -54788,8 +54688,8 @@ export namespace Prisma {
     anesthesiaOk: boolean | null
     checklistOk: boolean | null
     createdByUserId: string | null
+    cancelledAt: Date | null
     createdAt: Date | null
-    updatedAt: Date | null
   }
 
   export type ProcedureBookingCountAggregateOutputType = {
@@ -54806,8 +54706,8 @@ export namespace Prisma {
     anesthesiaOk: number
     checklistOk: number
     createdByUserId: number
+    cancelledAt: number
     createdAt: number
-    updatedAt: number
     _all: number
   }
 
@@ -54826,8 +54726,8 @@ export namespace Prisma {
     anesthesiaOk?: true
     checklistOk?: true
     createdByUserId?: true
+    cancelledAt?: true
     createdAt?: true
-    updatedAt?: true
   }
 
   export type ProcedureBookingMaxAggregateInputType = {
@@ -54844,8 +54744,8 @@ export namespace Prisma {
     anesthesiaOk?: true
     checklistOk?: true
     createdByUserId?: true
+    cancelledAt?: true
     createdAt?: true
-    updatedAt?: true
   }
 
   export type ProcedureBookingCountAggregateInputType = {
@@ -54862,8 +54762,8 @@ export namespace Prisma {
     anesthesiaOk?: true
     checklistOk?: true
     createdByUserId?: true
+    cancelledAt?: true
     createdAt?: true
-    updatedAt?: true
     _all?: true
   }
 
@@ -54953,8 +54853,8 @@ export namespace Prisma {
     anesthesiaOk: boolean
     checklistOk: boolean
     createdByUserId: string | null
+    cancelledAt: Date | null
     createdAt: Date
-    updatedAt: Date
     _count: ProcedureBookingCountAggregateOutputType | null
     _min: ProcedureBookingMinAggregateOutputType | null
     _max: ProcedureBookingMaxAggregateOutputType | null
@@ -54988,8 +54888,8 @@ export namespace Prisma {
     anesthesiaOk?: boolean
     checklistOk?: boolean
     createdByUserId?: boolean
+    cancelledAt?: boolean
     createdAt?: boolean
-    updatedAt?: boolean
     branch?: boolean | BranchDefaultArgs<ExtArgs>
     unit?: boolean | UnitDefaultArgs<ExtArgs>
     resource?: boolean | UnitResourceDefaultArgs<ExtArgs>
@@ -55010,8 +54910,8 @@ export namespace Prisma {
     anesthesiaOk?: boolean
     checklistOk?: boolean
     createdByUserId?: boolean
+    cancelledAt?: boolean
     createdAt?: boolean
-    updatedAt?: boolean
     branch?: boolean | BranchDefaultArgs<ExtArgs>
     unit?: boolean | UnitDefaultArgs<ExtArgs>
     resource?: boolean | UnitResourceDefaultArgs<ExtArgs>
@@ -55032,8 +54932,8 @@ export namespace Prisma {
     anesthesiaOk?: boolean
     checklistOk?: boolean
     createdByUserId?: boolean
+    cancelledAt?: boolean
     createdAt?: boolean
-    updatedAt?: boolean
   }
 
   export type ProcedureBookingInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -55071,8 +54971,8 @@ export namespace Prisma {
       anesthesiaOk: boolean
       checklistOk: boolean
       createdByUserId: string | null
+      cancelledAt: Date | null
       createdAt: Date
-      updatedAt: Date
     }, ExtArgs["result"]["procedureBooking"]>
     composites: {}
   }
@@ -55483,8 +55383,8 @@ export namespace Prisma {
     readonly anesthesiaOk: FieldRef<"ProcedureBooking", 'Boolean'>
     readonly checklistOk: FieldRef<"ProcedureBooking", 'Boolean'>
     readonly createdByUserId: FieldRef<"ProcedureBooking", 'String'>
+    readonly cancelledAt: FieldRef<"ProcedureBooking", 'DateTime'>
     readonly createdAt: FieldRef<"ProcedureBooking", 'DateTime'>
-    readonly updatedAt: FieldRef<"ProcedureBooking", 'DateTime'>
   }
     
 
@@ -56863,11 +56763,11 @@ export namespace Prisma {
     code: 'code',
     name: 'name',
     city: 'city',
-    gstNumber: 'gstNumber',
     address: 'address',
     contactPhone1: 'contactPhone1',
     contactPhone2: 'contactPhone2',
     contactEmail: 'contactEmail',
+    gstNumber: 'gstNumber',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -56930,19 +56830,6 @@ export namespace Prisma {
   export type DepartmentDoctorScalarFieldEnum = (typeof DepartmentDoctorScalarFieldEnum)[keyof typeof DepartmentDoctorScalarFieldEnum]
 
 
-  export const SpecialtyScalarFieldEnum: {
-    id: 'id',
-    branchId: 'branchId',
-    code: 'code',
-    name: 'name',
-    isActive: 'isActive',
-    createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
-  };
-
-  export type SpecialtyScalarFieldEnum = (typeof SpecialtyScalarFieldEnum)[keyof typeof SpecialtyScalarFieldEnum]
-
-
   export const DepartmentSpecialtyScalarFieldEnum: {
     id: 'id',
     departmentId: 'departmentId',
@@ -56954,6 +56841,20 @@ export namespace Prisma {
   };
 
   export type DepartmentSpecialtyScalarFieldEnum = (typeof DepartmentSpecialtyScalarFieldEnum)[keyof typeof DepartmentSpecialtyScalarFieldEnum]
+
+
+  export const SpecialtyScalarFieldEnum: {
+    id: 'id',
+    branchId: 'branchId',
+    departmentId: 'departmentId',
+    code: 'code',
+    name: 'name',
+    isActive: 'isActive',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type SpecialtyScalarFieldEnum = (typeof SpecialtyScalarFieldEnum)[keyof typeof SpecialtyScalarFieldEnum]
 
 
   export const StaffScalarFieldEnum: {
@@ -57364,8 +57265,8 @@ export namespace Prisma {
     name: 'name',
     usesRoomsDefault: 'usesRoomsDefault',
     schedulableByDefault: 'schedulableByDefault',
-    sortOrder: 'sortOrder',
     isActive: 'isActive',
+    sortOrder: 'sortOrder',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -57404,8 +57305,8 @@ export namespace Prisma {
 
   export const UnitRoomScalarFieldEnum: {
     id: 'id',
-    unitId: 'unitId',
     branchId: 'branchId',
+    unitId: 'unitId',
     code: 'code',
     name: 'name',
     isActive: 'isActive',
@@ -57469,9 +57370,9 @@ export namespace Prisma {
   export const DowntimeTicketScalarFieldEnum: {
     id: 'id',
     assetId: 'assetId',
-    status: 'status',
     reason: 'reason',
     notes: 'notes',
+    status: 'status',
     openedAt: 'openedAt',
     closedAt: 'closedAt',
     createdAt: 'createdAt',
@@ -57555,8 +57456,8 @@ export namespace Prisma {
     totalRows: 'totalRows',
     validRows: 'validRows',
     invalidRows: 'invalidRows',
-    createdByUserId: 'createdByUserId',
     committedAt: 'committedAt',
+    createdByUserId: 'createdByUserId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -57578,8 +57479,8 @@ export namespace Prisma {
     anesthesiaOk: 'anesthesiaOk',
     checklistOk: 'checklistOk',
     createdByUserId: 'createdByUserId',
-    createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    cancelledAt: 'cancelledAt',
+    createdAt: 'createdAt'
   };
 
   export type ProcedureBookingScalarFieldEnum = (typeof ProcedureBookingScalarFieldEnum)[keyof typeof ProcedureBookingScalarFieldEnum]
@@ -57919,16 +57820,16 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'EquipmentComplianceCategory'
+   * Reference to a field of type 'EquipmentCategory'
    */
-  export type EnumEquipmentComplianceCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EquipmentComplianceCategory'>
+  export type EnumEquipmentCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EquipmentCategory'>
     
 
 
   /**
-   * Reference to a field of type 'EquipmentComplianceCategory[]'
+   * Reference to a field of type 'EquipmentCategory[]'
    */
-  export type ListEnumEquipmentComplianceCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EquipmentComplianceCategory[]'>
+  export type ListEnumEquipmentCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EquipmentCategory[]'>
     
 
 
@@ -57961,16 +57862,16 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'FixItType'
+   * Reference to a field of type 'FixItTaskType'
    */
-  export type EnumFixItTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FixItType'>
+  export type EnumFixItTaskTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FixItTaskType'>
     
 
 
   /**
-   * Reference to a field of type 'FixItType[]'
+   * Reference to a field of type 'FixItTaskType[]'
    */
-  export type ListEnumFixItTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FixItType[]'>
+  export type ListEnumFixItTaskTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FixItTaskType[]'>
     
 
 
@@ -57989,30 +57890,30 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'ImportEntityType'
+   * Reference to a field of type 'BulkImportEntityType'
    */
-  export type EnumImportEntityTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ImportEntityType'>
+  export type EnumBulkImportEntityTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BulkImportEntityType'>
     
 
 
   /**
-   * Reference to a field of type 'ImportEntityType[]'
+   * Reference to a field of type 'BulkImportEntityType[]'
    */
-  export type ListEnumImportEntityTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ImportEntityType[]'>
+  export type ListEnumBulkImportEntityTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BulkImportEntityType[]'>
     
 
 
   /**
-   * Reference to a field of type 'ImportJobStatus'
+   * Reference to a field of type 'BulkImportStatus'
    */
-  export type EnumImportJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ImportJobStatus'>
+  export type EnumBulkImportStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BulkImportStatus'>
     
 
 
   /**
-   * Reference to a field of type 'ImportJobStatus[]'
+   * Reference to a field of type 'BulkImportStatus[]'
    */
-  export type ListEnumImportJobStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ImportJobStatus[]'>
+  export type ListEnumBulkImportStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BulkImportStatus[]'>
     
 
 
@@ -58055,11 +57956,11 @@ export namespace Prisma {
     code?: StringFilter<"Branch"> | string
     name?: StringFilter<"Branch"> | string
     city?: StringFilter<"Branch"> | string
-    gstNumber?: StringNullableFilter<"Branch"> | string | null
     address?: StringNullableFilter<"Branch"> | string | null
     contactPhone1?: StringNullableFilter<"Branch"> | string | null
     contactPhone2?: StringNullableFilter<"Branch"> | string | null
     contactEmail?: StringNullableFilter<"Branch"> | string | null
+    gstNumber?: StringNullableFilter<"Branch"> | string | null
     createdAt?: DateTimeFilter<"Branch"> | Date | string
     updatedAt?: DateTimeFilter<"Branch"> | Date | string
     departments?: DepartmentListRelationFilter
@@ -58081,17 +57982,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionListRelationFilter
     policyVersionBranches?: PolicyVersionBranchListRelationFilter
     locationNodes?: LocationNodeListRelationFilter
-    unitTypesEnabled?: BranchUnitTypeListRelationFilter
+    branchUnitTypes?: BranchUnitTypeListRelationFilter
     units?: UnitListRelationFilter
     unitRooms?: UnitRoomListRelationFilter
     unitResources?: UnitResourceListRelationFilter
-    equipmentAssets?: EquipmentAssetListRelationFilter
-    serviceItems?: ServiceItemListRelationFilter
-    chargeMasterItems?: ChargeMasterItemListRelationFilter
-    serviceMappings?: ServiceChargeMappingListRelationFilter
-    fixItTasks?: FixItTaskListRelationFilter
-    importJobs?: BulkImportJobListRelationFilter
     procedureBookings?: ProcedureBookingListRelationFilter
+    equipmentAssets?: EquipmentAssetListRelationFilter
+    chargeMasterItems?: ChargeMasterItemListRelationFilter
+    serviceItems?: ServiceItemListRelationFilter
+    serviceChargeMappings?: ServiceChargeMappingListRelationFilter
+    fixItTasks?: FixItTaskListRelationFilter
+    bulkImportJobs?: BulkImportJobListRelationFilter
     goLiveReports?: GoLiveReportListRelationFilter
   }
 
@@ -58100,11 +58001,11 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     city?: SortOrder
-    gstNumber?: SortOrderInput | SortOrder
     address?: SortOrderInput | SortOrder
     contactPhone1?: SortOrderInput | SortOrder
     contactPhone2?: SortOrderInput | SortOrder
     contactEmail?: SortOrderInput | SortOrder
+    gstNumber?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     departments?: DepartmentOrderByRelationAggregateInput
@@ -58126,17 +58027,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionOrderByRelationAggregateInput
     policyVersionBranches?: PolicyVersionBranchOrderByRelationAggregateInput
     locationNodes?: LocationNodeOrderByRelationAggregateInput
-    unitTypesEnabled?: BranchUnitTypeOrderByRelationAggregateInput
+    branchUnitTypes?: BranchUnitTypeOrderByRelationAggregateInput
     units?: UnitOrderByRelationAggregateInput
     unitRooms?: UnitRoomOrderByRelationAggregateInput
     unitResources?: UnitResourceOrderByRelationAggregateInput
-    equipmentAssets?: EquipmentAssetOrderByRelationAggregateInput
-    serviceItems?: ServiceItemOrderByRelationAggregateInput
-    chargeMasterItems?: ChargeMasterItemOrderByRelationAggregateInput
-    serviceMappings?: ServiceChargeMappingOrderByRelationAggregateInput
-    fixItTasks?: FixItTaskOrderByRelationAggregateInput
-    importJobs?: BulkImportJobOrderByRelationAggregateInput
     procedureBookings?: ProcedureBookingOrderByRelationAggregateInput
+    equipmentAssets?: EquipmentAssetOrderByRelationAggregateInput
+    chargeMasterItems?: ChargeMasterItemOrderByRelationAggregateInput
+    serviceItems?: ServiceItemOrderByRelationAggregateInput
+    serviceChargeMappings?: ServiceChargeMappingOrderByRelationAggregateInput
+    fixItTasks?: FixItTaskOrderByRelationAggregateInput
+    bulkImportJobs?: BulkImportJobOrderByRelationAggregateInput
     goLiveReports?: GoLiveReportOrderByRelationAggregateInput
   }
 
@@ -58148,11 +58049,11 @@ export namespace Prisma {
     NOT?: BranchWhereInput | BranchWhereInput[]
     name?: StringFilter<"Branch"> | string
     city?: StringFilter<"Branch"> | string
-    gstNumber?: StringNullableFilter<"Branch"> | string | null
     address?: StringNullableFilter<"Branch"> | string | null
     contactPhone1?: StringNullableFilter<"Branch"> | string | null
     contactPhone2?: StringNullableFilter<"Branch"> | string | null
     contactEmail?: StringNullableFilter<"Branch"> | string | null
+    gstNumber?: StringNullableFilter<"Branch"> | string | null
     createdAt?: DateTimeFilter<"Branch"> | Date | string
     updatedAt?: DateTimeFilter<"Branch"> | Date | string
     departments?: DepartmentListRelationFilter
@@ -58174,17 +58075,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionListRelationFilter
     policyVersionBranches?: PolicyVersionBranchListRelationFilter
     locationNodes?: LocationNodeListRelationFilter
-    unitTypesEnabled?: BranchUnitTypeListRelationFilter
+    branchUnitTypes?: BranchUnitTypeListRelationFilter
     units?: UnitListRelationFilter
     unitRooms?: UnitRoomListRelationFilter
     unitResources?: UnitResourceListRelationFilter
-    equipmentAssets?: EquipmentAssetListRelationFilter
-    serviceItems?: ServiceItemListRelationFilter
-    chargeMasterItems?: ChargeMasterItemListRelationFilter
-    serviceMappings?: ServiceChargeMappingListRelationFilter
-    fixItTasks?: FixItTaskListRelationFilter
-    importJobs?: BulkImportJobListRelationFilter
     procedureBookings?: ProcedureBookingListRelationFilter
+    equipmentAssets?: EquipmentAssetListRelationFilter
+    chargeMasterItems?: ChargeMasterItemListRelationFilter
+    serviceItems?: ServiceItemListRelationFilter
+    serviceChargeMappings?: ServiceChargeMappingListRelationFilter
+    fixItTasks?: FixItTaskListRelationFilter
+    bulkImportJobs?: BulkImportJobListRelationFilter
     goLiveReports?: GoLiveReportListRelationFilter
   }, "id" | "code">
 
@@ -58193,11 +58094,11 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     city?: SortOrder
-    gstNumber?: SortOrderInput | SortOrder
     address?: SortOrderInput | SortOrder
     contactPhone1?: SortOrderInput | SortOrder
     contactPhone2?: SortOrderInput | SortOrder
     contactEmail?: SortOrderInput | SortOrder
+    gstNumber?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: BranchCountOrderByAggregateInput
@@ -58213,11 +58114,11 @@ export namespace Prisma {
     code?: StringWithAggregatesFilter<"Branch"> | string
     name?: StringWithAggregatesFilter<"Branch"> | string
     city?: StringWithAggregatesFilter<"Branch"> | string
-    gstNumber?: StringNullableWithAggregatesFilter<"Branch"> | string | null
     address?: StringNullableWithAggregatesFilter<"Branch"> | string | null
     contactPhone1?: StringNullableWithAggregatesFilter<"Branch"> | string | null
     contactPhone2?: StringNullableWithAggregatesFilter<"Branch"> | string | null
     contactEmail?: StringNullableWithAggregatesFilter<"Branch"> | string | null
+    gstNumber?: StringNullableWithAggregatesFilter<"Branch"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Branch"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Branch"> | Date | string
   }
@@ -58383,8 +58284,9 @@ export namespace Prisma {
     facility?: XOR<FacilityCatalogRelationFilter, FacilityCatalogWhereInput>
     headStaff?: XOR<StaffNullableRelationFilter, StaffWhereInput> | null
     staff?: StaffListRelationFilter
-    departmentSpecialties?: DepartmentSpecialtyListRelationFilter
+    specialties?: SpecialtyListRelationFilter
     doctorAssignments?: DepartmentDoctorListRelationFilter
+    departmentSpecialties?: DepartmentSpecialtyListRelationFilter
     units?: UnitListRelationFilter
     equipmentOwned?: EquipmentAssetListRelationFilter
   }
@@ -58403,8 +58305,9 @@ export namespace Prisma {
     facility?: FacilityCatalogOrderByWithRelationInput
     headStaff?: StaffOrderByWithRelationInput
     staff?: StaffOrderByRelationAggregateInput
-    departmentSpecialties?: DepartmentSpecialtyOrderByRelationAggregateInput
+    specialties?: SpecialtyOrderByRelationAggregateInput
     doctorAssignments?: DepartmentDoctorOrderByRelationAggregateInput
+    departmentSpecialties?: DepartmentSpecialtyOrderByRelationAggregateInput
     units?: UnitOrderByRelationAggregateInput
     equipmentOwned?: EquipmentAssetOrderByRelationAggregateInput
   }
@@ -58427,8 +58330,9 @@ export namespace Prisma {
     facility?: XOR<FacilityCatalogRelationFilter, FacilityCatalogWhereInput>
     headStaff?: XOR<StaffNullableRelationFilter, StaffWhereInput> | null
     staff?: StaffListRelationFilter
-    departmentSpecialties?: DepartmentSpecialtyListRelationFilter
+    specialties?: SpecialtyListRelationFilter
     doctorAssignments?: DepartmentDoctorListRelationFilter
+    departmentSpecialties?: DepartmentSpecialtyListRelationFilter
     units?: UnitListRelationFilter
     equipmentOwned?: EquipmentAssetListRelationFilter
   }, "id" | "branchId_facilityId_code">
@@ -58532,78 +58436,6 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"DepartmentDoctor"> | Date | string
   }
 
-  export type SpecialtyWhereInput = {
-    AND?: SpecialtyWhereInput | SpecialtyWhereInput[]
-    OR?: SpecialtyWhereInput[]
-    NOT?: SpecialtyWhereInput | SpecialtyWhereInput[]
-    id?: StringFilter<"Specialty"> | string
-    branchId?: StringFilter<"Specialty"> | string
-    code?: StringFilter<"Specialty"> | string
-    name?: StringFilter<"Specialty"> | string
-    isActive?: BoolFilter<"Specialty"> | boolean
-    createdAt?: DateTimeFilter<"Specialty"> | Date | string
-    updatedAt?: DateTimeFilter<"Specialty"> | Date | string
-    branch?: XOR<BranchRelationFilter, BranchWhereInput>
-    staff?: StaffListRelationFilter
-    departmentLinks?: DepartmentSpecialtyListRelationFilter
-  }
-
-  export type SpecialtyOrderByWithRelationInput = {
-    id?: SortOrder
-    branchId?: SortOrder
-    code?: SortOrder
-    name?: SortOrder
-    isActive?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
-    branch?: BranchOrderByWithRelationInput
-    staff?: StaffOrderByRelationAggregateInput
-    departmentLinks?: DepartmentSpecialtyOrderByRelationAggregateInput
-  }
-
-  export type SpecialtyWhereUniqueInput = Prisma.AtLeast<{
-    id?: string
-    branchId_code?: SpecialtyBranchIdCodeCompoundUniqueInput
-    AND?: SpecialtyWhereInput | SpecialtyWhereInput[]
-    OR?: SpecialtyWhereInput[]
-    NOT?: SpecialtyWhereInput | SpecialtyWhereInput[]
-    branchId?: StringFilter<"Specialty"> | string
-    code?: StringFilter<"Specialty"> | string
-    name?: StringFilter<"Specialty"> | string
-    isActive?: BoolFilter<"Specialty"> | boolean
-    createdAt?: DateTimeFilter<"Specialty"> | Date | string
-    updatedAt?: DateTimeFilter<"Specialty"> | Date | string
-    branch?: XOR<BranchRelationFilter, BranchWhereInput>
-    staff?: StaffListRelationFilter
-    departmentLinks?: DepartmentSpecialtyListRelationFilter
-  }, "id" | "branchId_code">
-
-  export type SpecialtyOrderByWithAggregationInput = {
-    id?: SortOrder
-    branchId?: SortOrder
-    code?: SortOrder
-    name?: SortOrder
-    isActive?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
-    _count?: SpecialtyCountOrderByAggregateInput
-    _max?: SpecialtyMaxOrderByAggregateInput
-    _min?: SpecialtyMinOrderByAggregateInput
-  }
-
-  export type SpecialtyScalarWhereWithAggregatesInput = {
-    AND?: SpecialtyScalarWhereWithAggregatesInput | SpecialtyScalarWhereWithAggregatesInput[]
-    OR?: SpecialtyScalarWhereWithAggregatesInput[]
-    NOT?: SpecialtyScalarWhereWithAggregatesInput | SpecialtyScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter<"Specialty"> | string
-    branchId?: StringWithAggregatesFilter<"Specialty"> | string
-    code?: StringWithAggregatesFilter<"Specialty"> | string
-    name?: StringWithAggregatesFilter<"Specialty"> | string
-    isActive?: BoolWithAggregatesFilter<"Specialty"> | boolean
-    createdAt?: DateTimeWithAggregatesFilter<"Specialty"> | Date | string
-    updatedAt?: DateTimeWithAggregatesFilter<"Specialty"> | Date | string
-  }
-
   export type DepartmentSpecialtyWhereInput = {
     AND?: DepartmentSpecialtyWhereInput | DepartmentSpecialtyWhereInput[]
     OR?: DepartmentSpecialtyWhereInput[]
@@ -58671,6 +58503,86 @@ export namespace Prisma {
     isActive?: BoolWithAggregatesFilter<"DepartmentSpecialty"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"DepartmentSpecialty"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"DepartmentSpecialty"> | Date | string
+  }
+
+  export type SpecialtyWhereInput = {
+    AND?: SpecialtyWhereInput | SpecialtyWhereInput[]
+    OR?: SpecialtyWhereInput[]
+    NOT?: SpecialtyWhereInput | SpecialtyWhereInput[]
+    id?: StringFilter<"Specialty"> | string
+    branchId?: StringFilter<"Specialty"> | string
+    departmentId?: StringNullableFilter<"Specialty"> | string | null
+    code?: StringFilter<"Specialty"> | string
+    name?: StringFilter<"Specialty"> | string
+    isActive?: BoolFilter<"Specialty"> | boolean
+    createdAt?: DateTimeFilter<"Specialty"> | Date | string
+    updatedAt?: DateTimeFilter<"Specialty"> | Date | string
+    branch?: XOR<BranchRelationFilter, BranchWhereInput>
+    department?: XOR<DepartmentNullableRelationFilter, DepartmentWhereInput> | null
+    staff?: StaffListRelationFilter
+    departmentLinks?: DepartmentSpecialtyListRelationFilter
+  }
+
+  export type SpecialtyOrderByWithRelationInput = {
+    id?: SortOrder
+    branchId?: SortOrder
+    departmentId?: SortOrderInput | SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    branch?: BranchOrderByWithRelationInput
+    department?: DepartmentOrderByWithRelationInput
+    staff?: StaffOrderByRelationAggregateInput
+    departmentLinks?: DepartmentSpecialtyOrderByRelationAggregateInput
+  }
+
+  export type SpecialtyWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    branchId_code?: SpecialtyBranchIdCodeCompoundUniqueInput
+    AND?: SpecialtyWhereInput | SpecialtyWhereInput[]
+    OR?: SpecialtyWhereInput[]
+    NOT?: SpecialtyWhereInput | SpecialtyWhereInput[]
+    branchId?: StringFilter<"Specialty"> | string
+    departmentId?: StringNullableFilter<"Specialty"> | string | null
+    code?: StringFilter<"Specialty"> | string
+    name?: StringFilter<"Specialty"> | string
+    isActive?: BoolFilter<"Specialty"> | boolean
+    createdAt?: DateTimeFilter<"Specialty"> | Date | string
+    updatedAt?: DateTimeFilter<"Specialty"> | Date | string
+    branch?: XOR<BranchRelationFilter, BranchWhereInput>
+    department?: XOR<DepartmentNullableRelationFilter, DepartmentWhereInput> | null
+    staff?: StaffListRelationFilter
+    departmentLinks?: DepartmentSpecialtyListRelationFilter
+  }, "id" | "branchId_code">
+
+  export type SpecialtyOrderByWithAggregationInput = {
+    id?: SortOrder
+    branchId?: SortOrder
+    departmentId?: SortOrderInput | SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: SpecialtyCountOrderByAggregateInput
+    _max?: SpecialtyMaxOrderByAggregateInput
+    _min?: SpecialtyMinOrderByAggregateInput
+  }
+
+  export type SpecialtyScalarWhereWithAggregatesInput = {
+    AND?: SpecialtyScalarWhereWithAggregatesInput | SpecialtyScalarWhereWithAggregatesInput[]
+    OR?: SpecialtyScalarWhereWithAggregatesInput[]
+    NOT?: SpecialtyScalarWhereWithAggregatesInput | SpecialtyScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Specialty"> | string
+    branchId?: StringWithAggregatesFilter<"Specialty"> | string
+    departmentId?: StringNullableWithAggregatesFilter<"Specialty"> | string | null
+    code?: StringWithAggregatesFilter<"Specialty"> | string
+    name?: StringWithAggregatesFilter<"Specialty"> | string
+    isActive?: BoolWithAggregatesFilter<"Specialty"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"Specialty"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Specialty"> | Date | string
   }
 
   export type StaffWhereInput = {
@@ -60723,7 +60635,6 @@ export namespace Prisma {
     parent?: XOR<LocationNodeNullableRelationFilter, LocationNodeWhereInput> | null
     children?: LocationNodeListRelationFilter
     revisions?: LocationNodeRevisionListRelationFilter
-    EquipmentAsset?: EquipmentAssetListRelationFilter
   }
 
   export type LocationNodeOrderByWithRelationInput = {
@@ -60737,7 +60648,6 @@ export namespace Prisma {
     parent?: LocationNodeOrderByWithRelationInput
     children?: LocationNodeOrderByRelationAggregateInput
     revisions?: LocationNodeRevisionOrderByRelationAggregateInput
-    EquipmentAsset?: EquipmentAssetOrderByRelationAggregateInput
   }
 
   export type LocationNodeWhereUniqueInput = Prisma.AtLeast<{
@@ -60754,7 +60664,6 @@ export namespace Prisma {
     parent?: XOR<LocationNodeNullableRelationFilter, LocationNodeWhereInput> | null
     children?: LocationNodeListRelationFilter
     revisions?: LocationNodeRevisionListRelationFilter
-    EquipmentAsset?: EquipmentAssetListRelationFilter
   }, "id">
 
   export type LocationNodeOrderByWithAggregationInput = {
@@ -60868,8 +60777,8 @@ export namespace Prisma {
     name?: StringFilter<"UnitTypeCatalog"> | string
     usesRoomsDefault?: BoolFilter<"UnitTypeCatalog"> | boolean
     schedulableByDefault?: BoolFilter<"UnitTypeCatalog"> | boolean
-    sortOrder?: IntFilter<"UnitTypeCatalog"> | number
     isActive?: BoolFilter<"UnitTypeCatalog"> | boolean
+    sortOrder?: IntFilter<"UnitTypeCatalog"> | number
     createdAt?: DateTimeFilter<"UnitTypeCatalog"> | Date | string
     updatedAt?: DateTimeFilter<"UnitTypeCatalog"> | Date | string
     branchLinks?: BranchUnitTypeListRelationFilter
@@ -60882,8 +60791,8 @@ export namespace Prisma {
     name?: SortOrder
     usesRoomsDefault?: SortOrder
     schedulableByDefault?: SortOrder
-    sortOrder?: SortOrder
     isActive?: SortOrder
+    sortOrder?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     branchLinks?: BranchUnitTypeOrderByRelationAggregateInput
@@ -60899,8 +60808,8 @@ export namespace Prisma {
     name?: StringFilter<"UnitTypeCatalog"> | string
     usesRoomsDefault?: BoolFilter<"UnitTypeCatalog"> | boolean
     schedulableByDefault?: BoolFilter<"UnitTypeCatalog"> | boolean
-    sortOrder?: IntFilter<"UnitTypeCatalog"> | number
     isActive?: BoolFilter<"UnitTypeCatalog"> | boolean
+    sortOrder?: IntFilter<"UnitTypeCatalog"> | number
     createdAt?: DateTimeFilter<"UnitTypeCatalog"> | Date | string
     updatedAt?: DateTimeFilter<"UnitTypeCatalog"> | Date | string
     branchLinks?: BranchUnitTypeListRelationFilter
@@ -60913,8 +60822,8 @@ export namespace Prisma {
     name?: SortOrder
     usesRoomsDefault?: SortOrder
     schedulableByDefault?: SortOrder
-    sortOrder?: SortOrder
     isActive?: SortOrder
+    sortOrder?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: UnitTypeCatalogCountOrderByAggregateInput
@@ -60933,8 +60842,8 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter<"UnitTypeCatalog"> | string
     usesRoomsDefault?: BoolWithAggregatesFilter<"UnitTypeCatalog"> | boolean
     schedulableByDefault?: BoolWithAggregatesFilter<"UnitTypeCatalog"> | boolean
-    sortOrder?: IntWithAggregatesFilter<"UnitTypeCatalog"> | number
     isActive?: BoolWithAggregatesFilter<"UnitTypeCatalog"> | boolean
+    sortOrder?: IntWithAggregatesFilter<"UnitTypeCatalog"> | number
     createdAt?: DateTimeWithAggregatesFilter<"UnitTypeCatalog"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"UnitTypeCatalog"> | Date | string
   }
@@ -60947,7 +60856,7 @@ export namespace Prisma {
     branchId?: StringFilter<"BranchUnitType"> | string
     unitTypeId?: StringFilter<"BranchUnitType"> | string
     isEnabled?: BoolFilter<"BranchUnitType"> | boolean
-    enabledAt?: DateTimeFilter<"BranchUnitType"> | Date | string
+    enabledAt?: DateTimeNullableFilter<"BranchUnitType"> | Date | string | null
     createdAt?: DateTimeFilter<"BranchUnitType"> | Date | string
     updatedAt?: DateTimeFilter<"BranchUnitType"> | Date | string
     branch?: XOR<BranchRelationFilter, BranchWhereInput>
@@ -60959,7 +60868,7 @@ export namespace Prisma {
     branchId?: SortOrder
     unitTypeId?: SortOrder
     isEnabled?: SortOrder
-    enabledAt?: SortOrder
+    enabledAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     branch?: BranchOrderByWithRelationInput
@@ -60968,14 +60877,14 @@ export namespace Prisma {
 
   export type BranchUnitTypeWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    branchId_unitTypeId?: BranchUnitTypeBranchIdUnitTypeIdCompoundUniqueInput
+    branchId_unitTypeId?: BranchUnitTypeBranchId_unitTypeIdCompoundUniqueInput
     AND?: BranchUnitTypeWhereInput | BranchUnitTypeWhereInput[]
     OR?: BranchUnitTypeWhereInput[]
     NOT?: BranchUnitTypeWhereInput | BranchUnitTypeWhereInput[]
     branchId?: StringFilter<"BranchUnitType"> | string
     unitTypeId?: StringFilter<"BranchUnitType"> | string
     isEnabled?: BoolFilter<"BranchUnitType"> | boolean
-    enabledAt?: DateTimeFilter<"BranchUnitType"> | Date | string
+    enabledAt?: DateTimeNullableFilter<"BranchUnitType"> | Date | string | null
     createdAt?: DateTimeFilter<"BranchUnitType"> | Date | string
     updatedAt?: DateTimeFilter<"BranchUnitType"> | Date | string
     branch?: XOR<BranchRelationFilter, BranchWhereInput>
@@ -60987,7 +60896,7 @@ export namespace Prisma {
     branchId?: SortOrder
     unitTypeId?: SortOrder
     isEnabled?: SortOrder
-    enabledAt?: SortOrder
+    enabledAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: BranchUnitTypeCountOrderByAggregateInput
@@ -61003,7 +60912,7 @@ export namespace Prisma {
     branchId?: StringWithAggregatesFilter<"BranchUnitType"> | string
     unitTypeId?: StringWithAggregatesFilter<"BranchUnitType"> | string
     isEnabled?: BoolWithAggregatesFilter<"BranchUnitType"> | boolean
-    enabledAt?: DateTimeWithAggregatesFilter<"BranchUnitType"> | Date | string
+    enabledAt?: DateTimeNullableWithAggregatesFilter<"BranchUnitType"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"BranchUnitType"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"BranchUnitType"> | Date | string
   }
@@ -61027,7 +60936,6 @@ export namespace Prisma {
     unitType?: XOR<UnitTypeCatalogRelationFilter, UnitTypeCatalogWhereInput>
     rooms?: UnitRoomListRelationFilter
     resources?: UnitResourceListRelationFilter
-    equipment?: EquipmentAssetListRelationFilter
     bookings?: ProcedureBookingListRelationFilter
   }
 
@@ -61047,13 +60955,12 @@ export namespace Prisma {
     unitType?: UnitTypeCatalogOrderByWithRelationInput
     rooms?: UnitRoomOrderByRelationAggregateInput
     resources?: UnitResourceOrderByRelationAggregateInput
-    equipment?: EquipmentAssetOrderByRelationAggregateInput
     bookings?: ProcedureBookingOrderByRelationAggregateInput
   }
 
   export type UnitWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    branchId_code?: UnitBranchIdCodeCompoundUniqueInput
+    branchId_unitCode?: UnitBranchId_unitCodeCompoundUniqueInput
     AND?: UnitWhereInput | UnitWhereInput[]
     OR?: UnitWhereInput[]
     NOT?: UnitWhereInput | UnitWhereInput[]
@@ -61071,9 +60978,8 @@ export namespace Prisma {
     unitType?: XOR<UnitTypeCatalogRelationFilter, UnitTypeCatalogWhereInput>
     rooms?: UnitRoomListRelationFilter
     resources?: UnitResourceListRelationFilter
-    equipment?: EquipmentAssetListRelationFilter
     bookings?: ProcedureBookingListRelationFilter
-  }, "id" | "branchId_code">
+  }, "id" | "branchId_unitCode">
 
   export type UnitOrderByWithAggregationInput = {
     id?: SortOrder
@@ -61112,57 +61018,54 @@ export namespace Prisma {
     OR?: UnitRoomWhereInput[]
     NOT?: UnitRoomWhereInput | UnitRoomWhereInput[]
     id?: StringFilter<"UnitRoom"> | string
-    unitId?: StringFilter<"UnitRoom"> | string
     branchId?: StringFilter<"UnitRoom"> | string
+    unitId?: StringFilter<"UnitRoom"> | string
     code?: StringFilter<"UnitRoom"> | string
     name?: StringFilter<"UnitRoom"> | string
     isActive?: BoolFilter<"UnitRoom"> | boolean
     createdAt?: DateTimeFilter<"UnitRoom"> | Date | string
     updatedAt?: DateTimeFilter<"UnitRoom"> | Date | string
-    unit?: XOR<UnitRelationFilter, UnitWhereInput>
     branch?: XOR<BranchRelationFilter, BranchWhereInput>
+    unit?: XOR<UnitRelationFilter, UnitWhereInput>
     resources?: UnitResourceListRelationFilter
-    equipment?: EquipmentAssetListRelationFilter
   }
 
   export type UnitRoomOrderByWithRelationInput = {
     id?: SortOrder
-    unitId?: SortOrder
     branchId?: SortOrder
+    unitId?: SortOrder
     code?: SortOrder
     name?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    unit?: UnitOrderByWithRelationInput
     branch?: BranchOrderByWithRelationInput
+    unit?: UnitOrderByWithRelationInput
     resources?: UnitResourceOrderByRelationAggregateInput
-    equipment?: EquipmentAssetOrderByRelationAggregateInput
   }
 
   export type UnitRoomWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    unitId_code?: UnitRoomUnitIdCodeCompoundUniqueInput
+    unitId_roomCode?: UnitRoomUnitId_roomCodeCompoundUniqueInput
     AND?: UnitRoomWhereInput | UnitRoomWhereInput[]
     OR?: UnitRoomWhereInput[]
     NOT?: UnitRoomWhereInput | UnitRoomWhereInput[]
-    unitId?: StringFilter<"UnitRoom"> | string
     branchId?: StringFilter<"UnitRoom"> | string
+    unitId?: StringFilter<"UnitRoom"> | string
     code?: StringFilter<"UnitRoom"> | string
     name?: StringFilter<"UnitRoom"> | string
     isActive?: BoolFilter<"UnitRoom"> | boolean
     createdAt?: DateTimeFilter<"UnitRoom"> | Date | string
     updatedAt?: DateTimeFilter<"UnitRoom"> | Date | string
-    unit?: XOR<UnitRelationFilter, UnitWhereInput>
     branch?: XOR<BranchRelationFilter, BranchWhereInput>
+    unit?: XOR<UnitRelationFilter, UnitWhereInput>
     resources?: UnitResourceListRelationFilter
-    equipment?: EquipmentAssetListRelationFilter
-  }, "id" | "unitId_code">
+  }, "id" | "unitId_roomCode">
 
   export type UnitRoomOrderByWithAggregationInput = {
     id?: SortOrder
-    unitId?: SortOrder
     branchId?: SortOrder
+    unitId?: SortOrder
     code?: SortOrder
     name?: SortOrder
     isActive?: SortOrder
@@ -61178,8 +61081,8 @@ export namespace Prisma {
     OR?: UnitRoomScalarWhereWithAggregatesInput[]
     NOT?: UnitRoomScalarWhereWithAggregatesInput | UnitRoomScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"UnitRoom"> | string
-    unitId?: StringWithAggregatesFilter<"UnitRoom"> | string
     branchId?: StringWithAggregatesFilter<"UnitRoom"> | string
+    unitId?: StringWithAggregatesFilter<"UnitRoom"> | string
     code?: StringWithAggregatesFilter<"UnitRoom"> | string
     name?: StringWithAggregatesFilter<"UnitRoom"> | string
     isActive?: BoolWithAggregatesFilter<"UnitRoom"> | boolean
@@ -61230,7 +61133,7 @@ export namespace Prisma {
 
   export type UnitResourceWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    unitId_code?: UnitResourceUnitIdCodeCompoundUniqueInput
+    unitId_resourceCode?: UnitResourceUnitId_resourceCodeCompoundUniqueInput
     AND?: UnitResourceWhereInput | UnitResourceWhereInput[]
     OR?: UnitResourceWhereInput[]
     NOT?: UnitResourceWhereInput | UnitResourceWhereInput[]
@@ -61249,7 +61152,7 @@ export namespace Prisma {
     unit?: XOR<UnitRelationFilter, UnitWhereInput>
     room?: XOR<UnitRoomNullableRelationFilter, UnitRoomWhereInput> | null
     bookings?: ProcedureBookingListRelationFilter
-  }, "id" | "unitId_code">
+  }, "id" | "unitId_resourceCode">
 
   export type UnitResourceOrderByWithAggregationInput = {
     id?: SortOrder
@@ -61295,7 +61198,7 @@ export namespace Prisma {
     branchId?: StringFilter<"EquipmentAsset"> | string
     code?: StringFilter<"EquipmentAsset"> | string
     name?: StringFilter<"EquipmentAsset"> | string
-    category?: EnumEquipmentComplianceCategoryFilter<"EquipmentAsset"> | $Enums.EquipmentComplianceCategory
+    category?: EnumEquipmentCategoryFilter<"EquipmentAsset"> | $Enums.EquipmentCategory
     make?: StringNullableFilter<"EquipmentAsset"> | string | null
     model?: StringNullableFilter<"EquipmentAsset"> | string | null
     serial?: StringNullableFilter<"EquipmentAsset"> | string | null
@@ -61319,9 +61222,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"EquipmentAsset"> | Date | string
     branch?: XOR<BranchRelationFilter, BranchWhereInput>
     ownerDepartment?: XOR<DepartmentNullableRelationFilter, DepartmentWhereInput> | null
-    unit?: XOR<UnitNullableRelationFilter, UnitWhereInput> | null
-    room?: XOR<UnitRoomNullableRelationFilter, UnitRoomWhereInput> | null
-    locationNode?: XOR<LocationNodeNullableRelationFilter, LocationNodeWhereInput> | null
     downtimeTickets?: DowntimeTicketListRelationFilter
   }
 
@@ -61354,22 +61254,19 @@ export namespace Prisma {
     updatedAt?: SortOrder
     branch?: BranchOrderByWithRelationInput
     ownerDepartment?: DepartmentOrderByWithRelationInput
-    unit?: UnitOrderByWithRelationInput
-    room?: UnitRoomOrderByWithRelationInput
-    locationNode?: LocationNodeOrderByWithRelationInput
     downtimeTickets?: DowntimeTicketOrderByRelationAggregateInput
   }
 
   export type EquipmentAssetWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    branchId_code?: EquipmentAssetBranchIdCodeCompoundUniqueInput
+    branchId_equipmentCode?: EquipmentAssetBranchId_equipmentCodeCompoundUniqueInput
     AND?: EquipmentAssetWhereInput | EquipmentAssetWhereInput[]
     OR?: EquipmentAssetWhereInput[]
     NOT?: EquipmentAssetWhereInput | EquipmentAssetWhereInput[]
     branchId?: StringFilter<"EquipmentAsset"> | string
     code?: StringFilter<"EquipmentAsset"> | string
     name?: StringFilter<"EquipmentAsset"> | string
-    category?: EnumEquipmentComplianceCategoryFilter<"EquipmentAsset"> | $Enums.EquipmentComplianceCategory
+    category?: EnumEquipmentCategoryFilter<"EquipmentAsset"> | $Enums.EquipmentCategory
     make?: StringNullableFilter<"EquipmentAsset"> | string | null
     model?: StringNullableFilter<"EquipmentAsset"> | string | null
     serial?: StringNullableFilter<"EquipmentAsset"> | string | null
@@ -61393,11 +61290,8 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"EquipmentAsset"> | Date | string
     branch?: XOR<BranchRelationFilter, BranchWhereInput>
     ownerDepartment?: XOR<DepartmentNullableRelationFilter, DepartmentWhereInput> | null
-    unit?: XOR<UnitNullableRelationFilter, UnitWhereInput> | null
-    room?: XOR<UnitRoomNullableRelationFilter, UnitRoomWhereInput> | null
-    locationNode?: XOR<LocationNodeNullableRelationFilter, LocationNodeWhereInput> | null
     downtimeTickets?: DowntimeTicketListRelationFilter
-  }, "id" | "branchId_code">
+  }, "id" | "branchId_equipmentCode">
 
   export type EquipmentAssetOrderByWithAggregationInput = {
     id?: SortOrder
@@ -61441,7 +61335,7 @@ export namespace Prisma {
     branchId?: StringWithAggregatesFilter<"EquipmentAsset"> | string
     code?: StringWithAggregatesFilter<"EquipmentAsset"> | string
     name?: StringWithAggregatesFilter<"EquipmentAsset"> | string
-    category?: EnumEquipmentComplianceCategoryWithAggregatesFilter<"EquipmentAsset"> | $Enums.EquipmentComplianceCategory
+    category?: EnumEquipmentCategoryWithAggregatesFilter<"EquipmentAsset"> | $Enums.EquipmentCategory
     make?: StringNullableWithAggregatesFilter<"EquipmentAsset"> | string | null
     model?: StringNullableWithAggregatesFilter<"EquipmentAsset"> | string | null
     serial?: StringNullableWithAggregatesFilter<"EquipmentAsset"> | string | null
@@ -61471,9 +61365,9 @@ export namespace Prisma {
     NOT?: DowntimeTicketWhereInput | DowntimeTicketWhereInput[]
     id?: StringFilter<"DowntimeTicket"> | string
     assetId?: StringFilter<"DowntimeTicket"> | string
-    status?: EnumDowntimeStatusFilter<"DowntimeTicket"> | $Enums.DowntimeStatus
     reason?: StringFilter<"DowntimeTicket"> | string
     notes?: StringNullableFilter<"DowntimeTicket"> | string | null
+    status?: EnumDowntimeStatusFilter<"DowntimeTicket"> | $Enums.DowntimeStatus
     openedAt?: DateTimeFilter<"DowntimeTicket"> | Date | string
     closedAt?: DateTimeNullableFilter<"DowntimeTicket"> | Date | string | null
     createdAt?: DateTimeFilter<"DowntimeTicket"> | Date | string
@@ -61484,9 +61378,9 @@ export namespace Prisma {
   export type DowntimeTicketOrderByWithRelationInput = {
     id?: SortOrder
     assetId?: SortOrder
-    status?: SortOrder
     reason?: SortOrder
     notes?: SortOrderInput | SortOrder
+    status?: SortOrder
     openedAt?: SortOrder
     closedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -61500,9 +61394,9 @@ export namespace Prisma {
     OR?: DowntimeTicketWhereInput[]
     NOT?: DowntimeTicketWhereInput | DowntimeTicketWhereInput[]
     assetId?: StringFilter<"DowntimeTicket"> | string
-    status?: EnumDowntimeStatusFilter<"DowntimeTicket"> | $Enums.DowntimeStatus
     reason?: StringFilter<"DowntimeTicket"> | string
     notes?: StringNullableFilter<"DowntimeTicket"> | string | null
+    status?: EnumDowntimeStatusFilter<"DowntimeTicket"> | $Enums.DowntimeStatus
     openedAt?: DateTimeFilter<"DowntimeTicket"> | Date | string
     closedAt?: DateTimeNullableFilter<"DowntimeTicket"> | Date | string | null
     createdAt?: DateTimeFilter<"DowntimeTicket"> | Date | string
@@ -61513,9 +61407,9 @@ export namespace Prisma {
   export type DowntimeTicketOrderByWithAggregationInput = {
     id?: SortOrder
     assetId?: SortOrder
-    status?: SortOrder
     reason?: SortOrder
     notes?: SortOrderInput | SortOrder
+    status?: SortOrder
     openedAt?: SortOrder
     closedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -61531,9 +61425,9 @@ export namespace Prisma {
     NOT?: DowntimeTicketScalarWhereWithAggregatesInput | DowntimeTicketScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"DowntimeTicket"> | string
     assetId?: StringWithAggregatesFilter<"DowntimeTicket"> | string
-    status?: EnumDowntimeStatusWithAggregatesFilter<"DowntimeTicket"> | $Enums.DowntimeStatus
     reason?: StringWithAggregatesFilter<"DowntimeTicket"> | string
     notes?: StringNullableWithAggregatesFilter<"DowntimeTicket"> | string | null
+    status?: EnumDowntimeStatusWithAggregatesFilter<"DowntimeTicket"> | $Enums.DowntimeStatus
     openedAt?: DateTimeWithAggregatesFilter<"DowntimeTicket"> | Date | string
     closedAt?: DateTimeNullableWithAggregatesFilter<"DowntimeTicket"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"DowntimeTicket"> | Date | string
@@ -61573,7 +61467,7 @@ export namespace Prisma {
 
   export type ChargeMasterItemWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    branchId_code?: ChargeMasterItemBranchIdCodeCompoundUniqueInput
+    branchId_code?: ChargeMasterItemBranchId_codeCompoundUniqueInput
     AND?: ChargeMasterItemWhereInput | ChargeMasterItemWhereInput[]
     OR?: ChargeMasterItemWhereInput[]
     NOT?: ChargeMasterItemWhereInput | ChargeMasterItemWhereInput[]
@@ -61656,7 +61550,7 @@ export namespace Prisma {
 
   export type ServiceItemWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    branchId_code?: ServiceItemBranchIdCodeCompoundUniqueInput
+    branchId_serviceCode?: ServiceItemBranchId_serviceCodeCompoundUniqueInput
     AND?: ServiceItemWhereInput | ServiceItemWhereInput[]
     OR?: ServiceItemWhereInput[]
     NOT?: ServiceItemWhereInput | ServiceItemWhereInput[]
@@ -61672,7 +61566,7 @@ export namespace Prisma {
     branch?: XOR<BranchRelationFilter, BranchWhereInput>
     mappings?: ServiceChargeMappingListRelationFilter
     fixIts?: FixItTaskListRelationFilter
-  }, "id" | "branchId_code">
+  }, "id" | "branchId_serviceCode">
 
   export type ServiceItemOrderByWithAggregationInput = {
     id?: SortOrder
@@ -61795,7 +61689,7 @@ export namespace Prisma {
     NOT?: FixItTaskWhereInput | FixItTaskWhereInput[]
     id?: StringFilter<"FixItTask"> | string
     branchId?: StringFilter<"FixItTask"> | string
-    type?: EnumFixItTypeFilter<"FixItTask"> | $Enums.FixItType
+    type?: EnumFixItTaskTypeFilter<"FixItTask"> | $Enums.FixItTaskType
     status?: EnumFixItStatusFilter<"FixItTask"> | $Enums.FixItStatus
     title?: StringFilter<"FixItTask"> | string
     details?: JsonNullableFilter<"FixItTask">
@@ -61832,7 +61726,7 @@ export namespace Prisma {
     OR?: FixItTaskWhereInput[]
     NOT?: FixItTaskWhereInput | FixItTaskWhereInput[]
     branchId?: StringFilter<"FixItTask"> | string
-    type?: EnumFixItTypeFilter<"FixItTask"> | $Enums.FixItType
+    type?: EnumFixItTaskTypeFilter<"FixItTask"> | $Enums.FixItTaskType
     status?: EnumFixItStatusFilter<"FixItTask"> | $Enums.FixItStatus
     title?: StringFilter<"FixItTask"> | string
     details?: JsonNullableFilter<"FixItTask">
@@ -61869,7 +61763,7 @@ export namespace Prisma {
     NOT?: FixItTaskScalarWhereWithAggregatesInput | FixItTaskScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"FixItTask"> | string
     branchId?: StringWithAggregatesFilter<"FixItTask"> | string
-    type?: EnumFixItTypeWithAggregatesFilter<"FixItTask"> | $Enums.FixItType
+    type?: EnumFixItTaskTypeWithAggregatesFilter<"FixItTask"> | $Enums.FixItTaskType
     status?: EnumFixItStatusWithAggregatesFilter<"FixItTask"> | $Enums.FixItStatus
     title?: StringWithAggregatesFilter<"FixItTask"> | string
     details?: JsonNullableWithAggregatesFilter<"FixItTask">
@@ -61886,16 +61780,16 @@ export namespace Prisma {
     NOT?: BulkImportJobWhereInput | BulkImportJobWhereInput[]
     id?: StringFilter<"BulkImportJob"> | string
     branchId?: StringFilter<"BulkImportJob"> | string
-    entityType?: EnumImportEntityTypeFilter<"BulkImportJob"> | $Enums.ImportEntityType
-    status?: EnumImportJobStatusFilter<"BulkImportJob"> | $Enums.ImportJobStatus
+    entityType?: EnumBulkImportEntityTypeFilter<"BulkImportJob"> | $Enums.BulkImportEntityType
+    status?: EnumBulkImportStatusFilter<"BulkImportJob"> | $Enums.BulkImportStatus
     fileName?: StringNullableFilter<"BulkImportJob"> | string | null
-    payload?: JsonNullableFilter<"BulkImportJob">
+    payload?: JsonFilter<"BulkImportJob">
     errors?: JsonNullableFilter<"BulkImportJob">
     totalRows?: IntFilter<"BulkImportJob"> | number
     validRows?: IntFilter<"BulkImportJob"> | number
     invalidRows?: IntFilter<"BulkImportJob"> | number
-    createdByUserId?: StringNullableFilter<"BulkImportJob"> | string | null
     committedAt?: DateTimeNullableFilter<"BulkImportJob"> | Date | string | null
+    createdByUserId?: StringNullableFilter<"BulkImportJob"> | string | null
     createdAt?: DateTimeFilter<"BulkImportJob"> | Date | string
     updatedAt?: DateTimeFilter<"BulkImportJob"> | Date | string
     branch?: XOR<BranchRelationFilter, BranchWhereInput>
@@ -61908,13 +61802,13 @@ export namespace Prisma {
     entityType?: SortOrder
     status?: SortOrder
     fileName?: SortOrderInput | SortOrder
-    payload?: SortOrderInput | SortOrder
+    payload?: SortOrder
     errors?: SortOrderInput | SortOrder
     totalRows?: SortOrder
     validRows?: SortOrder
     invalidRows?: SortOrder
-    createdByUserId?: SortOrderInput | SortOrder
     committedAt?: SortOrderInput | SortOrder
+    createdByUserId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     branch?: BranchOrderByWithRelationInput
@@ -61927,16 +61821,16 @@ export namespace Prisma {
     OR?: BulkImportJobWhereInput[]
     NOT?: BulkImportJobWhereInput | BulkImportJobWhereInput[]
     branchId?: StringFilter<"BulkImportJob"> | string
-    entityType?: EnumImportEntityTypeFilter<"BulkImportJob"> | $Enums.ImportEntityType
-    status?: EnumImportJobStatusFilter<"BulkImportJob"> | $Enums.ImportJobStatus
+    entityType?: EnumBulkImportEntityTypeFilter<"BulkImportJob"> | $Enums.BulkImportEntityType
+    status?: EnumBulkImportStatusFilter<"BulkImportJob"> | $Enums.BulkImportStatus
     fileName?: StringNullableFilter<"BulkImportJob"> | string | null
-    payload?: JsonNullableFilter<"BulkImportJob">
+    payload?: JsonFilter<"BulkImportJob">
     errors?: JsonNullableFilter<"BulkImportJob">
     totalRows?: IntFilter<"BulkImportJob"> | number
     validRows?: IntFilter<"BulkImportJob"> | number
     invalidRows?: IntFilter<"BulkImportJob"> | number
-    createdByUserId?: StringNullableFilter<"BulkImportJob"> | string | null
     committedAt?: DateTimeNullableFilter<"BulkImportJob"> | Date | string | null
+    createdByUserId?: StringNullableFilter<"BulkImportJob"> | string | null
     createdAt?: DateTimeFilter<"BulkImportJob"> | Date | string
     updatedAt?: DateTimeFilter<"BulkImportJob"> | Date | string
     branch?: XOR<BranchRelationFilter, BranchWhereInput>
@@ -61949,13 +61843,13 @@ export namespace Prisma {
     entityType?: SortOrder
     status?: SortOrder
     fileName?: SortOrderInput | SortOrder
-    payload?: SortOrderInput | SortOrder
+    payload?: SortOrder
     errors?: SortOrderInput | SortOrder
     totalRows?: SortOrder
     validRows?: SortOrder
     invalidRows?: SortOrder
-    createdByUserId?: SortOrderInput | SortOrder
     committedAt?: SortOrderInput | SortOrder
+    createdByUserId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: BulkImportJobCountOrderByAggregateInput
@@ -61971,16 +61865,16 @@ export namespace Prisma {
     NOT?: BulkImportJobScalarWhereWithAggregatesInput | BulkImportJobScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"BulkImportJob"> | string
     branchId?: StringWithAggregatesFilter<"BulkImportJob"> | string
-    entityType?: EnumImportEntityTypeWithAggregatesFilter<"BulkImportJob"> | $Enums.ImportEntityType
-    status?: EnumImportJobStatusWithAggregatesFilter<"BulkImportJob"> | $Enums.ImportJobStatus
+    entityType?: EnumBulkImportEntityTypeWithAggregatesFilter<"BulkImportJob"> | $Enums.BulkImportEntityType
+    status?: EnumBulkImportStatusWithAggregatesFilter<"BulkImportJob"> | $Enums.BulkImportStatus
     fileName?: StringNullableWithAggregatesFilter<"BulkImportJob"> | string | null
-    payload?: JsonNullableWithAggregatesFilter<"BulkImportJob">
+    payload?: JsonWithAggregatesFilter<"BulkImportJob">
     errors?: JsonNullableWithAggregatesFilter<"BulkImportJob">
     totalRows?: IntWithAggregatesFilter<"BulkImportJob"> | number
     validRows?: IntWithAggregatesFilter<"BulkImportJob"> | number
     invalidRows?: IntWithAggregatesFilter<"BulkImportJob"> | number
-    createdByUserId?: StringNullableWithAggregatesFilter<"BulkImportJob"> | string | null
     committedAt?: DateTimeNullableWithAggregatesFilter<"BulkImportJob"> | Date | string | null
+    createdByUserId?: StringNullableWithAggregatesFilter<"BulkImportJob"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"BulkImportJob"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"BulkImportJob"> | Date | string
   }
@@ -62002,8 +61896,8 @@ export namespace Prisma {
     anesthesiaOk?: BoolFilter<"ProcedureBooking"> | boolean
     checklistOk?: BoolFilter<"ProcedureBooking"> | boolean
     createdByUserId?: StringNullableFilter<"ProcedureBooking"> | string | null
+    cancelledAt?: DateTimeNullableFilter<"ProcedureBooking"> | Date | string | null
     createdAt?: DateTimeFilter<"ProcedureBooking"> | Date | string
-    updatedAt?: DateTimeFilter<"ProcedureBooking"> | Date | string
     branch?: XOR<BranchRelationFilter, BranchWhereInput>
     unit?: XOR<UnitRelationFilter, UnitWhereInput>
     resource?: XOR<UnitResourceRelationFilter, UnitResourceWhereInput>
@@ -62024,8 +61918,8 @@ export namespace Prisma {
     anesthesiaOk?: SortOrder
     checklistOk?: SortOrder
     createdByUserId?: SortOrderInput | SortOrder
+    cancelledAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
-    updatedAt?: SortOrder
     branch?: BranchOrderByWithRelationInput
     unit?: UnitOrderByWithRelationInput
     resource?: UnitResourceOrderByWithRelationInput
@@ -62049,8 +61943,8 @@ export namespace Prisma {
     anesthesiaOk?: BoolFilter<"ProcedureBooking"> | boolean
     checklistOk?: BoolFilter<"ProcedureBooking"> | boolean
     createdByUserId?: StringNullableFilter<"ProcedureBooking"> | string | null
+    cancelledAt?: DateTimeNullableFilter<"ProcedureBooking"> | Date | string | null
     createdAt?: DateTimeFilter<"ProcedureBooking"> | Date | string
-    updatedAt?: DateTimeFilter<"ProcedureBooking"> | Date | string
     branch?: XOR<BranchRelationFilter, BranchWhereInput>
     unit?: XOR<UnitRelationFilter, UnitWhereInput>
     resource?: XOR<UnitResourceRelationFilter, UnitResourceWhereInput>
@@ -62071,8 +61965,8 @@ export namespace Prisma {
     anesthesiaOk?: SortOrder
     checklistOk?: SortOrder
     createdByUserId?: SortOrderInput | SortOrder
+    cancelledAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
-    updatedAt?: SortOrder
     _count?: ProcedureBookingCountOrderByAggregateInput
     _max?: ProcedureBookingMaxOrderByAggregateInput
     _min?: ProcedureBookingMinOrderByAggregateInput
@@ -62095,8 +61989,8 @@ export namespace Prisma {
     anesthesiaOk?: BoolWithAggregatesFilter<"ProcedureBooking"> | boolean
     checklistOk?: BoolWithAggregatesFilter<"ProcedureBooking"> | boolean
     createdByUserId?: StringNullableWithAggregatesFilter<"ProcedureBooking"> | string | null
+    cancelledAt?: DateTimeNullableWithAggregatesFilter<"ProcedureBooking"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"ProcedureBooking"> | Date | string
-    updatedAt?: DateTimeWithAggregatesFilter<"ProcedureBooking"> | Date | string
   }
 
   export type GoLiveReportWhereInput = {
@@ -62179,11 +62073,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -62205,17 +62099,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -62224,11 +62118,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -62250,17 +62144,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -62269,11 +62163,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -62295,17 +62189,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -62314,11 +62208,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -62340,17 +62234,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -62359,11 +62253,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -62373,11 +62267,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -62387,11 +62281,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -62560,8 +62454,9 @@ export namespace Prisma {
     facility: FacilityCatalogCreateNestedOneWithoutDepartmentsInput
     headStaff?: StaffCreateNestedOneWithoutHeadedDepartmentsInput
     staff?: StaffCreateNestedManyWithoutDepartmentInput
-    departmentSpecialties?: DepartmentSpecialtyCreateNestedManyWithoutDepartmentInput
+    specialties?: SpecialtyCreateNestedManyWithoutDepartmentInput
     doctorAssignments?: DepartmentDoctorCreateNestedManyWithoutDepartmentInput
+    departmentSpecialties?: DepartmentSpecialtyCreateNestedManyWithoutDepartmentInput
     units?: UnitCreateNestedManyWithoutDepartmentInput
     equipmentOwned?: EquipmentAssetCreateNestedManyWithoutOwnerDepartmentInput
   }
@@ -62577,8 +62472,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     staff?: StaffUncheckedCreateNestedManyWithoutDepartmentInput
-    departmentSpecialties?: DepartmentSpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
+    specialties?: SpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
     doctorAssignments?: DepartmentDoctorUncheckedCreateNestedManyWithoutDepartmentInput
+    departmentSpecialties?: DepartmentSpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
     units?: UnitUncheckedCreateNestedManyWithoutDepartmentInput
     equipmentOwned?: EquipmentAssetUncheckedCreateNestedManyWithoutOwnerDepartmentInput
   }
@@ -62594,8 +62490,9 @@ export namespace Prisma {
     facility?: FacilityCatalogUpdateOneRequiredWithoutDepartmentsNestedInput
     headStaff?: StaffUpdateOneWithoutHeadedDepartmentsNestedInput
     staff?: StaffUpdateManyWithoutDepartmentNestedInput
-    departmentSpecialties?: DepartmentSpecialtyUpdateManyWithoutDepartmentNestedInput
+    specialties?: SpecialtyUpdateManyWithoutDepartmentNestedInput
     doctorAssignments?: DepartmentDoctorUpdateManyWithoutDepartmentNestedInput
+    departmentSpecialties?: DepartmentSpecialtyUpdateManyWithoutDepartmentNestedInput
     units?: UnitUpdateManyWithoutDepartmentNestedInput
     equipmentOwned?: EquipmentAssetUpdateManyWithoutOwnerDepartmentNestedInput
   }
@@ -62611,8 +62508,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     staff?: StaffUncheckedUpdateManyWithoutDepartmentNestedInput
-    departmentSpecialties?: DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
+    specialties?: SpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
     doctorAssignments?: DepartmentDoctorUncheckedUpdateManyWithoutDepartmentNestedInput
+    departmentSpecialties?: DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
     units?: UnitUncheckedUpdateManyWithoutDepartmentNestedInput
     equipmentOwned?: EquipmentAssetUncheckedUpdateManyWithoutOwnerDepartmentNestedInput
   }
@@ -62718,83 +62616,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type SpecialtyCreateInput = {
-    id?: string
-    code: string
-    name: string
-    isActive?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    branch: BranchCreateNestedOneWithoutSpecialtyInput
-    staff?: StaffCreateNestedManyWithoutSpecialtyInput
-    departmentLinks?: DepartmentSpecialtyCreateNestedManyWithoutSpecialtyInput
-  }
-
-  export type SpecialtyUncheckedCreateInput = {
-    id?: string
-    branchId: string
-    code: string
-    name: string
-    isActive?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    staff?: StaffUncheckedCreateNestedManyWithoutSpecialtyInput
-    departmentLinks?: DepartmentSpecialtyUncheckedCreateNestedManyWithoutSpecialtyInput
-  }
-
-  export type SpecialtyUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    branch?: BranchUpdateOneRequiredWithoutSpecialtyNestedInput
-    staff?: StaffUpdateManyWithoutSpecialtyNestedInput
-    departmentLinks?: DepartmentSpecialtyUpdateManyWithoutSpecialtyNestedInput
-  }
-
-  export type SpecialtyUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    branchId?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    staff?: StaffUncheckedUpdateManyWithoutSpecialtyNestedInput
-    departmentLinks?: DepartmentSpecialtyUncheckedUpdateManyWithoutSpecialtyNestedInput
-  }
-
-  export type SpecialtyCreateManyInput = {
-    id?: string
-    branchId: string
-    code: string
-    name: string
-    isActive?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-  }
-
-  export type SpecialtyUpdateManyMutationInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type SpecialtyUncheckedUpdateManyInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    branchId?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
   export type DepartmentSpecialtyCreateInput = {
     id?: string
     isPrimary?: boolean
@@ -62858,6 +62679,89 @@ export namespace Prisma {
     departmentId?: StringFieldUpdateOperationsInput | string
     specialtyId?: StringFieldUpdateOperationsInput | string
     isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SpecialtyCreateInput = {
+    id?: string
+    code: string
+    name: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branch: BranchCreateNestedOneWithoutSpecialtyInput
+    department?: DepartmentCreateNestedOneWithoutSpecialtiesInput
+    staff?: StaffCreateNestedManyWithoutSpecialtyInput
+    departmentLinks?: DepartmentSpecialtyCreateNestedManyWithoutSpecialtyInput
+  }
+
+  export type SpecialtyUncheckedCreateInput = {
+    id?: string
+    branchId: string
+    departmentId?: string | null
+    code: string
+    name: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    staff?: StaffUncheckedCreateNestedManyWithoutSpecialtyInput
+    departmentLinks?: DepartmentSpecialtyUncheckedCreateNestedManyWithoutSpecialtyInput
+  }
+
+  export type SpecialtyUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branch?: BranchUpdateOneRequiredWithoutSpecialtyNestedInput
+    department?: DepartmentUpdateOneWithoutSpecialtiesNestedInput
+    staff?: StaffUpdateManyWithoutSpecialtyNestedInput
+    departmentLinks?: DepartmentSpecialtyUpdateManyWithoutSpecialtyNestedInput
+  }
+
+  export type SpecialtyUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    branchId?: StringFieldUpdateOperationsInput | string
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    staff?: StaffUncheckedUpdateManyWithoutSpecialtyNestedInput
+    departmentLinks?: DepartmentSpecialtyUncheckedUpdateManyWithoutSpecialtyNestedInput
+  }
+
+  export type SpecialtyCreateManyInput = {
+    id?: string
+    branchId: string
+    departmentId?: string | null
+    code: string
+    name: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SpecialtyUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SpecialtyUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    branchId?: StringFieldUpdateOperationsInput | string
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -65055,7 +64959,6 @@ export namespace Prisma {
     parent?: LocationNodeCreateNestedOneWithoutChildrenInput
     children?: LocationNodeCreateNestedManyWithoutParentInput
     revisions?: LocationNodeRevisionCreateNestedManyWithoutNodeInput
-    EquipmentAsset?: EquipmentAssetCreateNestedManyWithoutLocationNodeInput
   }
 
   export type LocationNodeUncheckedCreateInput = {
@@ -65067,7 +64970,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     children?: LocationNodeUncheckedCreateNestedManyWithoutParentInput
     revisions?: LocationNodeRevisionUncheckedCreateNestedManyWithoutNodeInput
-    EquipmentAsset?: EquipmentAssetUncheckedCreateNestedManyWithoutLocationNodeInput
   }
 
   export type LocationNodeUpdateInput = {
@@ -65079,7 +64981,6 @@ export namespace Prisma {
     parent?: LocationNodeUpdateOneWithoutChildrenNestedInput
     children?: LocationNodeUpdateManyWithoutParentNestedInput
     revisions?: LocationNodeRevisionUpdateManyWithoutNodeNestedInput
-    EquipmentAsset?: EquipmentAssetUpdateManyWithoutLocationNodeNestedInput
   }
 
   export type LocationNodeUncheckedUpdateInput = {
@@ -65091,7 +64992,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     children?: LocationNodeUncheckedUpdateManyWithoutParentNestedInput
     revisions?: LocationNodeRevisionUncheckedUpdateManyWithoutNodeNestedInput
-    EquipmentAsset?: EquipmentAssetUncheckedUpdateManyWithoutLocationNodeNestedInput
   }
 
   export type LocationNodeCreateManyInput = {
@@ -65124,7 +65024,7 @@ export namespace Prisma {
     code: string
     name: string
     isActive?: boolean
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     createdAt?: Date | string
     node: LocationNodeCreateNestedOneWithoutRevisionsInput
@@ -65137,7 +65037,7 @@ export namespace Prisma {
     code: string
     name: string
     isActive?: boolean
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     createdByUserId?: string | null
     createdAt?: Date | string
@@ -65173,7 +65073,7 @@ export namespace Prisma {
     code: string
     name: string
     isActive?: boolean
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     createdByUserId?: string | null
     createdAt?: Date | string
@@ -65207,8 +65107,8 @@ export namespace Prisma {
     name: string
     usesRoomsDefault?: boolean
     schedulableByDefault?: boolean
-    sortOrder?: number
     isActive?: boolean
+    sortOrder?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     branchLinks?: BranchUnitTypeCreateNestedManyWithoutUnitTypeInput
@@ -65221,8 +65121,8 @@ export namespace Prisma {
     name: string
     usesRoomsDefault?: boolean
     schedulableByDefault?: boolean
-    sortOrder?: number
     isActive?: boolean
+    sortOrder?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     branchLinks?: BranchUnitTypeUncheckedCreateNestedManyWithoutUnitTypeInput
@@ -65235,8 +65135,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     usesRoomsDefault?: BoolFieldUpdateOperationsInput | boolean
     schedulableByDefault?: BoolFieldUpdateOperationsInput | boolean
-    sortOrder?: IntFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branchLinks?: BranchUnitTypeUpdateManyWithoutUnitTypeNestedInput
@@ -65249,8 +65149,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     usesRoomsDefault?: BoolFieldUpdateOperationsInput | boolean
     schedulableByDefault?: BoolFieldUpdateOperationsInput | boolean
-    sortOrder?: IntFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branchLinks?: BranchUnitTypeUncheckedUpdateManyWithoutUnitTypeNestedInput
@@ -65263,8 +65163,8 @@ export namespace Prisma {
     name: string
     usesRoomsDefault?: boolean
     schedulableByDefault?: boolean
-    sortOrder?: number
     isActive?: boolean
+    sortOrder?: number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -65275,8 +65175,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     usesRoomsDefault?: BoolFieldUpdateOperationsInput | boolean
     schedulableByDefault?: BoolFieldUpdateOperationsInput | boolean
-    sortOrder?: IntFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -65287,8 +65187,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     usesRoomsDefault?: BoolFieldUpdateOperationsInput | boolean
     schedulableByDefault?: BoolFieldUpdateOperationsInput | boolean
-    sortOrder?: IntFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -65296,10 +65196,10 @@ export namespace Prisma {
   export type BranchUnitTypeCreateInput = {
     id?: string
     isEnabled?: boolean
-    enabledAt?: Date | string
+    enabledAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    branch: BranchCreateNestedOneWithoutUnitTypesEnabledInput
+    branch: BranchCreateNestedOneWithoutBranchUnitTypesInput
     unitType: UnitTypeCatalogCreateNestedOneWithoutBranchLinksInput
   }
 
@@ -65308,7 +65208,7 @@ export namespace Prisma {
     branchId: string
     unitTypeId: string
     isEnabled?: boolean
-    enabledAt?: Date | string
+    enabledAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -65316,10 +65216,10 @@ export namespace Prisma {
   export type BranchUnitTypeUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     isEnabled?: BoolFieldUpdateOperationsInput | boolean
-    enabledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    enabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    branch?: BranchUpdateOneRequiredWithoutUnitTypesEnabledNestedInput
+    branch?: BranchUpdateOneRequiredWithoutBranchUnitTypesNestedInput
     unitType?: UnitTypeCatalogUpdateOneRequiredWithoutBranchLinksNestedInput
   }
 
@@ -65328,7 +65228,7 @@ export namespace Prisma {
     branchId?: StringFieldUpdateOperationsInput | string
     unitTypeId?: StringFieldUpdateOperationsInput | string
     isEnabled?: BoolFieldUpdateOperationsInput | boolean
-    enabledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    enabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -65338,7 +65238,7 @@ export namespace Prisma {
     branchId: string
     unitTypeId: string
     isEnabled?: boolean
-    enabledAt?: Date | string
+    enabledAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -65346,7 +65246,7 @@ export namespace Prisma {
   export type BranchUnitTypeUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     isEnabled?: BoolFieldUpdateOperationsInput | boolean
-    enabledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    enabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -65356,7 +65256,7 @@ export namespace Prisma {
     branchId?: StringFieldUpdateOperationsInput | string
     unitTypeId?: StringFieldUpdateOperationsInput | string
     isEnabled?: BoolFieldUpdateOperationsInput | boolean
-    enabledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    enabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -65374,7 +65274,6 @@ export namespace Prisma {
     unitType: UnitTypeCatalogCreateNestedOneWithoutUnitsInput
     rooms?: UnitRoomCreateNestedManyWithoutUnitInput
     resources?: UnitResourceCreateNestedManyWithoutUnitInput
-    equipment?: EquipmentAssetCreateNestedManyWithoutUnitInput
     bookings?: ProcedureBookingCreateNestedManyWithoutUnitInput
   }
 
@@ -65391,7 +65290,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     rooms?: UnitRoomUncheckedCreateNestedManyWithoutUnitInput
     resources?: UnitResourceUncheckedCreateNestedManyWithoutUnitInput
-    equipment?: EquipmentAssetUncheckedCreateNestedManyWithoutUnitInput
     bookings?: ProcedureBookingUncheckedCreateNestedManyWithoutUnitInput
   }
 
@@ -65408,7 +65306,6 @@ export namespace Prisma {
     unitType?: UnitTypeCatalogUpdateOneRequiredWithoutUnitsNestedInput
     rooms?: UnitRoomUpdateManyWithoutUnitNestedInput
     resources?: UnitResourceUpdateManyWithoutUnitNestedInput
-    equipment?: EquipmentAssetUpdateManyWithoutUnitNestedInput
     bookings?: ProcedureBookingUpdateManyWithoutUnitNestedInput
   }
 
@@ -65425,7 +65322,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rooms?: UnitRoomUncheckedUpdateManyWithoutUnitNestedInput
     resources?: UnitResourceUncheckedUpdateManyWithoutUnitNestedInput
-    equipment?: EquipmentAssetUncheckedUpdateManyWithoutUnitNestedInput
     bookings?: ProcedureBookingUncheckedUpdateManyWithoutUnitNestedInput
   }
 
@@ -65472,23 +65368,21 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    unit: UnitCreateNestedOneWithoutRoomsInput
     branch: BranchCreateNestedOneWithoutUnitRoomsInput
+    unit: UnitCreateNestedOneWithoutRoomsInput
     resources?: UnitResourceCreateNestedManyWithoutRoomInput
-    equipment?: EquipmentAssetCreateNestedManyWithoutRoomInput
   }
 
   export type UnitRoomUncheckedCreateInput = {
     id?: string
-    unitId: string
     branchId: string
+    unitId: string
     code: string
     name: string
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     resources?: UnitResourceUncheckedCreateNestedManyWithoutRoomInput
-    equipment?: EquipmentAssetUncheckedCreateNestedManyWithoutRoomInput
   }
 
   export type UnitRoomUpdateInput = {
@@ -65498,29 +65392,27 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    unit?: UnitUpdateOneRequiredWithoutRoomsNestedInput
     branch?: BranchUpdateOneRequiredWithoutUnitRoomsNestedInput
+    unit?: UnitUpdateOneRequiredWithoutRoomsNestedInput
     resources?: UnitResourceUpdateManyWithoutRoomNestedInput
-    equipment?: EquipmentAssetUpdateManyWithoutRoomNestedInput
   }
 
   export type UnitRoomUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    unitId?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
+    unitId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resources?: UnitResourceUncheckedUpdateManyWithoutRoomNestedInput
-    equipment?: EquipmentAssetUncheckedUpdateManyWithoutRoomNestedInput
   }
 
   export type UnitRoomCreateManyInput = {
     id?: string
-    unitId: string
     branchId: string
+    unitId: string
     code: string
     name: string
     isActive?: boolean
@@ -65539,8 +65431,8 @@ export namespace Prisma {
 
   export type UnitRoomUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
-    unitId?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
+    unitId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -65658,10 +65550,13 @@ export namespace Prisma {
     id?: string
     code: string
     name: string
-    category?: $Enums.EquipmentComplianceCategory
+    category?: $Enums.EquipmentCategory
     make?: string | null
     model?: string | null
     serial?: string | null
+    unitId?: string | null
+    roomId?: string | null
+    locationNodeId?: string | null
     operationalStatus?: $Enums.EquipmentOperationalStatus
     amcVendor?: string | null
     amcValidFrom?: Date | string | null
@@ -65678,9 +65573,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     branch: BranchCreateNestedOneWithoutEquipmentAssetsInput
     ownerDepartment?: DepartmentCreateNestedOneWithoutEquipmentOwnedInput
-    unit?: UnitCreateNestedOneWithoutEquipmentInput
-    room?: UnitRoomCreateNestedOneWithoutEquipmentInput
-    locationNode?: LocationNodeCreateNestedOneWithoutEquipmentAssetInput
     downtimeTickets?: DowntimeTicketCreateNestedManyWithoutAssetInput
   }
 
@@ -65689,7 +65581,7 @@ export namespace Prisma {
     branchId: string
     code: string
     name: string
-    category?: $Enums.EquipmentComplianceCategory
+    category?: $Enums.EquipmentCategory
     make?: string | null
     model?: string | null
     serial?: string | null
@@ -65718,10 +65610,13 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
+    category?: EnumEquipmentCategoryFieldUpdateOperationsInput | $Enums.EquipmentCategory
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
     serial?: NullableStringFieldUpdateOperationsInput | string | null
+    unitId?: NullableStringFieldUpdateOperationsInput | string | null
+    roomId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationNodeId?: NullableStringFieldUpdateOperationsInput | string | null
     operationalStatus?: EnumEquipmentOperationalStatusFieldUpdateOperationsInput | $Enums.EquipmentOperationalStatus
     amcVendor?: NullableStringFieldUpdateOperationsInput | string | null
     amcValidFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -65738,9 +65633,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branch?: BranchUpdateOneRequiredWithoutEquipmentAssetsNestedInput
     ownerDepartment?: DepartmentUpdateOneWithoutEquipmentOwnedNestedInput
-    unit?: UnitUpdateOneWithoutEquipmentNestedInput
-    room?: UnitRoomUpdateOneWithoutEquipmentNestedInput
-    locationNode?: LocationNodeUpdateOneWithoutEquipmentAssetNestedInput
     downtimeTickets?: DowntimeTicketUpdateManyWithoutAssetNestedInput
   }
 
@@ -65749,7 +65641,7 @@ export namespace Prisma {
     branchId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
+    category?: EnumEquipmentCategoryFieldUpdateOperationsInput | $Enums.EquipmentCategory
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
     serial?: NullableStringFieldUpdateOperationsInput | string | null
@@ -65779,7 +65671,7 @@ export namespace Prisma {
     branchId: string
     code: string
     name: string
-    category?: $Enums.EquipmentComplianceCategory
+    category?: $Enums.EquipmentCategory
     make?: string | null
     model?: string | null
     serial?: string | null
@@ -65807,10 +65699,13 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
+    category?: EnumEquipmentCategoryFieldUpdateOperationsInput | $Enums.EquipmentCategory
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
     serial?: NullableStringFieldUpdateOperationsInput | string | null
+    unitId?: NullableStringFieldUpdateOperationsInput | string | null
+    roomId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationNodeId?: NullableStringFieldUpdateOperationsInput | string | null
     operationalStatus?: EnumEquipmentOperationalStatusFieldUpdateOperationsInput | $Enums.EquipmentOperationalStatus
     amcVendor?: NullableStringFieldUpdateOperationsInput | string | null
     amcValidFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -65832,7 +65727,7 @@ export namespace Prisma {
     branchId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
+    category?: EnumEquipmentCategoryFieldUpdateOperationsInput | $Enums.EquipmentCategory
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
     serial?: NullableStringFieldUpdateOperationsInput | string | null
@@ -65858,9 +65753,9 @@ export namespace Prisma {
 
   export type DowntimeTicketCreateInput = {
     id?: string
-    status?: $Enums.DowntimeStatus
     reason: string
     notes?: string | null
+    status?: $Enums.DowntimeStatus
     openedAt?: Date | string
     closedAt?: Date | string | null
     createdAt?: Date | string
@@ -65871,9 +65766,9 @@ export namespace Prisma {
   export type DowntimeTicketUncheckedCreateInput = {
     id?: string
     assetId: string
-    status?: $Enums.DowntimeStatus
     reason: string
     notes?: string | null
+    status?: $Enums.DowntimeStatus
     openedAt?: Date | string
     closedAt?: Date | string | null
     createdAt?: Date | string
@@ -65882,9 +65777,9 @@ export namespace Prisma {
 
   export type DowntimeTicketUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    status?: EnumDowntimeStatusFieldUpdateOperationsInput | $Enums.DowntimeStatus
     reason?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumDowntimeStatusFieldUpdateOperationsInput | $Enums.DowntimeStatus
     openedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -65895,9 +65790,9 @@ export namespace Prisma {
   export type DowntimeTicketUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     assetId?: StringFieldUpdateOperationsInput | string
-    status?: EnumDowntimeStatusFieldUpdateOperationsInput | $Enums.DowntimeStatus
     reason?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumDowntimeStatusFieldUpdateOperationsInput | $Enums.DowntimeStatus
     openedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -65907,9 +65802,9 @@ export namespace Prisma {
   export type DowntimeTicketCreateManyInput = {
     id?: string
     assetId: string
-    status?: $Enums.DowntimeStatus
     reason: string
     notes?: string | null
+    status?: $Enums.DowntimeStatus
     openedAt?: Date | string
     closedAt?: Date | string | null
     createdAt?: Date | string
@@ -65918,9 +65813,9 @@ export namespace Prisma {
 
   export type DowntimeTicketUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    status?: EnumDowntimeStatusFieldUpdateOperationsInput | $Enums.DowntimeStatus
     reason?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumDowntimeStatusFieldUpdateOperationsInput | $Enums.DowntimeStatus
     openedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -65930,9 +65825,9 @@ export namespace Prisma {
   export type DowntimeTicketUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     assetId?: StringFieldUpdateOperationsInput | string
-    status?: EnumDowntimeStatusFieldUpdateOperationsInput | $Enums.DowntimeStatus
     reason?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumDowntimeStatusFieldUpdateOperationsInput | $Enums.DowntimeStatus
     openedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -66126,12 +66021,12 @@ export namespace Prisma {
 
   export type ServiceChargeMappingCreateInput = {
     id?: string
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     version?: number
     createdAt?: Date | string
     updatedAt?: Date | string
-    branch: BranchCreateNestedOneWithoutServiceMappingsInput
+    branch: BranchCreateNestedOneWithoutServiceChargeMappingsInput
     serviceItem: ServiceItemCreateNestedOneWithoutMappingsInput
     chargeMasterItem: ChargeMasterItemCreateNestedOneWithoutMappingsInput
   }
@@ -66141,7 +66036,7 @@ export namespace Prisma {
     branchId: string
     serviceItemId: string
     chargeMasterItemId: string
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     version?: number
     createdAt?: Date | string
@@ -66155,7 +66050,7 @@ export namespace Prisma {
     version?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    branch?: BranchUpdateOneRequiredWithoutServiceMappingsNestedInput
+    branch?: BranchUpdateOneRequiredWithoutServiceChargeMappingsNestedInput
     serviceItem?: ServiceItemUpdateOneRequiredWithoutMappingsNestedInput
     chargeMasterItem?: ChargeMasterItemUpdateOneRequiredWithoutMappingsNestedInput
   }
@@ -66177,7 +66072,7 @@ export namespace Prisma {
     branchId: string
     serviceItemId: string
     chargeMasterItemId: string
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     version?: number
     createdAt?: Date | string
@@ -66207,7 +66102,7 @@ export namespace Prisma {
 
   export type FixItTaskCreateInput = {
     id?: string
-    type: $Enums.FixItType
+    type: $Enums.FixItTaskType
     status?: $Enums.FixItStatus
     title: string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -66222,7 +66117,7 @@ export namespace Prisma {
   export type FixItTaskUncheckedCreateInput = {
     id?: string
     branchId: string
-    type: $Enums.FixItType
+    type: $Enums.FixItTaskType
     status?: $Enums.FixItStatus
     title: string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -66235,7 +66130,7 @@ export namespace Prisma {
 
   export type FixItTaskUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    type?: EnumFixItTypeFieldUpdateOperationsInput | $Enums.FixItType
+    type?: EnumFixItTaskTypeFieldUpdateOperationsInput | $Enums.FixItTaskType
     status?: EnumFixItStatusFieldUpdateOperationsInput | $Enums.FixItStatus
     title?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -66250,7 +66145,7 @@ export namespace Prisma {
   export type FixItTaskUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
-    type?: EnumFixItTypeFieldUpdateOperationsInput | $Enums.FixItType
+    type?: EnumFixItTaskTypeFieldUpdateOperationsInput | $Enums.FixItTaskType
     status?: EnumFixItStatusFieldUpdateOperationsInput | $Enums.FixItStatus
     title?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -66264,7 +66159,7 @@ export namespace Prisma {
   export type FixItTaskCreateManyInput = {
     id?: string
     branchId: string
-    type: $Enums.FixItType
+    type: $Enums.FixItTaskType
     status?: $Enums.FixItStatus
     title: string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -66277,7 +66172,7 @@ export namespace Prisma {
 
   export type FixItTaskUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    type?: EnumFixItTypeFieldUpdateOperationsInput | $Enums.FixItType
+    type?: EnumFixItTaskTypeFieldUpdateOperationsInput | $Enums.FixItTaskType
     status?: EnumFixItStatusFieldUpdateOperationsInput | $Enums.FixItStatus
     title?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -66289,7 +66184,7 @@ export namespace Prisma {
   export type FixItTaskUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
-    type?: EnumFixItTypeFieldUpdateOperationsInput | $Enums.FixItType
+    type?: EnumFixItTaskTypeFieldUpdateOperationsInput | $Enums.FixItTaskType
     status?: EnumFixItStatusFieldUpdateOperationsInput | $Enums.FixItStatus
     title?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -66302,44 +66197,44 @@ export namespace Prisma {
 
   export type BulkImportJobCreateInput = {
     id?: string
-    entityType: $Enums.ImportEntityType
-    status?: $Enums.ImportJobStatus
+    entityType: $Enums.BulkImportEntityType
+    status?: $Enums.BulkImportStatus
     fileName?: string | null
-    payload?: NullableJsonNullValueInput | InputJsonValue
+    payload: JsonNullValueInput | InputJsonValue
     errors?: NullableJsonNullValueInput | InputJsonValue
-    totalRows?: number
-    validRows?: number
-    invalidRows?: number
+    totalRows: number
+    validRows: number
+    invalidRows: number
     committedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    branch: BranchCreateNestedOneWithoutImportJobsInput
+    branch: BranchCreateNestedOneWithoutBulkImportJobsInput
     createdByUser?: UserCreateNestedOneWithoutCreatedImportJobsInput
   }
 
   export type BulkImportJobUncheckedCreateInput = {
     id?: string
     branchId: string
-    entityType: $Enums.ImportEntityType
-    status?: $Enums.ImportJobStatus
+    entityType: $Enums.BulkImportEntityType
+    status?: $Enums.BulkImportStatus
     fileName?: string | null
-    payload?: NullableJsonNullValueInput | InputJsonValue
+    payload: JsonNullValueInput | InputJsonValue
     errors?: NullableJsonNullValueInput | InputJsonValue
-    totalRows?: number
-    validRows?: number
-    invalidRows?: number
-    createdByUserId?: string | null
+    totalRows: number
+    validRows: number
+    invalidRows: number
     committedAt?: Date | string | null
+    createdByUserId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
   export type BulkImportJobUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: EnumImportEntityTypeFieldUpdateOperationsInput | $Enums.ImportEntityType
-    status?: EnumImportJobStatusFieldUpdateOperationsInput | $Enums.ImportJobStatus
+    entityType?: EnumBulkImportEntityTypeFieldUpdateOperationsInput | $Enums.BulkImportEntityType
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
-    payload?: NullableJsonNullValueInput | InputJsonValue
+    payload?: JsonNullValueInput | InputJsonValue
     errors?: NullableJsonNullValueInput | InputJsonValue
     totalRows?: IntFieldUpdateOperationsInput | number
     validRows?: IntFieldUpdateOperationsInput | number
@@ -66347,23 +66242,23 @@ export namespace Prisma {
     committedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    branch?: BranchUpdateOneRequiredWithoutImportJobsNestedInput
+    branch?: BranchUpdateOneRequiredWithoutBulkImportJobsNestedInput
     createdByUser?: UserUpdateOneWithoutCreatedImportJobsNestedInput
   }
 
   export type BulkImportJobUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
-    entityType?: EnumImportEntityTypeFieldUpdateOperationsInput | $Enums.ImportEntityType
-    status?: EnumImportJobStatusFieldUpdateOperationsInput | $Enums.ImportJobStatus
+    entityType?: EnumBulkImportEntityTypeFieldUpdateOperationsInput | $Enums.BulkImportEntityType
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
-    payload?: NullableJsonNullValueInput | InputJsonValue
+    payload?: JsonNullValueInput | InputJsonValue
     errors?: NullableJsonNullValueInput | InputJsonValue
     totalRows?: IntFieldUpdateOperationsInput | number
     validRows?: IntFieldUpdateOperationsInput | number
     invalidRows?: IntFieldUpdateOperationsInput | number
-    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     committedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -66371,26 +66266,26 @@ export namespace Prisma {
   export type BulkImportJobCreateManyInput = {
     id?: string
     branchId: string
-    entityType: $Enums.ImportEntityType
-    status?: $Enums.ImportJobStatus
+    entityType: $Enums.BulkImportEntityType
+    status?: $Enums.BulkImportStatus
     fileName?: string | null
-    payload?: NullableJsonNullValueInput | InputJsonValue
+    payload: JsonNullValueInput | InputJsonValue
     errors?: NullableJsonNullValueInput | InputJsonValue
-    totalRows?: number
-    validRows?: number
-    invalidRows?: number
-    createdByUserId?: string | null
+    totalRows: number
+    validRows: number
+    invalidRows: number
     committedAt?: Date | string | null
+    createdByUserId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
   export type BulkImportJobUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: EnumImportEntityTypeFieldUpdateOperationsInput | $Enums.ImportEntityType
-    status?: EnumImportJobStatusFieldUpdateOperationsInput | $Enums.ImportJobStatus
+    entityType?: EnumBulkImportEntityTypeFieldUpdateOperationsInput | $Enums.BulkImportEntityType
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
-    payload?: NullableJsonNullValueInput | InputJsonValue
+    payload?: JsonNullValueInput | InputJsonValue
     errors?: NullableJsonNullValueInput | InputJsonValue
     totalRows?: IntFieldUpdateOperationsInput | number
     validRows?: IntFieldUpdateOperationsInput | number
@@ -66403,16 +66298,16 @@ export namespace Prisma {
   export type BulkImportJobUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
-    entityType?: EnumImportEntityTypeFieldUpdateOperationsInput | $Enums.ImportEntityType
-    status?: EnumImportJobStatusFieldUpdateOperationsInput | $Enums.ImportJobStatus
+    entityType?: EnumBulkImportEntityTypeFieldUpdateOperationsInput | $Enums.BulkImportEntityType
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
-    payload?: NullableJsonNullValueInput | InputJsonValue
+    payload?: JsonNullValueInput | InputJsonValue
     errors?: NullableJsonNullValueInput | InputJsonValue
     totalRows?: IntFieldUpdateOperationsInput | number
     validRows?: IntFieldUpdateOperationsInput | number
     invalidRows?: IntFieldUpdateOperationsInput | number
-    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     committedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -66427,8 +66322,8 @@ export namespace Prisma {
     consentOk?: boolean
     anesthesiaOk?: boolean
     checklistOk?: boolean
+    cancelledAt?: Date | string | null
     createdAt?: Date | string
-    updatedAt?: Date | string
     branch: BranchCreateNestedOneWithoutProcedureBookingsInput
     unit: UnitCreateNestedOneWithoutBookingsInput
     resource: UnitResourceCreateNestedOneWithoutBookingsInput
@@ -66449,8 +66344,8 @@ export namespace Prisma {
     anesthesiaOk?: boolean
     checklistOk?: boolean
     createdByUserId?: string | null
+    cancelledAt?: Date | string | null
     createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type ProcedureBookingUpdateInput = {
@@ -66463,8 +66358,8 @@ export namespace Prisma {
     consentOk?: BoolFieldUpdateOperationsInput | boolean
     anesthesiaOk?: BoolFieldUpdateOperationsInput | boolean
     checklistOk?: BoolFieldUpdateOperationsInput | boolean
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branch?: BranchUpdateOneRequiredWithoutProcedureBookingsNestedInput
     unit?: UnitUpdateOneRequiredWithoutBookingsNestedInput
     resource?: UnitResourceUpdateOneRequiredWithoutBookingsNestedInput
@@ -66485,8 +66380,8 @@ export namespace Prisma {
     anesthesiaOk?: BoolFieldUpdateOperationsInput | boolean
     checklistOk?: BoolFieldUpdateOperationsInput | boolean
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ProcedureBookingCreateManyInput = {
@@ -66503,8 +66398,8 @@ export namespace Prisma {
     anesthesiaOk?: boolean
     checklistOk?: boolean
     createdByUserId?: string | null
+    cancelledAt?: Date | string | null
     createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type ProcedureBookingUpdateManyMutationInput = {
@@ -66517,8 +66412,8 @@ export namespace Prisma {
     consentOk?: BoolFieldUpdateOperationsInput | boolean
     anesthesiaOk?: BoolFieldUpdateOperationsInput | boolean
     checklistOk?: BoolFieldUpdateOperationsInput | boolean
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ProcedureBookingUncheckedUpdateManyInput = {
@@ -66535,8 +66430,8 @@ export namespace Prisma {
     anesthesiaOk?: BoolFieldUpdateOperationsInput | boolean
     checklistOk?: BoolFieldUpdateOperationsInput | boolean
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type GoLiveReportCreateInput = {
@@ -66793,22 +66688,28 @@ export namespace Prisma {
     none?: UnitResourceWhereInput
   }
 
+  export type ProcedureBookingListRelationFilter = {
+    every?: ProcedureBookingWhereInput
+    some?: ProcedureBookingWhereInput
+    none?: ProcedureBookingWhereInput
+  }
+
   export type EquipmentAssetListRelationFilter = {
     every?: EquipmentAssetWhereInput
     some?: EquipmentAssetWhereInput
     none?: EquipmentAssetWhereInput
   }
 
-  export type ServiceItemListRelationFilter = {
-    every?: ServiceItemWhereInput
-    some?: ServiceItemWhereInput
-    none?: ServiceItemWhereInput
-  }
-
   export type ChargeMasterItemListRelationFilter = {
     every?: ChargeMasterItemWhereInput
     some?: ChargeMasterItemWhereInput
     none?: ChargeMasterItemWhereInput
+  }
+
+  export type ServiceItemListRelationFilter = {
+    every?: ServiceItemWhereInput
+    some?: ServiceItemWhereInput
+    none?: ServiceItemWhereInput
   }
 
   export type ServiceChargeMappingListRelationFilter = {
@@ -66827,12 +66728,6 @@ export namespace Prisma {
     every?: BulkImportJobWhereInput
     some?: BulkImportJobWhereInput
     none?: BulkImportJobWhereInput
-  }
-
-  export type ProcedureBookingListRelationFilter = {
-    every?: ProcedureBookingWhereInput
-    some?: ProcedureBookingWhereInput
-    none?: ProcedureBookingWhereInput
   }
 
   export type GoLiveReportListRelationFilter = {
@@ -66938,15 +66833,19 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type ProcedureBookingOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type EquipmentAssetOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
-  export type ServiceItemOrderByRelationAggregateInput = {
+  export type ChargeMasterItemOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
-  export type ChargeMasterItemOrderByRelationAggregateInput = {
+  export type ServiceItemOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -66962,10 +66861,6 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
-  export type ProcedureBookingOrderByRelationAggregateInput = {
-    _count?: SortOrder
-  }
-
   export type GoLiveReportOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -66975,11 +66870,11 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     city?: SortOrder
-    gstNumber?: SortOrder
     address?: SortOrder
     contactPhone1?: SortOrder
     contactPhone2?: SortOrder
     contactEmail?: SortOrder
+    gstNumber?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -66989,11 +66884,11 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     city?: SortOrder
-    gstNumber?: SortOrder
     address?: SortOrder
     contactPhone1?: SortOrder
     contactPhone2?: SortOrder
     contactEmail?: SortOrder
+    gstNumber?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -67003,11 +66898,11 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     city?: SortOrder
-    gstNumber?: SortOrder
     address?: SortOrder
     contactPhone1?: SortOrder
     contactPhone2?: SortOrder
     contactEmail?: SortOrder
+    gstNumber?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -67210,23 +67105,23 @@ export namespace Prisma {
     isNot?: StaffWhereInput | null
   }
 
-  export type DepartmentSpecialtyListRelationFilter = {
-    every?: DepartmentSpecialtyWhereInput
-    some?: DepartmentSpecialtyWhereInput
-    none?: DepartmentSpecialtyWhereInput
-  }
-
   export type DepartmentDoctorListRelationFilter = {
     every?: DepartmentDoctorWhereInput
     some?: DepartmentDoctorWhereInput
     none?: DepartmentDoctorWhereInput
   }
 
-  export type DepartmentSpecialtyOrderByRelationAggregateInput = {
-    _count?: SortOrder
+  export type DepartmentSpecialtyListRelationFilter = {
+    every?: DepartmentSpecialtyWhereInput
+    some?: DepartmentSpecialtyWhereInput
+    none?: DepartmentSpecialtyWhereInput
   }
 
   export type DepartmentDoctorOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type DepartmentSpecialtyOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -67317,41 +67212,6 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
-  export type SpecialtyBranchIdCodeCompoundUniqueInput = {
-    branchId: string
-    code: string
-  }
-
-  export type SpecialtyCountOrderByAggregateInput = {
-    id?: SortOrder
-    branchId?: SortOrder
-    code?: SortOrder
-    name?: SortOrder
-    isActive?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
-  }
-
-  export type SpecialtyMaxOrderByAggregateInput = {
-    id?: SortOrder
-    branchId?: SortOrder
-    code?: SortOrder
-    name?: SortOrder
-    isActive?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
-  }
-
-  export type SpecialtyMinOrderByAggregateInput = {
-    id?: SortOrder
-    branchId?: SortOrder
-    code?: SortOrder
-    name?: SortOrder
-    isActive?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
-  }
-
   export type SpecialtyRelationFilter = {
     is?: SpecialtyWhereInput
     isNot?: SpecialtyWhereInput
@@ -67395,6 +67255,44 @@ export namespace Prisma {
   export type DepartmentNullableRelationFilter = {
     is?: DepartmentWhereInput | null
     isNot?: DepartmentWhereInput | null
+  }
+
+  export type SpecialtyBranchIdCodeCompoundUniqueInput = {
+    branchId: string
+    code: string
+  }
+
+  export type SpecialtyCountOrderByAggregateInput = {
+    id?: SortOrder
+    branchId?: SortOrder
+    departmentId?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SpecialtyMaxOrderByAggregateInput = {
+    id?: SortOrder
+    branchId?: SortOrder
+    departmentId?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SpecialtyMinOrderByAggregateInput = {
+    id?: SortOrder
+    branchId?: SortOrder
+    departmentId?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type SpecialtyNullableRelationFilter = {
@@ -68930,8 +68828,8 @@ export namespace Prisma {
     name?: SortOrder
     usesRoomsDefault?: SortOrder
     schedulableByDefault?: SortOrder
-    sortOrder?: SortOrder
     isActive?: SortOrder
+    sortOrder?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -68946,8 +68844,8 @@ export namespace Prisma {
     name?: SortOrder
     usesRoomsDefault?: SortOrder
     schedulableByDefault?: SortOrder
-    sortOrder?: SortOrder
     isActive?: SortOrder
+    sortOrder?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -68958,8 +68856,8 @@ export namespace Prisma {
     name?: SortOrder
     usesRoomsDefault?: SortOrder
     schedulableByDefault?: SortOrder
-    sortOrder?: SortOrder
     isActive?: SortOrder
+    sortOrder?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -68973,7 +68871,7 @@ export namespace Prisma {
     isNot?: UnitTypeCatalogWhereInput
   }
 
-  export type BranchUnitTypeBranchIdUnitTypeIdCompoundUniqueInput = {
+  export type BranchUnitTypeBranchId_unitTypeIdCompoundUniqueInput = {
     branchId: string
     unitTypeId: string
   }
@@ -69008,7 +68906,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
-  export type UnitBranchIdCodeCompoundUniqueInput = {
+  export type UnitBranchId_unitCodeCompoundUniqueInput = {
     branchId: string
     code: string
   }
@@ -69057,15 +68955,15 @@ export namespace Prisma {
     isNot?: UnitWhereInput
   }
 
-  export type UnitRoomUnitIdCodeCompoundUniqueInput = {
+  export type UnitRoomUnitId_roomCodeCompoundUniqueInput = {
     unitId: string
     code: string
   }
 
   export type UnitRoomCountOrderByAggregateInput = {
     id?: SortOrder
-    unitId?: SortOrder
     branchId?: SortOrder
+    unitId?: SortOrder
     code?: SortOrder
     name?: SortOrder
     isActive?: SortOrder
@@ -69075,8 +68973,8 @@ export namespace Prisma {
 
   export type UnitRoomMaxOrderByAggregateInput = {
     id?: SortOrder
-    unitId?: SortOrder
     branchId?: SortOrder
+    unitId?: SortOrder
     code?: SortOrder
     name?: SortOrder
     isActive?: SortOrder
@@ -69086,8 +68984,8 @@ export namespace Prisma {
 
   export type UnitRoomMinOrderByAggregateInput = {
     id?: SortOrder
-    unitId?: SortOrder
     branchId?: SortOrder
+    unitId?: SortOrder
     code?: SortOrder
     name?: SortOrder
     isActive?: SortOrder
@@ -69114,7 +69012,7 @@ export namespace Prisma {
     isNot?: UnitRoomWhereInput | null
   }
 
-  export type UnitResourceUnitIdCodeCompoundUniqueInput = {
+  export type UnitResourceUnitId_resourceCodeCompoundUniqueInput = {
     unitId: string
     code: string
   }
@@ -69184,11 +69082,11 @@ export namespace Prisma {
     _max?: NestedEnumUnitResourceStateFilter<$PrismaModel>
   }
 
-  export type EnumEquipmentComplianceCategoryFilter<$PrismaModel = never> = {
-    equals?: $Enums.EquipmentComplianceCategory | EnumEquipmentComplianceCategoryFieldRefInput<$PrismaModel>
-    in?: $Enums.EquipmentComplianceCategory[] | ListEnumEquipmentComplianceCategoryFieldRefInput<$PrismaModel>
-    notIn?: $Enums.EquipmentComplianceCategory[] | ListEnumEquipmentComplianceCategoryFieldRefInput<$PrismaModel>
-    not?: NestedEnumEquipmentComplianceCategoryFilter<$PrismaModel> | $Enums.EquipmentComplianceCategory
+  export type EnumEquipmentCategoryFilter<$PrismaModel = never> = {
+    equals?: $Enums.EquipmentCategory | EnumEquipmentCategoryFieldRefInput<$PrismaModel>
+    in?: $Enums.EquipmentCategory[] | ListEnumEquipmentCategoryFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EquipmentCategory[] | ListEnumEquipmentCategoryFieldRefInput<$PrismaModel>
+    not?: NestedEnumEquipmentCategoryFilter<$PrismaModel> | $Enums.EquipmentCategory
   }
 
   export type EnumEquipmentOperationalStatusFilter<$PrismaModel = never> = {
@@ -69209,11 +69107,6 @@ export namespace Prisma {
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
-  export type UnitNullableRelationFilter = {
-    is?: UnitWhereInput | null
-    isNot?: UnitWhereInput | null
-  }
-
   export type DowntimeTicketListRelationFilter = {
     every?: DowntimeTicketWhereInput
     some?: DowntimeTicketWhereInput
@@ -69224,7 +69117,7 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
-  export type EquipmentAssetBranchIdCodeCompoundUniqueInput = {
+  export type EquipmentAssetBranchId_equipmentCodeCompoundUniqueInput = {
     branchId: string
     code: string
   }
@@ -69324,14 +69217,14 @@ export namespace Prisma {
     pmFrequencyDays?: SortOrder
   }
 
-  export type EnumEquipmentComplianceCategoryWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.EquipmentComplianceCategory | EnumEquipmentComplianceCategoryFieldRefInput<$PrismaModel>
-    in?: $Enums.EquipmentComplianceCategory[] | ListEnumEquipmentComplianceCategoryFieldRefInput<$PrismaModel>
-    notIn?: $Enums.EquipmentComplianceCategory[] | ListEnumEquipmentComplianceCategoryFieldRefInput<$PrismaModel>
-    not?: NestedEnumEquipmentComplianceCategoryWithAggregatesFilter<$PrismaModel> | $Enums.EquipmentComplianceCategory
+  export type EnumEquipmentCategoryWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.EquipmentCategory | EnumEquipmentCategoryFieldRefInput<$PrismaModel>
+    in?: $Enums.EquipmentCategory[] | ListEnumEquipmentCategoryFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EquipmentCategory[] | ListEnumEquipmentCategoryFieldRefInput<$PrismaModel>
+    not?: NestedEnumEquipmentCategoryWithAggregatesFilter<$PrismaModel> | $Enums.EquipmentCategory
     _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumEquipmentComplianceCategoryFilter<$PrismaModel>
-    _max?: NestedEnumEquipmentComplianceCategoryFilter<$PrismaModel>
+    _min?: NestedEnumEquipmentCategoryFilter<$PrismaModel>
+    _max?: NestedEnumEquipmentCategoryFilter<$PrismaModel>
   }
 
   export type EnumEquipmentOperationalStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -69375,9 +69268,9 @@ export namespace Prisma {
   export type DowntimeTicketCountOrderByAggregateInput = {
     id?: SortOrder
     assetId?: SortOrder
-    status?: SortOrder
     reason?: SortOrder
     notes?: SortOrder
+    status?: SortOrder
     openedAt?: SortOrder
     closedAt?: SortOrder
     createdAt?: SortOrder
@@ -69387,9 +69280,9 @@ export namespace Prisma {
   export type DowntimeTicketMaxOrderByAggregateInput = {
     id?: SortOrder
     assetId?: SortOrder
-    status?: SortOrder
     reason?: SortOrder
     notes?: SortOrder
+    status?: SortOrder
     openedAt?: SortOrder
     closedAt?: SortOrder
     createdAt?: SortOrder
@@ -69399,9 +69292,9 @@ export namespace Prisma {
   export type DowntimeTicketMinOrderByAggregateInput = {
     id?: SortOrder
     assetId?: SortOrder
-    status?: SortOrder
     reason?: SortOrder
     notes?: SortOrder
+    status?: SortOrder
     openedAt?: SortOrder
     closedAt?: SortOrder
     createdAt?: SortOrder
@@ -69418,7 +69311,7 @@ export namespace Prisma {
     _max?: NestedEnumDowntimeStatusFilter<$PrismaModel>
   }
 
-  export type ChargeMasterItemBranchIdCodeCompoundUniqueInput = {
+  export type ChargeMasterItemBranchId_codeCompoundUniqueInput = {
     branchId: string
     code: string
   }
@@ -69459,7 +69352,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
-  export type ServiceItemBranchIdCodeCompoundUniqueInput = {
+  export type ServiceItemBranchId_serviceCodeCompoundUniqueInput = {
     branchId: string
     code: string
   }
@@ -69557,11 +69450,11 @@ export namespace Prisma {
     version?: SortOrder
   }
 
-  export type EnumFixItTypeFilter<$PrismaModel = never> = {
-    equals?: $Enums.FixItType | EnumFixItTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.FixItType[] | ListEnumFixItTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.FixItType[] | ListEnumFixItTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumFixItTypeFilter<$PrismaModel> | $Enums.FixItType
+  export type EnumFixItTaskTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.FixItTaskType | EnumFixItTaskTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.FixItTaskType[] | ListEnumFixItTaskTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.FixItTaskType[] | ListEnumFixItTaskTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumFixItTaskTypeFilter<$PrismaModel> | $Enums.FixItTaskType
   }
 
   export type EnumFixItStatusFilter<$PrismaModel = never> = {
@@ -69616,14 +69509,14 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
-  export type EnumFixItTypeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.FixItType | EnumFixItTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.FixItType[] | ListEnumFixItTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.FixItType[] | ListEnumFixItTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumFixItTypeWithAggregatesFilter<$PrismaModel> | $Enums.FixItType
+  export type EnumFixItTaskTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.FixItTaskType | EnumFixItTaskTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.FixItTaskType[] | ListEnumFixItTaskTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.FixItTaskType[] | ListEnumFixItTaskTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumFixItTaskTypeWithAggregatesFilter<$PrismaModel> | $Enums.FixItTaskType
     _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumFixItTypeFilter<$PrismaModel>
-    _max?: NestedEnumFixItTypeFilter<$PrismaModel>
+    _min?: NestedEnumFixItTaskTypeFilter<$PrismaModel>
+    _max?: NestedEnumFixItTaskTypeFilter<$PrismaModel>
   }
 
   export type EnumFixItStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -69636,18 +69529,18 @@ export namespace Prisma {
     _max?: NestedEnumFixItStatusFilter<$PrismaModel>
   }
 
-  export type EnumImportEntityTypeFilter<$PrismaModel = never> = {
-    equals?: $Enums.ImportEntityType | EnumImportEntityTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.ImportEntityType[] | ListEnumImportEntityTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.ImportEntityType[] | ListEnumImportEntityTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumImportEntityTypeFilter<$PrismaModel> | $Enums.ImportEntityType
+  export type EnumBulkImportEntityTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.BulkImportEntityType | EnumBulkImportEntityTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BulkImportEntityType[] | ListEnumBulkImportEntityTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BulkImportEntityType[] | ListEnumBulkImportEntityTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumBulkImportEntityTypeFilter<$PrismaModel> | $Enums.BulkImportEntityType
   }
 
-  export type EnumImportJobStatusFilter<$PrismaModel = never> = {
-    equals?: $Enums.ImportJobStatus | EnumImportJobStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.ImportJobStatus[] | ListEnumImportJobStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.ImportJobStatus[] | ListEnumImportJobStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumImportJobStatusFilter<$PrismaModel> | $Enums.ImportJobStatus
+  export type EnumBulkImportStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.BulkImportStatus | EnumBulkImportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BulkImportStatus[] | ListEnumBulkImportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BulkImportStatus[] | ListEnumBulkImportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBulkImportStatusFilter<$PrismaModel> | $Enums.BulkImportStatus
   }
 
   export type BulkImportJobCountOrderByAggregateInput = {
@@ -69661,8 +69554,8 @@ export namespace Prisma {
     totalRows?: SortOrder
     validRows?: SortOrder
     invalidRows?: SortOrder
-    createdByUserId?: SortOrder
     committedAt?: SortOrder
+    createdByUserId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -69682,8 +69575,8 @@ export namespace Prisma {
     totalRows?: SortOrder
     validRows?: SortOrder
     invalidRows?: SortOrder
-    createdByUserId?: SortOrder
     committedAt?: SortOrder
+    createdByUserId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -69697,8 +69590,8 @@ export namespace Prisma {
     totalRows?: SortOrder
     validRows?: SortOrder
     invalidRows?: SortOrder
-    createdByUserId?: SortOrder
     committedAt?: SortOrder
+    createdByUserId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -69709,24 +69602,24 @@ export namespace Prisma {
     invalidRows?: SortOrder
   }
 
-  export type EnumImportEntityTypeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.ImportEntityType | EnumImportEntityTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.ImportEntityType[] | ListEnumImportEntityTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.ImportEntityType[] | ListEnumImportEntityTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumImportEntityTypeWithAggregatesFilter<$PrismaModel> | $Enums.ImportEntityType
+  export type EnumBulkImportEntityTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BulkImportEntityType | EnumBulkImportEntityTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BulkImportEntityType[] | ListEnumBulkImportEntityTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BulkImportEntityType[] | ListEnumBulkImportEntityTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumBulkImportEntityTypeWithAggregatesFilter<$PrismaModel> | $Enums.BulkImportEntityType
     _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumImportEntityTypeFilter<$PrismaModel>
-    _max?: NestedEnumImportEntityTypeFilter<$PrismaModel>
+    _min?: NestedEnumBulkImportEntityTypeFilter<$PrismaModel>
+    _max?: NestedEnumBulkImportEntityTypeFilter<$PrismaModel>
   }
 
-  export type EnumImportJobStatusWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.ImportJobStatus | EnumImportJobStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.ImportJobStatus[] | ListEnumImportJobStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.ImportJobStatus[] | ListEnumImportJobStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumImportJobStatusWithAggregatesFilter<$PrismaModel> | $Enums.ImportJobStatus
+  export type EnumBulkImportStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BulkImportStatus | EnumBulkImportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BulkImportStatus[] | ListEnumBulkImportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BulkImportStatus[] | ListEnumBulkImportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBulkImportStatusWithAggregatesFilter<$PrismaModel> | $Enums.BulkImportStatus
     _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumImportJobStatusFilter<$PrismaModel>
-    _max?: NestedEnumImportJobStatusFilter<$PrismaModel>
+    _min?: NestedEnumBulkImportStatusFilter<$PrismaModel>
+    _max?: NestedEnumBulkImportStatusFilter<$PrismaModel>
   }
 
   export type EnumBookingStatusFilter<$PrismaModel = never> = {
@@ -69755,8 +69648,8 @@ export namespace Prisma {
     anesthesiaOk?: SortOrder
     checklistOk?: SortOrder
     createdByUserId?: SortOrder
+    cancelledAt?: SortOrder
     createdAt?: SortOrder
-    updatedAt?: SortOrder
   }
 
   export type ProcedureBookingMaxOrderByAggregateInput = {
@@ -69773,8 +69666,8 @@ export namespace Prisma {
     anesthesiaOk?: SortOrder
     checklistOk?: SortOrder
     createdByUserId?: SortOrder
+    cancelledAt?: SortOrder
     createdAt?: SortOrder
-    updatedAt?: SortOrder
   }
 
   export type ProcedureBookingMinOrderByAggregateInput = {
@@ -69791,8 +69684,8 @@ export namespace Prisma {
     anesthesiaOk?: SortOrder
     checklistOk?: SortOrder
     createdByUserId?: SortOrder
+    cancelledAt?: SortOrder
     createdAt?: SortOrder
-    updatedAt?: SortOrder
   }
 
   export type EnumBookingStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -70001,6 +69894,13 @@ export namespace Prisma {
     connect?: UnitResourceWhereUniqueInput | UnitResourceWhereUniqueInput[]
   }
 
+  export type ProcedureBookingCreateNestedManyWithoutBranchInput = {
+    create?: XOR<ProcedureBookingCreateWithoutBranchInput, ProcedureBookingUncheckedCreateWithoutBranchInput> | ProcedureBookingCreateWithoutBranchInput[] | ProcedureBookingUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: ProcedureBookingCreateOrConnectWithoutBranchInput | ProcedureBookingCreateOrConnectWithoutBranchInput[]
+    createMany?: ProcedureBookingCreateManyBranchInputEnvelope
+    connect?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
+  }
+
   export type EquipmentAssetCreateNestedManyWithoutBranchInput = {
     create?: XOR<EquipmentAssetCreateWithoutBranchInput, EquipmentAssetUncheckedCreateWithoutBranchInput> | EquipmentAssetCreateWithoutBranchInput[] | EquipmentAssetUncheckedCreateWithoutBranchInput[]
     connectOrCreate?: EquipmentAssetCreateOrConnectWithoutBranchInput | EquipmentAssetCreateOrConnectWithoutBranchInput[]
@@ -70008,18 +69908,18 @@ export namespace Prisma {
     connect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
   }
 
-  export type ServiceItemCreateNestedManyWithoutBranchInput = {
-    create?: XOR<ServiceItemCreateWithoutBranchInput, ServiceItemUncheckedCreateWithoutBranchInput> | ServiceItemCreateWithoutBranchInput[] | ServiceItemUncheckedCreateWithoutBranchInput[]
-    connectOrCreate?: ServiceItemCreateOrConnectWithoutBranchInput | ServiceItemCreateOrConnectWithoutBranchInput[]
-    createMany?: ServiceItemCreateManyBranchInputEnvelope
-    connect?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
-  }
-
   export type ChargeMasterItemCreateNestedManyWithoutBranchInput = {
     create?: XOR<ChargeMasterItemCreateWithoutBranchInput, ChargeMasterItemUncheckedCreateWithoutBranchInput> | ChargeMasterItemCreateWithoutBranchInput[] | ChargeMasterItemUncheckedCreateWithoutBranchInput[]
     connectOrCreate?: ChargeMasterItemCreateOrConnectWithoutBranchInput | ChargeMasterItemCreateOrConnectWithoutBranchInput[]
     createMany?: ChargeMasterItemCreateManyBranchInputEnvelope
     connect?: ChargeMasterItemWhereUniqueInput | ChargeMasterItemWhereUniqueInput[]
+  }
+
+  export type ServiceItemCreateNestedManyWithoutBranchInput = {
+    create?: XOR<ServiceItemCreateWithoutBranchInput, ServiceItemUncheckedCreateWithoutBranchInput> | ServiceItemCreateWithoutBranchInput[] | ServiceItemUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: ServiceItemCreateOrConnectWithoutBranchInput | ServiceItemCreateOrConnectWithoutBranchInput[]
+    createMany?: ServiceItemCreateManyBranchInputEnvelope
+    connect?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
   }
 
   export type ServiceChargeMappingCreateNestedManyWithoutBranchInput = {
@@ -70041,13 +69941,6 @@ export namespace Prisma {
     connectOrCreate?: BulkImportJobCreateOrConnectWithoutBranchInput | BulkImportJobCreateOrConnectWithoutBranchInput[]
     createMany?: BulkImportJobCreateManyBranchInputEnvelope
     connect?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
-  }
-
-  export type ProcedureBookingCreateNestedManyWithoutBranchInput = {
-    create?: XOR<ProcedureBookingCreateWithoutBranchInput, ProcedureBookingUncheckedCreateWithoutBranchInput> | ProcedureBookingCreateWithoutBranchInput[] | ProcedureBookingUncheckedCreateWithoutBranchInput[]
-    connectOrCreate?: ProcedureBookingCreateOrConnectWithoutBranchInput | ProcedureBookingCreateOrConnectWithoutBranchInput[]
-    createMany?: ProcedureBookingCreateManyBranchInputEnvelope
-    connect?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
   }
 
   export type GoLiveReportCreateNestedManyWithoutBranchInput = {
@@ -70218,6 +70111,13 @@ export namespace Prisma {
     connect?: UnitResourceWhereUniqueInput | UnitResourceWhereUniqueInput[]
   }
 
+  export type ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput = {
+    create?: XOR<ProcedureBookingCreateWithoutBranchInput, ProcedureBookingUncheckedCreateWithoutBranchInput> | ProcedureBookingCreateWithoutBranchInput[] | ProcedureBookingUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: ProcedureBookingCreateOrConnectWithoutBranchInput | ProcedureBookingCreateOrConnectWithoutBranchInput[]
+    createMany?: ProcedureBookingCreateManyBranchInputEnvelope
+    connect?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
+  }
+
   export type EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput = {
     create?: XOR<EquipmentAssetCreateWithoutBranchInput, EquipmentAssetUncheckedCreateWithoutBranchInput> | EquipmentAssetCreateWithoutBranchInput[] | EquipmentAssetUncheckedCreateWithoutBranchInput[]
     connectOrCreate?: EquipmentAssetCreateOrConnectWithoutBranchInput | EquipmentAssetCreateOrConnectWithoutBranchInput[]
@@ -70225,18 +70125,18 @@ export namespace Prisma {
     connect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
   }
 
-  export type ServiceItemUncheckedCreateNestedManyWithoutBranchInput = {
-    create?: XOR<ServiceItemCreateWithoutBranchInput, ServiceItemUncheckedCreateWithoutBranchInput> | ServiceItemCreateWithoutBranchInput[] | ServiceItemUncheckedCreateWithoutBranchInput[]
-    connectOrCreate?: ServiceItemCreateOrConnectWithoutBranchInput | ServiceItemCreateOrConnectWithoutBranchInput[]
-    createMany?: ServiceItemCreateManyBranchInputEnvelope
-    connect?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
-  }
-
   export type ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput = {
     create?: XOR<ChargeMasterItemCreateWithoutBranchInput, ChargeMasterItemUncheckedCreateWithoutBranchInput> | ChargeMasterItemCreateWithoutBranchInput[] | ChargeMasterItemUncheckedCreateWithoutBranchInput[]
     connectOrCreate?: ChargeMasterItemCreateOrConnectWithoutBranchInput | ChargeMasterItemCreateOrConnectWithoutBranchInput[]
     createMany?: ChargeMasterItemCreateManyBranchInputEnvelope
     connect?: ChargeMasterItemWhereUniqueInput | ChargeMasterItemWhereUniqueInput[]
+  }
+
+  export type ServiceItemUncheckedCreateNestedManyWithoutBranchInput = {
+    create?: XOR<ServiceItemCreateWithoutBranchInput, ServiceItemUncheckedCreateWithoutBranchInput> | ServiceItemCreateWithoutBranchInput[] | ServiceItemUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: ServiceItemCreateOrConnectWithoutBranchInput | ServiceItemCreateOrConnectWithoutBranchInput[]
+    createMany?: ServiceItemCreateManyBranchInputEnvelope
+    connect?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
   }
 
   export type ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput = {
@@ -70258,13 +70158,6 @@ export namespace Prisma {
     connectOrCreate?: BulkImportJobCreateOrConnectWithoutBranchInput | BulkImportJobCreateOrConnectWithoutBranchInput[]
     createMany?: BulkImportJobCreateManyBranchInputEnvelope
     connect?: BulkImportJobWhereUniqueInput | BulkImportJobWhereUniqueInput[]
-  }
-
-  export type ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput = {
-    create?: XOR<ProcedureBookingCreateWithoutBranchInput, ProcedureBookingUncheckedCreateWithoutBranchInput> | ProcedureBookingCreateWithoutBranchInput[] | ProcedureBookingUncheckedCreateWithoutBranchInput[]
-    connectOrCreate?: ProcedureBookingCreateOrConnectWithoutBranchInput | ProcedureBookingCreateOrConnectWithoutBranchInput[]
-    createMany?: ProcedureBookingCreateManyBranchInputEnvelope
-    connect?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
   }
 
   export type GoLiveReportUncheckedCreateNestedManyWithoutBranchInput = {
@@ -70608,6 +70501,20 @@ export namespace Prisma {
     deleteMany?: UnitResourceScalarWhereInput | UnitResourceScalarWhereInput[]
   }
 
+  export type ProcedureBookingUpdateManyWithoutBranchNestedInput = {
+    create?: XOR<ProcedureBookingCreateWithoutBranchInput, ProcedureBookingUncheckedCreateWithoutBranchInput> | ProcedureBookingCreateWithoutBranchInput[] | ProcedureBookingUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: ProcedureBookingCreateOrConnectWithoutBranchInput | ProcedureBookingCreateOrConnectWithoutBranchInput[]
+    upsert?: ProcedureBookingUpsertWithWhereUniqueWithoutBranchInput | ProcedureBookingUpsertWithWhereUniqueWithoutBranchInput[]
+    createMany?: ProcedureBookingCreateManyBranchInputEnvelope
+    set?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
+    disconnect?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
+    delete?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
+    connect?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
+    update?: ProcedureBookingUpdateWithWhereUniqueWithoutBranchInput | ProcedureBookingUpdateWithWhereUniqueWithoutBranchInput[]
+    updateMany?: ProcedureBookingUpdateManyWithWhereWithoutBranchInput | ProcedureBookingUpdateManyWithWhereWithoutBranchInput[]
+    deleteMany?: ProcedureBookingScalarWhereInput | ProcedureBookingScalarWhereInput[]
+  }
+
   export type EquipmentAssetUpdateManyWithoutBranchNestedInput = {
     create?: XOR<EquipmentAssetCreateWithoutBranchInput, EquipmentAssetUncheckedCreateWithoutBranchInput> | EquipmentAssetCreateWithoutBranchInput[] | EquipmentAssetUncheckedCreateWithoutBranchInput[]
     connectOrCreate?: EquipmentAssetCreateOrConnectWithoutBranchInput | EquipmentAssetCreateOrConnectWithoutBranchInput[]
@@ -70622,20 +70529,6 @@ export namespace Prisma {
     deleteMany?: EquipmentAssetScalarWhereInput | EquipmentAssetScalarWhereInput[]
   }
 
-  export type ServiceItemUpdateManyWithoutBranchNestedInput = {
-    create?: XOR<ServiceItemCreateWithoutBranchInput, ServiceItemUncheckedCreateWithoutBranchInput> | ServiceItemCreateWithoutBranchInput[] | ServiceItemUncheckedCreateWithoutBranchInput[]
-    connectOrCreate?: ServiceItemCreateOrConnectWithoutBranchInput | ServiceItemCreateOrConnectWithoutBranchInput[]
-    upsert?: ServiceItemUpsertWithWhereUniqueWithoutBranchInput | ServiceItemUpsertWithWhereUniqueWithoutBranchInput[]
-    createMany?: ServiceItemCreateManyBranchInputEnvelope
-    set?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
-    disconnect?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
-    delete?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
-    connect?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
-    update?: ServiceItemUpdateWithWhereUniqueWithoutBranchInput | ServiceItemUpdateWithWhereUniqueWithoutBranchInput[]
-    updateMany?: ServiceItemUpdateManyWithWhereWithoutBranchInput | ServiceItemUpdateManyWithWhereWithoutBranchInput[]
-    deleteMany?: ServiceItemScalarWhereInput | ServiceItemScalarWhereInput[]
-  }
-
   export type ChargeMasterItemUpdateManyWithoutBranchNestedInput = {
     create?: XOR<ChargeMasterItemCreateWithoutBranchInput, ChargeMasterItemUncheckedCreateWithoutBranchInput> | ChargeMasterItemCreateWithoutBranchInput[] | ChargeMasterItemUncheckedCreateWithoutBranchInput[]
     connectOrCreate?: ChargeMasterItemCreateOrConnectWithoutBranchInput | ChargeMasterItemCreateOrConnectWithoutBranchInput[]
@@ -70648,6 +70541,20 @@ export namespace Prisma {
     update?: ChargeMasterItemUpdateWithWhereUniqueWithoutBranchInput | ChargeMasterItemUpdateWithWhereUniqueWithoutBranchInput[]
     updateMany?: ChargeMasterItemUpdateManyWithWhereWithoutBranchInput | ChargeMasterItemUpdateManyWithWhereWithoutBranchInput[]
     deleteMany?: ChargeMasterItemScalarWhereInput | ChargeMasterItemScalarWhereInput[]
+  }
+
+  export type ServiceItemUpdateManyWithoutBranchNestedInput = {
+    create?: XOR<ServiceItemCreateWithoutBranchInput, ServiceItemUncheckedCreateWithoutBranchInput> | ServiceItemCreateWithoutBranchInput[] | ServiceItemUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: ServiceItemCreateOrConnectWithoutBranchInput | ServiceItemCreateOrConnectWithoutBranchInput[]
+    upsert?: ServiceItemUpsertWithWhereUniqueWithoutBranchInput | ServiceItemUpsertWithWhereUniqueWithoutBranchInput[]
+    createMany?: ServiceItemCreateManyBranchInputEnvelope
+    set?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
+    disconnect?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
+    delete?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
+    connect?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
+    update?: ServiceItemUpdateWithWhereUniqueWithoutBranchInput | ServiceItemUpdateWithWhereUniqueWithoutBranchInput[]
+    updateMany?: ServiceItemUpdateManyWithWhereWithoutBranchInput | ServiceItemUpdateManyWithWhereWithoutBranchInput[]
+    deleteMany?: ServiceItemScalarWhereInput | ServiceItemScalarWhereInput[]
   }
 
   export type ServiceChargeMappingUpdateManyWithoutBranchNestedInput = {
@@ -70690,20 +70597,6 @@ export namespace Prisma {
     update?: BulkImportJobUpdateWithWhereUniqueWithoutBranchInput | BulkImportJobUpdateWithWhereUniqueWithoutBranchInput[]
     updateMany?: BulkImportJobUpdateManyWithWhereWithoutBranchInput | BulkImportJobUpdateManyWithWhereWithoutBranchInput[]
     deleteMany?: BulkImportJobScalarWhereInput | BulkImportJobScalarWhereInput[]
-  }
-
-  export type ProcedureBookingUpdateManyWithoutBranchNestedInput = {
-    create?: XOR<ProcedureBookingCreateWithoutBranchInput, ProcedureBookingUncheckedCreateWithoutBranchInput> | ProcedureBookingCreateWithoutBranchInput[] | ProcedureBookingUncheckedCreateWithoutBranchInput[]
-    connectOrCreate?: ProcedureBookingCreateOrConnectWithoutBranchInput | ProcedureBookingCreateOrConnectWithoutBranchInput[]
-    upsert?: ProcedureBookingUpsertWithWhereUniqueWithoutBranchInput | ProcedureBookingUpsertWithWhereUniqueWithoutBranchInput[]
-    createMany?: ProcedureBookingCreateManyBranchInputEnvelope
-    set?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
-    disconnect?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
-    delete?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
-    connect?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
-    update?: ProcedureBookingUpdateWithWhereUniqueWithoutBranchInput | ProcedureBookingUpdateWithWhereUniqueWithoutBranchInput[]
-    updateMany?: ProcedureBookingUpdateManyWithWhereWithoutBranchInput | ProcedureBookingUpdateManyWithWhereWithoutBranchInput[]
-    deleteMany?: ProcedureBookingScalarWhereInput | ProcedureBookingScalarWhereInput[]
   }
 
   export type GoLiveReportUpdateManyWithoutBranchNestedInput = {
@@ -71042,6 +70935,20 @@ export namespace Prisma {
     deleteMany?: UnitResourceScalarWhereInput | UnitResourceScalarWhereInput[]
   }
 
+  export type ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput = {
+    create?: XOR<ProcedureBookingCreateWithoutBranchInput, ProcedureBookingUncheckedCreateWithoutBranchInput> | ProcedureBookingCreateWithoutBranchInput[] | ProcedureBookingUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: ProcedureBookingCreateOrConnectWithoutBranchInput | ProcedureBookingCreateOrConnectWithoutBranchInput[]
+    upsert?: ProcedureBookingUpsertWithWhereUniqueWithoutBranchInput | ProcedureBookingUpsertWithWhereUniqueWithoutBranchInput[]
+    createMany?: ProcedureBookingCreateManyBranchInputEnvelope
+    set?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
+    disconnect?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
+    delete?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
+    connect?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
+    update?: ProcedureBookingUpdateWithWhereUniqueWithoutBranchInput | ProcedureBookingUpdateWithWhereUniqueWithoutBranchInput[]
+    updateMany?: ProcedureBookingUpdateManyWithWhereWithoutBranchInput | ProcedureBookingUpdateManyWithWhereWithoutBranchInput[]
+    deleteMany?: ProcedureBookingScalarWhereInput | ProcedureBookingScalarWhereInput[]
+  }
+
   export type EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput = {
     create?: XOR<EquipmentAssetCreateWithoutBranchInput, EquipmentAssetUncheckedCreateWithoutBranchInput> | EquipmentAssetCreateWithoutBranchInput[] | EquipmentAssetUncheckedCreateWithoutBranchInput[]
     connectOrCreate?: EquipmentAssetCreateOrConnectWithoutBranchInput | EquipmentAssetCreateOrConnectWithoutBranchInput[]
@@ -71056,20 +70963,6 @@ export namespace Prisma {
     deleteMany?: EquipmentAssetScalarWhereInput | EquipmentAssetScalarWhereInput[]
   }
 
-  export type ServiceItemUncheckedUpdateManyWithoutBranchNestedInput = {
-    create?: XOR<ServiceItemCreateWithoutBranchInput, ServiceItemUncheckedCreateWithoutBranchInput> | ServiceItemCreateWithoutBranchInput[] | ServiceItemUncheckedCreateWithoutBranchInput[]
-    connectOrCreate?: ServiceItemCreateOrConnectWithoutBranchInput | ServiceItemCreateOrConnectWithoutBranchInput[]
-    upsert?: ServiceItemUpsertWithWhereUniqueWithoutBranchInput | ServiceItemUpsertWithWhereUniqueWithoutBranchInput[]
-    createMany?: ServiceItemCreateManyBranchInputEnvelope
-    set?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
-    disconnect?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
-    delete?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
-    connect?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
-    update?: ServiceItemUpdateWithWhereUniqueWithoutBranchInput | ServiceItemUpdateWithWhereUniqueWithoutBranchInput[]
-    updateMany?: ServiceItemUpdateManyWithWhereWithoutBranchInput | ServiceItemUpdateManyWithWhereWithoutBranchInput[]
-    deleteMany?: ServiceItemScalarWhereInput | ServiceItemScalarWhereInput[]
-  }
-
   export type ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput = {
     create?: XOR<ChargeMasterItemCreateWithoutBranchInput, ChargeMasterItemUncheckedCreateWithoutBranchInput> | ChargeMasterItemCreateWithoutBranchInput[] | ChargeMasterItemUncheckedCreateWithoutBranchInput[]
     connectOrCreate?: ChargeMasterItemCreateOrConnectWithoutBranchInput | ChargeMasterItemCreateOrConnectWithoutBranchInput[]
@@ -71082,6 +70975,20 @@ export namespace Prisma {
     update?: ChargeMasterItemUpdateWithWhereUniqueWithoutBranchInput | ChargeMasterItemUpdateWithWhereUniqueWithoutBranchInput[]
     updateMany?: ChargeMasterItemUpdateManyWithWhereWithoutBranchInput | ChargeMasterItemUpdateManyWithWhereWithoutBranchInput[]
     deleteMany?: ChargeMasterItemScalarWhereInput | ChargeMasterItemScalarWhereInput[]
+  }
+
+  export type ServiceItemUncheckedUpdateManyWithoutBranchNestedInput = {
+    create?: XOR<ServiceItemCreateWithoutBranchInput, ServiceItemUncheckedCreateWithoutBranchInput> | ServiceItemCreateWithoutBranchInput[] | ServiceItemUncheckedCreateWithoutBranchInput[]
+    connectOrCreate?: ServiceItemCreateOrConnectWithoutBranchInput | ServiceItemCreateOrConnectWithoutBranchInput[]
+    upsert?: ServiceItemUpsertWithWhereUniqueWithoutBranchInput | ServiceItemUpsertWithWhereUniqueWithoutBranchInput[]
+    createMany?: ServiceItemCreateManyBranchInputEnvelope
+    set?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
+    disconnect?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
+    delete?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
+    connect?: ServiceItemWhereUniqueInput | ServiceItemWhereUniqueInput[]
+    update?: ServiceItemUpdateWithWhereUniqueWithoutBranchInput | ServiceItemUpdateWithWhereUniqueWithoutBranchInput[]
+    updateMany?: ServiceItemUpdateManyWithWhereWithoutBranchInput | ServiceItemUpdateManyWithWhereWithoutBranchInput[]
+    deleteMany?: ServiceItemScalarWhereInput | ServiceItemScalarWhereInput[]
   }
 
   export type ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput = {
@@ -71124,20 +71031,6 @@ export namespace Prisma {
     update?: BulkImportJobUpdateWithWhereUniqueWithoutBranchInput | BulkImportJobUpdateWithWhereUniqueWithoutBranchInput[]
     updateMany?: BulkImportJobUpdateManyWithWhereWithoutBranchInput | BulkImportJobUpdateManyWithWhereWithoutBranchInput[]
     deleteMany?: BulkImportJobScalarWhereInput | BulkImportJobScalarWhereInput[]
-  }
-
-  export type ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput = {
-    create?: XOR<ProcedureBookingCreateWithoutBranchInput, ProcedureBookingUncheckedCreateWithoutBranchInput> | ProcedureBookingCreateWithoutBranchInput[] | ProcedureBookingUncheckedCreateWithoutBranchInput[]
-    connectOrCreate?: ProcedureBookingCreateOrConnectWithoutBranchInput | ProcedureBookingCreateOrConnectWithoutBranchInput[]
-    upsert?: ProcedureBookingUpsertWithWhereUniqueWithoutBranchInput | ProcedureBookingUpsertWithWhereUniqueWithoutBranchInput[]
-    createMany?: ProcedureBookingCreateManyBranchInputEnvelope
-    set?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
-    disconnect?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
-    delete?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
-    connect?: ProcedureBookingWhereUniqueInput | ProcedureBookingWhereUniqueInput[]
-    update?: ProcedureBookingUpdateWithWhereUniqueWithoutBranchInput | ProcedureBookingUpdateWithWhereUniqueWithoutBranchInput[]
-    updateMany?: ProcedureBookingUpdateManyWithWhereWithoutBranchInput | ProcedureBookingUpdateManyWithWhereWithoutBranchInput[]
-    deleteMany?: ProcedureBookingScalarWhereInput | ProcedureBookingScalarWhereInput[]
   }
 
   export type GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput = {
@@ -71307,11 +71200,11 @@ export namespace Prisma {
     connect?: StaffWhereUniqueInput | StaffWhereUniqueInput[]
   }
 
-  export type DepartmentSpecialtyCreateNestedManyWithoutDepartmentInput = {
-    create?: XOR<DepartmentSpecialtyCreateWithoutDepartmentInput, DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput> | DepartmentSpecialtyCreateWithoutDepartmentInput[] | DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput[]
-    connectOrCreate?: DepartmentSpecialtyCreateOrConnectWithoutDepartmentInput | DepartmentSpecialtyCreateOrConnectWithoutDepartmentInput[]
-    createMany?: DepartmentSpecialtyCreateManyDepartmentInputEnvelope
-    connect?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
+  export type SpecialtyCreateNestedManyWithoutDepartmentInput = {
+    create?: XOR<SpecialtyCreateWithoutDepartmentInput, SpecialtyUncheckedCreateWithoutDepartmentInput> | SpecialtyCreateWithoutDepartmentInput[] | SpecialtyUncheckedCreateWithoutDepartmentInput[]
+    connectOrCreate?: SpecialtyCreateOrConnectWithoutDepartmentInput | SpecialtyCreateOrConnectWithoutDepartmentInput[]
+    createMany?: SpecialtyCreateManyDepartmentInputEnvelope
+    connect?: SpecialtyWhereUniqueInput | SpecialtyWhereUniqueInput[]
   }
 
   export type DepartmentDoctorCreateNestedManyWithoutDepartmentInput = {
@@ -71319,6 +71212,13 @@ export namespace Prisma {
     connectOrCreate?: DepartmentDoctorCreateOrConnectWithoutDepartmentInput | DepartmentDoctorCreateOrConnectWithoutDepartmentInput[]
     createMany?: DepartmentDoctorCreateManyDepartmentInputEnvelope
     connect?: DepartmentDoctorWhereUniqueInput | DepartmentDoctorWhereUniqueInput[]
+  }
+
+  export type DepartmentSpecialtyCreateNestedManyWithoutDepartmentInput = {
+    create?: XOR<DepartmentSpecialtyCreateWithoutDepartmentInput, DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput> | DepartmentSpecialtyCreateWithoutDepartmentInput[] | DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput[]
+    connectOrCreate?: DepartmentSpecialtyCreateOrConnectWithoutDepartmentInput | DepartmentSpecialtyCreateOrConnectWithoutDepartmentInput[]
+    createMany?: DepartmentSpecialtyCreateManyDepartmentInputEnvelope
+    connect?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
   }
 
   export type UnitCreateNestedManyWithoutDepartmentInput = {
@@ -71342,11 +71242,11 @@ export namespace Prisma {
     connect?: StaffWhereUniqueInput | StaffWhereUniqueInput[]
   }
 
-  export type DepartmentSpecialtyUncheckedCreateNestedManyWithoutDepartmentInput = {
-    create?: XOR<DepartmentSpecialtyCreateWithoutDepartmentInput, DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput> | DepartmentSpecialtyCreateWithoutDepartmentInput[] | DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput[]
-    connectOrCreate?: DepartmentSpecialtyCreateOrConnectWithoutDepartmentInput | DepartmentSpecialtyCreateOrConnectWithoutDepartmentInput[]
-    createMany?: DepartmentSpecialtyCreateManyDepartmentInputEnvelope
-    connect?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
+  export type SpecialtyUncheckedCreateNestedManyWithoutDepartmentInput = {
+    create?: XOR<SpecialtyCreateWithoutDepartmentInput, SpecialtyUncheckedCreateWithoutDepartmentInput> | SpecialtyCreateWithoutDepartmentInput[] | SpecialtyUncheckedCreateWithoutDepartmentInput[]
+    connectOrCreate?: SpecialtyCreateOrConnectWithoutDepartmentInput | SpecialtyCreateOrConnectWithoutDepartmentInput[]
+    createMany?: SpecialtyCreateManyDepartmentInputEnvelope
+    connect?: SpecialtyWhereUniqueInput | SpecialtyWhereUniqueInput[]
   }
 
   export type DepartmentDoctorUncheckedCreateNestedManyWithoutDepartmentInput = {
@@ -71354,6 +71254,13 @@ export namespace Prisma {
     connectOrCreate?: DepartmentDoctorCreateOrConnectWithoutDepartmentInput | DepartmentDoctorCreateOrConnectWithoutDepartmentInput[]
     createMany?: DepartmentDoctorCreateManyDepartmentInputEnvelope
     connect?: DepartmentDoctorWhereUniqueInput | DepartmentDoctorWhereUniqueInput[]
+  }
+
+  export type DepartmentSpecialtyUncheckedCreateNestedManyWithoutDepartmentInput = {
+    create?: XOR<DepartmentSpecialtyCreateWithoutDepartmentInput, DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput> | DepartmentSpecialtyCreateWithoutDepartmentInput[] | DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput[]
+    connectOrCreate?: DepartmentSpecialtyCreateOrConnectWithoutDepartmentInput | DepartmentSpecialtyCreateOrConnectWithoutDepartmentInput[]
+    createMany?: DepartmentSpecialtyCreateManyDepartmentInputEnvelope
+    connect?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
   }
 
   export type UnitUncheckedCreateNestedManyWithoutDepartmentInput = {
@@ -71410,18 +71317,18 @@ export namespace Prisma {
     deleteMany?: StaffScalarWhereInput | StaffScalarWhereInput[]
   }
 
-  export type DepartmentSpecialtyUpdateManyWithoutDepartmentNestedInput = {
-    create?: XOR<DepartmentSpecialtyCreateWithoutDepartmentInput, DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput> | DepartmentSpecialtyCreateWithoutDepartmentInput[] | DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput[]
-    connectOrCreate?: DepartmentSpecialtyCreateOrConnectWithoutDepartmentInput | DepartmentSpecialtyCreateOrConnectWithoutDepartmentInput[]
-    upsert?: DepartmentSpecialtyUpsertWithWhereUniqueWithoutDepartmentInput | DepartmentSpecialtyUpsertWithWhereUniqueWithoutDepartmentInput[]
-    createMany?: DepartmentSpecialtyCreateManyDepartmentInputEnvelope
-    set?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
-    disconnect?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
-    delete?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
-    connect?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
-    update?: DepartmentSpecialtyUpdateWithWhereUniqueWithoutDepartmentInput | DepartmentSpecialtyUpdateWithWhereUniqueWithoutDepartmentInput[]
-    updateMany?: DepartmentSpecialtyUpdateManyWithWhereWithoutDepartmentInput | DepartmentSpecialtyUpdateManyWithWhereWithoutDepartmentInput[]
-    deleteMany?: DepartmentSpecialtyScalarWhereInput | DepartmentSpecialtyScalarWhereInput[]
+  export type SpecialtyUpdateManyWithoutDepartmentNestedInput = {
+    create?: XOR<SpecialtyCreateWithoutDepartmentInput, SpecialtyUncheckedCreateWithoutDepartmentInput> | SpecialtyCreateWithoutDepartmentInput[] | SpecialtyUncheckedCreateWithoutDepartmentInput[]
+    connectOrCreate?: SpecialtyCreateOrConnectWithoutDepartmentInput | SpecialtyCreateOrConnectWithoutDepartmentInput[]
+    upsert?: SpecialtyUpsertWithWhereUniqueWithoutDepartmentInput | SpecialtyUpsertWithWhereUniqueWithoutDepartmentInput[]
+    createMany?: SpecialtyCreateManyDepartmentInputEnvelope
+    set?: SpecialtyWhereUniqueInput | SpecialtyWhereUniqueInput[]
+    disconnect?: SpecialtyWhereUniqueInput | SpecialtyWhereUniqueInput[]
+    delete?: SpecialtyWhereUniqueInput | SpecialtyWhereUniqueInput[]
+    connect?: SpecialtyWhereUniqueInput | SpecialtyWhereUniqueInput[]
+    update?: SpecialtyUpdateWithWhereUniqueWithoutDepartmentInput | SpecialtyUpdateWithWhereUniqueWithoutDepartmentInput[]
+    updateMany?: SpecialtyUpdateManyWithWhereWithoutDepartmentInput | SpecialtyUpdateManyWithWhereWithoutDepartmentInput[]
+    deleteMany?: SpecialtyScalarWhereInput | SpecialtyScalarWhereInput[]
   }
 
   export type DepartmentDoctorUpdateManyWithoutDepartmentNestedInput = {
@@ -71436,6 +71343,20 @@ export namespace Prisma {
     update?: DepartmentDoctorUpdateWithWhereUniqueWithoutDepartmentInput | DepartmentDoctorUpdateWithWhereUniqueWithoutDepartmentInput[]
     updateMany?: DepartmentDoctorUpdateManyWithWhereWithoutDepartmentInput | DepartmentDoctorUpdateManyWithWhereWithoutDepartmentInput[]
     deleteMany?: DepartmentDoctorScalarWhereInput | DepartmentDoctorScalarWhereInput[]
+  }
+
+  export type DepartmentSpecialtyUpdateManyWithoutDepartmentNestedInput = {
+    create?: XOR<DepartmentSpecialtyCreateWithoutDepartmentInput, DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput> | DepartmentSpecialtyCreateWithoutDepartmentInput[] | DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput[]
+    connectOrCreate?: DepartmentSpecialtyCreateOrConnectWithoutDepartmentInput | DepartmentSpecialtyCreateOrConnectWithoutDepartmentInput[]
+    upsert?: DepartmentSpecialtyUpsertWithWhereUniqueWithoutDepartmentInput | DepartmentSpecialtyUpsertWithWhereUniqueWithoutDepartmentInput[]
+    createMany?: DepartmentSpecialtyCreateManyDepartmentInputEnvelope
+    set?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
+    disconnect?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
+    delete?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
+    connect?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
+    update?: DepartmentSpecialtyUpdateWithWhereUniqueWithoutDepartmentInput | DepartmentSpecialtyUpdateWithWhereUniqueWithoutDepartmentInput[]
+    updateMany?: DepartmentSpecialtyUpdateManyWithWhereWithoutDepartmentInput | DepartmentSpecialtyUpdateManyWithWhereWithoutDepartmentInput[]
+    deleteMany?: DepartmentSpecialtyScalarWhereInput | DepartmentSpecialtyScalarWhereInput[]
   }
 
   export type UnitUpdateManyWithoutDepartmentNestedInput = {
@@ -71480,18 +71401,18 @@ export namespace Prisma {
     deleteMany?: StaffScalarWhereInput | StaffScalarWhereInput[]
   }
 
-  export type DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput = {
-    create?: XOR<DepartmentSpecialtyCreateWithoutDepartmentInput, DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput> | DepartmentSpecialtyCreateWithoutDepartmentInput[] | DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput[]
-    connectOrCreate?: DepartmentSpecialtyCreateOrConnectWithoutDepartmentInput | DepartmentSpecialtyCreateOrConnectWithoutDepartmentInput[]
-    upsert?: DepartmentSpecialtyUpsertWithWhereUniqueWithoutDepartmentInput | DepartmentSpecialtyUpsertWithWhereUniqueWithoutDepartmentInput[]
-    createMany?: DepartmentSpecialtyCreateManyDepartmentInputEnvelope
-    set?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
-    disconnect?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
-    delete?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
-    connect?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
-    update?: DepartmentSpecialtyUpdateWithWhereUniqueWithoutDepartmentInput | DepartmentSpecialtyUpdateWithWhereUniqueWithoutDepartmentInput[]
-    updateMany?: DepartmentSpecialtyUpdateManyWithWhereWithoutDepartmentInput | DepartmentSpecialtyUpdateManyWithWhereWithoutDepartmentInput[]
-    deleteMany?: DepartmentSpecialtyScalarWhereInput | DepartmentSpecialtyScalarWhereInput[]
+  export type SpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput = {
+    create?: XOR<SpecialtyCreateWithoutDepartmentInput, SpecialtyUncheckedCreateWithoutDepartmentInput> | SpecialtyCreateWithoutDepartmentInput[] | SpecialtyUncheckedCreateWithoutDepartmentInput[]
+    connectOrCreate?: SpecialtyCreateOrConnectWithoutDepartmentInput | SpecialtyCreateOrConnectWithoutDepartmentInput[]
+    upsert?: SpecialtyUpsertWithWhereUniqueWithoutDepartmentInput | SpecialtyUpsertWithWhereUniqueWithoutDepartmentInput[]
+    createMany?: SpecialtyCreateManyDepartmentInputEnvelope
+    set?: SpecialtyWhereUniqueInput | SpecialtyWhereUniqueInput[]
+    disconnect?: SpecialtyWhereUniqueInput | SpecialtyWhereUniqueInput[]
+    delete?: SpecialtyWhereUniqueInput | SpecialtyWhereUniqueInput[]
+    connect?: SpecialtyWhereUniqueInput | SpecialtyWhereUniqueInput[]
+    update?: SpecialtyUpdateWithWhereUniqueWithoutDepartmentInput | SpecialtyUpdateWithWhereUniqueWithoutDepartmentInput[]
+    updateMany?: SpecialtyUpdateManyWithWhereWithoutDepartmentInput | SpecialtyUpdateManyWithWhereWithoutDepartmentInput[]
+    deleteMany?: SpecialtyScalarWhereInput | SpecialtyScalarWhereInput[]
   }
 
   export type DepartmentDoctorUncheckedUpdateManyWithoutDepartmentNestedInput = {
@@ -71506,6 +71427,20 @@ export namespace Prisma {
     update?: DepartmentDoctorUpdateWithWhereUniqueWithoutDepartmentInput | DepartmentDoctorUpdateWithWhereUniqueWithoutDepartmentInput[]
     updateMany?: DepartmentDoctorUpdateManyWithWhereWithoutDepartmentInput | DepartmentDoctorUpdateManyWithWhereWithoutDepartmentInput[]
     deleteMany?: DepartmentDoctorScalarWhereInput | DepartmentDoctorScalarWhereInput[]
+  }
+
+  export type DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput = {
+    create?: XOR<DepartmentSpecialtyCreateWithoutDepartmentInput, DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput> | DepartmentSpecialtyCreateWithoutDepartmentInput[] | DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput[]
+    connectOrCreate?: DepartmentSpecialtyCreateOrConnectWithoutDepartmentInput | DepartmentSpecialtyCreateOrConnectWithoutDepartmentInput[]
+    upsert?: DepartmentSpecialtyUpsertWithWhereUniqueWithoutDepartmentInput | DepartmentSpecialtyUpsertWithWhereUniqueWithoutDepartmentInput[]
+    createMany?: DepartmentSpecialtyCreateManyDepartmentInputEnvelope
+    set?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
+    disconnect?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
+    delete?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
+    connect?: DepartmentSpecialtyWhereUniqueInput | DepartmentSpecialtyWhereUniqueInput[]
+    update?: DepartmentSpecialtyUpdateWithWhereUniqueWithoutDepartmentInput | DepartmentSpecialtyUpdateWithWhereUniqueWithoutDepartmentInput[]
+    updateMany?: DepartmentSpecialtyUpdateManyWithWhereWithoutDepartmentInput | DepartmentSpecialtyUpdateManyWithWhereWithoutDepartmentInput[]
+    deleteMany?: DepartmentSpecialtyScalarWhereInput | DepartmentSpecialtyScalarWhereInput[]
   }
 
   export type UnitUncheckedUpdateManyWithoutDepartmentNestedInput = {
@@ -71564,10 +71499,44 @@ export namespace Prisma {
     update?: XOR<XOR<StaffUpdateToOneWithWhereWithoutDoctorAssignmentsInput, StaffUpdateWithoutDoctorAssignmentsInput>, StaffUncheckedUpdateWithoutDoctorAssignmentsInput>
   }
 
+  export type DepartmentCreateNestedOneWithoutDepartmentSpecialtiesInput = {
+    create?: XOR<DepartmentCreateWithoutDepartmentSpecialtiesInput, DepartmentUncheckedCreateWithoutDepartmentSpecialtiesInput>
+    connectOrCreate?: DepartmentCreateOrConnectWithoutDepartmentSpecialtiesInput
+    connect?: DepartmentWhereUniqueInput
+  }
+
+  export type SpecialtyCreateNestedOneWithoutDepartmentLinksInput = {
+    create?: XOR<SpecialtyCreateWithoutDepartmentLinksInput, SpecialtyUncheckedCreateWithoutDepartmentLinksInput>
+    connectOrCreate?: SpecialtyCreateOrConnectWithoutDepartmentLinksInput
+    connect?: SpecialtyWhereUniqueInput
+  }
+
+  export type DepartmentUpdateOneRequiredWithoutDepartmentSpecialtiesNestedInput = {
+    create?: XOR<DepartmentCreateWithoutDepartmentSpecialtiesInput, DepartmentUncheckedCreateWithoutDepartmentSpecialtiesInput>
+    connectOrCreate?: DepartmentCreateOrConnectWithoutDepartmentSpecialtiesInput
+    upsert?: DepartmentUpsertWithoutDepartmentSpecialtiesInput
+    connect?: DepartmentWhereUniqueInput
+    update?: XOR<XOR<DepartmentUpdateToOneWithWhereWithoutDepartmentSpecialtiesInput, DepartmentUpdateWithoutDepartmentSpecialtiesInput>, DepartmentUncheckedUpdateWithoutDepartmentSpecialtiesInput>
+  }
+
+  export type SpecialtyUpdateOneRequiredWithoutDepartmentLinksNestedInput = {
+    create?: XOR<SpecialtyCreateWithoutDepartmentLinksInput, SpecialtyUncheckedCreateWithoutDepartmentLinksInput>
+    connectOrCreate?: SpecialtyCreateOrConnectWithoutDepartmentLinksInput
+    upsert?: SpecialtyUpsertWithoutDepartmentLinksInput
+    connect?: SpecialtyWhereUniqueInput
+    update?: XOR<XOR<SpecialtyUpdateToOneWithWhereWithoutDepartmentLinksInput, SpecialtyUpdateWithoutDepartmentLinksInput>, SpecialtyUncheckedUpdateWithoutDepartmentLinksInput>
+  }
+
   export type BranchCreateNestedOneWithoutSpecialtyInput = {
     create?: XOR<BranchCreateWithoutSpecialtyInput, BranchUncheckedCreateWithoutSpecialtyInput>
     connectOrCreate?: BranchCreateOrConnectWithoutSpecialtyInput
     connect?: BranchWhereUniqueInput
+  }
+
+  export type DepartmentCreateNestedOneWithoutSpecialtiesInput = {
+    create?: XOR<DepartmentCreateWithoutSpecialtiesInput, DepartmentUncheckedCreateWithoutSpecialtiesInput>
+    connectOrCreate?: DepartmentCreateOrConnectWithoutSpecialtiesInput
+    connect?: DepartmentWhereUniqueInput
   }
 
   export type StaffCreateNestedManyWithoutSpecialtyInput = {
@@ -71604,6 +71573,16 @@ export namespace Prisma {
     upsert?: BranchUpsertWithoutSpecialtyInput
     connect?: BranchWhereUniqueInput
     update?: XOR<XOR<BranchUpdateToOneWithWhereWithoutSpecialtyInput, BranchUpdateWithoutSpecialtyInput>, BranchUncheckedUpdateWithoutSpecialtyInput>
+  }
+
+  export type DepartmentUpdateOneWithoutSpecialtiesNestedInput = {
+    create?: XOR<DepartmentCreateWithoutSpecialtiesInput, DepartmentUncheckedCreateWithoutSpecialtiesInput>
+    connectOrCreate?: DepartmentCreateOrConnectWithoutSpecialtiesInput
+    upsert?: DepartmentUpsertWithoutSpecialtiesInput
+    disconnect?: DepartmentWhereInput | boolean
+    delete?: DepartmentWhereInput | boolean
+    connect?: DepartmentWhereUniqueInput
+    update?: XOR<XOR<DepartmentUpdateToOneWithWhereWithoutSpecialtiesInput, DepartmentUpdateWithoutSpecialtiesInput>, DepartmentUncheckedUpdateWithoutSpecialtiesInput>
   }
 
   export type StaffUpdateManyWithoutSpecialtyNestedInput = {
@@ -71660,34 +71639,6 @@ export namespace Prisma {
     update?: DepartmentSpecialtyUpdateWithWhereUniqueWithoutSpecialtyInput | DepartmentSpecialtyUpdateWithWhereUniqueWithoutSpecialtyInput[]
     updateMany?: DepartmentSpecialtyUpdateManyWithWhereWithoutSpecialtyInput | DepartmentSpecialtyUpdateManyWithWhereWithoutSpecialtyInput[]
     deleteMany?: DepartmentSpecialtyScalarWhereInput | DepartmentSpecialtyScalarWhereInput[]
-  }
-
-  export type DepartmentCreateNestedOneWithoutDepartmentSpecialtiesInput = {
-    create?: XOR<DepartmentCreateWithoutDepartmentSpecialtiesInput, DepartmentUncheckedCreateWithoutDepartmentSpecialtiesInput>
-    connectOrCreate?: DepartmentCreateOrConnectWithoutDepartmentSpecialtiesInput
-    connect?: DepartmentWhereUniqueInput
-  }
-
-  export type SpecialtyCreateNestedOneWithoutDepartmentLinksInput = {
-    create?: XOR<SpecialtyCreateWithoutDepartmentLinksInput, SpecialtyUncheckedCreateWithoutDepartmentLinksInput>
-    connectOrCreate?: SpecialtyCreateOrConnectWithoutDepartmentLinksInput
-    connect?: SpecialtyWhereUniqueInput
-  }
-
-  export type DepartmentUpdateOneRequiredWithoutDepartmentSpecialtiesNestedInput = {
-    create?: XOR<DepartmentCreateWithoutDepartmentSpecialtiesInput, DepartmentUncheckedCreateWithoutDepartmentSpecialtiesInput>
-    connectOrCreate?: DepartmentCreateOrConnectWithoutDepartmentSpecialtiesInput
-    upsert?: DepartmentUpsertWithoutDepartmentSpecialtiesInput
-    connect?: DepartmentWhereUniqueInput
-    update?: XOR<XOR<DepartmentUpdateToOneWithWhereWithoutDepartmentSpecialtiesInput, DepartmentUpdateWithoutDepartmentSpecialtiesInput>, DepartmentUncheckedUpdateWithoutDepartmentSpecialtiesInput>
-  }
-
-  export type SpecialtyUpdateOneRequiredWithoutDepartmentLinksNestedInput = {
-    create?: XOR<SpecialtyCreateWithoutDepartmentLinksInput, SpecialtyUncheckedCreateWithoutDepartmentLinksInput>
-    connectOrCreate?: SpecialtyCreateOrConnectWithoutDepartmentLinksInput
-    upsert?: SpecialtyUpsertWithoutDepartmentLinksInput
-    connect?: SpecialtyWhereUniqueInput
-    update?: XOR<XOR<SpecialtyUpdateToOneWithWhereWithoutDepartmentLinksInput, SpecialtyUpdateWithoutDepartmentLinksInput>, SpecialtyUncheckedUpdateWithoutDepartmentLinksInput>
   }
 
   export type BranchCreateNestedOneWithoutStaffInput = {
@@ -73666,13 +73617,6 @@ export namespace Prisma {
     connect?: LocationNodeRevisionWhereUniqueInput | LocationNodeRevisionWhereUniqueInput[]
   }
 
-  export type EquipmentAssetCreateNestedManyWithoutLocationNodeInput = {
-    create?: XOR<EquipmentAssetCreateWithoutLocationNodeInput, EquipmentAssetUncheckedCreateWithoutLocationNodeInput> | EquipmentAssetCreateWithoutLocationNodeInput[] | EquipmentAssetUncheckedCreateWithoutLocationNodeInput[]
-    connectOrCreate?: EquipmentAssetCreateOrConnectWithoutLocationNodeInput | EquipmentAssetCreateOrConnectWithoutLocationNodeInput[]
-    createMany?: EquipmentAssetCreateManyLocationNodeInputEnvelope
-    connect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-  }
-
   export type LocationNodeUncheckedCreateNestedManyWithoutParentInput = {
     create?: XOR<LocationNodeCreateWithoutParentInput, LocationNodeUncheckedCreateWithoutParentInput> | LocationNodeCreateWithoutParentInput[] | LocationNodeUncheckedCreateWithoutParentInput[]
     connectOrCreate?: LocationNodeCreateOrConnectWithoutParentInput | LocationNodeCreateOrConnectWithoutParentInput[]
@@ -73685,13 +73629,6 @@ export namespace Prisma {
     connectOrCreate?: LocationNodeRevisionCreateOrConnectWithoutNodeInput | LocationNodeRevisionCreateOrConnectWithoutNodeInput[]
     createMany?: LocationNodeRevisionCreateManyNodeInputEnvelope
     connect?: LocationNodeRevisionWhereUniqueInput | LocationNodeRevisionWhereUniqueInput[]
-  }
-
-  export type EquipmentAssetUncheckedCreateNestedManyWithoutLocationNodeInput = {
-    create?: XOR<EquipmentAssetCreateWithoutLocationNodeInput, EquipmentAssetUncheckedCreateWithoutLocationNodeInput> | EquipmentAssetCreateWithoutLocationNodeInput[] | EquipmentAssetUncheckedCreateWithoutLocationNodeInput[]
-    connectOrCreate?: EquipmentAssetCreateOrConnectWithoutLocationNodeInput | EquipmentAssetCreateOrConnectWithoutLocationNodeInput[]
-    createMany?: EquipmentAssetCreateManyLocationNodeInputEnvelope
-    connect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
   }
 
   export type EnumLocationKindFieldUpdateOperationsInput = {
@@ -73744,20 +73681,6 @@ export namespace Prisma {
     deleteMany?: LocationNodeRevisionScalarWhereInput | LocationNodeRevisionScalarWhereInput[]
   }
 
-  export type EquipmentAssetUpdateManyWithoutLocationNodeNestedInput = {
-    create?: XOR<EquipmentAssetCreateWithoutLocationNodeInput, EquipmentAssetUncheckedCreateWithoutLocationNodeInput> | EquipmentAssetCreateWithoutLocationNodeInput[] | EquipmentAssetUncheckedCreateWithoutLocationNodeInput[]
-    connectOrCreate?: EquipmentAssetCreateOrConnectWithoutLocationNodeInput | EquipmentAssetCreateOrConnectWithoutLocationNodeInput[]
-    upsert?: EquipmentAssetUpsertWithWhereUniqueWithoutLocationNodeInput | EquipmentAssetUpsertWithWhereUniqueWithoutLocationNodeInput[]
-    createMany?: EquipmentAssetCreateManyLocationNodeInputEnvelope
-    set?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    disconnect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    delete?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    connect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    update?: EquipmentAssetUpdateWithWhereUniqueWithoutLocationNodeInput | EquipmentAssetUpdateWithWhereUniqueWithoutLocationNodeInput[]
-    updateMany?: EquipmentAssetUpdateManyWithWhereWithoutLocationNodeInput | EquipmentAssetUpdateManyWithWhereWithoutLocationNodeInput[]
-    deleteMany?: EquipmentAssetScalarWhereInput | EquipmentAssetScalarWhereInput[]
-  }
-
   export type LocationNodeUncheckedUpdateManyWithoutParentNestedInput = {
     create?: XOR<LocationNodeCreateWithoutParentInput, LocationNodeUncheckedCreateWithoutParentInput> | LocationNodeCreateWithoutParentInput[] | LocationNodeUncheckedCreateWithoutParentInput[]
     connectOrCreate?: LocationNodeCreateOrConnectWithoutParentInput | LocationNodeCreateOrConnectWithoutParentInput[]
@@ -73784,20 +73707,6 @@ export namespace Prisma {
     update?: LocationNodeRevisionUpdateWithWhereUniqueWithoutNodeInput | LocationNodeRevisionUpdateWithWhereUniqueWithoutNodeInput[]
     updateMany?: LocationNodeRevisionUpdateManyWithWhereWithoutNodeInput | LocationNodeRevisionUpdateManyWithWhereWithoutNodeInput[]
     deleteMany?: LocationNodeRevisionScalarWhereInput | LocationNodeRevisionScalarWhereInput[]
-  }
-
-  export type EquipmentAssetUncheckedUpdateManyWithoutLocationNodeNestedInput = {
-    create?: XOR<EquipmentAssetCreateWithoutLocationNodeInput, EquipmentAssetUncheckedCreateWithoutLocationNodeInput> | EquipmentAssetCreateWithoutLocationNodeInput[] | EquipmentAssetUncheckedCreateWithoutLocationNodeInput[]
-    connectOrCreate?: EquipmentAssetCreateOrConnectWithoutLocationNodeInput | EquipmentAssetCreateOrConnectWithoutLocationNodeInput[]
-    upsert?: EquipmentAssetUpsertWithWhereUniqueWithoutLocationNodeInput | EquipmentAssetUpsertWithWhereUniqueWithoutLocationNodeInput[]
-    createMany?: EquipmentAssetCreateManyLocationNodeInputEnvelope
-    set?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    disconnect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    delete?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    connect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    update?: EquipmentAssetUpdateWithWhereUniqueWithoutLocationNodeInput | EquipmentAssetUpdateWithWhereUniqueWithoutLocationNodeInput[]
-    updateMany?: EquipmentAssetUpdateManyWithWhereWithoutLocationNodeInput | EquipmentAssetUpdateManyWithWhereWithoutLocationNodeInput[]
-    deleteMany?: EquipmentAssetScalarWhereInput | EquipmentAssetScalarWhereInput[]
   }
 
   export type LocationNodeCreateNestedOneWithoutRevisionsInput = {
@@ -73914,9 +73823,9 @@ export namespace Prisma {
     deleteMany?: UnitScalarWhereInput | UnitScalarWhereInput[]
   }
 
-  export type BranchCreateNestedOneWithoutUnitTypesEnabledInput = {
-    create?: XOR<BranchCreateWithoutUnitTypesEnabledInput, BranchUncheckedCreateWithoutUnitTypesEnabledInput>
-    connectOrCreate?: BranchCreateOrConnectWithoutUnitTypesEnabledInput
+  export type BranchCreateNestedOneWithoutBranchUnitTypesInput = {
+    create?: XOR<BranchCreateWithoutBranchUnitTypesInput, BranchUncheckedCreateWithoutBranchUnitTypesInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutBranchUnitTypesInput
     connect?: BranchWhereUniqueInput
   }
 
@@ -73926,12 +73835,12 @@ export namespace Prisma {
     connect?: UnitTypeCatalogWhereUniqueInput
   }
 
-  export type BranchUpdateOneRequiredWithoutUnitTypesEnabledNestedInput = {
-    create?: XOR<BranchCreateWithoutUnitTypesEnabledInput, BranchUncheckedCreateWithoutUnitTypesEnabledInput>
-    connectOrCreate?: BranchCreateOrConnectWithoutUnitTypesEnabledInput
-    upsert?: BranchUpsertWithoutUnitTypesEnabledInput
+  export type BranchUpdateOneRequiredWithoutBranchUnitTypesNestedInput = {
+    create?: XOR<BranchCreateWithoutBranchUnitTypesInput, BranchUncheckedCreateWithoutBranchUnitTypesInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutBranchUnitTypesInput
+    upsert?: BranchUpsertWithoutBranchUnitTypesInput
     connect?: BranchWhereUniqueInput
-    update?: XOR<XOR<BranchUpdateToOneWithWhereWithoutUnitTypesEnabledInput, BranchUpdateWithoutUnitTypesEnabledInput>, BranchUncheckedUpdateWithoutUnitTypesEnabledInput>
+    update?: XOR<XOR<BranchUpdateToOneWithWhereWithoutBranchUnitTypesInput, BranchUpdateWithoutBranchUnitTypesInput>, BranchUncheckedUpdateWithoutBranchUnitTypesInput>
   }
 
   export type UnitTypeCatalogUpdateOneRequiredWithoutBranchLinksNestedInput = {
@@ -73974,13 +73883,6 @@ export namespace Prisma {
     connect?: UnitResourceWhereUniqueInput | UnitResourceWhereUniqueInput[]
   }
 
-  export type EquipmentAssetCreateNestedManyWithoutUnitInput = {
-    create?: XOR<EquipmentAssetCreateWithoutUnitInput, EquipmentAssetUncheckedCreateWithoutUnitInput> | EquipmentAssetCreateWithoutUnitInput[] | EquipmentAssetUncheckedCreateWithoutUnitInput[]
-    connectOrCreate?: EquipmentAssetCreateOrConnectWithoutUnitInput | EquipmentAssetCreateOrConnectWithoutUnitInput[]
-    createMany?: EquipmentAssetCreateManyUnitInputEnvelope
-    connect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-  }
-
   export type ProcedureBookingCreateNestedManyWithoutUnitInput = {
     create?: XOR<ProcedureBookingCreateWithoutUnitInput, ProcedureBookingUncheckedCreateWithoutUnitInput> | ProcedureBookingCreateWithoutUnitInput[] | ProcedureBookingUncheckedCreateWithoutUnitInput[]
     connectOrCreate?: ProcedureBookingCreateOrConnectWithoutUnitInput | ProcedureBookingCreateOrConnectWithoutUnitInput[]
@@ -74000,13 +73902,6 @@ export namespace Prisma {
     connectOrCreate?: UnitResourceCreateOrConnectWithoutUnitInput | UnitResourceCreateOrConnectWithoutUnitInput[]
     createMany?: UnitResourceCreateManyUnitInputEnvelope
     connect?: UnitResourceWhereUniqueInput | UnitResourceWhereUniqueInput[]
-  }
-
-  export type EquipmentAssetUncheckedCreateNestedManyWithoutUnitInput = {
-    create?: XOR<EquipmentAssetCreateWithoutUnitInput, EquipmentAssetUncheckedCreateWithoutUnitInput> | EquipmentAssetCreateWithoutUnitInput[] | EquipmentAssetUncheckedCreateWithoutUnitInput[]
-    connectOrCreate?: EquipmentAssetCreateOrConnectWithoutUnitInput | EquipmentAssetCreateOrConnectWithoutUnitInput[]
-    createMany?: EquipmentAssetCreateManyUnitInputEnvelope
-    connect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
   }
 
   export type ProcedureBookingUncheckedCreateNestedManyWithoutUnitInput = {
@@ -74068,20 +73963,6 @@ export namespace Prisma {
     deleteMany?: UnitResourceScalarWhereInput | UnitResourceScalarWhereInput[]
   }
 
-  export type EquipmentAssetUpdateManyWithoutUnitNestedInput = {
-    create?: XOR<EquipmentAssetCreateWithoutUnitInput, EquipmentAssetUncheckedCreateWithoutUnitInput> | EquipmentAssetCreateWithoutUnitInput[] | EquipmentAssetUncheckedCreateWithoutUnitInput[]
-    connectOrCreate?: EquipmentAssetCreateOrConnectWithoutUnitInput | EquipmentAssetCreateOrConnectWithoutUnitInput[]
-    upsert?: EquipmentAssetUpsertWithWhereUniqueWithoutUnitInput | EquipmentAssetUpsertWithWhereUniqueWithoutUnitInput[]
-    createMany?: EquipmentAssetCreateManyUnitInputEnvelope
-    set?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    disconnect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    delete?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    connect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    update?: EquipmentAssetUpdateWithWhereUniqueWithoutUnitInput | EquipmentAssetUpdateWithWhereUniqueWithoutUnitInput[]
-    updateMany?: EquipmentAssetUpdateManyWithWhereWithoutUnitInput | EquipmentAssetUpdateManyWithWhereWithoutUnitInput[]
-    deleteMany?: EquipmentAssetScalarWhereInput | EquipmentAssetScalarWhereInput[]
-  }
-
   export type ProcedureBookingUpdateManyWithoutUnitNestedInput = {
     create?: XOR<ProcedureBookingCreateWithoutUnitInput, ProcedureBookingUncheckedCreateWithoutUnitInput> | ProcedureBookingCreateWithoutUnitInput[] | ProcedureBookingUncheckedCreateWithoutUnitInput[]
     connectOrCreate?: ProcedureBookingCreateOrConnectWithoutUnitInput | ProcedureBookingCreateOrConnectWithoutUnitInput[]
@@ -74124,20 +74005,6 @@ export namespace Prisma {
     deleteMany?: UnitResourceScalarWhereInput | UnitResourceScalarWhereInput[]
   }
 
-  export type EquipmentAssetUncheckedUpdateManyWithoutUnitNestedInput = {
-    create?: XOR<EquipmentAssetCreateWithoutUnitInput, EquipmentAssetUncheckedCreateWithoutUnitInput> | EquipmentAssetCreateWithoutUnitInput[] | EquipmentAssetUncheckedCreateWithoutUnitInput[]
-    connectOrCreate?: EquipmentAssetCreateOrConnectWithoutUnitInput | EquipmentAssetCreateOrConnectWithoutUnitInput[]
-    upsert?: EquipmentAssetUpsertWithWhereUniqueWithoutUnitInput | EquipmentAssetUpsertWithWhereUniqueWithoutUnitInput[]
-    createMany?: EquipmentAssetCreateManyUnitInputEnvelope
-    set?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    disconnect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    delete?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    connect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    update?: EquipmentAssetUpdateWithWhereUniqueWithoutUnitInput | EquipmentAssetUpdateWithWhereUniqueWithoutUnitInput[]
-    updateMany?: EquipmentAssetUpdateManyWithWhereWithoutUnitInput | EquipmentAssetUpdateManyWithWhereWithoutUnitInput[]
-    deleteMany?: EquipmentAssetScalarWhereInput | EquipmentAssetScalarWhereInput[]
-  }
-
   export type ProcedureBookingUncheckedUpdateManyWithoutUnitNestedInput = {
     create?: XOR<ProcedureBookingCreateWithoutUnitInput, ProcedureBookingUncheckedCreateWithoutUnitInput> | ProcedureBookingCreateWithoutUnitInput[] | ProcedureBookingUncheckedCreateWithoutUnitInput[]
     connectOrCreate?: ProcedureBookingCreateOrConnectWithoutUnitInput | ProcedureBookingCreateOrConnectWithoutUnitInput[]
@@ -74152,16 +74019,16 @@ export namespace Prisma {
     deleteMany?: ProcedureBookingScalarWhereInput | ProcedureBookingScalarWhereInput[]
   }
 
-  export type UnitCreateNestedOneWithoutRoomsInput = {
-    create?: XOR<UnitCreateWithoutRoomsInput, UnitUncheckedCreateWithoutRoomsInput>
-    connectOrCreate?: UnitCreateOrConnectWithoutRoomsInput
-    connect?: UnitWhereUniqueInput
-  }
-
   export type BranchCreateNestedOneWithoutUnitRoomsInput = {
     create?: XOR<BranchCreateWithoutUnitRoomsInput, BranchUncheckedCreateWithoutUnitRoomsInput>
     connectOrCreate?: BranchCreateOrConnectWithoutUnitRoomsInput
     connect?: BranchWhereUniqueInput
+  }
+
+  export type UnitCreateNestedOneWithoutRoomsInput = {
+    create?: XOR<UnitCreateWithoutRoomsInput, UnitUncheckedCreateWithoutRoomsInput>
+    connectOrCreate?: UnitCreateOrConnectWithoutRoomsInput
+    connect?: UnitWhereUniqueInput
   }
 
   export type UnitResourceCreateNestedManyWithoutRoomInput = {
@@ -74171,33 +74038,11 @@ export namespace Prisma {
     connect?: UnitResourceWhereUniqueInput | UnitResourceWhereUniqueInput[]
   }
 
-  export type EquipmentAssetCreateNestedManyWithoutRoomInput = {
-    create?: XOR<EquipmentAssetCreateWithoutRoomInput, EquipmentAssetUncheckedCreateWithoutRoomInput> | EquipmentAssetCreateWithoutRoomInput[] | EquipmentAssetUncheckedCreateWithoutRoomInput[]
-    connectOrCreate?: EquipmentAssetCreateOrConnectWithoutRoomInput | EquipmentAssetCreateOrConnectWithoutRoomInput[]
-    createMany?: EquipmentAssetCreateManyRoomInputEnvelope
-    connect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-  }
-
   export type UnitResourceUncheckedCreateNestedManyWithoutRoomInput = {
     create?: XOR<UnitResourceCreateWithoutRoomInput, UnitResourceUncheckedCreateWithoutRoomInput> | UnitResourceCreateWithoutRoomInput[] | UnitResourceUncheckedCreateWithoutRoomInput[]
     connectOrCreate?: UnitResourceCreateOrConnectWithoutRoomInput | UnitResourceCreateOrConnectWithoutRoomInput[]
     createMany?: UnitResourceCreateManyRoomInputEnvelope
     connect?: UnitResourceWhereUniqueInput | UnitResourceWhereUniqueInput[]
-  }
-
-  export type EquipmentAssetUncheckedCreateNestedManyWithoutRoomInput = {
-    create?: XOR<EquipmentAssetCreateWithoutRoomInput, EquipmentAssetUncheckedCreateWithoutRoomInput> | EquipmentAssetCreateWithoutRoomInput[] | EquipmentAssetUncheckedCreateWithoutRoomInput[]
-    connectOrCreate?: EquipmentAssetCreateOrConnectWithoutRoomInput | EquipmentAssetCreateOrConnectWithoutRoomInput[]
-    createMany?: EquipmentAssetCreateManyRoomInputEnvelope
-    connect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-  }
-
-  export type UnitUpdateOneRequiredWithoutRoomsNestedInput = {
-    create?: XOR<UnitCreateWithoutRoomsInput, UnitUncheckedCreateWithoutRoomsInput>
-    connectOrCreate?: UnitCreateOrConnectWithoutRoomsInput
-    upsert?: UnitUpsertWithoutRoomsInput
-    connect?: UnitWhereUniqueInput
-    update?: XOR<XOR<UnitUpdateToOneWithWhereWithoutRoomsInput, UnitUpdateWithoutRoomsInput>, UnitUncheckedUpdateWithoutRoomsInput>
   }
 
   export type BranchUpdateOneRequiredWithoutUnitRoomsNestedInput = {
@@ -74206,6 +74051,14 @@ export namespace Prisma {
     upsert?: BranchUpsertWithoutUnitRoomsInput
     connect?: BranchWhereUniqueInput
     update?: XOR<XOR<BranchUpdateToOneWithWhereWithoutUnitRoomsInput, BranchUpdateWithoutUnitRoomsInput>, BranchUncheckedUpdateWithoutUnitRoomsInput>
+  }
+
+  export type UnitUpdateOneRequiredWithoutRoomsNestedInput = {
+    create?: XOR<UnitCreateWithoutRoomsInput, UnitUncheckedCreateWithoutRoomsInput>
+    connectOrCreate?: UnitCreateOrConnectWithoutRoomsInput
+    upsert?: UnitUpsertWithoutRoomsInput
+    connect?: UnitWhereUniqueInput
+    update?: XOR<XOR<UnitUpdateToOneWithWhereWithoutRoomsInput, UnitUpdateWithoutRoomsInput>, UnitUncheckedUpdateWithoutRoomsInput>
   }
 
   export type UnitResourceUpdateManyWithoutRoomNestedInput = {
@@ -74222,20 +74075,6 @@ export namespace Prisma {
     deleteMany?: UnitResourceScalarWhereInput | UnitResourceScalarWhereInput[]
   }
 
-  export type EquipmentAssetUpdateManyWithoutRoomNestedInput = {
-    create?: XOR<EquipmentAssetCreateWithoutRoomInput, EquipmentAssetUncheckedCreateWithoutRoomInput> | EquipmentAssetCreateWithoutRoomInput[] | EquipmentAssetUncheckedCreateWithoutRoomInput[]
-    connectOrCreate?: EquipmentAssetCreateOrConnectWithoutRoomInput | EquipmentAssetCreateOrConnectWithoutRoomInput[]
-    upsert?: EquipmentAssetUpsertWithWhereUniqueWithoutRoomInput | EquipmentAssetUpsertWithWhereUniqueWithoutRoomInput[]
-    createMany?: EquipmentAssetCreateManyRoomInputEnvelope
-    set?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    disconnect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    delete?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    connect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    update?: EquipmentAssetUpdateWithWhereUniqueWithoutRoomInput | EquipmentAssetUpdateWithWhereUniqueWithoutRoomInput[]
-    updateMany?: EquipmentAssetUpdateManyWithWhereWithoutRoomInput | EquipmentAssetUpdateManyWithWhereWithoutRoomInput[]
-    deleteMany?: EquipmentAssetScalarWhereInput | EquipmentAssetScalarWhereInput[]
-  }
-
   export type UnitResourceUncheckedUpdateManyWithoutRoomNestedInput = {
     create?: XOR<UnitResourceCreateWithoutRoomInput, UnitResourceUncheckedCreateWithoutRoomInput> | UnitResourceCreateWithoutRoomInput[] | UnitResourceUncheckedCreateWithoutRoomInput[]
     connectOrCreate?: UnitResourceCreateOrConnectWithoutRoomInput | UnitResourceCreateOrConnectWithoutRoomInput[]
@@ -74248,20 +74087,6 @@ export namespace Prisma {
     update?: UnitResourceUpdateWithWhereUniqueWithoutRoomInput | UnitResourceUpdateWithWhereUniqueWithoutRoomInput[]
     updateMany?: UnitResourceUpdateManyWithWhereWithoutRoomInput | UnitResourceUpdateManyWithWhereWithoutRoomInput[]
     deleteMany?: UnitResourceScalarWhereInput | UnitResourceScalarWhereInput[]
-  }
-
-  export type EquipmentAssetUncheckedUpdateManyWithoutRoomNestedInput = {
-    create?: XOR<EquipmentAssetCreateWithoutRoomInput, EquipmentAssetUncheckedCreateWithoutRoomInput> | EquipmentAssetCreateWithoutRoomInput[] | EquipmentAssetUncheckedCreateWithoutRoomInput[]
-    connectOrCreate?: EquipmentAssetCreateOrConnectWithoutRoomInput | EquipmentAssetCreateOrConnectWithoutRoomInput[]
-    upsert?: EquipmentAssetUpsertWithWhereUniqueWithoutRoomInput | EquipmentAssetUpsertWithWhereUniqueWithoutRoomInput[]
-    createMany?: EquipmentAssetCreateManyRoomInputEnvelope
-    set?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    disconnect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    delete?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    connect?: EquipmentAssetWhereUniqueInput | EquipmentAssetWhereUniqueInput[]
-    update?: EquipmentAssetUpdateWithWhereUniqueWithoutRoomInput | EquipmentAssetUpdateWithWhereUniqueWithoutRoomInput[]
-    updateMany?: EquipmentAssetUpdateManyWithWhereWithoutRoomInput | EquipmentAssetUpdateManyWithWhereWithoutRoomInput[]
-    deleteMany?: EquipmentAssetScalarWhereInput | EquipmentAssetScalarWhereInput[]
   }
 
   export type BranchCreateNestedOneWithoutUnitResourcesInput = {
@@ -74370,24 +74195,6 @@ export namespace Prisma {
     connect?: DepartmentWhereUniqueInput
   }
 
-  export type UnitCreateNestedOneWithoutEquipmentInput = {
-    create?: XOR<UnitCreateWithoutEquipmentInput, UnitUncheckedCreateWithoutEquipmentInput>
-    connectOrCreate?: UnitCreateOrConnectWithoutEquipmentInput
-    connect?: UnitWhereUniqueInput
-  }
-
-  export type UnitRoomCreateNestedOneWithoutEquipmentInput = {
-    create?: XOR<UnitRoomCreateWithoutEquipmentInput, UnitRoomUncheckedCreateWithoutEquipmentInput>
-    connectOrCreate?: UnitRoomCreateOrConnectWithoutEquipmentInput
-    connect?: UnitRoomWhereUniqueInput
-  }
-
-  export type LocationNodeCreateNestedOneWithoutEquipmentAssetInput = {
-    create?: XOR<LocationNodeCreateWithoutEquipmentAssetInput, LocationNodeUncheckedCreateWithoutEquipmentAssetInput>
-    connectOrCreate?: LocationNodeCreateOrConnectWithoutEquipmentAssetInput
-    connect?: LocationNodeWhereUniqueInput
-  }
-
   export type DowntimeTicketCreateNestedManyWithoutAssetInput = {
     create?: XOR<DowntimeTicketCreateWithoutAssetInput, DowntimeTicketUncheckedCreateWithoutAssetInput> | DowntimeTicketCreateWithoutAssetInput[] | DowntimeTicketUncheckedCreateWithoutAssetInput[]
     connectOrCreate?: DowntimeTicketCreateOrConnectWithoutAssetInput | DowntimeTicketCreateOrConnectWithoutAssetInput[]
@@ -74402,8 +74209,8 @@ export namespace Prisma {
     connect?: DowntimeTicketWhereUniqueInput | DowntimeTicketWhereUniqueInput[]
   }
 
-  export type EnumEquipmentComplianceCategoryFieldUpdateOperationsInput = {
-    set?: $Enums.EquipmentComplianceCategory
+  export type EnumEquipmentCategoryFieldUpdateOperationsInput = {
+    set?: $Enums.EquipmentCategory
   }
 
   export type EnumEquipmentOperationalStatusFieldUpdateOperationsInput = {
@@ -74434,36 +74241,6 @@ export namespace Prisma {
     delete?: DepartmentWhereInput | boolean
     connect?: DepartmentWhereUniqueInput
     update?: XOR<XOR<DepartmentUpdateToOneWithWhereWithoutEquipmentOwnedInput, DepartmentUpdateWithoutEquipmentOwnedInput>, DepartmentUncheckedUpdateWithoutEquipmentOwnedInput>
-  }
-
-  export type UnitUpdateOneWithoutEquipmentNestedInput = {
-    create?: XOR<UnitCreateWithoutEquipmentInput, UnitUncheckedCreateWithoutEquipmentInput>
-    connectOrCreate?: UnitCreateOrConnectWithoutEquipmentInput
-    upsert?: UnitUpsertWithoutEquipmentInput
-    disconnect?: UnitWhereInput | boolean
-    delete?: UnitWhereInput | boolean
-    connect?: UnitWhereUniqueInput
-    update?: XOR<XOR<UnitUpdateToOneWithWhereWithoutEquipmentInput, UnitUpdateWithoutEquipmentInput>, UnitUncheckedUpdateWithoutEquipmentInput>
-  }
-
-  export type UnitRoomUpdateOneWithoutEquipmentNestedInput = {
-    create?: XOR<UnitRoomCreateWithoutEquipmentInput, UnitRoomUncheckedCreateWithoutEquipmentInput>
-    connectOrCreate?: UnitRoomCreateOrConnectWithoutEquipmentInput
-    upsert?: UnitRoomUpsertWithoutEquipmentInput
-    disconnect?: UnitRoomWhereInput | boolean
-    delete?: UnitRoomWhereInput | boolean
-    connect?: UnitRoomWhereUniqueInput
-    update?: XOR<XOR<UnitRoomUpdateToOneWithWhereWithoutEquipmentInput, UnitRoomUpdateWithoutEquipmentInput>, UnitRoomUncheckedUpdateWithoutEquipmentInput>
-  }
-
-  export type LocationNodeUpdateOneWithoutEquipmentAssetNestedInput = {
-    create?: XOR<LocationNodeCreateWithoutEquipmentAssetInput, LocationNodeUncheckedCreateWithoutEquipmentAssetInput>
-    connectOrCreate?: LocationNodeCreateOrConnectWithoutEquipmentAssetInput
-    upsert?: LocationNodeUpsertWithoutEquipmentAssetInput
-    disconnect?: LocationNodeWhereInput | boolean
-    delete?: LocationNodeWhereInput | boolean
-    connect?: LocationNodeWhereUniqueInput
-    update?: XOR<XOR<LocationNodeUpdateToOneWithWhereWithoutEquipmentAssetInput, LocationNodeUpdateWithoutEquipmentAssetInput>, LocationNodeUncheckedUpdateWithoutEquipmentAssetInput>
   }
 
   export type DowntimeTicketUpdateManyWithoutAssetNestedInput = {
@@ -74666,9 +74443,9 @@ export namespace Prisma {
     deleteMany?: FixItTaskScalarWhereInput | FixItTaskScalarWhereInput[]
   }
 
-  export type BranchCreateNestedOneWithoutServiceMappingsInput = {
-    create?: XOR<BranchCreateWithoutServiceMappingsInput, BranchUncheckedCreateWithoutServiceMappingsInput>
-    connectOrCreate?: BranchCreateOrConnectWithoutServiceMappingsInput
+  export type BranchCreateNestedOneWithoutServiceChargeMappingsInput = {
+    create?: XOR<BranchCreateWithoutServiceChargeMappingsInput, BranchUncheckedCreateWithoutServiceChargeMappingsInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutServiceChargeMappingsInput
     connect?: BranchWhereUniqueInput
   }
 
@@ -74684,12 +74461,12 @@ export namespace Prisma {
     connect?: ChargeMasterItemWhereUniqueInput
   }
 
-  export type BranchUpdateOneRequiredWithoutServiceMappingsNestedInput = {
-    create?: XOR<BranchCreateWithoutServiceMappingsInput, BranchUncheckedCreateWithoutServiceMappingsInput>
-    connectOrCreate?: BranchCreateOrConnectWithoutServiceMappingsInput
-    upsert?: BranchUpsertWithoutServiceMappingsInput
+  export type BranchUpdateOneRequiredWithoutServiceChargeMappingsNestedInput = {
+    create?: XOR<BranchCreateWithoutServiceChargeMappingsInput, BranchUncheckedCreateWithoutServiceChargeMappingsInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutServiceChargeMappingsInput
+    upsert?: BranchUpsertWithoutServiceChargeMappingsInput
     connect?: BranchWhereUniqueInput
-    update?: XOR<XOR<BranchUpdateToOneWithWhereWithoutServiceMappingsInput, BranchUpdateWithoutServiceMappingsInput>, BranchUncheckedUpdateWithoutServiceMappingsInput>
+    update?: XOR<XOR<BranchUpdateToOneWithWhereWithoutServiceChargeMappingsInput, BranchUpdateWithoutServiceChargeMappingsInput>, BranchUncheckedUpdateWithoutServiceChargeMappingsInput>
   }
 
   export type ServiceItemUpdateOneRequiredWithoutMappingsNestedInput = {
@@ -74726,8 +74503,8 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
-  export type EnumFixItTypeFieldUpdateOperationsInput = {
-    set?: $Enums.FixItType
+  export type EnumFixItTaskTypeFieldUpdateOperationsInput = {
+    set?: $Enums.FixItTaskType
   }
 
   export type EnumFixItStatusFieldUpdateOperationsInput = {
@@ -74762,9 +74539,9 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAssignedFixItsInput, UserUpdateWithoutAssignedFixItsInput>, UserUncheckedUpdateWithoutAssignedFixItsInput>
   }
 
-  export type BranchCreateNestedOneWithoutImportJobsInput = {
-    create?: XOR<BranchCreateWithoutImportJobsInput, BranchUncheckedCreateWithoutImportJobsInput>
-    connectOrCreate?: BranchCreateOrConnectWithoutImportJobsInput
+  export type BranchCreateNestedOneWithoutBulkImportJobsInput = {
+    create?: XOR<BranchCreateWithoutBulkImportJobsInput, BranchUncheckedCreateWithoutBulkImportJobsInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutBulkImportJobsInput
     connect?: BranchWhereUniqueInput
   }
 
@@ -74774,20 +74551,20 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
-  export type EnumImportEntityTypeFieldUpdateOperationsInput = {
-    set?: $Enums.ImportEntityType
+  export type EnumBulkImportEntityTypeFieldUpdateOperationsInput = {
+    set?: $Enums.BulkImportEntityType
   }
 
-  export type EnumImportJobStatusFieldUpdateOperationsInput = {
-    set?: $Enums.ImportJobStatus
+  export type EnumBulkImportStatusFieldUpdateOperationsInput = {
+    set?: $Enums.BulkImportStatus
   }
 
-  export type BranchUpdateOneRequiredWithoutImportJobsNestedInput = {
-    create?: XOR<BranchCreateWithoutImportJobsInput, BranchUncheckedCreateWithoutImportJobsInput>
-    connectOrCreate?: BranchCreateOrConnectWithoutImportJobsInput
-    upsert?: BranchUpsertWithoutImportJobsInput
+  export type BranchUpdateOneRequiredWithoutBulkImportJobsNestedInput = {
+    create?: XOR<BranchCreateWithoutBulkImportJobsInput, BranchUncheckedCreateWithoutBulkImportJobsInput>
+    connectOrCreate?: BranchCreateOrConnectWithoutBulkImportJobsInput
+    upsert?: BranchUpsertWithoutBulkImportJobsInput
     connect?: BranchWhereUniqueInput
-    update?: XOR<XOR<BranchUpdateToOneWithWhereWithoutImportJobsInput, BranchUpdateWithoutImportJobsInput>, BranchUncheckedUpdateWithoutImportJobsInput>
+    update?: XOR<XOR<BranchUpdateToOneWithWhereWithoutBulkImportJobsInput, BranchUpdateWithoutBulkImportJobsInput>, BranchUncheckedUpdateWithoutBulkImportJobsInput>
   }
 
   export type UserUpdateOneWithoutCreatedImportJobsNestedInput = {
@@ -75375,11 +75152,11 @@ export namespace Prisma {
     _max?: NestedEnumUnitResourceStateFilter<$PrismaModel>
   }
 
-  export type NestedEnumEquipmentComplianceCategoryFilter<$PrismaModel = never> = {
-    equals?: $Enums.EquipmentComplianceCategory | EnumEquipmentComplianceCategoryFieldRefInput<$PrismaModel>
-    in?: $Enums.EquipmentComplianceCategory[] | ListEnumEquipmentComplianceCategoryFieldRefInput<$PrismaModel>
-    notIn?: $Enums.EquipmentComplianceCategory[] | ListEnumEquipmentComplianceCategoryFieldRefInput<$PrismaModel>
-    not?: NestedEnumEquipmentComplianceCategoryFilter<$PrismaModel> | $Enums.EquipmentComplianceCategory
+  export type NestedEnumEquipmentCategoryFilter<$PrismaModel = never> = {
+    equals?: $Enums.EquipmentCategory | EnumEquipmentCategoryFieldRefInput<$PrismaModel>
+    in?: $Enums.EquipmentCategory[] | ListEnumEquipmentCategoryFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EquipmentCategory[] | ListEnumEquipmentCategoryFieldRefInput<$PrismaModel>
+    not?: NestedEnumEquipmentCategoryFilter<$PrismaModel> | $Enums.EquipmentCategory
   }
 
   export type NestedEnumEquipmentOperationalStatusFilter<$PrismaModel = never> = {
@@ -75389,14 +75166,14 @@ export namespace Prisma {
     not?: NestedEnumEquipmentOperationalStatusFilter<$PrismaModel> | $Enums.EquipmentOperationalStatus
   }
 
-  export type NestedEnumEquipmentComplianceCategoryWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.EquipmentComplianceCategory | EnumEquipmentComplianceCategoryFieldRefInput<$PrismaModel>
-    in?: $Enums.EquipmentComplianceCategory[] | ListEnumEquipmentComplianceCategoryFieldRefInput<$PrismaModel>
-    notIn?: $Enums.EquipmentComplianceCategory[] | ListEnumEquipmentComplianceCategoryFieldRefInput<$PrismaModel>
-    not?: NestedEnumEquipmentComplianceCategoryWithAggregatesFilter<$PrismaModel> | $Enums.EquipmentComplianceCategory
+  export type NestedEnumEquipmentCategoryWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.EquipmentCategory | EnumEquipmentCategoryFieldRefInput<$PrismaModel>
+    in?: $Enums.EquipmentCategory[] | ListEnumEquipmentCategoryFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EquipmentCategory[] | ListEnumEquipmentCategoryFieldRefInput<$PrismaModel>
+    not?: NestedEnumEquipmentCategoryWithAggregatesFilter<$PrismaModel> | $Enums.EquipmentCategory
     _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumEquipmentComplianceCategoryFilter<$PrismaModel>
-    _max?: NestedEnumEquipmentComplianceCategoryFilter<$PrismaModel>
+    _min?: NestedEnumEquipmentCategoryFilter<$PrismaModel>
+    _max?: NestedEnumEquipmentCategoryFilter<$PrismaModel>
   }
 
   export type NestedEnumEquipmentOperationalStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -75453,11 +75230,11 @@ export namespace Prisma {
     _max?: NestedEnumDowntimeStatusFilter<$PrismaModel>
   }
 
-  export type NestedEnumFixItTypeFilter<$PrismaModel = never> = {
-    equals?: $Enums.FixItType | EnumFixItTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.FixItType[] | ListEnumFixItTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.FixItType[] | ListEnumFixItTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumFixItTypeFilter<$PrismaModel> | $Enums.FixItType
+  export type NestedEnumFixItTaskTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.FixItTaskType | EnumFixItTaskTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.FixItTaskType[] | ListEnumFixItTaskTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.FixItTaskType[] | ListEnumFixItTaskTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumFixItTaskTypeFilter<$PrismaModel> | $Enums.FixItTaskType
   }
 
   export type NestedEnumFixItStatusFilter<$PrismaModel = never> = {
@@ -75467,14 +75244,14 @@ export namespace Prisma {
     not?: NestedEnumFixItStatusFilter<$PrismaModel> | $Enums.FixItStatus
   }
 
-  export type NestedEnumFixItTypeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.FixItType | EnumFixItTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.FixItType[] | ListEnumFixItTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.FixItType[] | ListEnumFixItTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumFixItTypeWithAggregatesFilter<$PrismaModel> | $Enums.FixItType
+  export type NestedEnumFixItTaskTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.FixItTaskType | EnumFixItTaskTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.FixItTaskType[] | ListEnumFixItTaskTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.FixItTaskType[] | ListEnumFixItTaskTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumFixItTaskTypeWithAggregatesFilter<$PrismaModel> | $Enums.FixItTaskType
     _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumFixItTypeFilter<$PrismaModel>
-    _max?: NestedEnumFixItTypeFilter<$PrismaModel>
+    _min?: NestedEnumFixItTaskTypeFilter<$PrismaModel>
+    _max?: NestedEnumFixItTaskTypeFilter<$PrismaModel>
   }
 
   export type NestedEnumFixItStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -75487,38 +75264,38 @@ export namespace Prisma {
     _max?: NestedEnumFixItStatusFilter<$PrismaModel>
   }
 
-  export type NestedEnumImportEntityTypeFilter<$PrismaModel = never> = {
-    equals?: $Enums.ImportEntityType | EnumImportEntityTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.ImportEntityType[] | ListEnumImportEntityTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.ImportEntityType[] | ListEnumImportEntityTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumImportEntityTypeFilter<$PrismaModel> | $Enums.ImportEntityType
+  export type NestedEnumBulkImportEntityTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.BulkImportEntityType | EnumBulkImportEntityTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BulkImportEntityType[] | ListEnumBulkImportEntityTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BulkImportEntityType[] | ListEnumBulkImportEntityTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumBulkImportEntityTypeFilter<$PrismaModel> | $Enums.BulkImportEntityType
   }
 
-  export type NestedEnumImportJobStatusFilter<$PrismaModel = never> = {
-    equals?: $Enums.ImportJobStatus | EnumImportJobStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.ImportJobStatus[] | ListEnumImportJobStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.ImportJobStatus[] | ListEnumImportJobStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumImportJobStatusFilter<$PrismaModel> | $Enums.ImportJobStatus
+  export type NestedEnumBulkImportStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.BulkImportStatus | EnumBulkImportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BulkImportStatus[] | ListEnumBulkImportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BulkImportStatus[] | ListEnumBulkImportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBulkImportStatusFilter<$PrismaModel> | $Enums.BulkImportStatus
   }
 
-  export type NestedEnumImportEntityTypeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.ImportEntityType | EnumImportEntityTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.ImportEntityType[] | ListEnumImportEntityTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.ImportEntityType[] | ListEnumImportEntityTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumImportEntityTypeWithAggregatesFilter<$PrismaModel> | $Enums.ImportEntityType
+  export type NestedEnumBulkImportEntityTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BulkImportEntityType | EnumBulkImportEntityTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BulkImportEntityType[] | ListEnumBulkImportEntityTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BulkImportEntityType[] | ListEnumBulkImportEntityTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumBulkImportEntityTypeWithAggregatesFilter<$PrismaModel> | $Enums.BulkImportEntityType
     _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumImportEntityTypeFilter<$PrismaModel>
-    _max?: NestedEnumImportEntityTypeFilter<$PrismaModel>
+    _min?: NestedEnumBulkImportEntityTypeFilter<$PrismaModel>
+    _max?: NestedEnumBulkImportEntityTypeFilter<$PrismaModel>
   }
 
-  export type NestedEnumImportJobStatusWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.ImportJobStatus | EnumImportJobStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.ImportJobStatus[] | ListEnumImportJobStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.ImportJobStatus[] | ListEnumImportJobStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumImportJobStatusWithAggregatesFilter<$PrismaModel> | $Enums.ImportJobStatus
+  export type NestedEnumBulkImportStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BulkImportStatus | EnumBulkImportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BulkImportStatus[] | ListEnumBulkImportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BulkImportStatus[] | ListEnumBulkImportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBulkImportStatusWithAggregatesFilter<$PrismaModel> | $Enums.BulkImportStatus
     _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumImportJobStatusFilter<$PrismaModel>
-    _max?: NestedEnumImportJobStatusFilter<$PrismaModel>
+    _min?: NestedEnumBulkImportStatusFilter<$PrismaModel>
+    _max?: NestedEnumBulkImportStatusFilter<$PrismaModel>
   }
 
   export type NestedEnumBookingStatusFilter<$PrismaModel = never> = {
@@ -75548,8 +75325,9 @@ export namespace Prisma {
     facility: FacilityCatalogCreateNestedOneWithoutDepartmentsInput
     headStaff?: StaffCreateNestedOneWithoutHeadedDepartmentsInput
     staff?: StaffCreateNestedManyWithoutDepartmentInput
-    departmentSpecialties?: DepartmentSpecialtyCreateNestedManyWithoutDepartmentInput
+    specialties?: SpecialtyCreateNestedManyWithoutDepartmentInput
     doctorAssignments?: DepartmentDoctorCreateNestedManyWithoutDepartmentInput
+    departmentSpecialties?: DepartmentSpecialtyCreateNestedManyWithoutDepartmentInput
     units?: UnitCreateNestedManyWithoutDepartmentInput
     equipmentOwned?: EquipmentAssetCreateNestedManyWithoutOwnerDepartmentInput
   }
@@ -75564,8 +75342,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     staff?: StaffUncheckedCreateNestedManyWithoutDepartmentInput
-    departmentSpecialties?: DepartmentSpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
+    specialties?: SpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
     doctorAssignments?: DepartmentDoctorUncheckedCreateNestedManyWithoutDepartmentInput
+    departmentSpecialties?: DepartmentSpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
     units?: UnitUncheckedCreateNestedManyWithoutDepartmentInput
     equipmentOwned?: EquipmentAssetUncheckedCreateNestedManyWithoutOwnerDepartmentInput
   }
@@ -75829,12 +75608,14 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    department?: DepartmentCreateNestedOneWithoutSpecialtiesInput
     staff?: StaffCreateNestedManyWithoutSpecialtyInput
     departmentLinks?: DepartmentSpecialtyCreateNestedManyWithoutSpecialtyInput
   }
 
   export type SpecialtyUncheckedCreateWithoutBranchInput = {
     id?: string
+    departmentId?: string | null
     code: string
     name: string
     isActive?: boolean
@@ -76214,7 +75995,6 @@ export namespace Prisma {
     parent?: LocationNodeCreateNestedOneWithoutChildrenInput
     children?: LocationNodeCreateNestedManyWithoutParentInput
     revisions?: LocationNodeRevisionCreateNestedManyWithoutNodeInput
-    EquipmentAsset?: EquipmentAssetCreateNestedManyWithoutLocationNodeInput
   }
 
   export type LocationNodeUncheckedCreateWithoutBranchInput = {
@@ -76225,7 +76005,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     children?: LocationNodeUncheckedCreateNestedManyWithoutParentInput
     revisions?: LocationNodeRevisionUncheckedCreateNestedManyWithoutNodeInput
-    EquipmentAsset?: EquipmentAssetUncheckedCreateNestedManyWithoutLocationNodeInput
   }
 
   export type LocationNodeCreateOrConnectWithoutBranchInput = {
@@ -76241,7 +76020,7 @@ export namespace Prisma {
   export type BranchUnitTypeCreateWithoutBranchInput = {
     id?: string
     isEnabled?: boolean
-    enabledAt?: Date | string
+    enabledAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     unitType: UnitTypeCatalogCreateNestedOneWithoutBranchLinksInput
@@ -76251,7 +76030,7 @@ export namespace Prisma {
     id?: string
     unitTypeId: string
     isEnabled?: boolean
-    enabledAt?: Date | string
+    enabledAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -76278,7 +76057,6 @@ export namespace Prisma {
     unitType: UnitTypeCatalogCreateNestedOneWithoutUnitsInput
     rooms?: UnitRoomCreateNestedManyWithoutUnitInput
     resources?: UnitResourceCreateNestedManyWithoutUnitInput
-    equipment?: EquipmentAssetCreateNestedManyWithoutUnitInput
     bookings?: ProcedureBookingCreateNestedManyWithoutUnitInput
   }
 
@@ -76294,7 +76072,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     rooms?: UnitRoomUncheckedCreateNestedManyWithoutUnitInput
     resources?: UnitResourceUncheckedCreateNestedManyWithoutUnitInput
-    equipment?: EquipmentAssetUncheckedCreateNestedManyWithoutUnitInput
     bookings?: ProcedureBookingUncheckedCreateNestedManyWithoutUnitInput
   }
 
@@ -76317,7 +76094,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     unit: UnitCreateNestedOneWithoutRoomsInput
     resources?: UnitResourceCreateNestedManyWithoutRoomInput
-    equipment?: EquipmentAssetCreateNestedManyWithoutRoomInput
   }
 
   export type UnitRoomUncheckedCreateWithoutBranchInput = {
@@ -76329,7 +76105,6 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     resources?: UnitResourceUncheckedCreateNestedManyWithoutRoomInput
-    equipment?: EquipmentAssetUncheckedCreateNestedManyWithoutRoomInput
   }
 
   export type UnitRoomCreateOrConnectWithoutBranchInput = {
@@ -76382,14 +76157,61 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ProcedureBookingCreateWithoutBranchInput = {
+    id?: string
+    patientId?: string | null
+    departmentId?: string | null
+    startAt: Date | string
+    endAt: Date | string
+    status?: $Enums.BookingStatus
+    consentOk?: boolean
+    anesthesiaOk?: boolean
+    checklistOk?: boolean
+    cancelledAt?: Date | string | null
+    createdAt?: Date | string
+    unit: UnitCreateNestedOneWithoutBookingsInput
+    resource: UnitResourceCreateNestedOneWithoutBookingsInput
+    createdByUser?: UserCreateNestedOneWithoutCreatedBookingsInput
+  }
+
+  export type ProcedureBookingUncheckedCreateWithoutBranchInput = {
+    id?: string
+    unitId: string
+    resourceId: string
+    patientId?: string | null
+    departmentId?: string | null
+    startAt: Date | string
+    endAt: Date | string
+    status?: $Enums.BookingStatus
+    consentOk?: boolean
+    anesthesiaOk?: boolean
+    checklistOk?: boolean
+    createdByUserId?: string | null
+    cancelledAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type ProcedureBookingCreateOrConnectWithoutBranchInput = {
+    where: ProcedureBookingWhereUniqueInput
+    create: XOR<ProcedureBookingCreateWithoutBranchInput, ProcedureBookingUncheckedCreateWithoutBranchInput>
+  }
+
+  export type ProcedureBookingCreateManyBranchInputEnvelope = {
+    data: ProcedureBookingCreateManyBranchInput | ProcedureBookingCreateManyBranchInput[]
+    skipDuplicates?: boolean
+  }
+
   export type EquipmentAssetCreateWithoutBranchInput = {
     id?: string
     code: string
     name: string
-    category?: $Enums.EquipmentComplianceCategory
+    category?: $Enums.EquipmentCategory
     make?: string | null
     model?: string | null
     serial?: string | null
+    unitId?: string | null
+    roomId?: string | null
+    locationNodeId?: string | null
     operationalStatus?: $Enums.EquipmentOperationalStatus
     amcVendor?: string | null
     amcValidFrom?: Date | string | null
@@ -76405,9 +76227,6 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     ownerDepartment?: DepartmentCreateNestedOneWithoutEquipmentOwnedInput
-    unit?: UnitCreateNestedOneWithoutEquipmentInput
-    room?: UnitRoomCreateNestedOneWithoutEquipmentInput
-    locationNode?: LocationNodeCreateNestedOneWithoutEquipmentAssetInput
     downtimeTickets?: DowntimeTicketCreateNestedManyWithoutAssetInput
   }
 
@@ -76415,7 +76234,7 @@ export namespace Prisma {
     id?: string
     code: string
     name: string
-    category?: $Enums.EquipmentComplianceCategory
+    category?: $Enums.EquipmentCategory
     make?: string | null
     model?: string | null
     serial?: string | null
@@ -76447,6 +76266,40 @@ export namespace Prisma {
 
   export type EquipmentAssetCreateManyBranchInputEnvelope = {
     data: EquipmentAssetCreateManyBranchInput | EquipmentAssetCreateManyBranchInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ChargeMasterItemCreateWithoutBranchInput = {
+    id?: string
+    code: string
+    name: string
+    category?: string | null
+    unit?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    mappings?: ServiceChargeMappingCreateNestedManyWithoutChargeMasterItemInput
+  }
+
+  export type ChargeMasterItemUncheckedCreateWithoutBranchInput = {
+    id?: string
+    code: string
+    name: string
+    category?: string | null
+    unit?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    mappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutChargeMasterItemInput
+  }
+
+  export type ChargeMasterItemCreateOrConnectWithoutBranchInput = {
+    where: ChargeMasterItemWhereUniqueInput
+    create: XOR<ChargeMasterItemCreateWithoutBranchInput, ChargeMasterItemUncheckedCreateWithoutBranchInput>
+  }
+
+  export type ChargeMasterItemCreateManyBranchInputEnvelope = {
+    data: ChargeMasterItemCreateManyBranchInput | ChargeMasterItemCreateManyBranchInput[]
     skipDuplicates?: boolean
   }
 
@@ -76488,43 +76341,9 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type ChargeMasterItemCreateWithoutBranchInput = {
-    id?: string
-    code: string
-    name: string
-    category?: string | null
-    unit?: string | null
-    isActive?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    mappings?: ServiceChargeMappingCreateNestedManyWithoutChargeMasterItemInput
-  }
-
-  export type ChargeMasterItemUncheckedCreateWithoutBranchInput = {
-    id?: string
-    code: string
-    name: string
-    category?: string | null
-    unit?: string | null
-    isActive?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    mappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutChargeMasterItemInput
-  }
-
-  export type ChargeMasterItemCreateOrConnectWithoutBranchInput = {
-    where: ChargeMasterItemWhereUniqueInput
-    create: XOR<ChargeMasterItemCreateWithoutBranchInput, ChargeMasterItemUncheckedCreateWithoutBranchInput>
-  }
-
-  export type ChargeMasterItemCreateManyBranchInputEnvelope = {
-    data: ChargeMasterItemCreateManyBranchInput | ChargeMasterItemCreateManyBranchInput[]
-    skipDuplicates?: boolean
-  }
-
   export type ServiceChargeMappingCreateWithoutBranchInput = {
     id?: string
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     version?: number
     createdAt?: Date | string
@@ -76537,7 +76356,7 @@ export namespace Prisma {
     id?: string
     serviceItemId: string
     chargeMasterItemId: string
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     version?: number
     createdAt?: Date | string
@@ -76556,7 +76375,7 @@ export namespace Prisma {
 
   export type FixItTaskCreateWithoutBranchInput = {
     id?: string
-    type: $Enums.FixItType
+    type: $Enums.FixItTaskType
     status?: $Enums.FixItStatus
     title: string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -76569,7 +76388,7 @@ export namespace Prisma {
 
   export type FixItTaskUncheckedCreateWithoutBranchInput = {
     id?: string
-    type: $Enums.FixItType
+    type: $Enums.FixItTaskType
     status?: $Enums.FixItStatus
     title: string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -76592,14 +76411,14 @@ export namespace Prisma {
 
   export type BulkImportJobCreateWithoutBranchInput = {
     id?: string
-    entityType: $Enums.ImportEntityType
-    status?: $Enums.ImportJobStatus
+    entityType: $Enums.BulkImportEntityType
+    status?: $Enums.BulkImportStatus
     fileName?: string | null
-    payload?: NullableJsonNullValueInput | InputJsonValue
+    payload: JsonNullValueInput | InputJsonValue
     errors?: NullableJsonNullValueInput | InputJsonValue
-    totalRows?: number
-    validRows?: number
-    invalidRows?: number
+    totalRows: number
+    validRows: number
+    invalidRows: number
     committedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -76608,16 +76427,16 @@ export namespace Prisma {
 
   export type BulkImportJobUncheckedCreateWithoutBranchInput = {
     id?: string
-    entityType: $Enums.ImportEntityType
-    status?: $Enums.ImportJobStatus
+    entityType: $Enums.BulkImportEntityType
+    status?: $Enums.BulkImportStatus
     fileName?: string | null
-    payload?: NullableJsonNullValueInput | InputJsonValue
+    payload: JsonNullValueInput | InputJsonValue
     errors?: NullableJsonNullValueInput | InputJsonValue
-    totalRows?: number
-    validRows?: number
-    invalidRows?: number
-    createdByUserId?: string | null
+    totalRows: number
+    validRows: number
+    invalidRows: number
     committedAt?: Date | string | null
+    createdByUserId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -76629,50 +76448,6 @@ export namespace Prisma {
 
   export type BulkImportJobCreateManyBranchInputEnvelope = {
     data: BulkImportJobCreateManyBranchInput | BulkImportJobCreateManyBranchInput[]
-    skipDuplicates?: boolean
-  }
-
-  export type ProcedureBookingCreateWithoutBranchInput = {
-    id?: string
-    patientId?: string | null
-    departmentId?: string | null
-    startAt: Date | string
-    endAt: Date | string
-    status?: $Enums.BookingStatus
-    consentOk?: boolean
-    anesthesiaOk?: boolean
-    checklistOk?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    unit: UnitCreateNestedOneWithoutBookingsInput
-    resource: UnitResourceCreateNestedOneWithoutBookingsInput
-    createdByUser?: UserCreateNestedOneWithoutCreatedBookingsInput
-  }
-
-  export type ProcedureBookingUncheckedCreateWithoutBranchInput = {
-    id?: string
-    unitId: string
-    resourceId: string
-    patientId?: string | null
-    departmentId?: string | null
-    startAt: Date | string
-    endAt: Date | string
-    status?: $Enums.BookingStatus
-    consentOk?: boolean
-    anesthesiaOk?: boolean
-    checklistOk?: boolean
-    createdByUserId?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
-  }
-
-  export type ProcedureBookingCreateOrConnectWithoutBranchInput = {
-    where: ProcedureBookingWhereUniqueInput
-    create: XOR<ProcedureBookingCreateWithoutBranchInput, ProcedureBookingUncheckedCreateWithoutBranchInput>
-  }
-
-  export type ProcedureBookingCreateManyBranchInputEnvelope = {
-    data: ProcedureBookingCreateManyBranchInput | ProcedureBookingCreateManyBranchInput[]
     skipDuplicates?: boolean
   }
 
@@ -76951,6 +76726,7 @@ export namespace Prisma {
     NOT?: SpecialtyScalarWhereInput | SpecialtyScalarWhereInput[]
     id?: StringFilter<"Specialty"> | string
     branchId?: StringFilter<"Specialty"> | string
+    departmentId?: StringNullableFilter<"Specialty"> | string | null
     code?: StringFilter<"Specialty"> | string
     name?: StringFilter<"Specialty"> | string
     isActive?: BoolFilter<"Specialty"> | boolean
@@ -77329,7 +77105,7 @@ export namespace Prisma {
     branchId?: StringFilter<"BranchUnitType"> | string
     unitTypeId?: StringFilter<"BranchUnitType"> | string
     isEnabled?: BoolFilter<"BranchUnitType"> | boolean
-    enabledAt?: DateTimeFilter<"BranchUnitType"> | Date | string
+    enabledAt?: DateTimeNullableFilter<"BranchUnitType"> | Date | string | null
     createdAt?: DateTimeFilter<"BranchUnitType"> | Date | string
     updatedAt?: DateTimeFilter<"BranchUnitType"> | Date | string
   }
@@ -77387,8 +77163,8 @@ export namespace Prisma {
     OR?: UnitRoomScalarWhereInput[]
     NOT?: UnitRoomScalarWhereInput | UnitRoomScalarWhereInput[]
     id?: StringFilter<"UnitRoom"> | string
-    unitId?: StringFilter<"UnitRoom"> | string
     branchId?: StringFilter<"UnitRoom"> | string
+    unitId?: StringFilter<"UnitRoom"> | string
     code?: StringFilter<"UnitRoom"> | string
     name?: StringFilter<"UnitRoom"> | string
     isActive?: BoolFilter<"UnitRoom"> | boolean
@@ -77430,6 +77206,43 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"UnitResource"> | Date | string
   }
 
+  export type ProcedureBookingUpsertWithWhereUniqueWithoutBranchInput = {
+    where: ProcedureBookingWhereUniqueInput
+    update: XOR<ProcedureBookingUpdateWithoutBranchInput, ProcedureBookingUncheckedUpdateWithoutBranchInput>
+    create: XOR<ProcedureBookingCreateWithoutBranchInput, ProcedureBookingUncheckedCreateWithoutBranchInput>
+  }
+
+  export type ProcedureBookingUpdateWithWhereUniqueWithoutBranchInput = {
+    where: ProcedureBookingWhereUniqueInput
+    data: XOR<ProcedureBookingUpdateWithoutBranchInput, ProcedureBookingUncheckedUpdateWithoutBranchInput>
+  }
+
+  export type ProcedureBookingUpdateManyWithWhereWithoutBranchInput = {
+    where: ProcedureBookingScalarWhereInput
+    data: XOR<ProcedureBookingUpdateManyMutationInput, ProcedureBookingUncheckedUpdateManyWithoutBranchInput>
+  }
+
+  export type ProcedureBookingScalarWhereInput = {
+    AND?: ProcedureBookingScalarWhereInput | ProcedureBookingScalarWhereInput[]
+    OR?: ProcedureBookingScalarWhereInput[]
+    NOT?: ProcedureBookingScalarWhereInput | ProcedureBookingScalarWhereInput[]
+    id?: StringFilter<"ProcedureBooking"> | string
+    branchId?: StringFilter<"ProcedureBooking"> | string
+    unitId?: StringFilter<"ProcedureBooking"> | string
+    resourceId?: StringFilter<"ProcedureBooking"> | string
+    patientId?: StringNullableFilter<"ProcedureBooking"> | string | null
+    departmentId?: StringNullableFilter<"ProcedureBooking"> | string | null
+    startAt?: DateTimeFilter<"ProcedureBooking"> | Date | string
+    endAt?: DateTimeFilter<"ProcedureBooking"> | Date | string
+    status?: EnumBookingStatusFilter<"ProcedureBooking"> | $Enums.BookingStatus
+    consentOk?: BoolFilter<"ProcedureBooking"> | boolean
+    anesthesiaOk?: BoolFilter<"ProcedureBooking"> | boolean
+    checklistOk?: BoolFilter<"ProcedureBooking"> | boolean
+    createdByUserId?: StringNullableFilter<"ProcedureBooking"> | string | null
+    cancelledAt?: DateTimeNullableFilter<"ProcedureBooking"> | Date | string | null
+    createdAt?: DateTimeFilter<"ProcedureBooking"> | Date | string
+  }
+
   export type EquipmentAssetUpsertWithWhereUniqueWithoutBranchInput = {
     where: EquipmentAssetWhereUniqueInput
     update: XOR<EquipmentAssetUpdateWithoutBranchInput, EquipmentAssetUncheckedUpdateWithoutBranchInput>
@@ -77454,7 +77267,7 @@ export namespace Prisma {
     branchId?: StringFilter<"EquipmentAsset"> | string
     code?: StringFilter<"EquipmentAsset"> | string
     name?: StringFilter<"EquipmentAsset"> | string
-    category?: EnumEquipmentComplianceCategoryFilter<"EquipmentAsset"> | $Enums.EquipmentComplianceCategory
+    category?: EnumEquipmentCategoryFilter<"EquipmentAsset"> | $Enums.EquipmentCategory
     make?: StringNullableFilter<"EquipmentAsset"> | string | null
     model?: StringNullableFilter<"EquipmentAsset"> | string | null
     serial?: StringNullableFilter<"EquipmentAsset"> | string | null
@@ -77476,6 +77289,37 @@ export namespace Prisma {
     isSchedulable?: BoolFilter<"EquipmentAsset"> | boolean
     createdAt?: DateTimeFilter<"EquipmentAsset"> | Date | string
     updatedAt?: DateTimeFilter<"EquipmentAsset"> | Date | string
+  }
+
+  export type ChargeMasterItemUpsertWithWhereUniqueWithoutBranchInput = {
+    where: ChargeMasterItemWhereUniqueInput
+    update: XOR<ChargeMasterItemUpdateWithoutBranchInput, ChargeMasterItemUncheckedUpdateWithoutBranchInput>
+    create: XOR<ChargeMasterItemCreateWithoutBranchInput, ChargeMasterItemUncheckedCreateWithoutBranchInput>
+  }
+
+  export type ChargeMasterItemUpdateWithWhereUniqueWithoutBranchInput = {
+    where: ChargeMasterItemWhereUniqueInput
+    data: XOR<ChargeMasterItemUpdateWithoutBranchInput, ChargeMasterItemUncheckedUpdateWithoutBranchInput>
+  }
+
+  export type ChargeMasterItemUpdateManyWithWhereWithoutBranchInput = {
+    where: ChargeMasterItemScalarWhereInput
+    data: XOR<ChargeMasterItemUpdateManyMutationInput, ChargeMasterItemUncheckedUpdateManyWithoutBranchInput>
+  }
+
+  export type ChargeMasterItemScalarWhereInput = {
+    AND?: ChargeMasterItemScalarWhereInput | ChargeMasterItemScalarWhereInput[]
+    OR?: ChargeMasterItemScalarWhereInput[]
+    NOT?: ChargeMasterItemScalarWhereInput | ChargeMasterItemScalarWhereInput[]
+    id?: StringFilter<"ChargeMasterItem"> | string
+    branchId?: StringFilter<"ChargeMasterItem"> | string
+    code?: StringFilter<"ChargeMasterItem"> | string
+    name?: StringFilter<"ChargeMasterItem"> | string
+    category?: StringNullableFilter<"ChargeMasterItem"> | string | null
+    unit?: StringNullableFilter<"ChargeMasterItem"> | string | null
+    isActive?: BoolFilter<"ChargeMasterItem"> | boolean
+    createdAt?: DateTimeFilter<"ChargeMasterItem"> | Date | string
+    updatedAt?: DateTimeFilter<"ChargeMasterItem"> | Date | string
   }
 
   export type ServiceItemUpsertWithWhereUniqueWithoutBranchInput = {
@@ -77508,37 +77352,6 @@ export namespace Prisma {
     isActive?: BoolFilter<"ServiceItem"> | boolean
     createdAt?: DateTimeFilter<"ServiceItem"> | Date | string
     updatedAt?: DateTimeFilter<"ServiceItem"> | Date | string
-  }
-
-  export type ChargeMasterItemUpsertWithWhereUniqueWithoutBranchInput = {
-    where: ChargeMasterItemWhereUniqueInput
-    update: XOR<ChargeMasterItemUpdateWithoutBranchInput, ChargeMasterItemUncheckedUpdateWithoutBranchInput>
-    create: XOR<ChargeMasterItemCreateWithoutBranchInput, ChargeMasterItemUncheckedCreateWithoutBranchInput>
-  }
-
-  export type ChargeMasterItemUpdateWithWhereUniqueWithoutBranchInput = {
-    where: ChargeMasterItemWhereUniqueInput
-    data: XOR<ChargeMasterItemUpdateWithoutBranchInput, ChargeMasterItemUncheckedUpdateWithoutBranchInput>
-  }
-
-  export type ChargeMasterItemUpdateManyWithWhereWithoutBranchInput = {
-    where: ChargeMasterItemScalarWhereInput
-    data: XOR<ChargeMasterItemUpdateManyMutationInput, ChargeMasterItemUncheckedUpdateManyWithoutBranchInput>
-  }
-
-  export type ChargeMasterItemScalarWhereInput = {
-    AND?: ChargeMasterItemScalarWhereInput | ChargeMasterItemScalarWhereInput[]
-    OR?: ChargeMasterItemScalarWhereInput[]
-    NOT?: ChargeMasterItemScalarWhereInput | ChargeMasterItemScalarWhereInput[]
-    id?: StringFilter<"ChargeMasterItem"> | string
-    branchId?: StringFilter<"ChargeMasterItem"> | string
-    code?: StringFilter<"ChargeMasterItem"> | string
-    name?: StringFilter<"ChargeMasterItem"> | string
-    category?: StringNullableFilter<"ChargeMasterItem"> | string | null
-    unit?: StringNullableFilter<"ChargeMasterItem"> | string | null
-    isActive?: BoolFilter<"ChargeMasterItem"> | boolean
-    createdAt?: DateTimeFilter<"ChargeMasterItem"> | Date | string
-    updatedAt?: DateTimeFilter<"ChargeMasterItem"> | Date | string
   }
 
   export type ServiceChargeMappingUpsertWithWhereUniqueWithoutBranchInput = {
@@ -77594,7 +77407,7 @@ export namespace Prisma {
     NOT?: FixItTaskScalarWhereInput | FixItTaskScalarWhereInput[]
     id?: StringFilter<"FixItTask"> | string
     branchId?: StringFilter<"FixItTask"> | string
-    type?: EnumFixItTypeFilter<"FixItTask"> | $Enums.FixItType
+    type?: EnumFixItTaskTypeFilter<"FixItTask"> | $Enums.FixItTaskType
     status?: EnumFixItStatusFilter<"FixItTask"> | $Enums.FixItStatus
     title?: StringFilter<"FixItTask"> | string
     details?: JsonNullableFilter<"FixItTask">
@@ -77627,55 +77440,18 @@ export namespace Prisma {
     NOT?: BulkImportJobScalarWhereInput | BulkImportJobScalarWhereInput[]
     id?: StringFilter<"BulkImportJob"> | string
     branchId?: StringFilter<"BulkImportJob"> | string
-    entityType?: EnumImportEntityTypeFilter<"BulkImportJob"> | $Enums.ImportEntityType
-    status?: EnumImportJobStatusFilter<"BulkImportJob"> | $Enums.ImportJobStatus
+    entityType?: EnumBulkImportEntityTypeFilter<"BulkImportJob"> | $Enums.BulkImportEntityType
+    status?: EnumBulkImportStatusFilter<"BulkImportJob"> | $Enums.BulkImportStatus
     fileName?: StringNullableFilter<"BulkImportJob"> | string | null
-    payload?: JsonNullableFilter<"BulkImportJob">
+    payload?: JsonFilter<"BulkImportJob">
     errors?: JsonNullableFilter<"BulkImportJob">
     totalRows?: IntFilter<"BulkImportJob"> | number
     validRows?: IntFilter<"BulkImportJob"> | number
     invalidRows?: IntFilter<"BulkImportJob"> | number
-    createdByUserId?: StringNullableFilter<"BulkImportJob"> | string | null
     committedAt?: DateTimeNullableFilter<"BulkImportJob"> | Date | string | null
+    createdByUserId?: StringNullableFilter<"BulkImportJob"> | string | null
     createdAt?: DateTimeFilter<"BulkImportJob"> | Date | string
     updatedAt?: DateTimeFilter<"BulkImportJob"> | Date | string
-  }
-
-  export type ProcedureBookingUpsertWithWhereUniqueWithoutBranchInput = {
-    where: ProcedureBookingWhereUniqueInput
-    update: XOR<ProcedureBookingUpdateWithoutBranchInput, ProcedureBookingUncheckedUpdateWithoutBranchInput>
-    create: XOR<ProcedureBookingCreateWithoutBranchInput, ProcedureBookingUncheckedCreateWithoutBranchInput>
-  }
-
-  export type ProcedureBookingUpdateWithWhereUniqueWithoutBranchInput = {
-    where: ProcedureBookingWhereUniqueInput
-    data: XOR<ProcedureBookingUpdateWithoutBranchInput, ProcedureBookingUncheckedUpdateWithoutBranchInput>
-  }
-
-  export type ProcedureBookingUpdateManyWithWhereWithoutBranchInput = {
-    where: ProcedureBookingScalarWhereInput
-    data: XOR<ProcedureBookingUpdateManyMutationInput, ProcedureBookingUncheckedUpdateManyWithoutBranchInput>
-  }
-
-  export type ProcedureBookingScalarWhereInput = {
-    AND?: ProcedureBookingScalarWhereInput | ProcedureBookingScalarWhereInput[]
-    OR?: ProcedureBookingScalarWhereInput[]
-    NOT?: ProcedureBookingScalarWhereInput | ProcedureBookingScalarWhereInput[]
-    id?: StringFilter<"ProcedureBooking"> | string
-    branchId?: StringFilter<"ProcedureBooking"> | string
-    unitId?: StringFilter<"ProcedureBooking"> | string
-    resourceId?: StringFilter<"ProcedureBooking"> | string
-    patientId?: StringNullableFilter<"ProcedureBooking"> | string | null
-    departmentId?: StringNullableFilter<"ProcedureBooking"> | string | null
-    startAt?: DateTimeFilter<"ProcedureBooking"> | Date | string
-    endAt?: DateTimeFilter<"ProcedureBooking"> | Date | string
-    status?: EnumBookingStatusFilter<"ProcedureBooking"> | $Enums.BookingStatus
-    consentOk?: BoolFilter<"ProcedureBooking"> | boolean
-    anesthesiaOk?: BoolFilter<"ProcedureBooking"> | boolean
-    checklistOk?: BoolFilter<"ProcedureBooking"> | boolean
-    createdByUserId?: StringNullableFilter<"ProcedureBooking"> | string | null
-    createdAt?: DateTimeFilter<"ProcedureBooking"> | Date | string
-    updatedAt?: DateTimeFilter<"ProcedureBooking"> | Date | string
   }
 
   export type GoLiveReportUpsertWithWhereUniqueWithoutBranchInput = {
@@ -77746,8 +77522,9 @@ export namespace Prisma {
     branch: BranchCreateNestedOneWithoutDepartmentsInput
     headStaff?: StaffCreateNestedOneWithoutHeadedDepartmentsInput
     staff?: StaffCreateNestedManyWithoutDepartmentInput
-    departmentSpecialties?: DepartmentSpecialtyCreateNestedManyWithoutDepartmentInput
+    specialties?: SpecialtyCreateNestedManyWithoutDepartmentInput
     doctorAssignments?: DepartmentDoctorCreateNestedManyWithoutDepartmentInput
+    departmentSpecialties?: DepartmentSpecialtyCreateNestedManyWithoutDepartmentInput
     units?: UnitCreateNestedManyWithoutDepartmentInput
     equipmentOwned?: EquipmentAssetCreateNestedManyWithoutOwnerDepartmentInput
   }
@@ -77762,8 +77539,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     staff?: StaffUncheckedCreateNestedManyWithoutDepartmentInput
-    departmentSpecialties?: DepartmentSpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
+    specialties?: SpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
     doctorAssignments?: DepartmentDoctorUncheckedCreateNestedManyWithoutDepartmentInput
+    departmentSpecialties?: DepartmentSpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
     units?: UnitUncheckedCreateNestedManyWithoutDepartmentInput
     equipmentOwned?: EquipmentAssetUncheckedCreateNestedManyWithoutOwnerDepartmentInput
   }
@@ -77815,11 +77593,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -77840,17 +77618,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -77859,11 +77637,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -77884,17 +77662,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -77948,11 +77726,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -77973,17 +77751,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -77992,11 +77770,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -78017,17 +77795,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -78071,11 +77849,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     users?: UserCreateNestedManyWithoutBranchInput
@@ -78096,17 +77874,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -78115,11 +77893,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     users?: UserUncheckedCreateNestedManyWithoutBranchInput
@@ -78140,17 +77918,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -78271,31 +78049,37 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type DepartmentSpecialtyCreateWithoutDepartmentInput = {
+  export type SpecialtyCreateWithoutDepartmentInput = {
     id?: string
-    isPrimary?: boolean
+    code: string
+    name: string
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    specialty: SpecialtyCreateNestedOneWithoutDepartmentLinksInput
+    branch: BranchCreateNestedOneWithoutSpecialtyInput
+    staff?: StaffCreateNestedManyWithoutSpecialtyInput
+    departmentLinks?: DepartmentSpecialtyCreateNestedManyWithoutSpecialtyInput
   }
 
-  export type DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput = {
+  export type SpecialtyUncheckedCreateWithoutDepartmentInput = {
     id?: string
-    specialtyId: string
-    isPrimary?: boolean
+    branchId: string
+    code: string
+    name: string
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    staff?: StaffUncheckedCreateNestedManyWithoutSpecialtyInput
+    departmentLinks?: DepartmentSpecialtyUncheckedCreateNestedManyWithoutSpecialtyInput
   }
 
-  export type DepartmentSpecialtyCreateOrConnectWithoutDepartmentInput = {
-    where: DepartmentSpecialtyWhereUniqueInput
-    create: XOR<DepartmentSpecialtyCreateWithoutDepartmentInput, DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput>
+  export type SpecialtyCreateOrConnectWithoutDepartmentInput = {
+    where: SpecialtyWhereUniqueInput
+    create: XOR<SpecialtyCreateWithoutDepartmentInput, SpecialtyUncheckedCreateWithoutDepartmentInput>
   }
 
-  export type DepartmentSpecialtyCreateManyDepartmentInputEnvelope = {
-    data: DepartmentSpecialtyCreateManyDepartmentInput | DepartmentSpecialtyCreateManyDepartmentInput[]
+  export type SpecialtyCreateManyDepartmentInputEnvelope = {
+    data: SpecialtyCreateManyDepartmentInput | SpecialtyCreateManyDepartmentInput[]
     skipDuplicates?: boolean
   }
 
@@ -78327,6 +78111,34 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type DepartmentSpecialtyCreateWithoutDepartmentInput = {
+    id?: string
+    isPrimary?: boolean
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    specialty: SpecialtyCreateNestedOneWithoutDepartmentLinksInput
+  }
+
+  export type DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput = {
+    id?: string
+    specialtyId: string
+    isPrimary?: boolean
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DepartmentSpecialtyCreateOrConnectWithoutDepartmentInput = {
+    where: DepartmentSpecialtyWhereUniqueInput
+    create: XOR<DepartmentSpecialtyCreateWithoutDepartmentInput, DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput>
+  }
+
+  export type DepartmentSpecialtyCreateManyDepartmentInputEnvelope = {
+    data: DepartmentSpecialtyCreateManyDepartmentInput | DepartmentSpecialtyCreateManyDepartmentInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UnitCreateWithoutDepartmentInput = {
     id?: string
     code: string
@@ -78339,7 +78151,6 @@ export namespace Prisma {
     unitType: UnitTypeCatalogCreateNestedOneWithoutUnitsInput
     rooms?: UnitRoomCreateNestedManyWithoutUnitInput
     resources?: UnitResourceCreateNestedManyWithoutUnitInput
-    equipment?: EquipmentAssetCreateNestedManyWithoutUnitInput
     bookings?: ProcedureBookingCreateNestedManyWithoutUnitInput
   }
 
@@ -78355,7 +78166,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     rooms?: UnitRoomUncheckedCreateNestedManyWithoutUnitInput
     resources?: UnitResourceUncheckedCreateNestedManyWithoutUnitInput
-    equipment?: EquipmentAssetUncheckedCreateNestedManyWithoutUnitInput
     bookings?: ProcedureBookingUncheckedCreateNestedManyWithoutUnitInput
   }
 
@@ -78373,10 +78183,13 @@ export namespace Prisma {
     id?: string
     code: string
     name: string
-    category?: $Enums.EquipmentComplianceCategory
+    category?: $Enums.EquipmentCategory
     make?: string | null
     model?: string | null
     serial?: string | null
+    unitId?: string | null
+    roomId?: string | null
+    locationNodeId?: string | null
     operationalStatus?: $Enums.EquipmentOperationalStatus
     amcVendor?: string | null
     amcValidFrom?: Date | string | null
@@ -78392,9 +78205,6 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     branch: BranchCreateNestedOneWithoutEquipmentAssetsInput
-    unit?: UnitCreateNestedOneWithoutEquipmentInput
-    room?: UnitRoomCreateNestedOneWithoutEquipmentInput
-    locationNode?: LocationNodeCreateNestedOneWithoutEquipmentAssetInput
     downtimeTickets?: DowntimeTicketCreateNestedManyWithoutAssetInput
   }
 
@@ -78403,7 +78213,7 @@ export namespace Prisma {
     branchId: string
     code: string
     name: string
-    category?: $Enums.EquipmentComplianceCategory
+    category?: $Enums.EquipmentCategory
     make?: string | null
     model?: string | null
     serial?: string | null
@@ -78453,11 +78263,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     users?: UserUpdateManyWithoutBranchNestedInput
@@ -78478,17 +78288,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -78497,11 +78307,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     users?: UserUncheckedUpdateManyWithoutBranchNestedInput
@@ -78522,17 +78332,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -78632,33 +78442,20 @@ export namespace Prisma {
     data: XOR<StaffUpdateManyMutationInput, StaffUncheckedUpdateManyWithoutDepartmentInput>
   }
 
-  export type DepartmentSpecialtyUpsertWithWhereUniqueWithoutDepartmentInput = {
-    where: DepartmentSpecialtyWhereUniqueInput
-    update: XOR<DepartmentSpecialtyUpdateWithoutDepartmentInput, DepartmentSpecialtyUncheckedUpdateWithoutDepartmentInput>
-    create: XOR<DepartmentSpecialtyCreateWithoutDepartmentInput, DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput>
+  export type SpecialtyUpsertWithWhereUniqueWithoutDepartmentInput = {
+    where: SpecialtyWhereUniqueInput
+    update: XOR<SpecialtyUpdateWithoutDepartmentInput, SpecialtyUncheckedUpdateWithoutDepartmentInput>
+    create: XOR<SpecialtyCreateWithoutDepartmentInput, SpecialtyUncheckedCreateWithoutDepartmentInput>
   }
 
-  export type DepartmentSpecialtyUpdateWithWhereUniqueWithoutDepartmentInput = {
-    where: DepartmentSpecialtyWhereUniqueInput
-    data: XOR<DepartmentSpecialtyUpdateWithoutDepartmentInput, DepartmentSpecialtyUncheckedUpdateWithoutDepartmentInput>
+  export type SpecialtyUpdateWithWhereUniqueWithoutDepartmentInput = {
+    where: SpecialtyWhereUniqueInput
+    data: XOR<SpecialtyUpdateWithoutDepartmentInput, SpecialtyUncheckedUpdateWithoutDepartmentInput>
   }
 
-  export type DepartmentSpecialtyUpdateManyWithWhereWithoutDepartmentInput = {
-    where: DepartmentSpecialtyScalarWhereInput
-    data: XOR<DepartmentSpecialtyUpdateManyMutationInput, DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentInput>
-  }
-
-  export type DepartmentSpecialtyScalarWhereInput = {
-    AND?: DepartmentSpecialtyScalarWhereInput | DepartmentSpecialtyScalarWhereInput[]
-    OR?: DepartmentSpecialtyScalarWhereInput[]
-    NOT?: DepartmentSpecialtyScalarWhereInput | DepartmentSpecialtyScalarWhereInput[]
-    id?: StringFilter<"DepartmentSpecialty"> | string
-    departmentId?: StringFilter<"DepartmentSpecialty"> | string
-    specialtyId?: StringFilter<"DepartmentSpecialty"> | string
-    isPrimary?: BoolFilter<"DepartmentSpecialty"> | boolean
-    isActive?: BoolFilter<"DepartmentSpecialty"> | boolean
-    createdAt?: DateTimeFilter<"DepartmentSpecialty"> | Date | string
-    updatedAt?: DateTimeFilter<"DepartmentSpecialty"> | Date | string
+  export type SpecialtyUpdateManyWithWhereWithoutDepartmentInput = {
+    where: SpecialtyScalarWhereInput
+    data: XOR<SpecialtyUpdateManyMutationInput, SpecialtyUncheckedUpdateManyWithoutDepartmentInput>
   }
 
   export type DepartmentDoctorUpsertWithWhereUniqueWithoutDepartmentInput = {
@@ -78688,6 +78485,35 @@ export namespace Prisma {
     assignedAt?: DateTimeFilter<"DepartmentDoctor"> | Date | string
     createdAt?: DateTimeFilter<"DepartmentDoctor"> | Date | string
     updatedAt?: DateTimeFilter<"DepartmentDoctor"> | Date | string
+  }
+
+  export type DepartmentSpecialtyUpsertWithWhereUniqueWithoutDepartmentInput = {
+    where: DepartmentSpecialtyWhereUniqueInput
+    update: XOR<DepartmentSpecialtyUpdateWithoutDepartmentInput, DepartmentSpecialtyUncheckedUpdateWithoutDepartmentInput>
+    create: XOR<DepartmentSpecialtyCreateWithoutDepartmentInput, DepartmentSpecialtyUncheckedCreateWithoutDepartmentInput>
+  }
+
+  export type DepartmentSpecialtyUpdateWithWhereUniqueWithoutDepartmentInput = {
+    where: DepartmentSpecialtyWhereUniqueInput
+    data: XOR<DepartmentSpecialtyUpdateWithoutDepartmentInput, DepartmentSpecialtyUncheckedUpdateWithoutDepartmentInput>
+  }
+
+  export type DepartmentSpecialtyUpdateManyWithWhereWithoutDepartmentInput = {
+    where: DepartmentSpecialtyScalarWhereInput
+    data: XOR<DepartmentSpecialtyUpdateManyMutationInput, DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentInput>
+  }
+
+  export type DepartmentSpecialtyScalarWhereInput = {
+    AND?: DepartmentSpecialtyScalarWhereInput | DepartmentSpecialtyScalarWhereInput[]
+    OR?: DepartmentSpecialtyScalarWhereInput[]
+    NOT?: DepartmentSpecialtyScalarWhereInput | DepartmentSpecialtyScalarWhereInput[]
+    id?: StringFilter<"DepartmentSpecialty"> | string
+    departmentId?: StringFilter<"DepartmentSpecialty"> | string
+    specialtyId?: StringFilter<"DepartmentSpecialty"> | string
+    isPrimary?: BoolFilter<"DepartmentSpecialty"> | boolean
+    isActive?: BoolFilter<"DepartmentSpecialty"> | boolean
+    createdAt?: DateTimeFilter<"DepartmentSpecialty"> | Date | string
+    updatedAt?: DateTimeFilter<"DepartmentSpecialty"> | Date | string
   }
 
   export type UnitUpsertWithWhereUniqueWithoutDepartmentInput = {
@@ -78733,6 +78559,7 @@ export namespace Prisma {
     facility: FacilityCatalogCreateNestedOneWithoutDepartmentsInput
     headStaff?: StaffCreateNestedOneWithoutHeadedDepartmentsInput
     staff?: StaffCreateNestedManyWithoutDepartmentInput
+    specialties?: SpecialtyCreateNestedManyWithoutDepartmentInput
     departmentSpecialties?: DepartmentSpecialtyCreateNestedManyWithoutDepartmentInput
     units?: UnitCreateNestedManyWithoutDepartmentInput
     equipmentOwned?: EquipmentAssetCreateNestedManyWithoutOwnerDepartmentInput
@@ -78749,6 +78576,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     staff?: StaffUncheckedCreateNestedManyWithoutDepartmentInput
+    specialties?: SpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
     departmentSpecialties?: DepartmentSpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
     units?: UnitUncheckedCreateNestedManyWithoutDepartmentInput
     equipmentOwned?: EquipmentAssetUncheckedCreateNestedManyWithoutOwnerDepartmentInput
@@ -78820,6 +78648,7 @@ export namespace Prisma {
     facility?: FacilityCatalogUpdateOneRequiredWithoutDepartmentsNestedInput
     headStaff?: StaffUpdateOneWithoutHeadedDepartmentsNestedInput
     staff?: StaffUpdateManyWithoutDepartmentNestedInput
+    specialties?: SpecialtyUpdateManyWithoutDepartmentNestedInput
     departmentSpecialties?: DepartmentSpecialtyUpdateManyWithoutDepartmentNestedInput
     units?: UnitUpdateManyWithoutDepartmentNestedInput
     equipmentOwned?: EquipmentAssetUpdateManyWithoutOwnerDepartmentNestedInput
@@ -78836,6 +78665,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     staff?: StaffUncheckedUpdateManyWithoutDepartmentNestedInput
+    specialties?: SpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
     departmentSpecialties?: DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
     units?: UnitUncheckedUpdateManyWithoutDepartmentNestedInput
     equipmentOwned?: EquipmentAssetUncheckedUpdateManyWithoutOwnerDepartmentNestedInput
@@ -78886,16 +78716,164 @@ export namespace Prisma {
     user?: UserUncheckedUpdateOneWithoutStaffNestedInput
   }
 
+  export type DepartmentCreateWithoutDepartmentSpecialtiesInput = {
+    id?: string
+    code: string
+    name: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branch: BranchCreateNestedOneWithoutDepartmentsInput
+    facility: FacilityCatalogCreateNestedOneWithoutDepartmentsInput
+    headStaff?: StaffCreateNestedOneWithoutHeadedDepartmentsInput
+    staff?: StaffCreateNestedManyWithoutDepartmentInput
+    specialties?: SpecialtyCreateNestedManyWithoutDepartmentInput
+    doctorAssignments?: DepartmentDoctorCreateNestedManyWithoutDepartmentInput
+    units?: UnitCreateNestedManyWithoutDepartmentInput
+    equipmentOwned?: EquipmentAssetCreateNestedManyWithoutOwnerDepartmentInput
+  }
+
+  export type DepartmentUncheckedCreateWithoutDepartmentSpecialtiesInput = {
+    id?: string
+    branchId: string
+    facilityId: string
+    code: string
+    name: string
+    headStaffId?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    staff?: StaffUncheckedCreateNestedManyWithoutDepartmentInput
+    specialties?: SpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
+    doctorAssignments?: DepartmentDoctorUncheckedCreateNestedManyWithoutDepartmentInput
+    units?: UnitUncheckedCreateNestedManyWithoutDepartmentInput
+    equipmentOwned?: EquipmentAssetUncheckedCreateNestedManyWithoutOwnerDepartmentInput
+  }
+
+  export type DepartmentCreateOrConnectWithoutDepartmentSpecialtiesInput = {
+    where: DepartmentWhereUniqueInput
+    create: XOR<DepartmentCreateWithoutDepartmentSpecialtiesInput, DepartmentUncheckedCreateWithoutDepartmentSpecialtiesInput>
+  }
+
+  export type SpecialtyCreateWithoutDepartmentLinksInput = {
+    id?: string
+    code: string
+    name: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branch: BranchCreateNestedOneWithoutSpecialtyInput
+    department?: DepartmentCreateNestedOneWithoutSpecialtiesInput
+    staff?: StaffCreateNestedManyWithoutSpecialtyInput
+  }
+
+  export type SpecialtyUncheckedCreateWithoutDepartmentLinksInput = {
+    id?: string
+    branchId: string
+    departmentId?: string | null
+    code: string
+    name: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    staff?: StaffUncheckedCreateNestedManyWithoutSpecialtyInput
+  }
+
+  export type SpecialtyCreateOrConnectWithoutDepartmentLinksInput = {
+    where: SpecialtyWhereUniqueInput
+    create: XOR<SpecialtyCreateWithoutDepartmentLinksInput, SpecialtyUncheckedCreateWithoutDepartmentLinksInput>
+  }
+
+  export type DepartmentUpsertWithoutDepartmentSpecialtiesInput = {
+    update: XOR<DepartmentUpdateWithoutDepartmentSpecialtiesInput, DepartmentUncheckedUpdateWithoutDepartmentSpecialtiesInput>
+    create: XOR<DepartmentCreateWithoutDepartmentSpecialtiesInput, DepartmentUncheckedCreateWithoutDepartmentSpecialtiesInput>
+    where?: DepartmentWhereInput
+  }
+
+  export type DepartmentUpdateToOneWithWhereWithoutDepartmentSpecialtiesInput = {
+    where?: DepartmentWhereInput
+    data: XOR<DepartmentUpdateWithoutDepartmentSpecialtiesInput, DepartmentUncheckedUpdateWithoutDepartmentSpecialtiesInput>
+  }
+
+  export type DepartmentUpdateWithoutDepartmentSpecialtiesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branch?: BranchUpdateOneRequiredWithoutDepartmentsNestedInput
+    facility?: FacilityCatalogUpdateOneRequiredWithoutDepartmentsNestedInput
+    headStaff?: StaffUpdateOneWithoutHeadedDepartmentsNestedInput
+    staff?: StaffUpdateManyWithoutDepartmentNestedInput
+    specialties?: SpecialtyUpdateManyWithoutDepartmentNestedInput
+    doctorAssignments?: DepartmentDoctorUpdateManyWithoutDepartmentNestedInput
+    units?: UnitUpdateManyWithoutDepartmentNestedInput
+    equipmentOwned?: EquipmentAssetUpdateManyWithoutOwnerDepartmentNestedInput
+  }
+
+  export type DepartmentUncheckedUpdateWithoutDepartmentSpecialtiesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    branchId?: StringFieldUpdateOperationsInput | string
+    facilityId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    headStaffId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    staff?: StaffUncheckedUpdateManyWithoutDepartmentNestedInput
+    specialties?: SpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
+    doctorAssignments?: DepartmentDoctorUncheckedUpdateManyWithoutDepartmentNestedInput
+    units?: UnitUncheckedUpdateManyWithoutDepartmentNestedInput
+    equipmentOwned?: EquipmentAssetUncheckedUpdateManyWithoutOwnerDepartmentNestedInput
+  }
+
+  export type SpecialtyUpsertWithoutDepartmentLinksInput = {
+    update: XOR<SpecialtyUpdateWithoutDepartmentLinksInput, SpecialtyUncheckedUpdateWithoutDepartmentLinksInput>
+    create: XOR<SpecialtyCreateWithoutDepartmentLinksInput, SpecialtyUncheckedCreateWithoutDepartmentLinksInput>
+    where?: SpecialtyWhereInput
+  }
+
+  export type SpecialtyUpdateToOneWithWhereWithoutDepartmentLinksInput = {
+    where?: SpecialtyWhereInput
+    data: XOR<SpecialtyUpdateWithoutDepartmentLinksInput, SpecialtyUncheckedUpdateWithoutDepartmentLinksInput>
+  }
+
+  export type SpecialtyUpdateWithoutDepartmentLinksInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branch?: BranchUpdateOneRequiredWithoutSpecialtyNestedInput
+    department?: DepartmentUpdateOneWithoutSpecialtiesNestedInput
+    staff?: StaffUpdateManyWithoutSpecialtyNestedInput
+  }
+
+  export type SpecialtyUncheckedUpdateWithoutDepartmentLinksInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    branchId?: StringFieldUpdateOperationsInput | string
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    staff?: StaffUncheckedUpdateManyWithoutSpecialtyNestedInput
+  }
+
   export type BranchCreateWithoutSpecialtyInput = {
     id?: string
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -78916,17 +78894,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -78935,11 +78913,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -78960,23 +78938,62 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutSpecialtyInput = {
     where: BranchWhereUniqueInput
     create: XOR<BranchCreateWithoutSpecialtyInput, BranchUncheckedCreateWithoutSpecialtyInput>
+  }
+
+  export type DepartmentCreateWithoutSpecialtiesInput = {
+    id?: string
+    code: string
+    name: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branch: BranchCreateNestedOneWithoutDepartmentsInput
+    facility: FacilityCatalogCreateNestedOneWithoutDepartmentsInput
+    headStaff?: StaffCreateNestedOneWithoutHeadedDepartmentsInput
+    staff?: StaffCreateNestedManyWithoutDepartmentInput
+    doctorAssignments?: DepartmentDoctorCreateNestedManyWithoutDepartmentInput
+    departmentSpecialties?: DepartmentSpecialtyCreateNestedManyWithoutDepartmentInput
+    units?: UnitCreateNestedManyWithoutDepartmentInput
+    equipmentOwned?: EquipmentAssetCreateNestedManyWithoutOwnerDepartmentInput
+  }
+
+  export type DepartmentUncheckedCreateWithoutSpecialtiesInput = {
+    id?: string
+    branchId: string
+    facilityId: string
+    code: string
+    name: string
+    headStaffId?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    staff?: StaffUncheckedCreateNestedManyWithoutDepartmentInput
+    doctorAssignments?: DepartmentDoctorUncheckedCreateNestedManyWithoutDepartmentInput
+    departmentSpecialties?: DepartmentSpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
+    units?: UnitUncheckedCreateNestedManyWithoutDepartmentInput
+    equipmentOwned?: EquipmentAssetUncheckedCreateNestedManyWithoutOwnerDepartmentInput
+  }
+
+  export type DepartmentCreateOrConnectWithoutSpecialtiesInput = {
+    where: DepartmentWhereUniqueInput
+    create: XOR<DepartmentCreateWithoutSpecialtiesInput, DepartmentUncheckedCreateWithoutSpecialtiesInput>
   }
 
   export type StaffCreateWithoutSpecialtyInput = {
@@ -79067,11 +79084,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -79092,17 +79109,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -79111,11 +79128,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -79136,18 +79153,63 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
+  }
+
+  export type DepartmentUpsertWithoutSpecialtiesInput = {
+    update: XOR<DepartmentUpdateWithoutSpecialtiesInput, DepartmentUncheckedUpdateWithoutSpecialtiesInput>
+    create: XOR<DepartmentCreateWithoutSpecialtiesInput, DepartmentUncheckedCreateWithoutSpecialtiesInput>
+    where?: DepartmentWhereInput
+  }
+
+  export type DepartmentUpdateToOneWithWhereWithoutSpecialtiesInput = {
+    where?: DepartmentWhereInput
+    data: XOR<DepartmentUpdateWithoutSpecialtiesInput, DepartmentUncheckedUpdateWithoutSpecialtiesInput>
+  }
+
+  export type DepartmentUpdateWithoutSpecialtiesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    branch?: BranchUpdateOneRequiredWithoutDepartmentsNestedInput
+    facility?: FacilityCatalogUpdateOneRequiredWithoutDepartmentsNestedInput
+    headStaff?: StaffUpdateOneWithoutHeadedDepartmentsNestedInput
+    staff?: StaffUpdateManyWithoutDepartmentNestedInput
+    doctorAssignments?: DepartmentDoctorUpdateManyWithoutDepartmentNestedInput
+    departmentSpecialties?: DepartmentSpecialtyUpdateManyWithoutDepartmentNestedInput
+    units?: UnitUpdateManyWithoutDepartmentNestedInput
+    equipmentOwned?: EquipmentAssetUpdateManyWithoutOwnerDepartmentNestedInput
+  }
+
+  export type DepartmentUncheckedUpdateWithoutSpecialtiesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    branchId?: StringFieldUpdateOperationsInput | string
+    facilityId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    headStaffId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    staff?: StaffUncheckedUpdateManyWithoutDepartmentNestedInput
+    doctorAssignments?: DepartmentDoctorUncheckedUpdateManyWithoutDepartmentNestedInput
+    departmentSpecialties?: DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
+    units?: UnitUncheckedUpdateManyWithoutDepartmentNestedInput
+    equipmentOwned?: EquipmentAssetUncheckedUpdateManyWithoutOwnerDepartmentNestedInput
   }
 
   export type StaffUpsertWithWhereUniqueWithoutSpecialtyInput = {
@@ -79182,156 +79244,16 @@ export namespace Prisma {
     data: XOR<DepartmentSpecialtyUpdateManyMutationInput, DepartmentSpecialtyUncheckedUpdateManyWithoutSpecialtyInput>
   }
 
-  export type DepartmentCreateWithoutDepartmentSpecialtiesInput = {
-    id?: string
-    code: string
-    name: string
-    isActive?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    branch: BranchCreateNestedOneWithoutDepartmentsInput
-    facility: FacilityCatalogCreateNestedOneWithoutDepartmentsInput
-    headStaff?: StaffCreateNestedOneWithoutHeadedDepartmentsInput
-    staff?: StaffCreateNestedManyWithoutDepartmentInput
-    doctorAssignments?: DepartmentDoctorCreateNestedManyWithoutDepartmentInput
-    units?: UnitCreateNestedManyWithoutDepartmentInput
-    equipmentOwned?: EquipmentAssetCreateNestedManyWithoutOwnerDepartmentInput
-  }
-
-  export type DepartmentUncheckedCreateWithoutDepartmentSpecialtiesInput = {
-    id?: string
-    branchId: string
-    facilityId: string
-    code: string
-    name: string
-    headStaffId?: string | null
-    isActive?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    staff?: StaffUncheckedCreateNestedManyWithoutDepartmentInput
-    doctorAssignments?: DepartmentDoctorUncheckedCreateNestedManyWithoutDepartmentInput
-    units?: UnitUncheckedCreateNestedManyWithoutDepartmentInput
-    equipmentOwned?: EquipmentAssetUncheckedCreateNestedManyWithoutOwnerDepartmentInput
-  }
-
-  export type DepartmentCreateOrConnectWithoutDepartmentSpecialtiesInput = {
-    where: DepartmentWhereUniqueInput
-    create: XOR<DepartmentCreateWithoutDepartmentSpecialtiesInput, DepartmentUncheckedCreateWithoutDepartmentSpecialtiesInput>
-  }
-
-  export type SpecialtyCreateWithoutDepartmentLinksInput = {
-    id?: string
-    code: string
-    name: string
-    isActive?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    branch: BranchCreateNestedOneWithoutSpecialtyInput
-    staff?: StaffCreateNestedManyWithoutSpecialtyInput
-  }
-
-  export type SpecialtyUncheckedCreateWithoutDepartmentLinksInput = {
-    id?: string
-    branchId: string
-    code: string
-    name: string
-    isActive?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    staff?: StaffUncheckedCreateNestedManyWithoutSpecialtyInput
-  }
-
-  export type SpecialtyCreateOrConnectWithoutDepartmentLinksInput = {
-    where: SpecialtyWhereUniqueInput
-    create: XOR<SpecialtyCreateWithoutDepartmentLinksInput, SpecialtyUncheckedCreateWithoutDepartmentLinksInput>
-  }
-
-  export type DepartmentUpsertWithoutDepartmentSpecialtiesInput = {
-    update: XOR<DepartmentUpdateWithoutDepartmentSpecialtiesInput, DepartmentUncheckedUpdateWithoutDepartmentSpecialtiesInput>
-    create: XOR<DepartmentCreateWithoutDepartmentSpecialtiesInput, DepartmentUncheckedCreateWithoutDepartmentSpecialtiesInput>
-    where?: DepartmentWhereInput
-  }
-
-  export type DepartmentUpdateToOneWithWhereWithoutDepartmentSpecialtiesInput = {
-    where?: DepartmentWhereInput
-    data: XOR<DepartmentUpdateWithoutDepartmentSpecialtiesInput, DepartmentUncheckedUpdateWithoutDepartmentSpecialtiesInput>
-  }
-
-  export type DepartmentUpdateWithoutDepartmentSpecialtiesInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    branch?: BranchUpdateOneRequiredWithoutDepartmentsNestedInput
-    facility?: FacilityCatalogUpdateOneRequiredWithoutDepartmentsNestedInput
-    headStaff?: StaffUpdateOneWithoutHeadedDepartmentsNestedInput
-    staff?: StaffUpdateManyWithoutDepartmentNestedInput
-    doctorAssignments?: DepartmentDoctorUpdateManyWithoutDepartmentNestedInput
-    units?: UnitUpdateManyWithoutDepartmentNestedInput
-    equipmentOwned?: EquipmentAssetUpdateManyWithoutOwnerDepartmentNestedInput
-  }
-
-  export type DepartmentUncheckedUpdateWithoutDepartmentSpecialtiesInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    branchId?: StringFieldUpdateOperationsInput | string
-    facilityId?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    headStaffId?: NullableStringFieldUpdateOperationsInput | string | null
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    staff?: StaffUncheckedUpdateManyWithoutDepartmentNestedInput
-    doctorAssignments?: DepartmentDoctorUncheckedUpdateManyWithoutDepartmentNestedInput
-    units?: UnitUncheckedUpdateManyWithoutDepartmentNestedInput
-    equipmentOwned?: EquipmentAssetUncheckedUpdateManyWithoutOwnerDepartmentNestedInput
-  }
-
-  export type SpecialtyUpsertWithoutDepartmentLinksInput = {
-    update: XOR<SpecialtyUpdateWithoutDepartmentLinksInput, SpecialtyUncheckedUpdateWithoutDepartmentLinksInput>
-    create: XOR<SpecialtyCreateWithoutDepartmentLinksInput, SpecialtyUncheckedCreateWithoutDepartmentLinksInput>
-    where?: SpecialtyWhereInput
-  }
-
-  export type SpecialtyUpdateToOneWithWhereWithoutDepartmentLinksInput = {
-    where?: SpecialtyWhereInput
-    data: XOR<SpecialtyUpdateWithoutDepartmentLinksInput, SpecialtyUncheckedUpdateWithoutDepartmentLinksInput>
-  }
-
-  export type SpecialtyUpdateWithoutDepartmentLinksInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    branch?: BranchUpdateOneRequiredWithoutSpecialtyNestedInput
-    staff?: StaffUpdateManyWithoutSpecialtyNestedInput
-  }
-
-  export type SpecialtyUncheckedUpdateWithoutDepartmentLinksInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    branchId?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    staff?: StaffUncheckedUpdateManyWithoutSpecialtyNestedInput
-  }
-
   export type BranchCreateWithoutStaffInput = {
     id?: string
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -79352,17 +79274,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -79371,11 +79293,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -79396,17 +79318,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -79425,8 +79347,9 @@ export namespace Prisma {
     branch: BranchCreateNestedOneWithoutDepartmentsInput
     facility: FacilityCatalogCreateNestedOneWithoutDepartmentsInput
     headStaff?: StaffCreateNestedOneWithoutHeadedDepartmentsInput
-    departmentSpecialties?: DepartmentSpecialtyCreateNestedManyWithoutDepartmentInput
+    specialties?: SpecialtyCreateNestedManyWithoutDepartmentInput
     doctorAssignments?: DepartmentDoctorCreateNestedManyWithoutDepartmentInput
+    departmentSpecialties?: DepartmentSpecialtyCreateNestedManyWithoutDepartmentInput
     units?: UnitCreateNestedManyWithoutDepartmentInput
     equipmentOwned?: EquipmentAssetCreateNestedManyWithoutOwnerDepartmentInput
   }
@@ -79441,8 +79364,9 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    departmentSpecialties?: DepartmentSpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
+    specialties?: SpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
     doctorAssignments?: DepartmentDoctorUncheckedCreateNestedManyWithoutDepartmentInput
+    departmentSpecialties?: DepartmentSpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
     units?: UnitUncheckedCreateNestedManyWithoutDepartmentInput
     equipmentOwned?: EquipmentAssetUncheckedCreateNestedManyWithoutOwnerDepartmentInput
   }
@@ -79460,12 +79384,14 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     branch: BranchCreateNestedOneWithoutSpecialtyInput
+    department?: DepartmentCreateNestedOneWithoutSpecialtiesInput
     departmentLinks?: DepartmentSpecialtyCreateNestedManyWithoutSpecialtyInput
   }
 
   export type SpecialtyUncheckedCreateWithoutStaffInput = {
     id?: string
     branchId: string
+    departmentId?: string | null
     code: string
     name: string
     isActive?: boolean
@@ -79517,8 +79443,9 @@ export namespace Prisma {
     branch: BranchCreateNestedOneWithoutDepartmentsInput
     facility: FacilityCatalogCreateNestedOneWithoutDepartmentsInput
     staff?: StaffCreateNestedManyWithoutDepartmentInput
-    departmentSpecialties?: DepartmentSpecialtyCreateNestedManyWithoutDepartmentInput
+    specialties?: SpecialtyCreateNestedManyWithoutDepartmentInput
     doctorAssignments?: DepartmentDoctorCreateNestedManyWithoutDepartmentInput
+    departmentSpecialties?: DepartmentSpecialtyCreateNestedManyWithoutDepartmentInput
     units?: UnitCreateNestedManyWithoutDepartmentInput
     equipmentOwned?: EquipmentAssetCreateNestedManyWithoutOwnerDepartmentInput
   }
@@ -79533,8 +79460,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     staff?: StaffUncheckedCreateNestedManyWithoutDepartmentInput
-    departmentSpecialties?: DepartmentSpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
+    specialties?: SpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
     doctorAssignments?: DepartmentDoctorUncheckedCreateNestedManyWithoutDepartmentInput
+    departmentSpecialties?: DepartmentSpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
     units?: UnitUncheckedCreateNestedManyWithoutDepartmentInput
     equipmentOwned?: EquipmentAssetUncheckedCreateNestedManyWithoutOwnerDepartmentInput
   }
@@ -79628,11 +79556,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -79653,17 +79581,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -79672,11 +79600,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -79697,17 +79625,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -79732,8 +79660,9 @@ export namespace Prisma {
     branch?: BranchUpdateOneRequiredWithoutDepartmentsNestedInput
     facility?: FacilityCatalogUpdateOneRequiredWithoutDepartmentsNestedInput
     headStaff?: StaffUpdateOneWithoutHeadedDepartmentsNestedInput
-    departmentSpecialties?: DepartmentSpecialtyUpdateManyWithoutDepartmentNestedInput
+    specialties?: SpecialtyUpdateManyWithoutDepartmentNestedInput
     doctorAssignments?: DepartmentDoctorUpdateManyWithoutDepartmentNestedInput
+    departmentSpecialties?: DepartmentSpecialtyUpdateManyWithoutDepartmentNestedInput
     units?: UnitUpdateManyWithoutDepartmentNestedInput
     equipmentOwned?: EquipmentAssetUpdateManyWithoutOwnerDepartmentNestedInput
   }
@@ -79748,8 +79677,9 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    departmentSpecialties?: DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
+    specialties?: SpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
     doctorAssignments?: DepartmentDoctorUncheckedUpdateManyWithoutDepartmentNestedInput
+    departmentSpecialties?: DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
     units?: UnitUncheckedUpdateManyWithoutDepartmentNestedInput
     equipmentOwned?: EquipmentAssetUncheckedUpdateManyWithoutOwnerDepartmentNestedInput
   }
@@ -79773,12 +79703,14 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branch?: BranchUpdateOneRequiredWithoutSpecialtyNestedInput
+    department?: DepartmentUpdateOneWithoutSpecialtiesNestedInput
     departmentLinks?: DepartmentSpecialtyUpdateManyWithoutSpecialtyNestedInput
   }
 
   export type SpecialtyUncheckedUpdateWithoutStaffInput = {
     id?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -79893,11 +79825,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -79918,17 +79850,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -79937,11 +79869,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -79962,17 +79894,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -80428,7 +80360,7 @@ export namespace Prisma {
     code: string
     name: string
     isActive?: boolean
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     createdAt?: Date | string
     node: LocationNodeCreateNestedOneWithoutRevisionsInput
@@ -80440,7 +80372,7 @@ export namespace Prisma {
     code: string
     name: string
     isActive?: boolean
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     createdAt?: Date | string
   }
@@ -80457,31 +80389,31 @@ export namespace Prisma {
 
   export type BulkImportJobCreateWithoutCreatedByUserInput = {
     id?: string
-    entityType: $Enums.ImportEntityType
-    status?: $Enums.ImportJobStatus
+    entityType: $Enums.BulkImportEntityType
+    status?: $Enums.BulkImportStatus
     fileName?: string | null
-    payload?: NullableJsonNullValueInput | InputJsonValue
+    payload: JsonNullValueInput | InputJsonValue
     errors?: NullableJsonNullValueInput | InputJsonValue
-    totalRows?: number
-    validRows?: number
-    invalidRows?: number
+    totalRows: number
+    validRows: number
+    invalidRows: number
     committedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    branch: BranchCreateNestedOneWithoutImportJobsInput
+    branch: BranchCreateNestedOneWithoutBulkImportJobsInput
   }
 
   export type BulkImportJobUncheckedCreateWithoutCreatedByUserInput = {
     id?: string
     branchId: string
-    entityType: $Enums.ImportEntityType
-    status?: $Enums.ImportJobStatus
+    entityType: $Enums.BulkImportEntityType
+    status?: $Enums.BulkImportStatus
     fileName?: string | null
-    payload?: NullableJsonNullValueInput | InputJsonValue
+    payload: JsonNullValueInput | InputJsonValue
     errors?: NullableJsonNullValueInput | InputJsonValue
-    totalRows?: number
-    validRows?: number
-    invalidRows?: number
+    totalRows: number
+    validRows: number
+    invalidRows: number
     committedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -80499,7 +80431,7 @@ export namespace Prisma {
 
   export type FixItTaskCreateWithoutAssignedToUserInput = {
     id?: string
-    type: $Enums.FixItType
+    type: $Enums.FixItTaskType
     status?: $Enums.FixItStatus
     title: string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -80513,7 +80445,7 @@ export namespace Prisma {
   export type FixItTaskUncheckedCreateWithoutAssignedToUserInput = {
     id?: string
     branchId: string
-    type: $Enums.FixItType
+    type: $Enums.FixItTaskType
     status?: $Enums.FixItStatus
     title: string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -80543,8 +80475,8 @@ export namespace Prisma {
     consentOk?: boolean
     anesthesiaOk?: boolean
     checklistOk?: boolean
+    cancelledAt?: Date | string | null
     createdAt?: Date | string
-    updatedAt?: Date | string
     branch: BranchCreateNestedOneWithoutProcedureBookingsInput
     unit: UnitCreateNestedOneWithoutBookingsInput
     resource: UnitResourceCreateNestedOneWithoutBookingsInput
@@ -80563,8 +80495,8 @@ export namespace Prisma {
     consentOk?: boolean
     anesthesiaOk?: boolean
     checklistOk?: boolean
+    cancelledAt?: Date | string | null
     createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type ProcedureBookingCreateOrConnectWithoutCreatedByUserInput = {
@@ -80623,11 +80555,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -80648,17 +80580,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -80667,11 +80599,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -80692,17 +80624,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -81012,11 +80944,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -81037,17 +80969,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -81056,11 +80988,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -81081,17 +81013,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -81266,11 +81198,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -81291,17 +81223,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -81310,11 +81242,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -81335,17 +81267,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -81458,11 +81390,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -81483,17 +81415,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -81502,11 +81434,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -81527,17 +81459,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -81637,11 +81569,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -81662,17 +81594,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -81681,11 +81613,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -81706,17 +81638,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -81788,11 +81720,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -81813,17 +81745,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -81832,11 +81764,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -81857,17 +81789,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -81928,11 +81860,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -81953,17 +81885,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -81972,11 +81904,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -81997,17 +81929,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -82032,11 +81964,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -82057,17 +81989,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -82076,11 +82008,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -82101,17 +82033,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -82195,11 +82127,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -82220,17 +82152,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -82239,11 +82171,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -82264,17 +82196,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -82332,11 +82264,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -82357,17 +82289,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -82376,11 +82308,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -82401,17 +82333,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -82501,11 +82433,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -82526,17 +82458,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -82545,11 +82477,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -82570,17 +82502,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -82642,11 +82574,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -82667,17 +82599,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -82686,11 +82618,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -82711,17 +82643,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -82843,11 +82775,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -82868,17 +82800,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -82887,11 +82819,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -82912,17 +82844,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -83046,11 +82978,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -83071,17 +83003,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -83090,11 +83022,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -83115,17 +83047,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -83150,11 +83082,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -83175,17 +83107,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -83194,11 +83126,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -83219,17 +83151,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -83238,11 +83170,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -83263,17 +83195,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -83282,11 +83214,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -83307,17 +83239,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -83342,11 +83274,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -83367,17 +83299,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -83386,11 +83318,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -83411,17 +83343,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -83430,11 +83362,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -83455,17 +83387,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -83474,11 +83406,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -83499,17 +83431,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -83560,11 +83492,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -83585,17 +83517,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -83604,11 +83536,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -83629,17 +83561,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -83920,11 +83852,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -83945,17 +83877,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -83964,11 +83896,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -83989,17 +83921,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -84065,11 +83997,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -84090,17 +84022,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -84109,11 +84041,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -84134,17 +84066,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -84200,11 +84132,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -84225,17 +84157,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -84244,11 +84176,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -84269,17 +84201,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -84367,11 +84299,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -84392,17 +84324,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -84411,11 +84343,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -84436,17 +84368,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -85169,11 +85101,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -85194,17 +85126,17 @@ export namespace Prisma {
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -85213,11 +85145,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -85238,17 +85170,17 @@ export namespace Prisma {
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -85641,11 +85573,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -85666,17 +85598,17 @@ export namespace Prisma {
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -85685,11 +85617,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -85710,17 +85642,17 @@ export namespace Prisma {
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -86147,11 +86079,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -86172,17 +86104,17 @@ export namespace Prisma {
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -86191,11 +86123,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -86216,17 +86148,17 @@ export namespace Prisma {
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -86314,11 +86246,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -86339,17 +86271,17 @@ export namespace Prisma {
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -86358,11 +86290,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -86383,17 +86315,17 @@ export namespace Prisma {
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -86402,11 +86334,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -86427,17 +86359,17 @@ export namespace Prisma {
     auditEvents?: AuditEventCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -86446,11 +86378,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -86471,17 +86403,17 @@ export namespace Prisma {
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutBranchInput
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -86498,7 +86430,6 @@ export namespace Prisma {
     branch: BranchCreateNestedOneWithoutLocationNodesInput
     parent?: LocationNodeCreateNestedOneWithoutChildrenInput
     revisions?: LocationNodeRevisionCreateNestedManyWithoutNodeInput
-    EquipmentAsset?: EquipmentAssetCreateNestedManyWithoutLocationNodeInput
   }
 
   export type LocationNodeUncheckedCreateWithoutChildrenInput = {
@@ -86509,7 +86440,6 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     revisions?: LocationNodeRevisionUncheckedCreateNestedManyWithoutNodeInput
-    EquipmentAsset?: EquipmentAssetUncheckedCreateNestedManyWithoutLocationNodeInput
   }
 
   export type LocationNodeCreateOrConnectWithoutChildrenInput = {
@@ -86525,7 +86455,6 @@ export namespace Prisma {
     branch: BranchCreateNestedOneWithoutLocationNodesInput
     children?: LocationNodeCreateNestedManyWithoutParentInput
     revisions?: LocationNodeRevisionCreateNestedManyWithoutNodeInput
-    EquipmentAsset?: EquipmentAssetCreateNestedManyWithoutLocationNodeInput
   }
 
   export type LocationNodeUncheckedCreateWithoutParentInput = {
@@ -86536,7 +86465,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     children?: LocationNodeUncheckedCreateNestedManyWithoutParentInput
     revisions?: LocationNodeRevisionUncheckedCreateNestedManyWithoutNodeInput
-    EquipmentAsset?: EquipmentAssetUncheckedCreateNestedManyWithoutLocationNodeInput
   }
 
   export type LocationNodeCreateOrConnectWithoutParentInput = {
@@ -86554,7 +86482,7 @@ export namespace Prisma {
     code: string
     name: string
     isActive?: boolean
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     createdAt?: Date | string
     createdByUser?: UserCreateNestedOneWithoutCreatedLocationRevisionsInput
@@ -86565,7 +86493,7 @@ export namespace Prisma {
     code: string
     name: string
     isActive?: boolean
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     createdByUserId?: string | null
     createdAt?: Date | string
@@ -86578,74 +86506,6 @@ export namespace Prisma {
 
   export type LocationNodeRevisionCreateManyNodeInputEnvelope = {
     data: LocationNodeRevisionCreateManyNodeInput | LocationNodeRevisionCreateManyNodeInput[]
-    skipDuplicates?: boolean
-  }
-
-  export type EquipmentAssetCreateWithoutLocationNodeInput = {
-    id?: string
-    code: string
-    name: string
-    category?: $Enums.EquipmentComplianceCategory
-    make?: string | null
-    model?: string | null
-    serial?: string | null
-    operationalStatus?: $Enums.EquipmentOperationalStatus
-    amcVendor?: string | null
-    amcValidFrom?: Date | string | null
-    amcValidTo?: Date | string | null
-    warrantyValidTo?: Date | string | null
-    pmFrequencyDays?: number | null
-    nextPmDueAt?: Date | string | null
-    aerbLicenseNo?: string | null
-    aerbValidTo?: Date | string | null
-    pcpndtRegNo?: string | null
-    pcpndtValidTo?: Date | string | null
-    isSchedulable?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    branch: BranchCreateNestedOneWithoutEquipmentAssetsInput
-    ownerDepartment?: DepartmentCreateNestedOneWithoutEquipmentOwnedInput
-    unit?: UnitCreateNestedOneWithoutEquipmentInput
-    room?: UnitRoomCreateNestedOneWithoutEquipmentInput
-    downtimeTickets?: DowntimeTicketCreateNestedManyWithoutAssetInput
-  }
-
-  export type EquipmentAssetUncheckedCreateWithoutLocationNodeInput = {
-    id?: string
-    branchId: string
-    code: string
-    name: string
-    category?: $Enums.EquipmentComplianceCategory
-    make?: string | null
-    model?: string | null
-    serial?: string | null
-    ownerDepartmentId?: string | null
-    unitId?: string | null
-    roomId?: string | null
-    operationalStatus?: $Enums.EquipmentOperationalStatus
-    amcVendor?: string | null
-    amcValidFrom?: Date | string | null
-    amcValidTo?: Date | string | null
-    warrantyValidTo?: Date | string | null
-    pmFrequencyDays?: number | null
-    nextPmDueAt?: Date | string | null
-    aerbLicenseNo?: string | null
-    aerbValidTo?: Date | string | null
-    pcpndtRegNo?: string | null
-    pcpndtValidTo?: Date | string | null
-    isSchedulable?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    downtimeTickets?: DowntimeTicketUncheckedCreateNestedManyWithoutAssetInput
-  }
-
-  export type EquipmentAssetCreateOrConnectWithoutLocationNodeInput = {
-    where: EquipmentAssetWhereUniqueInput
-    create: XOR<EquipmentAssetCreateWithoutLocationNodeInput, EquipmentAssetUncheckedCreateWithoutLocationNodeInput>
-  }
-
-  export type EquipmentAssetCreateManyLocationNodeInputEnvelope = {
-    data: EquipmentAssetCreateManyLocationNodeInput | EquipmentAssetCreateManyLocationNodeInput[]
     skipDuplicates?: boolean
   }
 
@@ -86665,11 +86525,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -86690,17 +86550,17 @@ export namespace Prisma {
     auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -86709,11 +86569,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -86734,17 +86594,17 @@ export namespace Prisma {
     auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -86767,7 +86627,6 @@ export namespace Prisma {
     branch?: BranchUpdateOneRequiredWithoutLocationNodesNestedInput
     parent?: LocationNodeUpdateOneWithoutChildrenNestedInput
     revisions?: LocationNodeRevisionUpdateManyWithoutNodeNestedInput
-    EquipmentAsset?: EquipmentAssetUpdateManyWithoutLocationNodeNestedInput
   }
 
   export type LocationNodeUncheckedUpdateWithoutChildrenInput = {
@@ -86778,7 +86637,6 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     revisions?: LocationNodeRevisionUncheckedUpdateManyWithoutNodeNestedInput
-    EquipmentAsset?: EquipmentAssetUncheckedUpdateManyWithoutLocationNodeNestedInput
   }
 
   export type LocationNodeUpsertWithWhereUniqueWithoutParentInput = {
@@ -86813,22 +86671,6 @@ export namespace Prisma {
     data: XOR<LocationNodeRevisionUpdateManyMutationInput, LocationNodeRevisionUncheckedUpdateManyWithoutNodeInput>
   }
 
-  export type EquipmentAssetUpsertWithWhereUniqueWithoutLocationNodeInput = {
-    where: EquipmentAssetWhereUniqueInput
-    update: XOR<EquipmentAssetUpdateWithoutLocationNodeInput, EquipmentAssetUncheckedUpdateWithoutLocationNodeInput>
-    create: XOR<EquipmentAssetCreateWithoutLocationNodeInput, EquipmentAssetUncheckedCreateWithoutLocationNodeInput>
-  }
-
-  export type EquipmentAssetUpdateWithWhereUniqueWithoutLocationNodeInput = {
-    where: EquipmentAssetWhereUniqueInput
-    data: XOR<EquipmentAssetUpdateWithoutLocationNodeInput, EquipmentAssetUncheckedUpdateWithoutLocationNodeInput>
-  }
-
-  export type EquipmentAssetUpdateManyWithWhereWithoutLocationNodeInput = {
-    where: EquipmentAssetScalarWhereInput
-    data: XOR<EquipmentAssetUpdateManyMutationInput, EquipmentAssetUncheckedUpdateManyWithoutLocationNodeInput>
-  }
-
   export type LocationNodeCreateWithoutRevisionsInput = {
     id?: string
     kind: $Enums.LocationKind
@@ -86837,7 +86679,6 @@ export namespace Prisma {
     branch: BranchCreateNestedOneWithoutLocationNodesInput
     parent?: LocationNodeCreateNestedOneWithoutChildrenInput
     children?: LocationNodeCreateNestedManyWithoutParentInput
-    EquipmentAsset?: EquipmentAssetCreateNestedManyWithoutLocationNodeInput
   }
 
   export type LocationNodeUncheckedCreateWithoutRevisionsInput = {
@@ -86848,7 +86689,6 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     children?: LocationNodeUncheckedCreateNestedManyWithoutParentInput
-    EquipmentAsset?: EquipmentAssetUncheckedCreateNestedManyWithoutLocationNodeInput
   }
 
   export type LocationNodeCreateOrConnectWithoutRevisionsInput = {
@@ -86938,7 +86778,6 @@ export namespace Prisma {
     branch?: BranchUpdateOneRequiredWithoutLocationNodesNestedInput
     parent?: LocationNodeUpdateOneWithoutChildrenNestedInput
     children?: LocationNodeUpdateManyWithoutParentNestedInput
-    EquipmentAsset?: EquipmentAssetUpdateManyWithoutLocationNodeNestedInput
   }
 
   export type LocationNodeUncheckedUpdateWithoutRevisionsInput = {
@@ -86949,7 +86788,6 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     children?: LocationNodeUncheckedUpdateManyWithoutParentNestedInput
-    EquipmentAsset?: EquipmentAssetUncheckedUpdateManyWithoutLocationNodeNestedInput
   }
 
   export type UserUpsertWithoutCreatedLocationRevisionsInput = {
@@ -87024,17 +86862,17 @@ export namespace Prisma {
   export type BranchUnitTypeCreateWithoutUnitTypeInput = {
     id?: string
     isEnabled?: boolean
-    enabledAt?: Date | string
+    enabledAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    branch: BranchCreateNestedOneWithoutUnitTypesEnabledInput
+    branch: BranchCreateNestedOneWithoutBranchUnitTypesInput
   }
 
   export type BranchUnitTypeUncheckedCreateWithoutUnitTypeInput = {
     id?: string
     branchId: string
     isEnabled?: boolean
-    enabledAt?: Date | string
+    enabledAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -87061,7 +86899,6 @@ export namespace Prisma {
     department: DepartmentCreateNestedOneWithoutUnitsInput
     rooms?: UnitRoomCreateNestedManyWithoutUnitInput
     resources?: UnitResourceCreateNestedManyWithoutUnitInput
-    equipment?: EquipmentAssetCreateNestedManyWithoutUnitInput
     bookings?: ProcedureBookingCreateNestedManyWithoutUnitInput
   }
 
@@ -87077,7 +86914,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     rooms?: UnitRoomUncheckedCreateNestedManyWithoutUnitInput
     resources?: UnitResourceUncheckedCreateNestedManyWithoutUnitInput
-    equipment?: EquipmentAssetUncheckedCreateNestedManyWithoutUnitInput
     bookings?: ProcedureBookingUncheckedCreateNestedManyWithoutUnitInput
   }
 
@@ -87123,16 +86959,16 @@ export namespace Prisma {
     data: XOR<UnitUpdateManyMutationInput, UnitUncheckedUpdateManyWithoutUnitTypeInput>
   }
 
-  export type BranchCreateWithoutUnitTypesEnabledInput = {
+  export type BranchCreateWithoutBranchUnitTypesInput = {
     id?: string
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -87157,26 +86993,26 @@ export namespace Prisma {
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
-  export type BranchUncheckedCreateWithoutUnitTypesEnabledInput = {
+  export type BranchUncheckedCreateWithoutBranchUnitTypesInput = {
     id?: string
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -87201,19 +87037,19 @@ export namespace Prisma {
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
-  export type BranchCreateOrConnectWithoutUnitTypesEnabledInput = {
+  export type BranchCreateOrConnectWithoutBranchUnitTypesInput = {
     where: BranchWhereUniqueInput
-    create: XOR<BranchCreateWithoutUnitTypesEnabledInput, BranchUncheckedCreateWithoutUnitTypesEnabledInput>
+    create: XOR<BranchCreateWithoutBranchUnitTypesInput, BranchUncheckedCreateWithoutBranchUnitTypesInput>
   }
 
   export type UnitTypeCatalogCreateWithoutBranchLinksInput = {
@@ -87222,8 +87058,8 @@ export namespace Prisma {
     name: string
     usesRoomsDefault?: boolean
     schedulableByDefault?: boolean
-    sortOrder?: number
     isActive?: boolean
+    sortOrder?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     units?: UnitCreateNestedManyWithoutUnitTypeInput
@@ -87235,8 +87071,8 @@ export namespace Prisma {
     name: string
     usesRoomsDefault?: boolean
     schedulableByDefault?: boolean
-    sortOrder?: number
     isActive?: boolean
+    sortOrder?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     units?: UnitUncheckedCreateNestedManyWithoutUnitTypeInput
@@ -87247,27 +87083,27 @@ export namespace Prisma {
     create: XOR<UnitTypeCatalogCreateWithoutBranchLinksInput, UnitTypeCatalogUncheckedCreateWithoutBranchLinksInput>
   }
 
-  export type BranchUpsertWithoutUnitTypesEnabledInput = {
-    update: XOR<BranchUpdateWithoutUnitTypesEnabledInput, BranchUncheckedUpdateWithoutUnitTypesEnabledInput>
-    create: XOR<BranchCreateWithoutUnitTypesEnabledInput, BranchUncheckedCreateWithoutUnitTypesEnabledInput>
+  export type BranchUpsertWithoutBranchUnitTypesInput = {
+    update: XOR<BranchUpdateWithoutBranchUnitTypesInput, BranchUncheckedUpdateWithoutBranchUnitTypesInput>
+    create: XOR<BranchCreateWithoutBranchUnitTypesInput, BranchUncheckedCreateWithoutBranchUnitTypesInput>
     where?: BranchWhereInput
   }
 
-  export type BranchUpdateToOneWithWhereWithoutUnitTypesEnabledInput = {
+  export type BranchUpdateToOneWithWhereWithoutBranchUnitTypesInput = {
     where?: BranchWhereInput
-    data: XOR<BranchUpdateWithoutUnitTypesEnabledInput, BranchUncheckedUpdateWithoutUnitTypesEnabledInput>
+    data: XOR<BranchUpdateWithoutBranchUnitTypesInput, BranchUncheckedUpdateWithoutBranchUnitTypesInput>
   }
 
-  export type BranchUpdateWithoutUnitTypesEnabledInput = {
+  export type BranchUpdateWithoutBranchUnitTypesInput = {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -87292,26 +87128,26 @@ export namespace Prisma {
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
-  export type BranchUncheckedUpdateWithoutUnitTypesEnabledInput = {
+  export type BranchUncheckedUpdateWithoutBranchUnitTypesInput = {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -87336,13 +87172,13 @@ export namespace Prisma {
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -87363,8 +87199,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     usesRoomsDefault?: BoolFieldUpdateOperationsInput | boolean
     schedulableByDefault?: BoolFieldUpdateOperationsInput | boolean
-    sortOrder?: IntFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     units?: UnitUpdateManyWithoutUnitTypeNestedInput
@@ -87376,8 +87212,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     usesRoomsDefault?: BoolFieldUpdateOperationsInput | boolean
     schedulableByDefault?: BoolFieldUpdateOperationsInput | boolean
-    sortOrder?: IntFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     units?: UnitUncheckedUpdateManyWithoutUnitTypeNestedInput
@@ -87388,11 +87224,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -87414,16 +87250,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -87432,11 +87268,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -87458,16 +87294,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -87487,8 +87323,9 @@ export namespace Prisma {
     facility: FacilityCatalogCreateNestedOneWithoutDepartmentsInput
     headStaff?: StaffCreateNestedOneWithoutHeadedDepartmentsInput
     staff?: StaffCreateNestedManyWithoutDepartmentInput
-    departmentSpecialties?: DepartmentSpecialtyCreateNestedManyWithoutDepartmentInput
+    specialties?: SpecialtyCreateNestedManyWithoutDepartmentInput
     doctorAssignments?: DepartmentDoctorCreateNestedManyWithoutDepartmentInput
+    departmentSpecialties?: DepartmentSpecialtyCreateNestedManyWithoutDepartmentInput
     equipmentOwned?: EquipmentAssetCreateNestedManyWithoutOwnerDepartmentInput
   }
 
@@ -87503,8 +87340,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     staff?: StaffUncheckedCreateNestedManyWithoutDepartmentInput
-    departmentSpecialties?: DepartmentSpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
+    specialties?: SpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
     doctorAssignments?: DepartmentDoctorUncheckedCreateNestedManyWithoutDepartmentInput
+    departmentSpecialties?: DepartmentSpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
     equipmentOwned?: EquipmentAssetUncheckedCreateNestedManyWithoutOwnerDepartmentInput
   }
 
@@ -87519,8 +87357,8 @@ export namespace Prisma {
     name: string
     usesRoomsDefault?: boolean
     schedulableByDefault?: boolean
-    sortOrder?: number
     isActive?: boolean
+    sortOrder?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     branchLinks?: BranchUnitTypeCreateNestedManyWithoutUnitTypeInput
@@ -87532,8 +87370,8 @@ export namespace Prisma {
     name: string
     usesRoomsDefault?: boolean
     schedulableByDefault?: boolean
-    sortOrder?: number
     isActive?: boolean
+    sortOrder?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     branchLinks?: BranchUnitTypeUncheckedCreateNestedManyWithoutUnitTypeInput
@@ -87553,7 +87391,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     branch: BranchCreateNestedOneWithoutUnitRoomsInput
     resources?: UnitResourceCreateNestedManyWithoutRoomInput
-    equipment?: EquipmentAssetCreateNestedManyWithoutRoomInput
   }
 
   export type UnitRoomUncheckedCreateWithoutUnitInput = {
@@ -87565,7 +87402,6 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     resources?: UnitResourceUncheckedCreateNestedManyWithoutRoomInput
-    equipment?: EquipmentAssetUncheckedCreateNestedManyWithoutRoomInput
   }
 
   export type UnitRoomCreateOrConnectWithoutUnitInput = {
@@ -87618,74 +87454,6 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type EquipmentAssetCreateWithoutUnitInput = {
-    id?: string
-    code: string
-    name: string
-    category?: $Enums.EquipmentComplianceCategory
-    make?: string | null
-    model?: string | null
-    serial?: string | null
-    operationalStatus?: $Enums.EquipmentOperationalStatus
-    amcVendor?: string | null
-    amcValidFrom?: Date | string | null
-    amcValidTo?: Date | string | null
-    warrantyValidTo?: Date | string | null
-    pmFrequencyDays?: number | null
-    nextPmDueAt?: Date | string | null
-    aerbLicenseNo?: string | null
-    aerbValidTo?: Date | string | null
-    pcpndtRegNo?: string | null
-    pcpndtValidTo?: Date | string | null
-    isSchedulable?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    branch: BranchCreateNestedOneWithoutEquipmentAssetsInput
-    ownerDepartment?: DepartmentCreateNestedOneWithoutEquipmentOwnedInput
-    room?: UnitRoomCreateNestedOneWithoutEquipmentInput
-    locationNode?: LocationNodeCreateNestedOneWithoutEquipmentAssetInput
-    downtimeTickets?: DowntimeTicketCreateNestedManyWithoutAssetInput
-  }
-
-  export type EquipmentAssetUncheckedCreateWithoutUnitInput = {
-    id?: string
-    branchId: string
-    code: string
-    name: string
-    category?: $Enums.EquipmentComplianceCategory
-    make?: string | null
-    model?: string | null
-    serial?: string | null
-    ownerDepartmentId?: string | null
-    roomId?: string | null
-    locationNodeId?: string | null
-    operationalStatus?: $Enums.EquipmentOperationalStatus
-    amcVendor?: string | null
-    amcValidFrom?: Date | string | null
-    amcValidTo?: Date | string | null
-    warrantyValidTo?: Date | string | null
-    pmFrequencyDays?: number | null
-    nextPmDueAt?: Date | string | null
-    aerbLicenseNo?: string | null
-    aerbValidTo?: Date | string | null
-    pcpndtRegNo?: string | null
-    pcpndtValidTo?: Date | string | null
-    isSchedulable?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    downtimeTickets?: DowntimeTicketUncheckedCreateNestedManyWithoutAssetInput
-  }
-
-  export type EquipmentAssetCreateOrConnectWithoutUnitInput = {
-    where: EquipmentAssetWhereUniqueInput
-    create: XOR<EquipmentAssetCreateWithoutUnitInput, EquipmentAssetUncheckedCreateWithoutUnitInput>
-  }
-
-  export type EquipmentAssetCreateManyUnitInputEnvelope = {
-    data: EquipmentAssetCreateManyUnitInput | EquipmentAssetCreateManyUnitInput[]
-    skipDuplicates?: boolean
-  }
-
   export type ProcedureBookingCreateWithoutUnitInput = {
     id?: string
     patientId?: string | null
@@ -87696,8 +87464,8 @@ export namespace Prisma {
     consentOk?: boolean
     anesthesiaOk?: boolean
     checklistOk?: boolean
+    cancelledAt?: Date | string | null
     createdAt?: Date | string
-    updatedAt?: Date | string
     branch: BranchCreateNestedOneWithoutProcedureBookingsInput
     resource: UnitResourceCreateNestedOneWithoutBookingsInput
     createdByUser?: UserCreateNestedOneWithoutCreatedBookingsInput
@@ -87716,8 +87484,8 @@ export namespace Prisma {
     anesthesiaOk?: boolean
     checklistOk?: boolean
     createdByUserId?: string | null
+    cancelledAt?: Date | string | null
     createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type ProcedureBookingCreateOrConnectWithoutUnitInput = {
@@ -87746,11 +87514,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -87772,16 +87540,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -87790,11 +87558,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -87816,16 +87584,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -87851,8 +87619,9 @@ export namespace Prisma {
     facility?: FacilityCatalogUpdateOneRequiredWithoutDepartmentsNestedInput
     headStaff?: StaffUpdateOneWithoutHeadedDepartmentsNestedInput
     staff?: StaffUpdateManyWithoutDepartmentNestedInput
-    departmentSpecialties?: DepartmentSpecialtyUpdateManyWithoutDepartmentNestedInput
+    specialties?: SpecialtyUpdateManyWithoutDepartmentNestedInput
     doctorAssignments?: DepartmentDoctorUpdateManyWithoutDepartmentNestedInput
+    departmentSpecialties?: DepartmentSpecialtyUpdateManyWithoutDepartmentNestedInput
     equipmentOwned?: EquipmentAssetUpdateManyWithoutOwnerDepartmentNestedInput
   }
 
@@ -87867,8 +87636,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     staff?: StaffUncheckedUpdateManyWithoutDepartmentNestedInput
-    departmentSpecialties?: DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
+    specialties?: SpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
     doctorAssignments?: DepartmentDoctorUncheckedUpdateManyWithoutDepartmentNestedInput
+    departmentSpecialties?: DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
     equipmentOwned?: EquipmentAssetUncheckedUpdateManyWithoutOwnerDepartmentNestedInput
   }
 
@@ -87889,8 +87659,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     usesRoomsDefault?: BoolFieldUpdateOperationsInput | boolean
     schedulableByDefault?: BoolFieldUpdateOperationsInput | boolean
-    sortOrder?: IntFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branchLinks?: BranchUnitTypeUpdateManyWithoutUnitTypeNestedInput
@@ -87902,8 +87672,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     usesRoomsDefault?: BoolFieldUpdateOperationsInput | boolean
     schedulableByDefault?: BoolFieldUpdateOperationsInput | boolean
-    sortOrder?: IntFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branchLinks?: BranchUnitTypeUncheckedUpdateManyWithoutUnitTypeNestedInput
@@ -87941,22 +87711,6 @@ export namespace Prisma {
     data: XOR<UnitResourceUpdateManyMutationInput, UnitResourceUncheckedUpdateManyWithoutUnitInput>
   }
 
-  export type EquipmentAssetUpsertWithWhereUniqueWithoutUnitInput = {
-    where: EquipmentAssetWhereUniqueInput
-    update: XOR<EquipmentAssetUpdateWithoutUnitInput, EquipmentAssetUncheckedUpdateWithoutUnitInput>
-    create: XOR<EquipmentAssetCreateWithoutUnitInput, EquipmentAssetUncheckedCreateWithoutUnitInput>
-  }
-
-  export type EquipmentAssetUpdateWithWhereUniqueWithoutUnitInput = {
-    where: EquipmentAssetWhereUniqueInput
-    data: XOR<EquipmentAssetUpdateWithoutUnitInput, EquipmentAssetUncheckedUpdateWithoutUnitInput>
-  }
-
-  export type EquipmentAssetUpdateManyWithWhereWithoutUnitInput = {
-    where: EquipmentAssetScalarWhereInput
-    data: XOR<EquipmentAssetUpdateManyMutationInput, EquipmentAssetUncheckedUpdateManyWithoutUnitInput>
-  }
-
   export type ProcedureBookingUpsertWithWhereUniqueWithoutUnitInput = {
     where: ProcedureBookingWhereUniqueInput
     update: XOR<ProcedureBookingUpdateWithoutUnitInput, ProcedureBookingUncheckedUpdateWithoutUnitInput>
@@ -87973,53 +87727,16 @@ export namespace Prisma {
     data: XOR<ProcedureBookingUpdateManyMutationInput, ProcedureBookingUncheckedUpdateManyWithoutUnitInput>
   }
 
-  export type UnitCreateWithoutRoomsInput = {
-    id?: string
-    code: string
-    name: string
-    usesRooms?: boolean
-    isActive?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    branch: BranchCreateNestedOneWithoutUnitsInput
-    department: DepartmentCreateNestedOneWithoutUnitsInput
-    unitType: UnitTypeCatalogCreateNestedOneWithoutUnitsInput
-    resources?: UnitResourceCreateNestedManyWithoutUnitInput
-    equipment?: EquipmentAssetCreateNestedManyWithoutUnitInput
-    bookings?: ProcedureBookingCreateNestedManyWithoutUnitInput
-  }
-
-  export type UnitUncheckedCreateWithoutRoomsInput = {
-    id?: string
-    branchId: string
-    departmentId: string
-    unitTypeId: string
-    code: string
-    name: string
-    usesRooms?: boolean
-    isActive?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    resources?: UnitResourceUncheckedCreateNestedManyWithoutUnitInput
-    equipment?: EquipmentAssetUncheckedCreateNestedManyWithoutUnitInput
-    bookings?: ProcedureBookingUncheckedCreateNestedManyWithoutUnitInput
-  }
-
-  export type UnitCreateOrConnectWithoutRoomsInput = {
-    where: UnitWhereUniqueInput
-    create: XOR<UnitCreateWithoutRoomsInput, UnitUncheckedCreateWithoutRoomsInput>
-  }
-
   export type BranchCreateWithoutUnitRoomsInput = {
     id?: string
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -88041,16 +87758,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -88059,11 +87776,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -88085,22 +87802,57 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutUnitRoomsInput = {
     where: BranchWhereUniqueInput
     create: XOR<BranchCreateWithoutUnitRoomsInput, BranchUncheckedCreateWithoutUnitRoomsInput>
+  }
+
+  export type UnitCreateWithoutRoomsInput = {
+    id?: string
+    code: string
+    name: string
+    usesRooms?: boolean
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    branch: BranchCreateNestedOneWithoutUnitsInput
+    department: DepartmentCreateNestedOneWithoutUnitsInput
+    unitType: UnitTypeCatalogCreateNestedOneWithoutUnitsInput
+    resources?: UnitResourceCreateNestedManyWithoutUnitInput
+    bookings?: ProcedureBookingCreateNestedManyWithoutUnitInput
+  }
+
+  export type UnitUncheckedCreateWithoutRoomsInput = {
+    id?: string
+    branchId: string
+    departmentId: string
+    unitTypeId: string
+    code: string
+    name: string
+    usesRooms?: boolean
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    resources?: UnitResourceUncheckedCreateNestedManyWithoutUnitInput
+    bookings?: ProcedureBookingUncheckedCreateNestedManyWithoutUnitInput
+  }
+
+  export type UnitCreateOrConnectWithoutRoomsInput = {
+    where: UnitWhereUniqueInput
+    create: XOR<UnitCreateWithoutRoomsInput, UnitUncheckedCreateWithoutRoomsInput>
   }
 
   export type UnitResourceCreateWithoutRoomInput = {
@@ -88143,72 +87895,103 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type EquipmentAssetCreateWithoutRoomInput = {
-    id?: string
-    code: string
-    name: string
-    category?: $Enums.EquipmentComplianceCategory
-    make?: string | null
-    model?: string | null
-    serial?: string | null
-    operationalStatus?: $Enums.EquipmentOperationalStatus
-    amcVendor?: string | null
-    amcValidFrom?: Date | string | null
-    amcValidTo?: Date | string | null
-    warrantyValidTo?: Date | string | null
-    pmFrequencyDays?: number | null
-    nextPmDueAt?: Date | string | null
-    aerbLicenseNo?: string | null
-    aerbValidTo?: Date | string | null
-    pcpndtRegNo?: string | null
-    pcpndtValidTo?: Date | string | null
-    isSchedulable?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    branch: BranchCreateNestedOneWithoutEquipmentAssetsInput
-    ownerDepartment?: DepartmentCreateNestedOneWithoutEquipmentOwnedInput
-    unit?: UnitCreateNestedOneWithoutEquipmentInput
-    locationNode?: LocationNodeCreateNestedOneWithoutEquipmentAssetInput
-    downtimeTickets?: DowntimeTicketCreateNestedManyWithoutAssetInput
+  export type BranchUpsertWithoutUnitRoomsInput = {
+    update: XOR<BranchUpdateWithoutUnitRoomsInput, BranchUncheckedUpdateWithoutUnitRoomsInput>
+    create: XOR<BranchCreateWithoutUnitRoomsInput, BranchUncheckedCreateWithoutUnitRoomsInput>
+    where?: BranchWhereInput
   }
 
-  export type EquipmentAssetUncheckedCreateWithoutRoomInput = {
-    id?: string
-    branchId: string
-    code: string
-    name: string
-    category?: $Enums.EquipmentComplianceCategory
-    make?: string | null
-    model?: string | null
-    serial?: string | null
-    ownerDepartmentId?: string | null
-    unitId?: string | null
-    locationNodeId?: string | null
-    operationalStatus?: $Enums.EquipmentOperationalStatus
-    amcVendor?: string | null
-    amcValidFrom?: Date | string | null
-    amcValidTo?: Date | string | null
-    warrantyValidTo?: Date | string | null
-    pmFrequencyDays?: number | null
-    nextPmDueAt?: Date | string | null
-    aerbLicenseNo?: string | null
-    aerbValidTo?: Date | string | null
-    pcpndtRegNo?: string | null
-    pcpndtValidTo?: Date | string | null
-    isSchedulable?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    downtimeTickets?: DowntimeTicketUncheckedCreateNestedManyWithoutAssetInput
+  export type BranchUpdateToOneWithWhereWithoutUnitRoomsInput = {
+    where?: BranchWhereInput
+    data: XOR<BranchUpdateWithoutUnitRoomsInput, BranchUncheckedUpdateWithoutUnitRoomsInput>
   }
 
-  export type EquipmentAssetCreateOrConnectWithoutRoomInput = {
-    where: EquipmentAssetWhereUniqueInput
-    create: XOR<EquipmentAssetCreateWithoutRoomInput, EquipmentAssetUncheckedCreateWithoutRoomInput>
+  export type BranchUpdateWithoutUnitRoomsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    departments?: DepartmentUpdateManyWithoutBranchNestedInput
+    users?: UserUpdateManyWithoutBranchNestedInput
+    patients?: PatientUpdateManyWithoutBranchNestedInput
+    wards?: WardUpdateManyWithoutBranchNestedInput
+    oTs?: OTUpdateManyWithoutBranchNestedInput
+    tariffPlans?: TariffPlanUpdateManyWithoutBranchNestedInput
+    assets?: AssetUpdateManyWithoutBranchNestedInput
+    Specialty?: SpecialtyUpdateManyWithoutBranchNestedInput
+    Staff?: StaffUpdateManyWithoutBranchNestedInput
+    Encounter?: EncounterUpdateManyWithoutBranchNestedInput
+    Bed?: BedUpdateManyWithoutBranchNestedInput
+    Admission?: AdmissionUpdateManyWithoutBranchNestedInput
+    branchFacilities?: BranchFacilityUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUpdateManyWithoutBranchNestedInput
+    statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
+    auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
+    locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    units?: UnitUpdateManyWithoutBranchNestedInput
+    unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
+    procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
+    goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
-  export type EquipmentAssetCreateManyRoomInputEnvelope = {
-    data: EquipmentAssetCreateManyRoomInput | EquipmentAssetCreateManyRoomInput[]
-    skipDuplicates?: boolean
+  export type BranchUncheckedUpdateWithoutUnitRoomsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
+    users?: UserUncheckedUpdateManyWithoutBranchNestedInput
+    patients?: PatientUncheckedUpdateManyWithoutBranchNestedInput
+    wards?: WardUncheckedUpdateManyWithoutBranchNestedInput
+    oTs?: OTUncheckedUpdateManyWithoutBranchNestedInput
+    tariffPlans?: TariffPlanUncheckedUpdateManyWithoutBranchNestedInput
+    assets?: AssetUncheckedUpdateManyWithoutBranchNestedInput
+    Specialty?: SpecialtyUncheckedUpdateManyWithoutBranchNestedInput
+    Staff?: StaffUncheckedUpdateManyWithoutBranchNestedInput
+    Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
+    Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
+    Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
+    branchFacilities?: BranchFacilityUncheckedUpdateManyWithoutBranchNestedInput
+    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
+    statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
+    auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
+    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
+    locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
+    unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
+    procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
+    goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type UnitUpsertWithoutRoomsInput = {
@@ -88234,7 +88017,6 @@ export namespace Prisma {
     department?: DepartmentUpdateOneRequiredWithoutUnitsNestedInput
     unitType?: UnitTypeCatalogUpdateOneRequiredWithoutUnitsNestedInput
     resources?: UnitResourceUpdateManyWithoutUnitNestedInput
-    equipment?: EquipmentAssetUpdateManyWithoutUnitNestedInput
     bookings?: ProcedureBookingUpdateManyWithoutUnitNestedInput
   }
 
@@ -88250,107 +88032,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resources?: UnitResourceUncheckedUpdateManyWithoutUnitNestedInput
-    equipment?: EquipmentAssetUncheckedUpdateManyWithoutUnitNestedInput
     bookings?: ProcedureBookingUncheckedUpdateManyWithoutUnitNestedInput
-  }
-
-  export type BranchUpsertWithoutUnitRoomsInput = {
-    update: XOR<BranchUpdateWithoutUnitRoomsInput, BranchUncheckedUpdateWithoutUnitRoomsInput>
-    create: XOR<BranchCreateWithoutUnitRoomsInput, BranchUncheckedCreateWithoutUnitRoomsInput>
-    where?: BranchWhereInput
-  }
-
-  export type BranchUpdateToOneWithWhereWithoutUnitRoomsInput = {
-    where?: BranchWhereInput
-    data: XOR<BranchUpdateWithoutUnitRoomsInput, BranchUncheckedUpdateWithoutUnitRoomsInput>
-  }
-
-  export type BranchUpdateWithoutUnitRoomsInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    address?: NullableStringFieldUpdateOperationsInput | string | null
-    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
-    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
-    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    departments?: DepartmentUpdateManyWithoutBranchNestedInput
-    users?: UserUpdateManyWithoutBranchNestedInput
-    patients?: PatientUpdateManyWithoutBranchNestedInput
-    wards?: WardUpdateManyWithoutBranchNestedInput
-    oTs?: OTUpdateManyWithoutBranchNestedInput
-    tariffPlans?: TariffPlanUpdateManyWithoutBranchNestedInput
-    assets?: AssetUpdateManyWithoutBranchNestedInput
-    Specialty?: SpecialtyUpdateManyWithoutBranchNestedInput
-    Staff?: StaffUpdateManyWithoutBranchNestedInput
-    Encounter?: EncounterUpdateManyWithoutBranchNestedInput
-    Bed?: BedUpdateManyWithoutBranchNestedInput
-    Admission?: AdmissionUpdateManyWithoutBranchNestedInput
-    branchFacilities?: BranchFacilityUpdateManyWithoutBranchNestedInput
-    rooms?: RoomUpdateManyWithoutBranchNestedInput
-    statutoryCases?: StatutoryCaseUpdateManyWithoutBranchNestedInput
-    auditEvents?: AuditEventUpdateManyWithoutBranchNestedInput
-    policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
-    policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
-    locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
-    units?: UnitUpdateManyWithoutBranchNestedInput
-    unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
-    procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
-    goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
-  }
-
-  export type BranchUncheckedUpdateWithoutUnitRoomsInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    address?: NullableStringFieldUpdateOperationsInput | string | null
-    contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
-    contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
-    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
-    users?: UserUncheckedUpdateManyWithoutBranchNestedInput
-    patients?: PatientUncheckedUpdateManyWithoutBranchNestedInput
-    wards?: WardUncheckedUpdateManyWithoutBranchNestedInput
-    oTs?: OTUncheckedUpdateManyWithoutBranchNestedInput
-    tariffPlans?: TariffPlanUncheckedUpdateManyWithoutBranchNestedInput
-    assets?: AssetUncheckedUpdateManyWithoutBranchNestedInput
-    Specialty?: SpecialtyUncheckedUpdateManyWithoutBranchNestedInput
-    Staff?: StaffUncheckedUpdateManyWithoutBranchNestedInput
-    Encounter?: EncounterUncheckedUpdateManyWithoutBranchNestedInput
-    Bed?: BedUncheckedUpdateManyWithoutBranchNestedInput
-    Admission?: AdmissionUncheckedUpdateManyWithoutBranchNestedInput
-    branchFacilities?: BranchFacilityUncheckedUpdateManyWithoutBranchNestedInput
-    rooms?: RoomUncheckedUpdateManyWithoutBranchNestedInput
-    statutoryCases?: StatutoryCaseUncheckedUpdateManyWithoutBranchNestedInput
-    auditEvents?: AuditEventUncheckedUpdateManyWithoutBranchNestedInput
-    policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
-    policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
-    locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
-    units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
-    unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
-    procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
-    goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type UnitResourceUpsertWithWhereUniqueWithoutRoomInput = {
@@ -88369,32 +88051,16 @@ export namespace Prisma {
     data: XOR<UnitResourceUpdateManyMutationInput, UnitResourceUncheckedUpdateManyWithoutRoomInput>
   }
 
-  export type EquipmentAssetUpsertWithWhereUniqueWithoutRoomInput = {
-    where: EquipmentAssetWhereUniqueInput
-    update: XOR<EquipmentAssetUpdateWithoutRoomInput, EquipmentAssetUncheckedUpdateWithoutRoomInput>
-    create: XOR<EquipmentAssetCreateWithoutRoomInput, EquipmentAssetUncheckedCreateWithoutRoomInput>
-  }
-
-  export type EquipmentAssetUpdateWithWhereUniqueWithoutRoomInput = {
-    where: EquipmentAssetWhereUniqueInput
-    data: XOR<EquipmentAssetUpdateWithoutRoomInput, EquipmentAssetUncheckedUpdateWithoutRoomInput>
-  }
-
-  export type EquipmentAssetUpdateManyWithWhereWithoutRoomInput = {
-    where: EquipmentAssetScalarWhereInput
-    data: XOR<EquipmentAssetUpdateManyMutationInput, EquipmentAssetUncheckedUpdateManyWithoutRoomInput>
-  }
-
   export type BranchCreateWithoutUnitResourcesInput = {
     id?: string
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -88416,16 +88082,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -88434,11 +88100,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -88460,16 +88126,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -88490,7 +88156,6 @@ export namespace Prisma {
     department: DepartmentCreateNestedOneWithoutUnitsInput
     unitType: UnitTypeCatalogCreateNestedOneWithoutUnitsInput
     rooms?: UnitRoomCreateNestedManyWithoutUnitInput
-    equipment?: EquipmentAssetCreateNestedManyWithoutUnitInput
     bookings?: ProcedureBookingCreateNestedManyWithoutUnitInput
   }
 
@@ -88506,7 +88171,6 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     rooms?: UnitRoomUncheckedCreateNestedManyWithoutUnitInput
-    equipment?: EquipmentAssetUncheckedCreateNestedManyWithoutUnitInput
     bookings?: ProcedureBookingUncheckedCreateNestedManyWithoutUnitInput
   }
 
@@ -88522,21 +88186,19 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    unit: UnitCreateNestedOneWithoutRoomsInput
     branch: BranchCreateNestedOneWithoutUnitRoomsInput
-    equipment?: EquipmentAssetCreateNestedManyWithoutRoomInput
+    unit: UnitCreateNestedOneWithoutRoomsInput
   }
 
   export type UnitRoomUncheckedCreateWithoutResourcesInput = {
     id?: string
-    unitId: string
     branchId: string
+    unitId: string
     code: string
     name: string
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    equipment?: EquipmentAssetUncheckedCreateNestedManyWithoutRoomInput
   }
 
   export type UnitRoomCreateOrConnectWithoutResourcesInput = {
@@ -88554,8 +88216,8 @@ export namespace Prisma {
     consentOk?: boolean
     anesthesiaOk?: boolean
     checklistOk?: boolean
+    cancelledAt?: Date | string | null
     createdAt?: Date | string
-    updatedAt?: Date | string
     branch: BranchCreateNestedOneWithoutProcedureBookingsInput
     unit: UnitCreateNestedOneWithoutBookingsInput
     createdByUser?: UserCreateNestedOneWithoutCreatedBookingsInput
@@ -88574,8 +88236,8 @@ export namespace Prisma {
     anesthesiaOk?: boolean
     checklistOk?: boolean
     createdByUserId?: string | null
+    cancelledAt?: Date | string | null
     createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type ProcedureBookingCreateOrConnectWithoutResourceInput = {
@@ -88604,11 +88266,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -88630,16 +88292,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -88648,11 +88310,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -88674,16 +88336,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -88710,7 +88372,6 @@ export namespace Prisma {
     department?: DepartmentUpdateOneRequiredWithoutUnitsNestedInput
     unitType?: UnitTypeCatalogUpdateOneRequiredWithoutUnitsNestedInput
     rooms?: UnitRoomUpdateManyWithoutUnitNestedInput
-    equipment?: EquipmentAssetUpdateManyWithoutUnitNestedInput
     bookings?: ProcedureBookingUpdateManyWithoutUnitNestedInput
   }
 
@@ -88726,7 +88387,6 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rooms?: UnitRoomUncheckedUpdateManyWithoutUnitNestedInput
-    equipment?: EquipmentAssetUncheckedUpdateManyWithoutUnitNestedInput
     bookings?: ProcedureBookingUncheckedUpdateManyWithoutUnitNestedInput
   }
 
@@ -88748,21 +88408,19 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    unit?: UnitUpdateOneRequiredWithoutRoomsNestedInput
     branch?: BranchUpdateOneRequiredWithoutUnitRoomsNestedInput
-    equipment?: EquipmentAssetUpdateManyWithoutRoomNestedInput
+    unit?: UnitUpdateOneRequiredWithoutRoomsNestedInput
   }
 
   export type UnitRoomUncheckedUpdateWithoutResourcesInput = {
     id?: StringFieldUpdateOperationsInput | string
-    unitId?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
+    unitId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    equipment?: EquipmentAssetUncheckedUpdateManyWithoutRoomNestedInput
   }
 
   export type ProcedureBookingUpsertWithWhereUniqueWithoutResourceInput = {
@@ -88786,11 +88444,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -88812,16 +88470,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -88830,11 +88488,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -88856,16 +88514,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -88885,8 +88543,9 @@ export namespace Prisma {
     facility: FacilityCatalogCreateNestedOneWithoutDepartmentsInput
     headStaff?: StaffCreateNestedOneWithoutHeadedDepartmentsInput
     staff?: StaffCreateNestedManyWithoutDepartmentInput
-    departmentSpecialties?: DepartmentSpecialtyCreateNestedManyWithoutDepartmentInput
+    specialties?: SpecialtyCreateNestedManyWithoutDepartmentInput
     doctorAssignments?: DepartmentDoctorCreateNestedManyWithoutDepartmentInput
+    departmentSpecialties?: DepartmentSpecialtyCreateNestedManyWithoutDepartmentInput
     units?: UnitCreateNestedManyWithoutDepartmentInput
   }
 
@@ -88901,8 +88560,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     staff?: StaffUncheckedCreateNestedManyWithoutDepartmentInput
-    departmentSpecialties?: DepartmentSpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
+    specialties?: SpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
     doctorAssignments?: DepartmentDoctorUncheckedCreateNestedManyWithoutDepartmentInput
+    departmentSpecialties?: DepartmentSpecialtyUncheckedCreateNestedManyWithoutDepartmentInput
     units?: UnitUncheckedCreateNestedManyWithoutDepartmentInput
   }
 
@@ -88911,104 +88571,11 @@ export namespace Prisma {
     create: XOR<DepartmentCreateWithoutEquipmentOwnedInput, DepartmentUncheckedCreateWithoutEquipmentOwnedInput>
   }
 
-  export type UnitCreateWithoutEquipmentInput = {
-    id?: string
-    code: string
-    name: string
-    usesRooms?: boolean
-    isActive?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    branch: BranchCreateNestedOneWithoutUnitsInput
-    department: DepartmentCreateNestedOneWithoutUnitsInput
-    unitType: UnitTypeCatalogCreateNestedOneWithoutUnitsInput
-    rooms?: UnitRoomCreateNestedManyWithoutUnitInput
-    resources?: UnitResourceCreateNestedManyWithoutUnitInput
-    bookings?: ProcedureBookingCreateNestedManyWithoutUnitInput
-  }
-
-  export type UnitUncheckedCreateWithoutEquipmentInput = {
-    id?: string
-    branchId: string
-    departmentId: string
-    unitTypeId: string
-    code: string
-    name: string
-    usesRooms?: boolean
-    isActive?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    rooms?: UnitRoomUncheckedCreateNestedManyWithoutUnitInput
-    resources?: UnitResourceUncheckedCreateNestedManyWithoutUnitInput
-    bookings?: ProcedureBookingUncheckedCreateNestedManyWithoutUnitInput
-  }
-
-  export type UnitCreateOrConnectWithoutEquipmentInput = {
-    where: UnitWhereUniqueInput
-    create: XOR<UnitCreateWithoutEquipmentInput, UnitUncheckedCreateWithoutEquipmentInput>
-  }
-
-  export type UnitRoomCreateWithoutEquipmentInput = {
-    id?: string
-    code: string
-    name: string
-    isActive?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    unit: UnitCreateNestedOneWithoutRoomsInput
-    branch: BranchCreateNestedOneWithoutUnitRoomsInput
-    resources?: UnitResourceCreateNestedManyWithoutRoomInput
-  }
-
-  export type UnitRoomUncheckedCreateWithoutEquipmentInput = {
-    id?: string
-    unitId: string
-    branchId: string
-    code: string
-    name: string
-    isActive?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    resources?: UnitResourceUncheckedCreateNestedManyWithoutRoomInput
-  }
-
-  export type UnitRoomCreateOrConnectWithoutEquipmentInput = {
-    where: UnitRoomWhereUniqueInput
-    create: XOR<UnitRoomCreateWithoutEquipmentInput, UnitRoomUncheckedCreateWithoutEquipmentInput>
-  }
-
-  export type LocationNodeCreateWithoutEquipmentAssetInput = {
-    id?: string
-    kind: $Enums.LocationKind
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    branch: BranchCreateNestedOneWithoutLocationNodesInput
-    parent?: LocationNodeCreateNestedOneWithoutChildrenInput
-    children?: LocationNodeCreateNestedManyWithoutParentInput
-    revisions?: LocationNodeRevisionCreateNestedManyWithoutNodeInput
-  }
-
-  export type LocationNodeUncheckedCreateWithoutEquipmentAssetInput = {
-    id?: string
-    branchId: string
-    kind: $Enums.LocationKind
-    parentId?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    children?: LocationNodeUncheckedCreateNestedManyWithoutParentInput
-    revisions?: LocationNodeRevisionUncheckedCreateNestedManyWithoutNodeInput
-  }
-
-  export type LocationNodeCreateOrConnectWithoutEquipmentAssetInput = {
-    where: LocationNodeWhereUniqueInput
-    create: XOR<LocationNodeCreateWithoutEquipmentAssetInput, LocationNodeUncheckedCreateWithoutEquipmentAssetInput>
-  }
-
   export type DowntimeTicketCreateWithoutAssetInput = {
     id?: string
-    status?: $Enums.DowntimeStatus
     reason: string
     notes?: string | null
+    status?: $Enums.DowntimeStatus
     openedAt?: Date | string
     closedAt?: Date | string | null
     createdAt?: Date | string
@@ -89017,9 +88584,9 @@ export namespace Prisma {
 
   export type DowntimeTicketUncheckedCreateWithoutAssetInput = {
     id?: string
-    status?: $Enums.DowntimeStatus
     reason: string
     notes?: string | null
+    status?: $Enums.DowntimeStatus
     openedAt?: Date | string
     closedAt?: Date | string | null
     createdAt?: Date | string
@@ -89052,11 +88619,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -89078,16 +88645,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -89096,11 +88663,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -89122,16 +88689,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -89157,8 +88724,9 @@ export namespace Prisma {
     facility?: FacilityCatalogUpdateOneRequiredWithoutDepartmentsNestedInput
     headStaff?: StaffUpdateOneWithoutHeadedDepartmentsNestedInput
     staff?: StaffUpdateManyWithoutDepartmentNestedInput
-    departmentSpecialties?: DepartmentSpecialtyUpdateManyWithoutDepartmentNestedInput
+    specialties?: SpecialtyUpdateManyWithoutDepartmentNestedInput
     doctorAssignments?: DepartmentDoctorUpdateManyWithoutDepartmentNestedInput
+    departmentSpecialties?: DepartmentSpecialtyUpdateManyWithoutDepartmentNestedInput
     units?: UnitUpdateManyWithoutDepartmentNestedInput
   }
 
@@ -89173,120 +88741,10 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     staff?: StaffUncheckedUpdateManyWithoutDepartmentNestedInput
-    departmentSpecialties?: DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
+    specialties?: SpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
     doctorAssignments?: DepartmentDoctorUncheckedUpdateManyWithoutDepartmentNestedInput
+    departmentSpecialties?: DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
     units?: UnitUncheckedUpdateManyWithoutDepartmentNestedInput
-  }
-
-  export type UnitUpsertWithoutEquipmentInput = {
-    update: XOR<UnitUpdateWithoutEquipmentInput, UnitUncheckedUpdateWithoutEquipmentInput>
-    create: XOR<UnitCreateWithoutEquipmentInput, UnitUncheckedCreateWithoutEquipmentInput>
-    where?: UnitWhereInput
-  }
-
-  export type UnitUpdateToOneWithWhereWithoutEquipmentInput = {
-    where?: UnitWhereInput
-    data: XOR<UnitUpdateWithoutEquipmentInput, UnitUncheckedUpdateWithoutEquipmentInput>
-  }
-
-  export type UnitUpdateWithoutEquipmentInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    usesRooms?: BoolFieldUpdateOperationsInput | boolean
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    branch?: BranchUpdateOneRequiredWithoutUnitsNestedInput
-    department?: DepartmentUpdateOneRequiredWithoutUnitsNestedInput
-    unitType?: UnitTypeCatalogUpdateOneRequiredWithoutUnitsNestedInput
-    rooms?: UnitRoomUpdateManyWithoutUnitNestedInput
-    resources?: UnitResourceUpdateManyWithoutUnitNestedInput
-    bookings?: ProcedureBookingUpdateManyWithoutUnitNestedInput
-  }
-
-  export type UnitUncheckedUpdateWithoutEquipmentInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    branchId?: StringFieldUpdateOperationsInput | string
-    departmentId?: StringFieldUpdateOperationsInput | string
-    unitTypeId?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    usesRooms?: BoolFieldUpdateOperationsInput | boolean
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    rooms?: UnitRoomUncheckedUpdateManyWithoutUnitNestedInput
-    resources?: UnitResourceUncheckedUpdateManyWithoutUnitNestedInput
-    bookings?: ProcedureBookingUncheckedUpdateManyWithoutUnitNestedInput
-  }
-
-  export type UnitRoomUpsertWithoutEquipmentInput = {
-    update: XOR<UnitRoomUpdateWithoutEquipmentInput, UnitRoomUncheckedUpdateWithoutEquipmentInput>
-    create: XOR<UnitRoomCreateWithoutEquipmentInput, UnitRoomUncheckedCreateWithoutEquipmentInput>
-    where?: UnitRoomWhereInput
-  }
-
-  export type UnitRoomUpdateToOneWithWhereWithoutEquipmentInput = {
-    where?: UnitRoomWhereInput
-    data: XOR<UnitRoomUpdateWithoutEquipmentInput, UnitRoomUncheckedUpdateWithoutEquipmentInput>
-  }
-
-  export type UnitRoomUpdateWithoutEquipmentInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    unit?: UnitUpdateOneRequiredWithoutRoomsNestedInput
-    branch?: BranchUpdateOneRequiredWithoutUnitRoomsNestedInput
-    resources?: UnitResourceUpdateManyWithoutRoomNestedInput
-  }
-
-  export type UnitRoomUncheckedUpdateWithoutEquipmentInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    unitId?: StringFieldUpdateOperationsInput | string
-    branchId?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    resources?: UnitResourceUncheckedUpdateManyWithoutRoomNestedInput
-  }
-
-  export type LocationNodeUpsertWithoutEquipmentAssetInput = {
-    update: XOR<LocationNodeUpdateWithoutEquipmentAssetInput, LocationNodeUncheckedUpdateWithoutEquipmentAssetInput>
-    create: XOR<LocationNodeCreateWithoutEquipmentAssetInput, LocationNodeUncheckedCreateWithoutEquipmentAssetInput>
-    where?: LocationNodeWhereInput
-  }
-
-  export type LocationNodeUpdateToOneWithWhereWithoutEquipmentAssetInput = {
-    where?: LocationNodeWhereInput
-    data: XOR<LocationNodeUpdateWithoutEquipmentAssetInput, LocationNodeUncheckedUpdateWithoutEquipmentAssetInput>
-  }
-
-  export type LocationNodeUpdateWithoutEquipmentAssetInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    kind?: EnumLocationKindFieldUpdateOperationsInput | $Enums.LocationKind
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    branch?: BranchUpdateOneRequiredWithoutLocationNodesNestedInput
-    parent?: LocationNodeUpdateOneWithoutChildrenNestedInput
-    children?: LocationNodeUpdateManyWithoutParentNestedInput
-    revisions?: LocationNodeRevisionUpdateManyWithoutNodeNestedInput
-  }
-
-  export type LocationNodeUncheckedUpdateWithoutEquipmentAssetInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    branchId?: StringFieldUpdateOperationsInput | string
-    kind?: EnumLocationKindFieldUpdateOperationsInput | $Enums.LocationKind
-    parentId?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    children?: LocationNodeUncheckedUpdateManyWithoutParentNestedInput
-    revisions?: LocationNodeRevisionUncheckedUpdateManyWithoutNodeNestedInput
   }
 
   export type DowntimeTicketUpsertWithWhereUniqueWithoutAssetInput = {
@@ -89311,9 +88769,9 @@ export namespace Prisma {
     NOT?: DowntimeTicketScalarWhereInput | DowntimeTicketScalarWhereInput[]
     id?: StringFilter<"DowntimeTicket"> | string
     assetId?: StringFilter<"DowntimeTicket"> | string
-    status?: EnumDowntimeStatusFilter<"DowntimeTicket"> | $Enums.DowntimeStatus
     reason?: StringFilter<"DowntimeTicket"> | string
     notes?: StringNullableFilter<"DowntimeTicket"> | string | null
+    status?: EnumDowntimeStatusFilter<"DowntimeTicket"> | $Enums.DowntimeStatus
     openedAt?: DateTimeFilter<"DowntimeTicket"> | Date | string
     closedAt?: DateTimeNullableFilter<"DowntimeTicket"> | Date | string | null
     createdAt?: DateTimeFilter<"DowntimeTicket"> | Date | string
@@ -89324,10 +88782,13 @@ export namespace Prisma {
     id?: string
     code: string
     name: string
-    category?: $Enums.EquipmentComplianceCategory
+    category?: $Enums.EquipmentCategory
     make?: string | null
     model?: string | null
     serial?: string | null
+    unitId?: string | null
+    roomId?: string | null
+    locationNodeId?: string | null
     operationalStatus?: $Enums.EquipmentOperationalStatus
     amcVendor?: string | null
     amcValidFrom?: Date | string | null
@@ -89344,9 +88805,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     branch: BranchCreateNestedOneWithoutEquipmentAssetsInput
     ownerDepartment?: DepartmentCreateNestedOneWithoutEquipmentOwnedInput
-    unit?: UnitCreateNestedOneWithoutEquipmentInput
-    room?: UnitRoomCreateNestedOneWithoutEquipmentInput
-    locationNode?: LocationNodeCreateNestedOneWithoutEquipmentAssetInput
   }
 
   export type EquipmentAssetUncheckedCreateWithoutDowntimeTicketsInput = {
@@ -89354,7 +88812,7 @@ export namespace Prisma {
     branchId: string
     code: string
     name: string
-    category?: $Enums.EquipmentComplianceCategory
+    category?: $Enums.EquipmentCategory
     make?: string | null
     model?: string | null
     serial?: string | null
@@ -89398,10 +88856,13 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
+    category?: EnumEquipmentCategoryFieldUpdateOperationsInput | $Enums.EquipmentCategory
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
     serial?: NullableStringFieldUpdateOperationsInput | string | null
+    unitId?: NullableStringFieldUpdateOperationsInput | string | null
+    roomId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationNodeId?: NullableStringFieldUpdateOperationsInput | string | null
     operationalStatus?: EnumEquipmentOperationalStatusFieldUpdateOperationsInput | $Enums.EquipmentOperationalStatus
     amcVendor?: NullableStringFieldUpdateOperationsInput | string | null
     amcValidFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -89418,9 +88879,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branch?: BranchUpdateOneRequiredWithoutEquipmentAssetsNestedInput
     ownerDepartment?: DepartmentUpdateOneWithoutEquipmentOwnedNestedInput
-    unit?: UnitUpdateOneWithoutEquipmentNestedInput
-    room?: UnitRoomUpdateOneWithoutEquipmentNestedInput
-    locationNode?: LocationNodeUpdateOneWithoutEquipmentAssetNestedInput
   }
 
   export type EquipmentAssetUncheckedUpdateWithoutDowntimeTicketsInput = {
@@ -89428,7 +88886,7 @@ export namespace Prisma {
     branchId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
+    category?: EnumEquipmentCategoryFieldUpdateOperationsInput | $Enums.EquipmentCategory
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
     serial?: NullableStringFieldUpdateOperationsInput | string | null
@@ -89457,11 +88915,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -89483,16 +88941,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
+    procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
     equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
     serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
     fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
-    procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -89501,11 +88959,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -89527,16 +88985,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
+    procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
     equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
     serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
     fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
-    procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -89547,12 +89005,12 @@ export namespace Prisma {
 
   export type ServiceChargeMappingCreateWithoutChargeMasterItemInput = {
     id?: string
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     version?: number
     createdAt?: Date | string
     updatedAt?: Date | string
-    branch: BranchCreateNestedOneWithoutServiceMappingsInput
+    branch: BranchCreateNestedOneWithoutServiceChargeMappingsInput
     serviceItem: ServiceItemCreateNestedOneWithoutMappingsInput
   }
 
@@ -89560,7 +89018,7 @@ export namespace Prisma {
     id?: string
     branchId: string
     serviceItemId: string
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     version?: number
     createdAt?: Date | string
@@ -89593,11 +89051,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -89619,16 +89077,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
+    procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
     equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
     serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
     fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
-    procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -89637,11 +89095,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -89663,16 +89121,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
+    procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
     equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
     serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
     fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
-    procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -89697,11 +89155,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -89723,16 +89181,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
+    procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
     equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
     chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
     fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
-    procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -89741,11 +89199,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -89767,16 +89225,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
+    procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
     equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
     chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
     fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
-    procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -89787,12 +89245,12 @@ export namespace Prisma {
 
   export type ServiceChargeMappingCreateWithoutServiceItemInput = {
     id?: string
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     version?: number
     createdAt?: Date | string
     updatedAt?: Date | string
-    branch: BranchCreateNestedOneWithoutServiceMappingsInput
+    branch: BranchCreateNestedOneWithoutServiceChargeMappingsInput
     chargeMasterItem: ChargeMasterItemCreateNestedOneWithoutMappingsInput
   }
 
@@ -89800,7 +89258,7 @@ export namespace Prisma {
     id?: string
     branchId: string
     chargeMasterItemId: string
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     version?: number
     createdAt?: Date | string
@@ -89819,7 +89277,7 @@ export namespace Prisma {
 
   export type FixItTaskCreateWithoutServiceItemInput = {
     id?: string
-    type: $Enums.FixItType
+    type: $Enums.FixItTaskType
     status?: $Enums.FixItStatus
     title: string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -89833,7 +89291,7 @@ export namespace Prisma {
   export type FixItTaskUncheckedCreateWithoutServiceItemInput = {
     id?: string
     branchId: string
-    type: $Enums.FixItType
+    type: $Enums.FixItTaskType
     status?: $Enums.FixItStatus
     title: string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -89869,11 +89327,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -89895,16 +89353,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
+    procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
     equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
     chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
     fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
-    procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -89913,11 +89371,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -89939,16 +89397,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
+    procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
     equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
     chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
     fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
-    procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -89984,16 +89442,16 @@ export namespace Prisma {
     data: XOR<FixItTaskUpdateManyMutationInput, FixItTaskUncheckedUpdateManyWithoutServiceItemInput>
   }
 
-  export type BranchCreateWithoutServiceMappingsInput = {
+  export type BranchCreateWithoutServiceChargeMappingsInput = {
     id?: string
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -90015,29 +89473,29 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
-  export type BranchUncheckedCreateWithoutServiceMappingsInput = {
+  export type BranchUncheckedCreateWithoutServiceChargeMappingsInput = {
     id?: string
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -90059,22 +89517,22 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
-  export type BranchCreateOrConnectWithoutServiceMappingsInput = {
+  export type BranchCreateOrConnectWithoutServiceChargeMappingsInput = {
     where: BranchWhereUniqueInput
-    create: XOR<BranchCreateWithoutServiceMappingsInput, BranchUncheckedCreateWithoutServiceMappingsInput>
+    create: XOR<BranchCreateWithoutServiceChargeMappingsInput, BranchUncheckedCreateWithoutServiceChargeMappingsInput>
   }
 
   export type ServiceItemCreateWithoutMappingsInput = {
@@ -90139,27 +89597,27 @@ export namespace Prisma {
     create: XOR<ChargeMasterItemCreateWithoutMappingsInput, ChargeMasterItemUncheckedCreateWithoutMappingsInput>
   }
 
-  export type BranchUpsertWithoutServiceMappingsInput = {
-    update: XOR<BranchUpdateWithoutServiceMappingsInput, BranchUncheckedUpdateWithoutServiceMappingsInput>
-    create: XOR<BranchCreateWithoutServiceMappingsInput, BranchUncheckedCreateWithoutServiceMappingsInput>
+  export type BranchUpsertWithoutServiceChargeMappingsInput = {
+    update: XOR<BranchUpdateWithoutServiceChargeMappingsInput, BranchUncheckedUpdateWithoutServiceChargeMappingsInput>
+    create: XOR<BranchCreateWithoutServiceChargeMappingsInput, BranchUncheckedCreateWithoutServiceChargeMappingsInput>
     where?: BranchWhereInput
   }
 
-  export type BranchUpdateToOneWithWhereWithoutServiceMappingsInput = {
+  export type BranchUpdateToOneWithWhereWithoutServiceChargeMappingsInput = {
     where?: BranchWhereInput
-    data: XOR<BranchUpdateWithoutServiceMappingsInput, BranchUncheckedUpdateWithoutServiceMappingsInput>
+    data: XOR<BranchUpdateWithoutServiceChargeMappingsInput, BranchUncheckedUpdateWithoutServiceChargeMappingsInput>
   }
 
-  export type BranchUpdateWithoutServiceMappingsInput = {
+  export type BranchUpdateWithoutServiceChargeMappingsInput = {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -90181,29 +89639,29 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
-  export type BranchUncheckedUpdateWithoutServiceMappingsInput = {
+  export type BranchUncheckedUpdateWithoutServiceChargeMappingsInput = {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -90225,16 +89683,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -90317,11 +89775,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -90343,16 +89801,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -90361,11 +89819,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -90387,16 +89845,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -90517,11 +89975,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -90543,16 +90001,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -90561,11 +90019,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -90587,16 +90045,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -90708,16 +90166,16 @@ export namespace Prisma {
     createdGoLiveReports?: GoLiveReportUncheckedUpdateManyWithoutCreatedByUserNestedInput
   }
 
-  export type BranchCreateWithoutImportJobsInput = {
+  export type BranchCreateWithoutBulkImportJobsInput = {
     id?: string
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -90739,29 +90197,29 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
-  export type BranchUncheckedCreateWithoutImportJobsInput = {
+  export type BranchUncheckedCreateWithoutBulkImportJobsInput = {
     id?: string
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -90783,22 +90241,22 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
-  export type BranchCreateOrConnectWithoutImportJobsInput = {
+  export type BranchCreateOrConnectWithoutBulkImportJobsInput = {
     where: BranchWhereUniqueInput
-    create: XOR<BranchCreateWithoutImportJobsInput, BranchUncheckedCreateWithoutImportJobsInput>
+    create: XOR<BranchCreateWithoutBulkImportJobsInput, BranchUncheckedCreateWithoutBulkImportJobsInput>
   }
 
   export type UserCreateWithoutCreatedImportJobsInput = {
@@ -90864,27 +90322,27 @@ export namespace Prisma {
     create: XOR<UserCreateWithoutCreatedImportJobsInput, UserUncheckedCreateWithoutCreatedImportJobsInput>
   }
 
-  export type BranchUpsertWithoutImportJobsInput = {
-    update: XOR<BranchUpdateWithoutImportJobsInput, BranchUncheckedUpdateWithoutImportJobsInput>
-    create: XOR<BranchCreateWithoutImportJobsInput, BranchUncheckedCreateWithoutImportJobsInput>
+  export type BranchUpsertWithoutBulkImportJobsInput = {
+    update: XOR<BranchUpdateWithoutBulkImportJobsInput, BranchUncheckedUpdateWithoutBulkImportJobsInput>
+    create: XOR<BranchCreateWithoutBulkImportJobsInput, BranchUncheckedCreateWithoutBulkImportJobsInput>
     where?: BranchWhereInput
   }
 
-  export type BranchUpdateToOneWithWhereWithoutImportJobsInput = {
+  export type BranchUpdateToOneWithWhereWithoutBulkImportJobsInput = {
     where?: BranchWhereInput
-    data: XOR<BranchUpdateWithoutImportJobsInput, BranchUncheckedUpdateWithoutImportJobsInput>
+    data: XOR<BranchUpdateWithoutBulkImportJobsInput, BranchUncheckedUpdateWithoutBulkImportJobsInput>
   }
 
-  export type BranchUpdateWithoutImportJobsInput = {
+  export type BranchUpdateWithoutBulkImportJobsInput = {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -90906,29 +90364,29 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
-  export type BranchUncheckedUpdateWithoutImportJobsInput = {
+  export type BranchUncheckedUpdateWithoutBulkImportJobsInput = {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -90950,16 +90408,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -91037,11 +90495,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -91063,16 +90521,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
     equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
     chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
     fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportCreateNestedManyWithoutBranchInput
   }
 
@@ -91081,11 +90539,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -91107,16 +90565,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
     equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
     chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
     fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     goLiveReports?: GoLiveReportUncheckedCreateNestedManyWithoutBranchInput
   }
 
@@ -91138,7 +90596,6 @@ export namespace Prisma {
     unitType: UnitTypeCatalogCreateNestedOneWithoutUnitsInput
     rooms?: UnitRoomCreateNestedManyWithoutUnitInput
     resources?: UnitResourceCreateNestedManyWithoutUnitInput
-    equipment?: EquipmentAssetCreateNestedManyWithoutUnitInput
   }
 
   export type UnitUncheckedCreateWithoutBookingsInput = {
@@ -91154,7 +90611,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     rooms?: UnitRoomUncheckedCreateNestedManyWithoutUnitInput
     resources?: UnitResourceUncheckedCreateNestedManyWithoutUnitInput
-    equipment?: EquipmentAssetUncheckedCreateNestedManyWithoutUnitInput
   }
 
   export type UnitCreateOrConnectWithoutBookingsInput = {
@@ -91276,11 +90732,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -91302,16 +90758,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
     equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
     chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
     fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUpdateManyWithoutBranchNestedInput
   }
 
@@ -91320,11 +90776,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -91346,16 +90802,16 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
     equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
     chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
     fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     goLiveReports?: GoLiveReportUncheckedUpdateManyWithoutBranchNestedInput
   }
 
@@ -91383,7 +90839,6 @@ export namespace Prisma {
     unitType?: UnitTypeCatalogUpdateOneRequiredWithoutUnitsNestedInput
     rooms?: UnitRoomUpdateManyWithoutUnitNestedInput
     resources?: UnitResourceUpdateManyWithoutUnitNestedInput
-    equipment?: EquipmentAssetUpdateManyWithoutUnitNestedInput
   }
 
   export type UnitUncheckedUpdateWithoutBookingsInput = {
@@ -91399,7 +90854,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rooms?: UnitRoomUncheckedUpdateManyWithoutUnitNestedInput
     resources?: UnitResourceUncheckedUpdateManyWithoutUnitNestedInput
-    equipment?: EquipmentAssetUncheckedUpdateManyWithoutUnitNestedInput
   }
 
   export type UnitResourceUpsertWithoutBookingsInput = {
@@ -91517,11 +90971,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentCreateNestedManyWithoutBranchInput
@@ -91543,17 +90997,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeCreateNestedManyWithoutBranchInput
     units?: UnitCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobCreateNestedManyWithoutBranchInput
   }
 
   export type BranchUncheckedCreateWithoutGoLiveReportsInput = {
@@ -91561,11 +91015,11 @@ export namespace Prisma {
     code: string
     name: string
     city: string
-    gstNumber?: string | null
     address?: string | null
     contactPhone1?: string | null
     contactPhone2?: string | null
     contactEmail?: string | null
+    gstNumber?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     departments?: DepartmentUncheckedCreateNestedManyWithoutBranchInput
@@ -91587,17 +91041,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedCreateNestedManyWithoutBranchInput
     policyVersionBranches?: PolicyVersionBranchUncheckedCreateNestedManyWithoutBranchInput
     locationNodes?: LocationNodeUncheckedCreateNestedManyWithoutBranchInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
+    branchUnitTypes?: BranchUnitTypeUncheckedCreateNestedManyWithoutBranchInput
     units?: UnitUncheckedCreateNestedManyWithoutBranchInput
     unitRooms?: UnitRoomUncheckedCreateNestedManyWithoutBranchInput
     unitResources?: UnitResourceUncheckedCreateNestedManyWithoutBranchInput
-    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
-    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
-    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
-    serviceMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
-    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
-    importJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
     procedureBookings?: ProcedureBookingUncheckedCreateNestedManyWithoutBranchInput
+    equipmentAssets?: EquipmentAssetUncheckedCreateNestedManyWithoutBranchInput
+    chargeMasterItems?: ChargeMasterItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceItems?: ServiceItemUncheckedCreateNestedManyWithoutBranchInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedCreateNestedManyWithoutBranchInput
+    fixItTasks?: FixItTaskUncheckedCreateNestedManyWithoutBranchInput
+    bulkImportJobs?: BulkImportJobUncheckedCreateNestedManyWithoutBranchInput
   }
 
   export type BranchCreateOrConnectWithoutGoLiveReportsInput = {
@@ -91684,11 +91138,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUpdateManyWithoutBranchNestedInput
@@ -91710,17 +91164,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUpdateManyWithoutBranchNestedInput
     units?: UnitUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUpdateManyWithoutBranchNestedInput
   }
 
   export type BranchUncheckedUpdateWithoutGoLiveReportsInput = {
@@ -91728,11 +91182,11 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     city?: StringFieldUpdateOperationsInput | string
-    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone1?: NullableStringFieldUpdateOperationsInput | string | null
     contactPhone2?: NullableStringFieldUpdateOperationsInput | string | null
     contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    gstNumber?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     departments?: DepartmentUncheckedUpdateManyWithoutBranchNestedInput
@@ -91754,17 +91208,17 @@ export namespace Prisma {
     policyVersions?: PolicyVersionUncheckedUpdateManyWithoutBranchNestedInput
     policyVersionBranches?: PolicyVersionBranchUncheckedUpdateManyWithoutBranchNestedInput
     locationNodes?: LocationNodeUncheckedUpdateManyWithoutBranchNestedInput
-    unitTypesEnabled?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
+    branchUnitTypes?: BranchUnitTypeUncheckedUpdateManyWithoutBranchNestedInput
     units?: UnitUncheckedUpdateManyWithoutBranchNestedInput
     unitRooms?: UnitRoomUncheckedUpdateManyWithoutBranchNestedInput
     unitResources?: UnitResourceUncheckedUpdateManyWithoutBranchNestedInput
-    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
-    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
-    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
-    serviceMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
-    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
-    importJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
     procedureBookings?: ProcedureBookingUncheckedUpdateManyWithoutBranchNestedInput
+    equipmentAssets?: EquipmentAssetUncheckedUpdateManyWithoutBranchNestedInput
+    chargeMasterItems?: ChargeMasterItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceItems?: ServiceItemUncheckedUpdateManyWithoutBranchNestedInput
+    serviceChargeMappings?: ServiceChargeMappingUncheckedUpdateManyWithoutBranchNestedInput
+    fixItTasks?: FixItTaskUncheckedUpdateManyWithoutBranchNestedInput
+    bulkImportJobs?: BulkImportJobUncheckedUpdateManyWithoutBranchNestedInput
   }
 
   export type UserUpsertWithoutCreatedGoLiveReportsInput = {
@@ -91921,6 +91375,7 @@ export namespace Prisma {
 
   export type SpecialtyCreateManyBranchInput = {
     id?: string
+    departmentId?: string | null
     code: string
     name: string
     isActive?: boolean
@@ -92059,7 +91514,7 @@ export namespace Prisma {
     id?: string
     unitTypeId: string
     isEnabled?: boolean
-    enabledAt?: Date | string
+    enabledAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -92100,11 +91555,28 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type ProcedureBookingCreateManyBranchInput = {
+    id?: string
+    unitId: string
+    resourceId: string
+    patientId?: string | null
+    departmentId?: string | null
+    startAt: Date | string
+    endAt: Date | string
+    status?: $Enums.BookingStatus
+    consentOk?: boolean
+    anesthesiaOk?: boolean
+    checklistOk?: boolean
+    createdByUserId?: string | null
+    cancelledAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
   export type EquipmentAssetCreateManyBranchInput = {
     id?: string
     code: string
     name: string
-    category?: $Enums.EquipmentComplianceCategory
+    category?: $Enums.EquipmentCategory
     make?: string | null
     model?: string | null
     serial?: string | null
@@ -92128,6 +91600,17 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type ChargeMasterItemCreateManyBranchInput = {
+    id?: string
+    code: string
+    name: string
+    category?: string | null
+    unit?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type ServiceItemCreateManyBranchInput = {
     id?: string
     code: string
@@ -92140,22 +91623,11 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
-  export type ChargeMasterItemCreateManyBranchInput = {
-    id?: string
-    code: string
-    name: string
-    category?: string | null
-    unit?: string | null
-    isActive?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-  }
-
   export type ServiceChargeMappingCreateManyBranchInput = {
     id?: string
     serviceItemId: string
     chargeMasterItemId: string
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     version?: number
     createdAt?: Date | string
@@ -92164,7 +91636,7 @@ export namespace Prisma {
 
   export type FixItTaskCreateManyBranchInput = {
     id?: string
-    type: $Enums.FixItType
+    type: $Enums.FixItTaskType
     status?: $Enums.FixItStatus
     title: string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -92177,32 +91649,15 @@ export namespace Prisma {
 
   export type BulkImportJobCreateManyBranchInput = {
     id?: string
-    entityType: $Enums.ImportEntityType
-    status?: $Enums.ImportJobStatus
+    entityType: $Enums.BulkImportEntityType
+    status?: $Enums.BulkImportStatus
     fileName?: string | null
-    payload?: NullableJsonNullValueInput | InputJsonValue
+    payload: JsonNullValueInput | InputJsonValue
     errors?: NullableJsonNullValueInput | InputJsonValue
-    totalRows?: number
-    validRows?: number
-    invalidRows?: number
-    createdByUserId?: string | null
+    totalRows: number
+    validRows: number
+    invalidRows: number
     committedAt?: Date | string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
-  }
-
-  export type ProcedureBookingCreateManyBranchInput = {
-    id?: string
-    unitId: string
-    resourceId: string
-    patientId?: string | null
-    departmentId?: string | null
-    startAt: Date | string
-    endAt: Date | string
-    status?: $Enums.BookingStatus
-    consentOk?: boolean
-    anesthesiaOk?: boolean
-    checklistOk?: boolean
     createdByUserId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -92228,8 +91683,9 @@ export namespace Prisma {
     facility?: FacilityCatalogUpdateOneRequiredWithoutDepartmentsNestedInput
     headStaff?: StaffUpdateOneWithoutHeadedDepartmentsNestedInput
     staff?: StaffUpdateManyWithoutDepartmentNestedInput
-    departmentSpecialties?: DepartmentSpecialtyUpdateManyWithoutDepartmentNestedInput
+    specialties?: SpecialtyUpdateManyWithoutDepartmentNestedInput
     doctorAssignments?: DepartmentDoctorUpdateManyWithoutDepartmentNestedInput
+    departmentSpecialties?: DepartmentSpecialtyUpdateManyWithoutDepartmentNestedInput
     units?: UnitUpdateManyWithoutDepartmentNestedInput
     equipmentOwned?: EquipmentAssetUpdateManyWithoutOwnerDepartmentNestedInput
   }
@@ -92244,8 +91700,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     staff?: StaffUncheckedUpdateManyWithoutDepartmentNestedInput
-    departmentSpecialties?: DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
+    specialties?: SpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
     doctorAssignments?: DepartmentDoctorUncheckedUpdateManyWithoutDepartmentNestedInput
+    departmentSpecialties?: DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
     units?: UnitUncheckedUpdateManyWithoutDepartmentNestedInput
     equipmentOwned?: EquipmentAssetUncheckedUpdateManyWithoutOwnerDepartmentNestedInput
   }
@@ -92522,12 +91979,14 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    department?: DepartmentUpdateOneWithoutSpecialtiesNestedInput
     staff?: StaffUpdateManyWithoutSpecialtyNestedInput
     departmentLinks?: DepartmentSpecialtyUpdateManyWithoutSpecialtyNestedInput
   }
 
   export type SpecialtyUncheckedUpdateWithoutBranchInput = {
     id?: StringFieldUpdateOperationsInput | string
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -92539,6 +91998,7 @@ export namespace Prisma {
 
   export type SpecialtyUncheckedUpdateManyWithoutBranchInput = {
     id?: StringFieldUpdateOperationsInput | string
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -92925,7 +92385,6 @@ export namespace Prisma {
     parent?: LocationNodeUpdateOneWithoutChildrenNestedInput
     children?: LocationNodeUpdateManyWithoutParentNestedInput
     revisions?: LocationNodeRevisionUpdateManyWithoutNodeNestedInput
-    EquipmentAsset?: EquipmentAssetUpdateManyWithoutLocationNodeNestedInput
   }
 
   export type LocationNodeUncheckedUpdateWithoutBranchInput = {
@@ -92936,7 +92395,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     children?: LocationNodeUncheckedUpdateManyWithoutParentNestedInput
     revisions?: LocationNodeRevisionUncheckedUpdateManyWithoutNodeNestedInput
-    EquipmentAsset?: EquipmentAssetUncheckedUpdateManyWithoutLocationNodeNestedInput
   }
 
   export type LocationNodeUncheckedUpdateManyWithoutBranchInput = {
@@ -92950,7 +92408,7 @@ export namespace Prisma {
   export type BranchUnitTypeUpdateWithoutBranchInput = {
     id?: StringFieldUpdateOperationsInput | string
     isEnabled?: BoolFieldUpdateOperationsInput | boolean
-    enabledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    enabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     unitType?: UnitTypeCatalogUpdateOneRequiredWithoutBranchLinksNestedInput
@@ -92960,7 +92418,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     unitTypeId?: StringFieldUpdateOperationsInput | string
     isEnabled?: BoolFieldUpdateOperationsInput | boolean
-    enabledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    enabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -92969,7 +92427,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     unitTypeId?: StringFieldUpdateOperationsInput | string
     isEnabled?: BoolFieldUpdateOperationsInput | boolean
-    enabledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    enabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -92986,7 +92444,6 @@ export namespace Prisma {
     unitType?: UnitTypeCatalogUpdateOneRequiredWithoutUnitsNestedInput
     rooms?: UnitRoomUpdateManyWithoutUnitNestedInput
     resources?: UnitResourceUpdateManyWithoutUnitNestedInput
-    equipment?: EquipmentAssetUpdateManyWithoutUnitNestedInput
     bookings?: ProcedureBookingUpdateManyWithoutUnitNestedInput
   }
 
@@ -93002,7 +92459,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rooms?: UnitRoomUncheckedUpdateManyWithoutUnitNestedInput
     resources?: UnitResourceUncheckedUpdateManyWithoutUnitNestedInput
-    equipment?: EquipmentAssetUncheckedUpdateManyWithoutUnitNestedInput
     bookings?: ProcedureBookingUncheckedUpdateManyWithoutUnitNestedInput
   }
 
@@ -93027,7 +92483,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     unit?: UnitUpdateOneRequiredWithoutRoomsNestedInput
     resources?: UnitResourceUpdateManyWithoutRoomNestedInput
-    equipment?: EquipmentAssetUpdateManyWithoutRoomNestedInput
   }
 
   export type UnitRoomUncheckedUpdateWithoutBranchInput = {
@@ -93039,7 +92494,6 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resources?: UnitResourceUncheckedUpdateManyWithoutRoomNestedInput
-    equipment?: EquipmentAssetUncheckedUpdateManyWithoutRoomNestedInput
   }
 
   export type UnitRoomUncheckedUpdateManyWithoutBranchInput = {
@@ -93096,14 +92550,68 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ProcedureBookingUpdateWithoutBranchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    patientId?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+    consentOk?: BoolFieldUpdateOperationsInput | boolean
+    anesthesiaOk?: BoolFieldUpdateOperationsInput | boolean
+    checklistOk?: BoolFieldUpdateOperationsInput | boolean
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unit?: UnitUpdateOneRequiredWithoutBookingsNestedInput
+    resource?: UnitResourceUpdateOneRequiredWithoutBookingsNestedInput
+    createdByUser?: UserUpdateOneWithoutCreatedBookingsNestedInput
+  }
+
+  export type ProcedureBookingUncheckedUpdateWithoutBranchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    unitId?: StringFieldUpdateOperationsInput | string
+    resourceId?: StringFieldUpdateOperationsInput | string
+    patientId?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+    consentOk?: BoolFieldUpdateOperationsInput | boolean
+    anesthesiaOk?: BoolFieldUpdateOperationsInput | boolean
+    checklistOk?: BoolFieldUpdateOperationsInput | boolean
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProcedureBookingUncheckedUpdateManyWithoutBranchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    unitId?: StringFieldUpdateOperationsInput | string
+    resourceId?: StringFieldUpdateOperationsInput | string
+    patientId?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+    consentOk?: BoolFieldUpdateOperationsInput | boolean
+    anesthesiaOk?: BoolFieldUpdateOperationsInput | boolean
+    checklistOk?: BoolFieldUpdateOperationsInput | boolean
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type EquipmentAssetUpdateWithoutBranchInput = {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
+    category?: EnumEquipmentCategoryFieldUpdateOperationsInput | $Enums.EquipmentCategory
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
     serial?: NullableStringFieldUpdateOperationsInput | string | null
+    unitId?: NullableStringFieldUpdateOperationsInput | string | null
+    roomId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationNodeId?: NullableStringFieldUpdateOperationsInput | string | null
     operationalStatus?: EnumEquipmentOperationalStatusFieldUpdateOperationsInput | $Enums.EquipmentOperationalStatus
     amcVendor?: NullableStringFieldUpdateOperationsInput | string | null
     amcValidFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -93119,9 +92627,6 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     ownerDepartment?: DepartmentUpdateOneWithoutEquipmentOwnedNestedInput
-    unit?: UnitUpdateOneWithoutEquipmentNestedInput
-    room?: UnitRoomUpdateOneWithoutEquipmentNestedInput
-    locationNode?: LocationNodeUpdateOneWithoutEquipmentAssetNestedInput
     downtimeTickets?: DowntimeTicketUpdateManyWithoutAssetNestedInput
   }
 
@@ -93129,7 +92634,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
+    category?: EnumEquipmentCategoryFieldUpdateOperationsInput | $Enums.EquipmentCategory
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
     serial?: NullableStringFieldUpdateOperationsInput | string | null
@@ -93158,7 +92663,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
+    category?: EnumEquipmentCategoryFieldUpdateOperationsInput | $Enums.EquipmentCategory
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
     serial?: NullableStringFieldUpdateOperationsInput | string | null
@@ -93178,6 +92683,41 @@ export namespace Prisma {
     pcpndtRegNo?: NullableStringFieldUpdateOperationsInput | string | null
     pcpndtValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isSchedulable?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChargeMasterItemUpdateWithoutBranchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    unit?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mappings?: ServiceChargeMappingUpdateManyWithoutChargeMasterItemNestedInput
+  }
+
+  export type ChargeMasterItemUncheckedUpdateWithoutBranchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    unit?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mappings?: ServiceChargeMappingUncheckedUpdateManyWithoutChargeMasterItemNestedInput
+  }
+
+  export type ChargeMasterItemUncheckedUpdateManyWithoutBranchInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    unit?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -93222,41 +92762,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type ChargeMasterItemUpdateWithoutBranchInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    category?: NullableStringFieldUpdateOperationsInput | string | null
-    unit?: NullableStringFieldUpdateOperationsInput | string | null
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    mappings?: ServiceChargeMappingUpdateManyWithoutChargeMasterItemNestedInput
-  }
-
-  export type ChargeMasterItemUncheckedUpdateWithoutBranchInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    category?: NullableStringFieldUpdateOperationsInput | string | null
-    unit?: NullableStringFieldUpdateOperationsInput | string | null
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    mappings?: ServiceChargeMappingUncheckedUpdateManyWithoutChargeMasterItemNestedInput
-  }
-
-  export type ChargeMasterItemUncheckedUpdateManyWithoutBranchInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    category?: NullableStringFieldUpdateOperationsInput | string | null
-    unit?: NullableStringFieldUpdateOperationsInput | string | null
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
   export type ServiceChargeMappingUpdateWithoutBranchInput = {
     id?: StringFieldUpdateOperationsInput | string
     effectiveFrom?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -93292,7 +92797,7 @@ export namespace Prisma {
 
   export type FixItTaskUpdateWithoutBranchInput = {
     id?: StringFieldUpdateOperationsInput | string
-    type?: EnumFixItTypeFieldUpdateOperationsInput | $Enums.FixItType
+    type?: EnumFixItTaskTypeFieldUpdateOperationsInput | $Enums.FixItTaskType
     status?: EnumFixItStatusFieldUpdateOperationsInput | $Enums.FixItStatus
     title?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -93305,7 +92810,7 @@ export namespace Prisma {
 
   export type FixItTaskUncheckedUpdateWithoutBranchInput = {
     id?: StringFieldUpdateOperationsInput | string
-    type?: EnumFixItTypeFieldUpdateOperationsInput | $Enums.FixItType
+    type?: EnumFixItTaskTypeFieldUpdateOperationsInput | $Enums.FixItTaskType
     status?: EnumFixItStatusFieldUpdateOperationsInput | $Enums.FixItStatus
     title?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -93318,7 +92823,7 @@ export namespace Prisma {
 
   export type FixItTaskUncheckedUpdateManyWithoutBranchInput = {
     id?: StringFieldUpdateOperationsInput | string
-    type?: EnumFixItTypeFieldUpdateOperationsInput | $Enums.FixItType
+    type?: EnumFixItTaskTypeFieldUpdateOperationsInput | $Enums.FixItTaskType
     status?: EnumFixItStatusFieldUpdateOperationsInput | $Enums.FixItStatus
     title?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -93331,10 +92836,10 @@ export namespace Prisma {
 
   export type BulkImportJobUpdateWithoutBranchInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: EnumImportEntityTypeFieldUpdateOperationsInput | $Enums.ImportEntityType
-    status?: EnumImportJobStatusFieldUpdateOperationsInput | $Enums.ImportJobStatus
+    entityType?: EnumBulkImportEntityTypeFieldUpdateOperationsInput | $Enums.BulkImportEntityType
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
-    payload?: NullableJsonNullValueInput | InputJsonValue
+    payload?: JsonNullValueInput | InputJsonValue
     errors?: NullableJsonNullValueInput | InputJsonValue
     totalRows?: IntFieldUpdateOperationsInput | number
     validRows?: IntFieldUpdateOperationsInput | number
@@ -93347,82 +92852,31 @@ export namespace Prisma {
 
   export type BulkImportJobUncheckedUpdateWithoutBranchInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: EnumImportEntityTypeFieldUpdateOperationsInput | $Enums.ImportEntityType
-    status?: EnumImportJobStatusFieldUpdateOperationsInput | $Enums.ImportJobStatus
+    entityType?: EnumBulkImportEntityTypeFieldUpdateOperationsInput | $Enums.BulkImportEntityType
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
-    payload?: NullableJsonNullValueInput | InputJsonValue
+    payload?: JsonNullValueInput | InputJsonValue
     errors?: NullableJsonNullValueInput | InputJsonValue
     totalRows?: IntFieldUpdateOperationsInput | number
     validRows?: IntFieldUpdateOperationsInput | number
     invalidRows?: IntFieldUpdateOperationsInput | number
-    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     committedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type BulkImportJobUncheckedUpdateManyWithoutBranchInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: EnumImportEntityTypeFieldUpdateOperationsInput | $Enums.ImportEntityType
-    status?: EnumImportJobStatusFieldUpdateOperationsInput | $Enums.ImportJobStatus
+    entityType?: EnumBulkImportEntityTypeFieldUpdateOperationsInput | $Enums.BulkImportEntityType
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
-    payload?: NullableJsonNullValueInput | InputJsonValue
+    payload?: JsonNullValueInput | InputJsonValue
     errors?: NullableJsonNullValueInput | InputJsonValue
     totalRows?: IntFieldUpdateOperationsInput | number
     validRows?: IntFieldUpdateOperationsInput | number
     invalidRows?: IntFieldUpdateOperationsInput | number
-    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     committedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type ProcedureBookingUpdateWithoutBranchInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    patientId?: NullableStringFieldUpdateOperationsInput | string | null
-    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
-    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    endAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
-    consentOk?: BoolFieldUpdateOperationsInput | boolean
-    anesthesiaOk?: BoolFieldUpdateOperationsInput | boolean
-    checklistOk?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    unit?: UnitUpdateOneRequiredWithoutBookingsNestedInput
-    resource?: UnitResourceUpdateOneRequiredWithoutBookingsNestedInput
-    createdByUser?: UserUpdateOneWithoutCreatedBookingsNestedInput
-  }
-
-  export type ProcedureBookingUncheckedUpdateWithoutBranchInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    unitId?: StringFieldUpdateOperationsInput | string
-    resourceId?: StringFieldUpdateOperationsInput | string
-    patientId?: NullableStringFieldUpdateOperationsInput | string | null
-    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
-    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    endAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
-    consentOk?: BoolFieldUpdateOperationsInput | boolean
-    anesthesiaOk?: BoolFieldUpdateOperationsInput | boolean
-    checklistOk?: BoolFieldUpdateOperationsInput | boolean
-    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type ProcedureBookingUncheckedUpdateManyWithoutBranchInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    unitId?: StringFieldUpdateOperationsInput | string
-    resourceId?: StringFieldUpdateOperationsInput | string
-    patientId?: NullableStringFieldUpdateOperationsInput | string | null
-    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
-    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    endAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
-    consentOk?: BoolFieldUpdateOperationsInput | boolean
-    anesthesiaOk?: BoolFieldUpdateOperationsInput | boolean
-    checklistOk?: BoolFieldUpdateOperationsInput | boolean
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -93515,8 +92969,9 @@ export namespace Prisma {
     branch?: BranchUpdateOneRequiredWithoutDepartmentsNestedInput
     headStaff?: StaffUpdateOneWithoutHeadedDepartmentsNestedInput
     staff?: StaffUpdateManyWithoutDepartmentNestedInput
-    departmentSpecialties?: DepartmentSpecialtyUpdateManyWithoutDepartmentNestedInput
+    specialties?: SpecialtyUpdateManyWithoutDepartmentNestedInput
     doctorAssignments?: DepartmentDoctorUpdateManyWithoutDepartmentNestedInput
+    departmentSpecialties?: DepartmentSpecialtyUpdateManyWithoutDepartmentNestedInput
     units?: UnitUpdateManyWithoutDepartmentNestedInput
     equipmentOwned?: EquipmentAssetUpdateManyWithoutOwnerDepartmentNestedInput
   }
@@ -93531,8 +92986,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     staff?: StaffUncheckedUpdateManyWithoutDepartmentNestedInput
-    departmentSpecialties?: DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
+    specialties?: SpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
     doctorAssignments?: DepartmentDoctorUncheckedUpdateManyWithoutDepartmentNestedInput
+    departmentSpecialties?: DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
     units?: UnitUncheckedUpdateManyWithoutDepartmentNestedInput
     equipmentOwned?: EquipmentAssetUncheckedUpdateManyWithoutOwnerDepartmentNestedInput
   }
@@ -93562,10 +93018,11 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
-  export type DepartmentSpecialtyCreateManyDepartmentInput = {
+  export type SpecialtyCreateManyDepartmentInput = {
     id?: string
-    specialtyId: string
-    isPrimary?: boolean
+    branchId: string
+    code: string
+    name: string
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -93576,6 +93033,15 @@ export namespace Prisma {
     staffId: string
     isPrimary?: boolean
     assignedAt?: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DepartmentSpecialtyCreateManyDepartmentInput = {
+    id?: string
+    specialtyId: string
+    isPrimary?: boolean
+    isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -93597,7 +93063,7 @@ export namespace Prisma {
     branchId: string
     code: string
     name: string
-    category?: $Enums.EquipmentComplianceCategory
+    category?: $Enums.EquipmentCategory
     make?: string | null
     model?: string | null
     serial?: string | null
@@ -93668,28 +93134,35 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type DepartmentSpecialtyUpdateWithoutDepartmentInput = {
+  export type SpecialtyUpdateWithoutDepartmentInput = {
     id?: StringFieldUpdateOperationsInput | string
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    specialty?: SpecialtyUpdateOneRequiredWithoutDepartmentLinksNestedInput
+    branch?: BranchUpdateOneRequiredWithoutSpecialtyNestedInput
+    staff?: StaffUpdateManyWithoutSpecialtyNestedInput
+    departmentLinks?: DepartmentSpecialtyUpdateManyWithoutSpecialtyNestedInput
   }
 
-  export type DepartmentSpecialtyUncheckedUpdateWithoutDepartmentInput = {
+  export type SpecialtyUncheckedUpdateWithoutDepartmentInput = {
     id?: StringFieldUpdateOperationsInput | string
-    specialtyId?: StringFieldUpdateOperationsInput | string
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    branchId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    staff?: StaffUncheckedUpdateManyWithoutSpecialtyNestedInput
+    departmentLinks?: DepartmentSpecialtyUncheckedUpdateManyWithoutSpecialtyNestedInput
   }
 
-  export type DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentInput = {
+  export type SpecialtyUncheckedUpdateManyWithoutDepartmentInput = {
     id?: StringFieldUpdateOperationsInput | string
-    specialtyId?: StringFieldUpdateOperationsInput | string
-    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    branchId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -93722,6 +93195,33 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type DepartmentSpecialtyUpdateWithoutDepartmentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    specialty?: SpecialtyUpdateOneRequiredWithoutDepartmentLinksNestedInput
+  }
+
+  export type DepartmentSpecialtyUncheckedUpdateWithoutDepartmentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    specialtyId?: StringFieldUpdateOperationsInput | string
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    specialtyId?: StringFieldUpdateOperationsInput | string
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type UnitUpdateWithoutDepartmentInput = {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
@@ -93734,7 +93234,6 @@ export namespace Prisma {
     unitType?: UnitTypeCatalogUpdateOneRequiredWithoutUnitsNestedInput
     rooms?: UnitRoomUpdateManyWithoutUnitNestedInput
     resources?: UnitResourceUpdateManyWithoutUnitNestedInput
-    equipment?: EquipmentAssetUpdateManyWithoutUnitNestedInput
     bookings?: ProcedureBookingUpdateManyWithoutUnitNestedInput
   }
 
@@ -93750,7 +93249,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rooms?: UnitRoomUncheckedUpdateManyWithoutUnitNestedInput
     resources?: UnitResourceUncheckedUpdateManyWithoutUnitNestedInput
-    equipment?: EquipmentAssetUncheckedUpdateManyWithoutUnitNestedInput
     bookings?: ProcedureBookingUncheckedUpdateManyWithoutUnitNestedInput
   }
 
@@ -93770,10 +93268,13 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
+    category?: EnumEquipmentCategoryFieldUpdateOperationsInput | $Enums.EquipmentCategory
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
     serial?: NullableStringFieldUpdateOperationsInput | string | null
+    unitId?: NullableStringFieldUpdateOperationsInput | string | null
+    roomId?: NullableStringFieldUpdateOperationsInput | string | null
+    locationNodeId?: NullableStringFieldUpdateOperationsInput | string | null
     operationalStatus?: EnumEquipmentOperationalStatusFieldUpdateOperationsInput | $Enums.EquipmentOperationalStatus
     amcVendor?: NullableStringFieldUpdateOperationsInput | string | null
     amcValidFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -93789,9 +93290,6 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branch?: BranchUpdateOneRequiredWithoutEquipmentAssetsNestedInput
-    unit?: UnitUpdateOneWithoutEquipmentNestedInput
-    room?: UnitRoomUpdateOneWithoutEquipmentNestedInput
-    locationNode?: LocationNodeUpdateOneWithoutEquipmentAssetNestedInput
     downtimeTickets?: DowntimeTicketUpdateManyWithoutAssetNestedInput
   }
 
@@ -93800,7 +93298,7 @@ export namespace Prisma {
     branchId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
+    category?: EnumEquipmentCategoryFieldUpdateOperationsInput | $Enums.EquipmentCategory
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
     serial?: NullableStringFieldUpdateOperationsInput | string | null
@@ -93829,7 +93327,7 @@ export namespace Prisma {
     branchId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
+    category?: EnumEquipmentCategoryFieldUpdateOperationsInput | $Enums.EquipmentCategory
     make?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
     serial?: NullableStringFieldUpdateOperationsInput | string | null
@@ -94007,8 +93505,9 @@ export namespace Prisma {
     branch?: BranchUpdateOneRequiredWithoutDepartmentsNestedInput
     facility?: FacilityCatalogUpdateOneRequiredWithoutDepartmentsNestedInput
     staff?: StaffUpdateManyWithoutDepartmentNestedInput
-    departmentSpecialties?: DepartmentSpecialtyUpdateManyWithoutDepartmentNestedInput
+    specialties?: SpecialtyUpdateManyWithoutDepartmentNestedInput
     doctorAssignments?: DepartmentDoctorUpdateManyWithoutDepartmentNestedInput
+    departmentSpecialties?: DepartmentSpecialtyUpdateManyWithoutDepartmentNestedInput
     units?: UnitUpdateManyWithoutDepartmentNestedInput
     equipmentOwned?: EquipmentAssetUpdateManyWithoutOwnerDepartmentNestedInput
   }
@@ -94023,8 +93522,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     staff?: StaffUncheckedUpdateManyWithoutDepartmentNestedInput
-    departmentSpecialties?: DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
+    specialties?: SpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
     doctorAssignments?: DepartmentDoctorUncheckedUpdateManyWithoutDepartmentNestedInput
+    departmentSpecialties?: DepartmentSpecialtyUncheckedUpdateManyWithoutDepartmentNestedInput
     units?: UnitUncheckedUpdateManyWithoutDepartmentNestedInput
     equipmentOwned?: EquipmentAssetUncheckedUpdateManyWithoutOwnerDepartmentNestedInput
   }
@@ -94191,7 +93691,7 @@ export namespace Prisma {
     code: string
     name: string
     isActive?: boolean
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     createdAt?: Date | string
   }
@@ -94199,14 +93699,14 @@ export namespace Prisma {
   export type BulkImportJobCreateManyCreatedByUserInput = {
     id?: string
     branchId: string
-    entityType: $Enums.ImportEntityType
-    status?: $Enums.ImportJobStatus
+    entityType: $Enums.BulkImportEntityType
+    status?: $Enums.BulkImportStatus
     fileName?: string | null
-    payload?: NullableJsonNullValueInput | InputJsonValue
+    payload: JsonNullValueInput | InputJsonValue
     errors?: NullableJsonNullValueInput | InputJsonValue
-    totalRows?: number
-    validRows?: number
-    invalidRows?: number
+    totalRows: number
+    validRows: number
+    invalidRows: number
     committedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -94215,7 +93715,7 @@ export namespace Prisma {
   export type FixItTaskCreateManyAssignedToUserInput = {
     id?: string
     branchId: string
-    type: $Enums.FixItType
+    type: $Enums.FixItTaskType
     status?: $Enums.FixItStatus
     title: string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -94238,8 +93738,8 @@ export namespace Prisma {
     consentOk?: boolean
     anesthesiaOk?: boolean
     checklistOk?: boolean
+    cancelledAt?: Date | string | null
     createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type GoLiveReportCreateManyCreatedByUserInput = {
@@ -94736,10 +94236,10 @@ export namespace Prisma {
 
   export type BulkImportJobUpdateWithoutCreatedByUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    entityType?: EnumImportEntityTypeFieldUpdateOperationsInput | $Enums.ImportEntityType
-    status?: EnumImportJobStatusFieldUpdateOperationsInput | $Enums.ImportJobStatus
+    entityType?: EnumBulkImportEntityTypeFieldUpdateOperationsInput | $Enums.BulkImportEntityType
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
-    payload?: NullableJsonNullValueInput | InputJsonValue
+    payload?: JsonNullValueInput | InputJsonValue
     errors?: NullableJsonNullValueInput | InputJsonValue
     totalRows?: IntFieldUpdateOperationsInput | number
     validRows?: IntFieldUpdateOperationsInput | number
@@ -94747,16 +94247,16 @@ export namespace Prisma {
     committedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    branch?: BranchUpdateOneRequiredWithoutImportJobsNestedInput
+    branch?: BranchUpdateOneRequiredWithoutBulkImportJobsNestedInput
   }
 
   export type BulkImportJobUncheckedUpdateWithoutCreatedByUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
-    entityType?: EnumImportEntityTypeFieldUpdateOperationsInput | $Enums.ImportEntityType
-    status?: EnumImportJobStatusFieldUpdateOperationsInput | $Enums.ImportJobStatus
+    entityType?: EnumBulkImportEntityTypeFieldUpdateOperationsInput | $Enums.BulkImportEntityType
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
-    payload?: NullableJsonNullValueInput | InputJsonValue
+    payload?: JsonNullValueInput | InputJsonValue
     errors?: NullableJsonNullValueInput | InputJsonValue
     totalRows?: IntFieldUpdateOperationsInput | number
     validRows?: IntFieldUpdateOperationsInput | number
@@ -94769,10 +94269,10 @@ export namespace Prisma {
   export type BulkImportJobUncheckedUpdateManyWithoutCreatedByUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
-    entityType?: EnumImportEntityTypeFieldUpdateOperationsInput | $Enums.ImportEntityType
-    status?: EnumImportJobStatusFieldUpdateOperationsInput | $Enums.ImportJobStatus
+    entityType?: EnumBulkImportEntityTypeFieldUpdateOperationsInput | $Enums.BulkImportEntityType
+    status?: EnumBulkImportStatusFieldUpdateOperationsInput | $Enums.BulkImportStatus
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
-    payload?: NullableJsonNullValueInput | InputJsonValue
+    payload?: JsonNullValueInput | InputJsonValue
     errors?: NullableJsonNullValueInput | InputJsonValue
     totalRows?: IntFieldUpdateOperationsInput | number
     validRows?: IntFieldUpdateOperationsInput | number
@@ -94784,7 +94284,7 @@ export namespace Prisma {
 
   export type FixItTaskUpdateWithoutAssignedToUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    type?: EnumFixItTypeFieldUpdateOperationsInput | $Enums.FixItType
+    type?: EnumFixItTaskTypeFieldUpdateOperationsInput | $Enums.FixItTaskType
     status?: EnumFixItStatusFieldUpdateOperationsInput | $Enums.FixItStatus
     title?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -94798,7 +94298,7 @@ export namespace Prisma {
   export type FixItTaskUncheckedUpdateWithoutAssignedToUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
-    type?: EnumFixItTypeFieldUpdateOperationsInput | $Enums.FixItType
+    type?: EnumFixItTaskTypeFieldUpdateOperationsInput | $Enums.FixItTaskType
     status?: EnumFixItStatusFieldUpdateOperationsInput | $Enums.FixItStatus
     title?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -94811,7 +94311,7 @@ export namespace Prisma {
   export type FixItTaskUncheckedUpdateManyWithoutAssignedToUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
-    type?: EnumFixItTypeFieldUpdateOperationsInput | $Enums.FixItType
+    type?: EnumFixItTaskTypeFieldUpdateOperationsInput | $Enums.FixItTaskType
     status?: EnumFixItStatusFieldUpdateOperationsInput | $Enums.FixItStatus
     title?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -94831,8 +94331,8 @@ export namespace Prisma {
     consentOk?: BoolFieldUpdateOperationsInput | boolean
     anesthesiaOk?: BoolFieldUpdateOperationsInput | boolean
     checklistOk?: BoolFieldUpdateOperationsInput | boolean
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branch?: BranchUpdateOneRequiredWithoutProcedureBookingsNestedInput
     unit?: UnitUpdateOneRequiredWithoutBookingsNestedInput
     resource?: UnitResourceUpdateOneRequiredWithoutBookingsNestedInput
@@ -94851,8 +94351,8 @@ export namespace Prisma {
     consentOk?: BoolFieldUpdateOperationsInput | boolean
     anesthesiaOk?: BoolFieldUpdateOperationsInput | boolean
     checklistOk?: BoolFieldUpdateOperationsInput | boolean
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ProcedureBookingUncheckedUpdateManyWithoutCreatedByUserInput = {
@@ -94868,8 +94368,8 @@ export namespace Prisma {
     consentOk?: BoolFieldUpdateOperationsInput | boolean
     anesthesiaOk?: BoolFieldUpdateOperationsInput | boolean
     checklistOk?: BoolFieldUpdateOperationsInput | boolean
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type GoLiveReportUpdateWithoutCreatedByUserInput = {
@@ -95659,38 +95159,10 @@ export namespace Prisma {
     code: string
     name: string
     isActive?: boolean
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     createdByUserId?: string | null
     createdAt?: Date | string
-  }
-
-  export type EquipmentAssetCreateManyLocationNodeInput = {
-    id?: string
-    branchId: string
-    code: string
-    name: string
-    category?: $Enums.EquipmentComplianceCategory
-    make?: string | null
-    model?: string | null
-    serial?: string | null
-    ownerDepartmentId?: string | null
-    unitId?: string | null
-    roomId?: string | null
-    operationalStatus?: $Enums.EquipmentOperationalStatus
-    amcVendor?: string | null
-    amcValidFrom?: Date | string | null
-    amcValidTo?: Date | string | null
-    warrantyValidTo?: Date | string | null
-    pmFrequencyDays?: number | null
-    nextPmDueAt?: Date | string | null
-    aerbLicenseNo?: string | null
-    aerbValidTo?: Date | string | null
-    pcpndtRegNo?: string | null
-    pcpndtValidTo?: Date | string | null
-    isSchedulable?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type LocationNodeUpdateWithoutParentInput = {
@@ -95701,7 +95173,6 @@ export namespace Prisma {
     branch?: BranchUpdateOneRequiredWithoutLocationNodesNestedInput
     children?: LocationNodeUpdateManyWithoutParentNestedInput
     revisions?: LocationNodeRevisionUpdateManyWithoutNodeNestedInput
-    EquipmentAsset?: EquipmentAssetUpdateManyWithoutLocationNodeNestedInput
   }
 
   export type LocationNodeUncheckedUpdateWithoutParentInput = {
@@ -95712,7 +95183,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     children?: LocationNodeUncheckedUpdateManyWithoutParentNestedInput
     revisions?: LocationNodeRevisionUncheckedUpdateManyWithoutNodeNestedInput
-    EquipmentAsset?: EquipmentAssetUncheckedUpdateManyWithoutLocationNodeNestedInput
   }
 
   export type LocationNodeUncheckedUpdateManyWithoutParentInput = {
@@ -95756,97 +95226,11 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type EquipmentAssetUpdateWithoutLocationNodeInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
-    make?: NullableStringFieldUpdateOperationsInput | string | null
-    model?: NullableStringFieldUpdateOperationsInput | string | null
-    serial?: NullableStringFieldUpdateOperationsInput | string | null
-    operationalStatus?: EnumEquipmentOperationalStatusFieldUpdateOperationsInput | $Enums.EquipmentOperationalStatus
-    amcVendor?: NullableStringFieldUpdateOperationsInput | string | null
-    amcValidFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    amcValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    warrantyValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    pmFrequencyDays?: NullableIntFieldUpdateOperationsInput | number | null
-    nextPmDueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    aerbLicenseNo?: NullableStringFieldUpdateOperationsInput | string | null
-    aerbValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    pcpndtRegNo?: NullableStringFieldUpdateOperationsInput | string | null
-    pcpndtValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    isSchedulable?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    branch?: BranchUpdateOneRequiredWithoutEquipmentAssetsNestedInput
-    ownerDepartment?: DepartmentUpdateOneWithoutEquipmentOwnedNestedInput
-    unit?: UnitUpdateOneWithoutEquipmentNestedInput
-    room?: UnitRoomUpdateOneWithoutEquipmentNestedInput
-    downtimeTickets?: DowntimeTicketUpdateManyWithoutAssetNestedInput
-  }
-
-  export type EquipmentAssetUncheckedUpdateWithoutLocationNodeInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    branchId?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
-    make?: NullableStringFieldUpdateOperationsInput | string | null
-    model?: NullableStringFieldUpdateOperationsInput | string | null
-    serial?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerDepartmentId?: NullableStringFieldUpdateOperationsInput | string | null
-    unitId?: NullableStringFieldUpdateOperationsInput | string | null
-    roomId?: NullableStringFieldUpdateOperationsInput | string | null
-    operationalStatus?: EnumEquipmentOperationalStatusFieldUpdateOperationsInput | $Enums.EquipmentOperationalStatus
-    amcVendor?: NullableStringFieldUpdateOperationsInput | string | null
-    amcValidFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    amcValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    warrantyValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    pmFrequencyDays?: NullableIntFieldUpdateOperationsInput | number | null
-    nextPmDueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    aerbLicenseNo?: NullableStringFieldUpdateOperationsInput | string | null
-    aerbValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    pcpndtRegNo?: NullableStringFieldUpdateOperationsInput | string | null
-    pcpndtValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    isSchedulable?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    downtimeTickets?: DowntimeTicketUncheckedUpdateManyWithoutAssetNestedInput
-  }
-
-  export type EquipmentAssetUncheckedUpdateManyWithoutLocationNodeInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    branchId?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
-    make?: NullableStringFieldUpdateOperationsInput | string | null
-    model?: NullableStringFieldUpdateOperationsInput | string | null
-    serial?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerDepartmentId?: NullableStringFieldUpdateOperationsInput | string | null
-    unitId?: NullableStringFieldUpdateOperationsInput | string | null
-    roomId?: NullableStringFieldUpdateOperationsInput | string | null
-    operationalStatus?: EnumEquipmentOperationalStatusFieldUpdateOperationsInput | $Enums.EquipmentOperationalStatus
-    amcVendor?: NullableStringFieldUpdateOperationsInput | string | null
-    amcValidFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    amcValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    warrantyValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    pmFrequencyDays?: NullableIntFieldUpdateOperationsInput | number | null
-    nextPmDueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    aerbLicenseNo?: NullableStringFieldUpdateOperationsInput | string | null
-    aerbValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    pcpndtRegNo?: NullableStringFieldUpdateOperationsInput | string | null
-    pcpndtValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    isSchedulable?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
   export type BranchUnitTypeCreateManyUnitTypeInput = {
     id?: string
     branchId: string
     isEnabled?: boolean
-    enabledAt?: Date | string
+    enabledAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -95866,17 +95250,17 @@ export namespace Prisma {
   export type BranchUnitTypeUpdateWithoutUnitTypeInput = {
     id?: StringFieldUpdateOperationsInput | string
     isEnabled?: BoolFieldUpdateOperationsInput | boolean
-    enabledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    enabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    branch?: BranchUpdateOneRequiredWithoutUnitTypesEnabledNestedInput
+    branch?: BranchUpdateOneRequiredWithoutBranchUnitTypesNestedInput
   }
 
   export type BranchUnitTypeUncheckedUpdateWithoutUnitTypeInput = {
     id?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
     isEnabled?: BoolFieldUpdateOperationsInput | boolean
-    enabledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    enabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -95885,7 +95269,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
     isEnabled?: BoolFieldUpdateOperationsInput | boolean
-    enabledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    enabledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -95902,7 +95286,6 @@ export namespace Prisma {
     department?: DepartmentUpdateOneRequiredWithoutUnitsNestedInput
     rooms?: UnitRoomUpdateManyWithoutUnitNestedInput
     resources?: UnitResourceUpdateManyWithoutUnitNestedInput
-    equipment?: EquipmentAssetUpdateManyWithoutUnitNestedInput
     bookings?: ProcedureBookingUpdateManyWithoutUnitNestedInput
   }
 
@@ -95918,7 +95301,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     rooms?: UnitRoomUncheckedUpdateManyWithoutUnitNestedInput
     resources?: UnitResourceUncheckedUpdateManyWithoutUnitNestedInput
-    equipment?: EquipmentAssetUncheckedUpdateManyWithoutUnitNestedInput
     bookings?: ProcedureBookingUncheckedUpdateManyWithoutUnitNestedInput
   }
 
@@ -95958,34 +95340,6 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
-  export type EquipmentAssetCreateManyUnitInput = {
-    id?: string
-    branchId: string
-    code: string
-    name: string
-    category?: $Enums.EquipmentComplianceCategory
-    make?: string | null
-    model?: string | null
-    serial?: string | null
-    ownerDepartmentId?: string | null
-    roomId?: string | null
-    locationNodeId?: string | null
-    operationalStatus?: $Enums.EquipmentOperationalStatus
-    amcVendor?: string | null
-    amcValidFrom?: Date | string | null
-    amcValidTo?: Date | string | null
-    warrantyValidTo?: Date | string | null
-    pmFrequencyDays?: number | null
-    nextPmDueAt?: Date | string | null
-    aerbLicenseNo?: string | null
-    aerbValidTo?: Date | string | null
-    pcpndtRegNo?: string | null
-    pcpndtValidTo?: Date | string | null
-    isSchedulable?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-  }
-
   export type ProcedureBookingCreateManyUnitInput = {
     id?: string
     branchId: string
@@ -95999,8 +95353,8 @@ export namespace Prisma {
     anesthesiaOk?: boolean
     checklistOk?: boolean
     createdByUserId?: string | null
+    cancelledAt?: Date | string | null
     createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type UnitRoomUpdateWithoutUnitInput = {
@@ -96012,7 +95366,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branch?: BranchUpdateOneRequiredWithoutUnitRoomsNestedInput
     resources?: UnitResourceUpdateManyWithoutRoomNestedInput
-    equipment?: EquipmentAssetUpdateManyWithoutRoomNestedInput
   }
 
   export type UnitRoomUncheckedUpdateWithoutUnitInput = {
@@ -96024,7 +95377,6 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resources?: UnitResourceUncheckedUpdateManyWithoutRoomNestedInput
-    equipment?: EquipmentAssetUncheckedUpdateManyWithoutRoomNestedInput
   }
 
   export type UnitRoomUncheckedUpdateManyWithoutUnitInput = {
@@ -96081,92 +95433,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type EquipmentAssetUpdateWithoutUnitInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
-    make?: NullableStringFieldUpdateOperationsInput | string | null
-    model?: NullableStringFieldUpdateOperationsInput | string | null
-    serial?: NullableStringFieldUpdateOperationsInput | string | null
-    operationalStatus?: EnumEquipmentOperationalStatusFieldUpdateOperationsInput | $Enums.EquipmentOperationalStatus
-    amcVendor?: NullableStringFieldUpdateOperationsInput | string | null
-    amcValidFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    amcValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    warrantyValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    pmFrequencyDays?: NullableIntFieldUpdateOperationsInput | number | null
-    nextPmDueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    aerbLicenseNo?: NullableStringFieldUpdateOperationsInput | string | null
-    aerbValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    pcpndtRegNo?: NullableStringFieldUpdateOperationsInput | string | null
-    pcpndtValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    isSchedulable?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    branch?: BranchUpdateOneRequiredWithoutEquipmentAssetsNestedInput
-    ownerDepartment?: DepartmentUpdateOneWithoutEquipmentOwnedNestedInput
-    room?: UnitRoomUpdateOneWithoutEquipmentNestedInput
-    locationNode?: LocationNodeUpdateOneWithoutEquipmentAssetNestedInput
-    downtimeTickets?: DowntimeTicketUpdateManyWithoutAssetNestedInput
-  }
-
-  export type EquipmentAssetUncheckedUpdateWithoutUnitInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    branchId?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
-    make?: NullableStringFieldUpdateOperationsInput | string | null
-    model?: NullableStringFieldUpdateOperationsInput | string | null
-    serial?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerDepartmentId?: NullableStringFieldUpdateOperationsInput | string | null
-    roomId?: NullableStringFieldUpdateOperationsInput | string | null
-    locationNodeId?: NullableStringFieldUpdateOperationsInput | string | null
-    operationalStatus?: EnumEquipmentOperationalStatusFieldUpdateOperationsInput | $Enums.EquipmentOperationalStatus
-    amcVendor?: NullableStringFieldUpdateOperationsInput | string | null
-    amcValidFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    amcValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    warrantyValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    pmFrequencyDays?: NullableIntFieldUpdateOperationsInput | number | null
-    nextPmDueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    aerbLicenseNo?: NullableStringFieldUpdateOperationsInput | string | null
-    aerbValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    pcpndtRegNo?: NullableStringFieldUpdateOperationsInput | string | null
-    pcpndtValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    isSchedulable?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    downtimeTickets?: DowntimeTicketUncheckedUpdateManyWithoutAssetNestedInput
-  }
-
-  export type EquipmentAssetUncheckedUpdateManyWithoutUnitInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    branchId?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
-    make?: NullableStringFieldUpdateOperationsInput | string | null
-    model?: NullableStringFieldUpdateOperationsInput | string | null
-    serial?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerDepartmentId?: NullableStringFieldUpdateOperationsInput | string | null
-    roomId?: NullableStringFieldUpdateOperationsInput | string | null
-    locationNodeId?: NullableStringFieldUpdateOperationsInput | string | null
-    operationalStatus?: EnumEquipmentOperationalStatusFieldUpdateOperationsInput | $Enums.EquipmentOperationalStatus
-    amcVendor?: NullableStringFieldUpdateOperationsInput | string | null
-    amcValidFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    amcValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    warrantyValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    pmFrequencyDays?: NullableIntFieldUpdateOperationsInput | number | null
-    nextPmDueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    aerbLicenseNo?: NullableStringFieldUpdateOperationsInput | string | null
-    aerbValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    pcpndtRegNo?: NullableStringFieldUpdateOperationsInput | string | null
-    pcpndtValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    isSchedulable?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
   export type ProcedureBookingUpdateWithoutUnitInput = {
     id?: StringFieldUpdateOperationsInput | string
     patientId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -96177,8 +95443,8 @@ export namespace Prisma {
     consentOk?: BoolFieldUpdateOperationsInput | boolean
     anesthesiaOk?: BoolFieldUpdateOperationsInput | boolean
     checklistOk?: BoolFieldUpdateOperationsInput | boolean
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branch?: BranchUpdateOneRequiredWithoutProcedureBookingsNestedInput
     resource?: UnitResourceUpdateOneRequiredWithoutBookingsNestedInput
     createdByUser?: UserUpdateOneWithoutCreatedBookingsNestedInput
@@ -96197,8 +95463,8 @@ export namespace Prisma {
     anesthesiaOk?: BoolFieldUpdateOperationsInput | boolean
     checklistOk?: BoolFieldUpdateOperationsInput | boolean
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ProcedureBookingUncheckedUpdateManyWithoutUnitInput = {
@@ -96214,8 +95480,8 @@ export namespace Prisma {
     anesthesiaOk?: BoolFieldUpdateOperationsInput | boolean
     checklistOk?: BoolFieldUpdateOperationsInput | boolean
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type UnitResourceCreateManyRoomInput = {
@@ -96227,34 +95493,6 @@ export namespace Prisma {
     name: string
     state?: $Enums.UnitResourceState
     isActive?: boolean
-    isSchedulable?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
-  }
-
-  export type EquipmentAssetCreateManyRoomInput = {
-    id?: string
-    branchId: string
-    code: string
-    name: string
-    category?: $Enums.EquipmentComplianceCategory
-    make?: string | null
-    model?: string | null
-    serial?: string | null
-    ownerDepartmentId?: string | null
-    unitId?: string | null
-    locationNodeId?: string | null
-    operationalStatus?: $Enums.EquipmentOperationalStatus
-    amcVendor?: string | null
-    amcValidFrom?: Date | string | null
-    amcValidTo?: Date | string | null
-    warrantyValidTo?: Date | string | null
-    pmFrequencyDays?: number | null
-    nextPmDueAt?: Date | string | null
-    aerbLicenseNo?: string | null
-    aerbValidTo?: Date | string | null
-    pcpndtRegNo?: string | null
-    pcpndtValidTo?: Date | string | null
     isSchedulable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -96304,92 +95542,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type EquipmentAssetUpdateWithoutRoomInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
-    make?: NullableStringFieldUpdateOperationsInput | string | null
-    model?: NullableStringFieldUpdateOperationsInput | string | null
-    serial?: NullableStringFieldUpdateOperationsInput | string | null
-    operationalStatus?: EnumEquipmentOperationalStatusFieldUpdateOperationsInput | $Enums.EquipmentOperationalStatus
-    amcVendor?: NullableStringFieldUpdateOperationsInput | string | null
-    amcValidFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    amcValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    warrantyValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    pmFrequencyDays?: NullableIntFieldUpdateOperationsInput | number | null
-    nextPmDueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    aerbLicenseNo?: NullableStringFieldUpdateOperationsInput | string | null
-    aerbValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    pcpndtRegNo?: NullableStringFieldUpdateOperationsInput | string | null
-    pcpndtValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    isSchedulable?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    branch?: BranchUpdateOneRequiredWithoutEquipmentAssetsNestedInput
-    ownerDepartment?: DepartmentUpdateOneWithoutEquipmentOwnedNestedInput
-    unit?: UnitUpdateOneWithoutEquipmentNestedInput
-    locationNode?: LocationNodeUpdateOneWithoutEquipmentAssetNestedInput
-    downtimeTickets?: DowntimeTicketUpdateManyWithoutAssetNestedInput
-  }
-
-  export type EquipmentAssetUncheckedUpdateWithoutRoomInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    branchId?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
-    make?: NullableStringFieldUpdateOperationsInput | string | null
-    model?: NullableStringFieldUpdateOperationsInput | string | null
-    serial?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerDepartmentId?: NullableStringFieldUpdateOperationsInput | string | null
-    unitId?: NullableStringFieldUpdateOperationsInput | string | null
-    locationNodeId?: NullableStringFieldUpdateOperationsInput | string | null
-    operationalStatus?: EnumEquipmentOperationalStatusFieldUpdateOperationsInput | $Enums.EquipmentOperationalStatus
-    amcVendor?: NullableStringFieldUpdateOperationsInput | string | null
-    amcValidFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    amcValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    warrantyValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    pmFrequencyDays?: NullableIntFieldUpdateOperationsInput | number | null
-    nextPmDueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    aerbLicenseNo?: NullableStringFieldUpdateOperationsInput | string | null
-    aerbValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    pcpndtRegNo?: NullableStringFieldUpdateOperationsInput | string | null
-    pcpndtValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    isSchedulable?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    downtimeTickets?: DowntimeTicketUncheckedUpdateManyWithoutAssetNestedInput
-  }
-
-  export type EquipmentAssetUncheckedUpdateManyWithoutRoomInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    branchId?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    category?: EnumEquipmentComplianceCategoryFieldUpdateOperationsInput | $Enums.EquipmentComplianceCategory
-    make?: NullableStringFieldUpdateOperationsInput | string | null
-    model?: NullableStringFieldUpdateOperationsInput | string | null
-    serial?: NullableStringFieldUpdateOperationsInput | string | null
-    ownerDepartmentId?: NullableStringFieldUpdateOperationsInput | string | null
-    unitId?: NullableStringFieldUpdateOperationsInput | string | null
-    locationNodeId?: NullableStringFieldUpdateOperationsInput | string | null
-    operationalStatus?: EnumEquipmentOperationalStatusFieldUpdateOperationsInput | $Enums.EquipmentOperationalStatus
-    amcVendor?: NullableStringFieldUpdateOperationsInput | string | null
-    amcValidFrom?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    amcValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    warrantyValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    pmFrequencyDays?: NullableIntFieldUpdateOperationsInput | number | null
-    nextPmDueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    aerbLicenseNo?: NullableStringFieldUpdateOperationsInput | string | null
-    aerbValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    pcpndtRegNo?: NullableStringFieldUpdateOperationsInput | string | null
-    pcpndtValidTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    isSchedulable?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
   export type ProcedureBookingCreateManyResourceInput = {
     id?: string
     branchId: string
@@ -96403,8 +95555,8 @@ export namespace Prisma {
     anesthesiaOk?: boolean
     checklistOk?: boolean
     createdByUserId?: string | null
+    cancelledAt?: Date | string | null
     createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type ProcedureBookingUpdateWithoutResourceInput = {
@@ -96417,8 +95569,8 @@ export namespace Prisma {
     consentOk?: BoolFieldUpdateOperationsInput | boolean
     anesthesiaOk?: BoolFieldUpdateOperationsInput | boolean
     checklistOk?: BoolFieldUpdateOperationsInput | boolean
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     branch?: BranchUpdateOneRequiredWithoutProcedureBookingsNestedInput
     unit?: UnitUpdateOneRequiredWithoutBookingsNestedInput
     createdByUser?: UserUpdateOneWithoutCreatedBookingsNestedInput
@@ -96437,8 +95589,8 @@ export namespace Prisma {
     anesthesiaOk?: BoolFieldUpdateOperationsInput | boolean
     checklistOk?: BoolFieldUpdateOperationsInput | boolean
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ProcedureBookingUncheckedUpdateManyWithoutResourceInput = {
@@ -96454,15 +95606,15 @@ export namespace Prisma {
     anesthesiaOk?: BoolFieldUpdateOperationsInput | boolean
     checklistOk?: BoolFieldUpdateOperationsInput | boolean
     createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    cancelledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type DowntimeTicketCreateManyAssetInput = {
     id?: string
-    status?: $Enums.DowntimeStatus
     reason: string
     notes?: string | null
+    status?: $Enums.DowntimeStatus
     openedAt?: Date | string
     closedAt?: Date | string | null
     createdAt?: Date | string
@@ -96471,9 +95623,9 @@ export namespace Prisma {
 
   export type DowntimeTicketUpdateWithoutAssetInput = {
     id?: StringFieldUpdateOperationsInput | string
-    status?: EnumDowntimeStatusFieldUpdateOperationsInput | $Enums.DowntimeStatus
     reason?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumDowntimeStatusFieldUpdateOperationsInput | $Enums.DowntimeStatus
     openedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -96482,9 +95634,9 @@ export namespace Prisma {
 
   export type DowntimeTicketUncheckedUpdateWithoutAssetInput = {
     id?: StringFieldUpdateOperationsInput | string
-    status?: EnumDowntimeStatusFieldUpdateOperationsInput | $Enums.DowntimeStatus
     reason?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumDowntimeStatusFieldUpdateOperationsInput | $Enums.DowntimeStatus
     openedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -96493,9 +95645,9 @@ export namespace Prisma {
 
   export type DowntimeTicketUncheckedUpdateManyWithoutAssetInput = {
     id?: StringFieldUpdateOperationsInput | string
-    status?: EnumDowntimeStatusFieldUpdateOperationsInput | $Enums.DowntimeStatus
     reason?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumDowntimeStatusFieldUpdateOperationsInput | $Enums.DowntimeStatus
     openedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -96506,7 +95658,7 @@ export namespace Prisma {
     id?: string
     branchId: string
     serviceItemId: string
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     version?: number
     createdAt?: Date | string
@@ -96520,7 +95672,7 @@ export namespace Prisma {
     version?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    branch?: BranchUpdateOneRequiredWithoutServiceMappingsNestedInput
+    branch?: BranchUpdateOneRequiredWithoutServiceChargeMappingsNestedInput
     serviceItem?: ServiceItemUpdateOneRequiredWithoutMappingsNestedInput
   }
 
@@ -96550,7 +95702,7 @@ export namespace Prisma {
     id?: string
     branchId: string
     chargeMasterItemId: string
-    effectiveFrom?: Date | string
+    effectiveFrom: Date | string
     effectiveTo?: Date | string | null
     version?: number
     createdAt?: Date | string
@@ -96560,7 +95712,7 @@ export namespace Prisma {
   export type FixItTaskCreateManyServiceItemInput = {
     id?: string
     branchId: string
-    type: $Enums.FixItType
+    type: $Enums.FixItTaskType
     status?: $Enums.FixItStatus
     title: string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -96577,7 +95729,7 @@ export namespace Prisma {
     version?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    branch?: BranchUpdateOneRequiredWithoutServiceMappingsNestedInput
+    branch?: BranchUpdateOneRequiredWithoutServiceChargeMappingsNestedInput
     chargeMasterItem?: ChargeMasterItemUpdateOneRequiredWithoutMappingsNestedInput
   }
 
@@ -96605,7 +95757,7 @@ export namespace Prisma {
 
   export type FixItTaskUpdateWithoutServiceItemInput = {
     id?: StringFieldUpdateOperationsInput | string
-    type?: EnumFixItTypeFieldUpdateOperationsInput | $Enums.FixItType
+    type?: EnumFixItTaskTypeFieldUpdateOperationsInput | $Enums.FixItTaskType
     status?: EnumFixItStatusFieldUpdateOperationsInput | $Enums.FixItStatus
     title?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -96619,7 +95771,7 @@ export namespace Prisma {
   export type FixItTaskUncheckedUpdateWithoutServiceItemInput = {
     id?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
-    type?: EnumFixItTypeFieldUpdateOperationsInput | $Enums.FixItType
+    type?: EnumFixItTaskTypeFieldUpdateOperationsInput | $Enums.FixItTaskType
     status?: EnumFixItStatusFieldUpdateOperationsInput | $Enums.FixItStatus
     title?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -96632,7 +95784,7 @@ export namespace Prisma {
   export type FixItTaskUncheckedUpdateManyWithoutServiceItemInput = {
     id?: StringFieldUpdateOperationsInput | string
     branchId?: StringFieldUpdateOperationsInput | string
-    type?: EnumFixItTypeFieldUpdateOperationsInput | $Enums.FixItType
+    type?: EnumFixItTaskTypeFieldUpdateOperationsInput | $Enums.FixItTaskType
     status?: EnumFixItStatusFieldUpdateOperationsInput | $Enums.FixItStatus
     title?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
@@ -96768,13 +95920,13 @@ export namespace Prisma {
      */
     export type DepartmentDoctorArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = DepartmentDoctorDefaultArgs<ExtArgs>
     /**
-     * @deprecated Use SpecialtyDefaultArgs instead
-     */
-    export type SpecialtyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SpecialtyDefaultArgs<ExtArgs>
-    /**
      * @deprecated Use DepartmentSpecialtyDefaultArgs instead
      */
     export type DepartmentSpecialtyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = DepartmentSpecialtyDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use SpecialtyDefaultArgs instead
+     */
+    export type SpecialtyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SpecialtyDefaultArgs<ExtArgs>
     /**
      * @deprecated Use StaffDefaultArgs instead
      */
