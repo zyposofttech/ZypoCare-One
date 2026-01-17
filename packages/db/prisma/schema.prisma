@@ -107,6 +107,8 @@ model Branch {
   fixItTasks            FixItTask[]
   bulkImportJobs        BulkImportJob[]
   goLiveReports         GoLiveReport[]
+
+  infraConfig BranchInfraConfig?
 }
 
 model FacilityCatalog {
@@ -167,13 +169,11 @@ model Department {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  staff       Staff[]     @relation("DepartmentStaff")
-  specialties Specialty[]
+  staff Staff[] @relation("DepartmentStaff")
 
   doctorAssignments DepartmentDoctor[]
 
-  // ---------------- Infrastructure
-  // Many-to-many link to specialties (preferred for department specialty mapping)
+  // ✅ Many-to-many link to specialties (single source of truth for mapping)
   departmentSpecialties DepartmentSpecialty[]
 
   // ---------------- Infrastructure (Setup Studio) ----------------
@@ -224,24 +224,24 @@ model DepartmentSpecialty {
 }
 
 model Specialty {
-  id           String      @id @default(cuid())
-  branchId     String
-  branch       Branch      @relation(fields: [branchId], references: [id])
-  departmentId String?
-  department   Department? @relation(fields: [departmentId], references: [id])
-  code         String
-  name         String
-  isActive     Boolean     @default(true)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id        String @id @default(cuid())
+  branchId  String
+  branch    Branch @relation(fields: [branchId], references: [id])
+
+  code      String
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   staff Staff[]
 
-  // Many-to-many link to departments
+  // ✅ Many-to-many link to departments
   departmentLinks DepartmentSpecialty[]
 
   @@unique([branchId, code])
 }
+
 
 model Staff {
   id           String      @id @default(cuid())
@@ -809,6 +809,9 @@ model LocationNode {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+
+  // Units mapped to this location node
+  units     Unit[]
   revisions LocationNodeRevision[]
 
   @@index([branchId, kind])
@@ -903,6 +906,10 @@ model Unit {
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
+  // Location binding: unit belongs to a specific location node under the same branch
+  locationNodeId String?
+  locationNode   LocationNode? @relation(fields: [locationNodeId], references: [id], onDelete: Restrict)
+
   departmentId String
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
 
@@ -924,6 +931,7 @@ model Unit {
 
   @@unique([branchId, code], name: "branchId_unitCode")
   @@index([branchId, departmentId, isActive])
+  @@index([branchId, locationNodeId, isActive])
 }
 
 model UnitRoom {
@@ -975,6 +983,17 @@ model UnitResource {
   @@unique([unitId, code], name: "unitId_resourceCode")
   @@index([branchId, unitId, isActive])
   @@index([branchId, resourceType, isSchedulable])
+}
+
+model BranchInfraConfig {
+  id       String @id @default(cuid())
+  branchId String @unique
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  housekeepingGateEnabled Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ---------------- Equipment Register ----------------

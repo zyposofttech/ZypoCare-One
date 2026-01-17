@@ -12,7 +12,7 @@
 :root {
   /* BACKGROUNDS */
   /* Pure white for the main canvas to keep it clean */
-  --zc-bg: 255 255 255;
+  --zc-bg: 248 253 251;
   
   /* A very subtle cool gray for sidebars/panels (Slate-50) */
   /* This provides distinct separation without feeling "muddy" */
@@ -34,7 +34,7 @@
 
   /* BRAND ACCENT */
   /* "Enterprise Blue" (Blue-600) - Strong, confident, and accessible */
-  --zc-accent: 37 99 235;
+  --zc-accent: 103 61 235;
   
   /* Lighter blue for hovers (Blue-500) */
   --zc-accent2: 59 130 246;
@@ -69,7 +69,7 @@
   --zc-accent: 146 79 247;
   --zc-accent2: 186 143 250;
   --zc-ring: 122 183 255;
-
+  --zc-success: 22 163 74;    /* green-600 */
   --zc-danger: 246 55 55; /* red-400 */
   --zc-warn: 251 191 36;    /* amber-400 */
   --zc-ok: 34 197 94;       /* green-500 */
@@ -98,4 +98,121 @@ body {
 *:focus-visible {
   outline: 2px solid rgb(var(--zc-accent));
   outline-offset: 2px;
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* Global Loading UI (route navigation + API calls)                           */
+/* -------------------------------------------------------------------------- */
+
+@keyframes zc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes zc-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes zc-shimmer {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes zc-progress {
+  0% {
+    transform: translateX(-60%);
+    width: 35%;
+  }
+  50% {
+    transform: translateX(35%);
+    width: 55%;
+  }
+  100% {
+    transform: translateX(140%);
+    width: 35%;
+  }
+}
+
+.zc-progress-track {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 3px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.zc-progress-indicator {
+  height: 100%;
+  width: 35%;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgb(var(--zc-accent) / 0),
+    rgb(var(--zc-accent) / 0.75),
+    rgb(var(--zc-accent2) / 0.9),
+    rgb(var(--zc-accent) / 0)
+  );
+  animation: zc-progress 1.1s ease-in-out infinite;
+  filter: drop-shadow(0 2px 10px rgb(var(--zc-accent) / 0.28));
+}
+
+.zc-loader-ring {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: conic-gradient(
+    from 90deg,
+    rgb(var(--zc-accent)),
+    rgb(var(--zc-accent2)),
+    rgb(var(--zc-accent))
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 7px));
+  animation: zc-spin 0.95s linear infinite;
+}
+
+.zc-loader-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgb(var(--zc-text) / 0.72);
+  animation: zc-pulse 1.05s ease-in-out infinite;
+}
+
+.zc-loader-dot:nth-child(2) {
+  animation-delay: 0.16s;
+}
+
+.zc-loader-dot:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+.zc-loader-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.zc-loader-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-120%);
+  background: linear-gradient(90deg, transparent, rgb(var(--zc-accent) / 0.12), transparent);
+  animation: zc-shimmer 1.25s ease-in-out infinite;
 }

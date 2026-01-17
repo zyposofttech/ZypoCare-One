@@ -45,7 +45,7 @@ function Pill({ label, tone }: { label: string; tone?: string }) {
     <span
       className={cn(
         "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold",
-        tone ?? "border-xc-border bg-xc-panel/20 text-xc-muted",
+        tone ?? "border-zc-border bg-zc-panel/20 text-zc-muted",
       )}
     >
       {label}
@@ -62,7 +62,7 @@ function toneGood() {
 }
 
 function toneDanger() {
-  return "border-[rgb(var(--xc-danger-rgb)/0.45)] bg-[rgb(var(--xc-danger-rgb)/0.10)] text-[rgb(var(--xc-danger))]";
+  return "border-[rgb(var(--zc-danger-rgb)/0.45)] bg-[rgb(var(--zc-danger-rgb)/0.10)] text-[rgb(var(--zc-danger))]";
 }
 
 async function fetchBranches(): Promise<BranchLite[]> {
@@ -147,12 +147,12 @@ export default function SuperAdminPolicyApprovalsPage() {
         {/* Header */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-xc-border bg-xc-panel/30">
-              <IconShield className="h-5 w-5 text-xc-accent" />
+            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-zc-border bg-zc-panel/30">
+              <IconShield className="h-5 w-5 text-zc-accent" />
             </span>
             <div className="min-w-0">
               <div className="text-3xl font-semibold tracking-tight">Approvals</div>
-              <div className="mt-1 text-sm text-xc-muted">
+              <div className="mt-1 text-sm text-zc-muted">
                 Review submitted policy changes (maker-checker). Approve or reject with an audit note.
               </div>
             </div>
@@ -177,8 +177,8 @@ export default function SuperAdminPolicyApprovalsPage() {
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Queue Overview</CardTitle>
             <CardDescription className="text-sm">
-              Showing <span className="font-semibold text-xc-text tabular-nums">{filtered.length}</span> of{" "}
-              <span className="font-semibold text-xc-text tabular-nums">{stats.total}</span> pending requests.
+              Showing <span className="font-semibold text-zc-text tabular-nums">{filtered.length}</span> of{" "}
+              <span className="font-semibold text-zc-text tabular-nums">{stats.total}</span> pending requests.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
@@ -204,11 +204,11 @@ export default function SuperAdminPolicyApprovalsPage() {
               </div>
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <Label className="text-sm text-xc-muted">Branch</Label>
+                <Label className="text-sm text-zc-muted">Branch</Label>
                 <select
                   value={branchId}
                   onChange={(e) => setBranchId(e.target.value)}
-                  className="h-10 rounded-lg border border-xc-border bg-xc-card px-3 text-sm text-xc-text"
+                  className="h-10 rounded-lg border border-zc-border bg-zc-card px-3 text-sm text-zc-text"
                 >
                   <option value="">All branches</option>
                   {branches.map((b) => (
@@ -235,11 +235,11 @@ export default function SuperAdminPolicyApprovalsPage() {
             <CardTitle className="text-base">Pending Requests</CardTitle>
             <CardDescription className="text-sm">Approve or reject. Rejection requires a reason.</CardDescription>
           </CardHeader>
-          <Separator className="bg-xc-border" />
+          <Separator className="bg-zc-border" />
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-xc-panel/20 text-xs text-xc-muted">
+              <thead className="bg-zc-panel/20 text-xs text-zc-muted">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold">Policy</th>
                   <th className="px-4 py-3 text-left font-semibold">Scope</th>
@@ -252,7 +252,7 @@ export default function SuperAdminPolicyApprovalsPage() {
               <tbody>
                 {!filtered.length ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-10 text-center text-sm text-xc-muted">
+                    <td colSpan={6} className="px-4 py-10 text-center text-sm text-zc-muted">
                       {loading ? "Loading approvals…" : "No approval requests."}
                     </td>
                   </tr>
@@ -267,15 +267,15 @@ export default function SuperAdminPolicyApprovalsPage() {
                         : `${r.branchIds?.length ?? 0} branch(es)`;
 
                   return (
-                    <tr key={r.id} className="border-t border-xc-border hover:bg-xc-panel/20">
+                    <tr key={r.id} className="border-t border-zc-border hover:bg-zc-panel/20">
                       <td className="px-4 py-3">
                         <Link
                           href={`/superadmin/policy/policies/${encodeURIComponent(r.policyId)}`}
-                          className="font-semibold text-xc-text hover:underline"
+                          className="font-semibold text-zc-text hover:underline"
                         >
                           {r.policyName ?? r.policyCode}
                         </Link>
-                        <div className="mt-0.5 font-mono text-xs text-xc-muted">{r.policyCode} • v{r.version}</div>
+                        <div className="mt-0.5 font-mono text-xs text-zc-muted">{r.policyCode} • v{r.version}</div>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap items-center gap-2">
@@ -286,9 +286,9 @@ export default function SuperAdminPolicyApprovalsPage() {
                           <Pill label={r.status} tone={tonePending()} />
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-xc-muted">{target}</td>
-                      <td className="px-4 py-3 text-xc-muted">{r.submittedAt ? new Date(r.submittedAt).toLocaleString() : "—"}</td>
-                      <td className="px-4 py-3 text-xc-muted">{r.createdByName ?? "—"}</td>
+                      <td className="px-4 py-3 text-zc-muted">{target}</td>
+                      <td className="px-4 py-3 text-zc-muted">{r.submittedAt ? new Date(r.submittedAt).toLocaleString() : "—"}</td>
+                      <td className="px-4 py-3 text-zc-muted">{r.createdByName ?? "—"}</td>
                       <td className="px-4 py-3">
                         <div className="flex justify-end gap-2">
                           <Button
@@ -434,7 +434,7 @@ function ApprovalActionDialog({
               className="min-h-[140px]"
             />
             {mode === "reject" ? (
-              <div className="text-xs text-xc-muted">Required. This is stored on the version as rejectionReason.</div>
+              <div className="text-xs text-zc-muted">Required. This is stored on the version as rejectionReason.</div>
             ) : null}
           </div>
         </div>

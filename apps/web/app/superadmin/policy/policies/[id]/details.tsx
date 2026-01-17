@@ -96,7 +96,7 @@ function Pill({ label, tone }: { label: string; tone?: string }) {
         ? "border-emerald-200/70 bg-emerald-50/70 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/25 dark:text-emerald-200"
         : l.includes("DRAFT")
           ? "border-sky-200/70 bg-sky-50/70 text-sky-800 dark:border-sky-900/50 dark:bg-sky-950/25 dark:text-sky-200"
-          : "border-xc-border bg-xc-panel/20 text-xc-muted");
+          : "border-zc-border bg-zc-panel/20 text-zc-muted");
   return <span className={cn(base, cls)}>{label}</span>;
 }
 
@@ -212,21 +212,21 @@ export default function PolicyDetails({ id }: { id: string }) {
         {/* Header */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-xc-border bg-xc-panel/30">
-              <IconShield className="h-5 w-5 text-xc-accent" />
+            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-zc-border bg-zc-panel/30">
+              <IconShield className="h-5 w-5 text-zc-accent" />
             </span>
             <div className="min-w-0">
               <div className="text-3xl font-semibold tracking-tight">{policyName}</div>
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-xc-muted">
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-zc-muted">
                 <span className="font-mono text-xs">{code}</span>
                 {detail?.type ? (
                   <>
-                    <span className="text-xc-muted/60">•</span>
+                    <span className="text-zc-muted/60">•</span>
                     <span>{detail.type}</span>
                   </>
                 ) : null}
               </div>
-              {detail?.description ? <div className="mt-2 text-sm text-xc-muted">{detail.description}</div> : null}
+              {detail?.description ? <div className="mt-2 text-sm text-zc-muted">{detail.description}</div> : null}
             </div>
           </div>
 
@@ -252,7 +252,7 @@ export default function PolicyDetails({ id }: { id: string }) {
         </div>
 
         {err ? (
-          <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
+          <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
             <AlertTriangle className="mt-0.5 h-4 w-4" />
             <div className="min-w-0">{err}</div>
           </div>
@@ -269,11 +269,11 @@ export default function PolicyDetails({ id }: { id: string }) {
           <CardContent className="grid gap-4">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-2">
-                <Label className="text-sm text-xc-muted">Branch</Label>
+                <Label className="text-sm text-zc-muted">Branch</Label>
                 <select
                   value={branchId}
                   onChange={(e) => setBranchId(e.target.value)}
-                  className="h-10 rounded-lg border border-xc-border bg-xc-card px-3 text-sm text-xc-text"
+                  className="h-10 rounded-lg border border-zc-border bg-zc-card px-3 text-sm text-zc-text"
                 >
                   <option value="">Global baseline (no overrides)</option>
                   {branches.map((b) => (
@@ -289,17 +289,17 @@ export default function PolicyDetails({ id }: { id: string }) {
                   <>
                     <Pill label={effective.effective.scope === "BRANCH_OVERRIDE" ? "Override" : "Global"} />
                     <Pill label={`v${effective.effective.version}`} />
-                    <span className="text-xs text-xc-muted">Effective: {new Date(effective.effective.effectiveAt).toLocaleString()}</span>
+                    <span className="text-xs text-zc-muted">Effective: {new Date(effective.effective.effectiveAt).toLocaleString()}</span>
                   </>
                 ) : (
-                  <span className="text-sm text-xc-muted">No effective policy found.</span>
+                  <span className="text-sm text-zc-muted">No effective policy found.</span>
                 )}
               </div>
             </div>
 
-            <div className="rounded-xl border border-xc-border bg-xc-panel/10 p-4">
-              <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted/80">Effective Payload</div>
-              <pre className="mt-3 max-h-[360px] overflow-auto rounded-xl border border-xc-border bg-xc-panel/20 p-4 text-xs text-xc-text">
+            <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted/80">Effective Payload</div>
+              <pre className="mt-3 max-h-[360px] overflow-auto rounded-xl border border-zc-border bg-zc-panel/20 p-4 text-xs text-zc-text">
                 {JSON.stringify(effective?.effective?.payload ?? null, null, 2)}
               </pre>
             </div>
@@ -316,7 +316,7 @@ export default function PolicyDetails({ id }: { id: string }) {
             <Separator />
             <CardContent className="grid gap-4 pt-4">
               {!detail?.active ? (
-                <div className="text-sm text-xc-muted">No active baseline yet.</div>
+                <div className="text-sm text-zc-muted">No active baseline yet.</div>
               ) : (
                 <>
                   <div className="flex flex-wrap items-center gap-2">
@@ -325,12 +325,12 @@ export default function PolicyDetails({ id }: { id: string }) {
                     <Pill label={detail.active.applyToAllBranches ? "All branches" : `${detail.active.branchIds.length} branches`} />
                   </div>
                   <div className="grid gap-2 text-sm">
-                    <div className="flex justify-between gap-4"><span className="text-xc-muted">Effective</span><span className="text-xc-text">{new Date(detail.active.effectiveAt).toLocaleString()}</span></div>
-                    <div className="flex justify-between gap-4"><span className="text-xc-muted">Approved by</span><span className="text-xc-text">{detail.active.approvedByName ?? "—"}</span></div>
+                    <div className="flex justify-between gap-4"><span className="text-zc-muted">Effective</span><span className="text-zc-text">{new Date(detail.active.effectiveAt).toLocaleString()}</span></div>
+                    <div className="flex justify-between gap-4"><span className="text-zc-muted">Approved by</span><span className="text-zc-text">{detail.active.approvedByName ?? "—"}</span></div>
                   </div>
-                  <details className="rounded-xl border border-xc-border bg-xc-panel/10 p-3">
-                    <summary className="cursor-pointer text-sm font-semibold text-xc-text">View payload</summary>
-                    <pre className="mt-3 max-h-[240px] overflow-auto rounded-xl border border-xc-border bg-xc-panel/20 p-3 text-xs text-xc-text">
+                  <details className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+                    <summary className="cursor-pointer text-sm font-semibold text-zc-text">View payload</summary>
+                    <pre className="mt-3 max-h-[240px] overflow-auto rounded-xl border border-zc-border bg-zc-panel/20 p-3 text-xs text-zc-text">
                       {JSON.stringify(detail.active.payload ?? null, null, 2)}
                     </pre>
                   </details>
@@ -348,7 +348,7 @@ export default function PolicyDetails({ id }: { id: string }) {
             <CardContent className="grid gap-4 pt-4">
               {!detail?.draft ? (
                 <>
-                  <div className="text-sm text-xc-muted">No draft exists.</div>
+                  <div className="text-sm text-zc-muted">No draft exists.</div>
                   <Button variant="primary" className="w-fit" onClick={() => void createDraft()}>
                     <FileText className="h-4 w-4" />
                     Create Draft
@@ -362,14 +362,14 @@ export default function PolicyDetails({ id }: { id: string }) {
                   </div>
 
                   <div className="grid gap-2 text-sm">
-                    <div className="flex justify-between gap-4"><span className="text-xc-muted">Effective</span><span className="text-xc-text">{new Date(detail.draft.effectiveAt).toLocaleString()}</span></div>
-                    <div className="flex justify-between gap-4"><span className="text-xc-muted">Created by</span><span className="text-xc-text">{detail.draft.createdByName ?? "—"}</span></div>
+                    <div className="flex justify-between gap-4"><span className="text-zc-muted">Effective</span><span className="text-zc-text">{new Date(detail.draft.effectiveAt).toLocaleString()}</span></div>
+                    <div className="flex justify-between gap-4"><span className="text-zc-muted">Created by</span><span className="text-zc-text">{detail.draft.createdByName ?? "—"}</span></div>
                   </div>
 
                   {detail.draft.notes ? (
-                    <div className="rounded-xl border border-xc-border bg-xc-panel/10 p-3 text-sm">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted/80">Notes</div>
-                      <div className="mt-2 text-xc-text whitespace-pre-wrap">{detail.draft.notes}</div>
+                    <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3 text-sm">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted/80">Notes</div>
+                      <div className="mt-2 text-zc-text whitespace-pre-wrap">{detail.draft.notes}</div>
                     </div>
                   ) : null}
 
@@ -398,7 +398,7 @@ export default function PolicyDetails({ id }: { id: string }) {
           <Separator />
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-xc-panel/20 text-xs text-xc-muted">
+              <thead className="bg-zc-panel/20 text-xs text-zc-muted">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold">Version</th>
                   <th className="px-4 py-3 text-left font-semibold">Status</th>
@@ -410,18 +410,18 @@ export default function PolicyDetails({ id }: { id: string }) {
               <tbody>
                 {!detail?.history?.length ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-10 text-center text-sm text-xc-muted">
+                    <td colSpan={5} className="px-4 py-10 text-center text-sm text-zc-muted">
                       {loading ? "Loading…" : "No history yet."}
                     </td>
                   </tr>
                 ) : null}
                 {(detail?.history ?? []).map((v) => (
-                  <tr key={v.id} className="border-t border-xc-border">
-                    <td className="px-4 py-3 font-semibold text-xc-text">v{v.version}</td>
+                  <tr key={v.id} className="border-t border-zc-border">
+                    <td className="px-4 py-3 font-semibold text-zc-text">v{v.version}</td>
                     <td className="px-4 py-3"><Pill label={v.status} /></td>
-                    <td className="px-4 py-3 text-xc-muted">{new Date(v.effectiveAt).toLocaleString()}</td>
-                    <td className="px-4 py-3 text-xc-muted">{new Date(v.createdAt).toLocaleString()}</td>
-                    <td className="px-4 py-3 text-xc-muted">{v.createdByName ?? "—"}</td>
+                    <td className="px-4 py-3 text-zc-muted">{new Date(v.effectiveAt).toLocaleString()}</td>
+                    <td className="px-4 py-3 text-zc-muted">{new Date(v.createdAt).toLocaleString()}</td>
+                    <td className="px-4 py-3 text-zc-muted">{v.createdByName ?? "—"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -555,7 +555,7 @@ function EditDraftModal({
 
         <div className="grid gap-5">
           {error ? (
-            <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
+            <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
               <AlertTriangle className="mt-0.5 h-4 w-4" />
               <div className="min-w-0">{error}</div>
             </div>
@@ -571,14 +571,14 @@ function EditDraftModal({
             <select
               value={mode}
               onChange={(e) => setMode(e.target.value as any)}
-              className="h-10 rounded-lg border border-xc-border bg-xc-card px-3 text-sm text-xc-text"
+              className="h-10 rounded-lg border border-zc-border bg-zc-card px-3 text-sm text-zc-text"
             >
               <option value="JSON">JSON</option>
               <option value="FORM" disabled={!tpl}>
                 Form (template)
               </option>
             </select>
-            {!tpl ? <div className="text-xs text-xc-muted">No template found for {code}. JSON editor is available.</div> : null}
+            {!tpl ? <div className="text-xs text-zc-muted">No template found for {code}. JSON editor is available.</div> : null}
           </div>
         </div>
 
@@ -608,7 +608,7 @@ function EditDraftModal({
             {!applyAll ? (
               <div className="grid gap-2 sm:grid-cols-2">
                 {branches.map((b) => (
-                  <label key={b.id} className="flex items-start gap-2 rounded-xl border border-xc-border bg-xc-panel/10 p-3">
+                  <label key={b.id} className="flex items-start gap-2 rounded-xl border border-zc-border bg-zc-panel/10 p-3">
                     <input
                       type="checkbox"
                       className="mt-1"
@@ -616,8 +616,8 @@ function EditDraftModal({
                       onChange={(e) => toggleBranch(b.id, e.target.checked)}
                     />
                     <div className="min-w-0">
-                      <div className="text-sm font-semibold text-xc-text">{b.name}</div>
-                      <div className="text-xs text-xc-muted">{b.city ?? ""} {b.code ? `• ${b.code}` : ""}</div>
+                      <div className="text-sm font-semibold text-zc-text">{b.name}</div>
+                      <div className="text-xs text-zc-muted">{b.city ?? ""} {b.code ? `• ${b.code}` : ""}</div>
                     </div>
                   </label>
                 ))}
@@ -737,7 +737,7 @@ function TemplateForm({
           <div className="grid gap-2">
             <Label>Default status</Label>
             <select
-              className="h-10 w-full rounded-lg border border-xc-border bg-xc-card px-3 text-sm"
+              className="h-10 w-full rounded-lg border border-zc-border bg-zc-card px-3 text-sm"
               value={value.defaultStatus ?? "GRANTED"}
               onChange={(e) => onChange({ ...value, defaultStatus: e.target.value })}
             >
@@ -750,9 +750,9 @@ function TemplateForm({
             <Label>Default scope</Label>
             <div className="grid gap-2 sm:grid-cols-3">
               {(["VIEW", "STORE", "SHARE"] as const).map((k) => (
-                <label key={k} className="flex items-start gap-2 rounded-xl border border-xc-border bg-xc-panel/10 p-3">
+                <label key={k} className="flex items-start gap-2 rounded-xl border border-zc-border bg-zc-panel/10 p-3">
                   <input type="checkbox" className="mt-1" checked={scope.has(k)} onChange={() => toggle(k)} />
-                  <div className="text-sm font-semibold text-xc-text">{k}</div>
+                  <div className="text-sm font-semibold text-zc-text">{k}</div>
                 </label>
               ))}
             </div>
@@ -882,7 +882,7 @@ function TemplateForm({
   return (
     <div className="grid gap-2">
       <Label>Template editor</Label>
-      <div className="rounded-xl border border-xc-border bg-xc-panel/10 p-4 text-sm text-xc-muted">
+      <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-4 text-sm text-zc-muted">
         No form editor available for this template. Use JSON editor.
       </div>
     </div>

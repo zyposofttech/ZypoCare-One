@@ -8,19 +8,12 @@ import {
   Post,
   Query,
   Req,
-  UseGuards,
   ForbiddenException,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import {
-  IsEmail,
-  IsOptional,
-  IsString,
-  Matches,
-  MaxLength,
-} from "class-validator";
-import { PrincipalGuard } from "../auth/principal.guard";
-import { Roles } from "../auth/roles.decorator";
+import { IsEmail, IsOptional, IsString, Matches, MaxLength } from "class-validator";
+import { Permissions } from "../auth/permissions.decorator";
+import { PERM } from "../iam/iam.constants";
 import { BranchService } from "./branch.service";
 
 class ListBranchesQuery {
@@ -106,73 +99,32 @@ class UpdateBranchDto {
   contactEmail?: string;
 }
 
-function hasRole(principal: any, role: string) {
+function isGlobalAdmin(principal: any): boolean {
   if (!principal) return false;
-  if (principal.role === role) return true;
-  const roles = principal.roles;
-  if (Array.isArray(roles)) return roles.includes(role);
-  if (typeof roles === "string") return roles.split(",").map((s) => s.trim()).includes(role);
-  return false;
-}
-function hasSuperAdminRole(principal: any): boolean {
-  if (!principal) return false;
-  if (principal.role === "SUPER_ADMIN") return true;
-  if (principal.roleCode === "SUPER_ADMIN") return true;
-  if (Array.isArray(principal.roles)) return principal.roles.includes("SUPER_ADMIN");
-  if (typeof principal.roles === "string")
-    return principal.roles.split(",").map((r: string) => r.trim()).includes("SUPER_ADMIN");
-  return false;
-}
-function isSuperAdmin(req: any): boolean {
-  const principal = req?.principal;
-
-  // 1) principal fields
-  if (principal?.role === "SUPER_ADMIN") return true;
-  if (principal?.roleCode === "SUPER_ADMIN") return true;
-
-  // 2) principal.roles (array or string)
-  if (Array.isArray(principal?.roles) && principal.roles.includes("SUPER_ADMIN")) return true;
-  if (typeof principal?.roles === "string") {
-    const roles = principal.roles.split(",").map((r: string) => r.trim());
-    if (roles.includes("SUPER_ADMIN")) return true;
-  }
-
-  // 3) Keycloak token roles (common)
-  const tokenRoles: string[] = req?.user?.realm_access?.roles || [];
-  if (tokenRoles.includes("SUPER_ADMIN")) return true;
-
-  // 4) resource_access (optional / client roles)
-  // Example: req.user.resource_access?.["zypocare"]?.roles
-  const ra = req?.user?.resource_access;
-  if (ra && typeof ra === "object") {
-    for (const k of Object.keys(ra)) {
-      const r = ra[k]?.roles;
-      if (Array.isArray(r) && r.includes("SUPER_ADMIN")) return true;
-    }
-  }
-
-  return false;
+  return (
+    principal.roleScope === "GLOBAL" ||
+    principal.roleCode === "SUPER_ADMIN" ||
+    principal.role === "SUPER_ADMIN"
+  );
 }
 
 @ApiTags("branches")
 @Controller("branches")
-@UseGuards(PrincipalGuard)
 export class BranchController {
-  constructor(private readonly branches: BranchService) { }
+  constructor(private readonly branches: BranchService) {}
 
+  @Permissions(PERM.BRANCH_READ)
   @Get()
   async list(@Query() q: ListBranchesQuery, @Req() req: any) {
     const principal = req.principal;
 
-    if (isSuperAdmin(req)) {
-      return this.branches.list({ q: q.q ?? null }); // returns ALL branches
+    if (isGlobalAdmin(principal)) {
+      return this.branches.list({ q: q.q ?? null }); // ALL branches
     }
 
-    // Everyone else: only their branch
     if (!principal?.branchId) return [];
     const row = await this.branches.get(principal.branchId);
 
-    // optional search filter for non-super
     if (q.q) {
       const term = q.q.toLowerCase();
       const match =
@@ -186,37 +138,36 @@ export class BranchController {
     return [row];
   }
 
+  @Permissions(PERM.BRANCH_READ)
   @Get(":id")
   async get(@Param("id") id: string, @Req() req: any) {
     const principal = req.principal;
 
-    if (!isSuperAdmin(req) && principal?.branchId !== id) {
+    if (!isGlobalAdmin(principal) && principal?.branchId !== id) {
       throw new ForbiddenException("You can only view your own branch");
     }
 
     return this.branches.get(id);
   }
 
-
-
-  @Roles("SUPER_ADMIN")
+  @Permissions(PERM.BRANCH_CREATE)
   @Post()
   async create(@Body() dto: CreateBranchDto, @Req() req: any) {
     const principal = req.principal;
-    return this.branches.create(dto, principal?.id ?? null);
+    return this.branches.create(dto, principal?.userId ?? null);
   }
 
-  @Roles("SUPER_ADMIN")
+  @Permissions(PERM.BRANCH_UPDATE)
   @Patch(":id")
   async update(@Param("id") id: string, @Body() dto: UpdateBranchDto, @Req() req: any) {
     const principal = req.principal;
-    return this.branches.update(id, dto, principal?.id ?? null);
+    return this.branches.update(id, dto, principal?.userId ?? null);
   }
 
-  @Roles("SUPER_ADMIN")
+  @Permissions(PERM.BRANCH_DELETE)
   @Delete(":id")
   async remove(@Param("id") id: string, @Req() req: any) {
     const principal = req.principal;
-    return this.branches.remove(id, principal?.id ?? null);
+    return this.branches.remove(id, principal?.userId ?? null);
   }
 }

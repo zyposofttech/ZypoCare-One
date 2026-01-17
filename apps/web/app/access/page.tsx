@@ -211,23 +211,23 @@ export default function Page() {
   }, [perms.rows, qPerms]);
 
   const activeTrigger =
-    "data-[state=active]:bg-xc-panel data-[state=active]:text-xc-text data-[state=active]:shadow-elev-1 " +
-    "data-[state=active]:ring-1 data-[state=active]:ring-xc-border data-[state=active]:border data-[state=active]:border-xc-border";
+    "data-[state=active]:bg-zc-panel data-[state=active]:text-zc-text data-[state=active]:shadow-elev-1 " +
+    "data-[state=active]:ring-1 data-[state=active]:ring-zc-border data-[state=active]:border data-[state=active]:border-zc-border";
 
   return (
     <AppShell title="Users & Access">
       <div className="space-y-6">
         {/* Hero */}
-        <div className="relative overflow-hidden rounded-2xl border border-xc-border bg-xc-card">
-          <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-xc-accent/15 blur-3xl" />
-          <div className="absolute -right-24 -bottom-24 h-72 w-72 rounded-full bg-xc-ok/10 blur-3xl" />
+        <div className="relative overflow-hidden rounded-2xl border border-zc-border bg-zc-card">
+          <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-zc-accent/15 blur-3xl" />
+          <div className="absolute -right-24 -bottom-24 h-72 w-72 rounded-full bg-zc-ok/10 blur-3xl" />
 
           <div className="relative p-6 sm:p-7">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="max-w-2xl">
                 <div className="flex items-center gap-2">
-                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-xc-border bg-xc-panel">
-                    <Lock className="h-5 w-5 text-xc-accent" />
+                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-zc-border bg-zc-panel">
+                    <Lock className="h-5 w-5 text-zc-accent" />
                   </div>
                   <div className="flex items-center gap-2">
                     <h1 className="text-2xl font-semibold tracking-tight">Access Control</h1>
@@ -237,7 +237,7 @@ export default function Page() {
                   </div>
                 </div>
 
-                <p className="mt-2 text-sm text-xc-muted">
+                <p className="mt-2 text-sm text-zc-muted">
                   Manage users, roles, and permission grants with audit-ready governance. Keep access minimal, traceable, and branch-safe.
                 </p>
               </div>
@@ -258,7 +258,7 @@ export default function Page() {
             </div>
 
             {counts.error ? (
-              <div className="mt-4 rounded-xl border border-xc-danger/25 bg-xc-danger/10 px-4 py-3 text-sm text-xc-danger">
+              <div className="mt-4 rounded-xl border border-zc-danger/25 bg-zc-danger/10 px-4 py-3 text-sm text-zc-danger">
                 {counts.error}
               </div>
             ) : null}
@@ -274,7 +274,7 @@ export default function Page() {
         {/* Tabs */}
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="w-full space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <TabsList className="h-auto w-full rounded-2xl border border-xc-border bg-xc-card p-1 sm:w-[560px]">
+            <TabsList className="h-auto w-full rounded-2xl border border-zc-border bg-zc-card p-1 sm:w-[560px]">
               <TabsTrigger
                 value="users"
                 className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 ${activeTrigger}`}
@@ -312,7 +312,7 @@ export default function Page() {
                     </div>
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                       <div className="relative">
-                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-xc-muted" />
+                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zc-muted" />
                         <Input value={qUsers} onChange={(e) => setQUsers(e.target.value)} placeholder="Search users" className="w-[280px] pl-9" />
                       </div>
                       <Button asChild>
@@ -327,12 +327,12 @@ export default function Page() {
 
                 <CardContent>
                   {users.error ? (
-                    <div className="mb-4 rounded-xl border border-xc-danger/25 bg-xc-danger/10 px-4 py-3 text-sm text-xc-danger">
+                    <div className="mb-4 rounded-xl border border-zc-danger/25 bg-zc-danger/10 px-4 py-3 text-sm text-zc-danger">
                       {users.error}
                     </div>
                   ) : null}
 
-                  <div className="rounded-xl border border-xc-border">
+                  <div className="rounded-xl border border-zc-border">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -347,7 +347,7 @@ export default function Page() {
                       <TableBody>
                         {users.loading ? (
                           <TableRow>
-                            <TableCell colSpan={6} className="py-10 text-center text-sm text-xc-muted">
+                            <TableCell colSpan={6} className="py-10 text-center text-sm text-zc-muted">
                               <Loader2 className="mx-auto mb-3 h-5 w-5 animate-spin" />
                               Loading users…
                             </TableCell>
@@ -357,24 +357,24 @@ export default function Page() {
                             <TableRow key={u.id}>
                               <TableCell>
                                 <div className="font-medium">{u.name}</div>
-                                <div className="font-mono text-xs text-xc-muted">{u.email}</div>
+                                <div className="font-mono text-xs text-zc-muted">{u.email}</div>
                               </TableCell>
                               <TableCell>
                                 <div className="font-medium">{u.roleCode}</div>
                               </TableCell>
-                              <TableCell className="text-sm">{u.branchName || <span className="text-xc-muted">—</span>}</TableCell>
+                              <TableCell className="text-sm">{u.branchName || <span className="text-zc-muted">—</span>}</TableCell>
                               <TableCell>
                                 {u.isActive ? <Badge variant="success">Active</Badge> : <Badge variant="destructive">Disabled</Badge>}
                               </TableCell>
                               <TableCell>
                                 {u.mustChangePassword ? <Badge variant="warning">Must change</Badge> : <Badge variant="secondary">Normal</Badge>}
                               </TableCell>
-                              <TableCell className="text-sm text-xc-muted">{fmtTs(u.updatedAt)}</TableCell>
+                              <TableCell className="text-sm text-zc-muted">{fmtTs(u.updatedAt)}</TableCell>
                             </TableRow>
                           ))
                         ) : (
                           <TableRow>
-                            <TableCell colSpan={6} className="py-10 text-center text-sm text-xc-muted">
+                            <TableCell colSpan={6} className="py-10 text-center text-sm text-zc-muted">
                               No users found.
                             </TableCell>
                           </TableRow>
@@ -408,17 +408,17 @@ export default function Page() {
 
                   <div className="space-y-2 text-sm">
                     <div className="font-semibold">Guidance</div>
-                    <ul className="space-y-2 text-xc-muted">
+                    <ul className="space-y-2 text-zc-muted">
                       <li className="flex gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-xc-accent" />
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-zc-accent" />
                         Always keep “must change password” enabled for reset/new accounts.
                       </li>
                       <li className="flex gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-xc-accent" />
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-zc-accent" />
                         Use branch roles for branch staff; keep global roles limited.
                       </li>
                       <li className="flex gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-xc-accent" />
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-zc-accent" />
                         Disable users instead of deleting (preserves audit lineage).
                       </li>
                     </ul>
@@ -440,7 +440,7 @@ export default function Page() {
                     </div>
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                       <div className="relative">
-                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-xc-muted" />
+                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zc-muted" />
                         <Input value={qRoles} onChange={(e) => setQRoles(e.target.value)} placeholder="Search roles" className="w-[280px] pl-9" />
                       </div>
                       <Button asChild>
@@ -455,12 +455,12 @@ export default function Page() {
 
                 <CardContent>
                   {roles.error ? (
-                    <div className="mb-4 rounded-xl border border-xc-danger/25 bg-xc-danger/10 px-4 py-3 text-sm text-xc-danger">
+                    <div className="mb-4 rounded-xl border border-zc-danger/25 bg-zc-danger/10 px-4 py-3 text-sm text-zc-danger">
                       {roles.error}
                     </div>
                   ) : null}
 
-                  <div className="rounded-xl border border-xc-border">
+                  <div className="rounded-xl border border-zc-border">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -474,7 +474,7 @@ export default function Page() {
                       <TableBody>
                         {roles.loading ? (
                           <TableRow>
-                            <TableCell colSpan={5} className="py-10 text-center text-sm text-xc-muted">
+                            <TableCell colSpan={5} className="py-10 text-center text-sm text-zc-muted">
                               <Loader2 className="mx-auto mb-3 h-5 w-5 animate-spin" />
                               Loading roles…
                             </TableCell>
@@ -493,7 +493,7 @@ export default function Page() {
                           ))
                         ) : (
                           <TableRow>
-                            <TableCell colSpan={5} className="py-10 text-center text-sm text-xc-muted">
+                            <TableCell colSpan={5} className="py-10 text-center text-sm text-zc-muted">
                               No roles found.
                             </TableCell>
                           </TableRow>
@@ -519,17 +519,17 @@ export default function Page() {
 
                   <Separator className="my-2" />
 
-                  <div className="rounded-xl border border-xc-border bg-xc-panel p-3 text-sm text-xc-muted">
-                    Prefer <span className="font-medium text-xc-text">job-function</span> roles (Doctor/Nurse/Billing)
-                    over per-person roles. Use <span className="font-medium text-xc-text">branch scope</span> for operational staff.
+                  <div className="rounded-xl border border-zc-border bg-zc-panel p-3 text-sm text-zc-muted">
+                    Prefer <span className="font-medium text-zc-text">job-function</span> roles (Doctor/Nurse/Billing)
+                    over per-person roles. Use <span className="font-medium text-zc-text">branch scope</span> for operational staff.
                   </div>
 
                   <div className="grid gap-2">
-                    <div className="flex items-center justify-between rounded-xl border border-xc-border bg-xc-panel px-3 py-2">
+                    <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel px-3 py-2">
                       <span className="text-sm font-medium">Global roles</span>
                       <Badge variant="accent">System-wide</Badge>
                     </div>
-                    <div className="flex items-center justify-between rounded-xl border border-xc-border bg-xc-panel px-3 py-2">
+                    <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel px-3 py-2">
                       <span className="text-sm font-medium">Branch roles</span>
                       <Badge variant="secondary">Scoped</Badge>
                     </div>
@@ -551,7 +551,7 @@ export default function Page() {
                     </div>
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                       <div className="relative">
-                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-xc-muted" />
+                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zc-muted" />
                         <Input value={qPerms} onChange={(e) => setQPerms(e.target.value)} placeholder="Search permissions" className="w-[280px] pl-9" />
                       </div>
                       <Button asChild>
@@ -566,12 +566,12 @@ export default function Page() {
 
                 <CardContent>
                   {perms.error ? (
-                    <div className="mb-4 rounded-xl border border-xc-danger/25 bg-xc-danger/10 px-4 py-3 text-sm text-xc-danger">
+                    <div className="mb-4 rounded-xl border border-zc-danger/25 bg-zc-danger/10 px-4 py-3 text-sm text-zc-danger">
                       {perms.error}
                     </div>
                   ) : null}
 
-                  <div className="rounded-xl border border-xc-border">
+                  <div className="rounded-xl border border-zc-border">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -583,7 +583,7 @@ export default function Page() {
                       <TableBody>
                         {perms.loading ? (
                           <TableRow>
-                            <TableCell colSpan={3} className="py-10 text-center text-sm text-xc-muted">
+                            <TableCell colSpan={3} className="py-10 text-center text-sm text-zc-muted">
                               <Loader2 className="mx-auto mb-3 h-5 w-5 animate-spin" />
                               Loading permissions…
                             </TableCell>
@@ -594,14 +594,14 @@ export default function Page() {
                               <TableCell className="font-mono text-xs">{p.code}</TableCell>
                               <TableCell className="text-sm">
                                 <div className="font-medium">{p.name}</div>
-                                <div className="text-xs text-xc-muted">{p.description ?? "—"}</div>
+                                <div className="text-xs text-zc-muted">{p.description ?? "—"}</div>
                               </TableCell>
-                              <TableCell className="text-sm text-xc-muted">{p.category ?? "—"}</TableCell>
+                              <TableCell className="text-sm text-zc-muted">{p.category ?? "—"}</TableCell>
                             </TableRow>
                           ))
                         ) : (
                           <TableRow>
-                            <TableCell colSpan={3} className="py-10 text-center text-sm text-xc-muted">
+                            <TableCell colSpan={3} className="py-10 text-center text-sm text-zc-muted">
                               No permissions found.
                             </TableCell>
                           </TableRow>
@@ -629,25 +629,25 @@ export default function Page() {
 
                   <div className="space-y-2 text-sm">
                     <div className="font-semibold">Guidance</div>
-                    <ul className="space-y-2 text-xc-muted">
+                    <ul className="space-y-2 text-zc-muted">
                       <li className="flex gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-xc-accent" />
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-zc-accent" />
                         Prefer least-privilege: add permissions only when required.
                       </li>
                       <li className="flex gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-xc-accent" />
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-zc-accent" />
                         Keep permission codes stable; evolve behavior via role versions.
                       </li>
                       <li className="flex gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-xc-accent" />
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-zc-accent" />
                         Validate changes through audit trails for compliance.
                       </li>
                     </ul>
                   </div>
 
-                  <div className="rounded-xl border border-xc-border bg-xc-panel p-3 text-sm text-xc-muted">
-                    Tip: permissions should be <span className="font-medium text-xc-text">engineering-owned</span>, roles should be{" "}
-                    <span className="font-medium text-xc-text">ops-owned</span>.
+                  <div className="rounded-xl border border-zc-border bg-zc-panel p-3 text-sm text-zc-muted">
+                    Tip: permissions should be <span className="font-medium text-zc-text">engineering-owned</span>, roles should be{" "}
+                    <span className="font-medium text-zc-text">ops-owned</span>.
                   </div>
                 </CardContent>
               </Card>
@@ -673,10 +673,10 @@ function Kpi({
   hint: string;
 }) {
   return (
-    <div className="rounded-2xl border border-xc-border bg-xc-panel p-4">
+    <div className="rounded-2xl border border-zc-border bg-zc-panel p-4">
       <div className="flex items-center justify-between">
         <div className="inline-flex items-center gap-2 text-sm font-semibold">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-xc-border bg-xc-card">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-zc-border bg-zc-card">
             {icon}
           </span>
           {label}
@@ -687,10 +687,10 @@ function Kpi({
       </div>
 
       <div className="mt-3 text-2xl font-semibold tracking-tight">
-        {loading ? <span className="text-xc-muted">—</span> : value ?? <span className="text-xc-muted">—</span>}
+        {loading ? <span className="text-zc-muted">—</span> : value ?? <span className="text-zc-muted">—</span>}
       </div>
 
-      <div className="mt-1 text-xs text-xc-muted">{hint}</div>
+      <div className="mt-1 text-xs text-zc-muted">{hint}</div>
     </div>
   );
 }

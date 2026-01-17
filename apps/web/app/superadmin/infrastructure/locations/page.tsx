@@ -79,7 +79,7 @@ type LocationTreeResponse =
 /*                                   Utils                                    */
 /* -------------------------------------------------------------------------- */
 
-const LS_BRANCH = "xc.superadmin.infrastructure.branchId";
+const LS_BRANCH = "zc.superadmin.infrastructure.branchId";
 
 const pillTones = {
   indigo:
@@ -92,7 +92,7 @@ const pillTones = {
     "border-rose-200/70 bg-rose-50/70 text-rose-700 dark:border-rose-900/40 dark:bg-rose-900/20 dark:text-rose-200",
   cyan:
     "border-cyan-200/70 bg-cyan-50/70 text-cyan-700 dark:border-cyan-900/40 dark:bg-cyan-900/20 dark:text-cyan-200",
-  zinc: "border-xc-border bg-xc-panel/20 text-xc-text",
+  zinc: "border-zc-border bg-zc-panel/20 text-zc-text",
 };
 
 function MetricPill({
@@ -110,14 +110,14 @@ function MetricPill({
     <span className={cn("inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm", pillTones[tone])}>
       {icon ? <span className="grid place-items-center">{icon}</span> : null}
       <span className="font-medium">{label}</span>
-      <span className="text-xc-muted/70">•</span>
+      <span className="text-zc-muted/70">•</span>
       <span className="font-mono font-semibold">{value}</span>
     </span>
   );
 }
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-md bg-xc-panel/30", className)} />;
+  return <div className={cn("animate-pulse rounded-md bg-zc-panel/30", className)} />;
 }
 
 function fmtDateTime(v?: string | null) {
@@ -287,12 +287,12 @@ function ModalShell({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 animate-in fade-in duration-200">
-      <div className={cn("w-full rounded-2xl border border-xc-border bg-xc-card shadow-elev-2 animate-in zoom-in-95 duration-200", maxW)}>
+      <div className={cn("w-full rounded-2xl border border-zc-border bg-zc-card shadow-elev-2 animate-in zoom-in-95 duration-200", maxW)}>
         <div className="p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <div className="text-lg font-semibold tracking-tight text-xc-text">{title}</div>
-              {description ? <div className="mt-1 text-sm text-xc-muted">{description}</div> : null}
+              <div className="text-lg font-semibold tracking-tight text-zc-text">{title}</div>
+              {description ? <div className="mt-1 text-sm text-zc-muted">{description}</div> : null}
             </div>
             <Button variant="ghost" size="iconSm" onClick={onClose} aria-label="Close">
               ✕
@@ -561,7 +561,7 @@ export default function SuperAdminInfrastructureLocations() {
         onClick={() => setSelectedId(node.id)}
         className={cn(
           "relative w-full rounded-xl border px-3 py-2 text-left transition-all",
-          "border-xc-border bg-xc-panel/15 hover:bg-xc-panel/25",
+          "border-zc-border bg-zc-panel/15 hover:bg-zc-panel/25",
           isSel &&
             "ring-1 ring-indigo-400/50 border-indigo-200/60 bg-indigo-50/40 dark:border-indigo-900/35 dark:bg-indigo-900/15",
         )}
@@ -578,18 +578,18 @@ export default function SuperAdminInfrastructureLocations() {
                     e.stopPropagation();
                     toggle(node.id);
                   }}
-                  className="grid h-7 w-7 place-items-center rounded-xl border border-xc-border bg-xc-panel/20 hover:bg-xc-panel/30"
+                  className="grid h-7 w-7 place-items-center rounded-xl border border-zc-border bg-zc-panel/20 hover:bg-zc-panel/30"
                   title={expanded[node.id] ? "Collapse" : "Expand"}
                 >
                   {expanded[node.id] ? (
-                    <ChevronDown className="h-4 w-4 text-xc-muted" />
+                    <ChevronDown className="h-4 w-4 text-zc-muted" />
                   ) : (
-                    <ChevronRight className="h-4 w-4 text-xc-muted" />
+                    <ChevronRight className="h-4 w-4 text-zc-muted" />
                   )}
                 </span>
               ) : (
-                <span className="grid h-7 w-7 place-items-center rounded-xl border border-xc-border bg-xc-panel/10">
-                  <span className="h-1.5 w-1.5 rounded-full bg-xc-muted/60" />
+                <span className="grid h-7 w-7 place-items-center rounded-xl border border-zc-border bg-zc-panel/10">
+                  <span className="h-1.5 w-1.5 rounded-full bg-zc-muted/60" />
                 </span>
               )}
 
@@ -601,16 +601,16 @@ export default function SuperAdminInfrastructureLocations() {
                 {typeLabel(node.type)}
               </span>
 
-              <span className="font-mono text-xs text-xc-muted" title={node.code}>
+              <span className="font-mono text-xs text-zc-muted" title={node.code}>
                 {node.code}
               </span>
 
-              <span className={cn("truncate text-sm font-semibold", active ? "text-xc-text" : "text-xc-muted")}>
+              <span className={cn("truncate text-sm font-semibold", active ? "text-zc-text" : "text-zc-muted")}>
                 {node.name}
               </span>
 
               {hasChildren ? (
-                <span className="hidden sm:inline-flex items-center rounded-full border border-xc-border bg-xc-panel/10 px-2 py-0.5 text-[11px] text-xc-muted">
+                <span className="hidden sm:inline-flex items-center rounded-full border border-zc-border bg-zc-panel/10 px-2 py-0.5 text-[11px] text-zc-muted">
                   {childCount} {childLabel}
                 </span>
               ) : null}
@@ -620,16 +620,16 @@ export default function SuperAdminInfrastructureLocations() {
           <div className="flex items-center gap-2">{rowPill(node)}</div>
         </div>
 
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-xc-muted">
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-zc-muted">
           <CalendarClock className="h-4 w-4" />
           <span>From: {fmtDateTime(node.effectiveFrom)}</span>
-          <span className="text-xc-muted/60">•</span>
+          <span className="text-zc-muted/60">•</span>
           <span>To: {fmtDateTime(node.effectiveTo)}</span>
         </div>
       </button>
 
       {hasChildren && expanded[node.id] ? (
-        <div className="mt-2 grid gap-2 border-l border-xc-border/60 pl-4" style={{ marginLeft: depth * 10 + 10 }}>
+        <div className="mt-2 grid gap-2 border-l border-zc-border/60 pl-4" style={{ marginLeft: depth * 10 + 10 }}>
           {children}
         </div>
       ) : null}
@@ -760,26 +760,26 @@ export default function SuperAdminInfrastructureLocations() {
               </span>
 
               <div className="min-w-0">
-                <div className="text-sm text-xc-muted">
+                <div className="text-sm text-zc-muted">
                   <Link href="/superadmin/infrastructure" className="hover:underline">
                     Infrastructure
                   </Link>
-                  <span className="mx-2 text-xc-muted/60">/</span>
-                  <span className="text-xc-text">Locations</span>
+                  <span className="mx-2 text-zc-muted/60">/</span>
+                  <span className="text-zc-text">Locations</span>
                 </div>
 
                 <div className="mt-1 text-3xl font-semibold tracking-tight">Locations (Campus → Building → Floor → Zone)</div>
 
-                <div className="mt-2 max-w-3xl text-sm leading-6 text-xc-muted">
-                  Branch-scoped location hierarchy with <span className="font-semibold text-xc-text">unique codes</span> and
-                  <span className="font-semibold text-xc-text"> effective-dated revisions</span>.
+                <div className="mt-2 max-w-3xl text-sm leading-6 text-zc-muted">
+                  Branch-scoped location hierarchy with <span className="font-semibold text-zc-text">unique codes</span> and
+                  <span className="font-semibold text-zc-text"> effective-dated revisions</span>.
                   Zone code is numeric (per your standard). Backend validations remain authoritative.
                 </div>
               </div>
             </div>
 
             {err ? (
-              <div className="mt-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
+              <div className="mt-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
                 <AlertTriangle className="mt-0.5 h-4 w-4" />
                 <div className="min-w-0">{err}</div>
               </div>
@@ -805,7 +805,7 @@ export default function SuperAdminInfrastructureLocations() {
         <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-xc-accent" />
+              <MapPin className="h-5 w-5 text-zc-accent" />
               Target Branch
             </CardTitle>
             <CardDescription>Select a branch to manage its location hierarchy.</CardDescription>
@@ -820,7 +820,7 @@ export default function SuperAdminInfrastructureLocations() {
             ) : (
               <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
                 <div className="grid gap-2">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">Branch Selector</div>
+                  <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Branch Selector</div>
                   <Select
                     value={branchId}
                     onValueChange={(v) => {
@@ -828,19 +828,19 @@ export default function SuperAdminInfrastructureLocations() {
                       writeLS(LS_BRANCH, v);
                     }}
                   >
-                    <SelectTrigger className="h-11 rounded-xl bg-xc-card border-xc-border">
+                    <SelectTrigger className="h-11 rounded-xl bg-zc-card border-zc-border">
                       <SelectValue placeholder="Select a branch…" />
                     </SelectTrigger>
                     <SelectContent>
                       {branches.map((b) => (
                         <SelectItem key={b.id} value={b.id}>
-                          {b.name} <span className="font-mono text-xs text-xc-muted">({b.code})</span>{" "}
-                          <span className="text-xs text-xc-muted">• {b.city}</span>
+                          {b.name} <span className="font-mono text-xs text-zc-muted">({b.code})</span>{" "}
+                          <span className="text-xs text-zc-muted">• {b.city}</span>
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <div className="text-xs text-xc-muted">
+                  <div className="text-xs text-zc-muted">
                     Codes must be unique within the branch. Zones must be numeric.
                   </div>
                 </div>
@@ -863,7 +863,7 @@ export default function SuperAdminInfrastructureLocations() {
             <CardHeader className="pb-0">
               <CardTitle className="flex items-center justify-between gap-3">
                 <span className="flex items-center gap-2">
-                  <Layers className="h-5 w-5 text-xc-accent" />
+                  <Layers className="h-5 w-5 text-zc-accent" />
                   Location Tree
                 </span>
 
@@ -887,8 +887,8 @@ export default function SuperAdminInfrastructureLocations() {
             </CardHeader>
 
             <CardContent className="p-6">
-              <div className="flex items-center gap-2 rounded-xl border border-xc-border bg-xc-panel/15 px-3 py-2">
-                <Search className="h-4 w-4 text-xc-muted" />
+              <div className="flex items-center gap-2 rounded-xl border border-zc-border bg-zc-panel/15 px-3 py-2">
+                <Search className="h-4 w-4 text-zc-muted" />
                 <Input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
@@ -899,11 +899,11 @@ export default function SuperAdminInfrastructureLocations() {
 
               <div className="mt-4 grid gap-2">
                 {!selectedBranch ? (
-                  <div className="rounded-2xl border border-xc-border bg-xc-panel/15 p-4 text-sm text-xc-muted">
+                  <div className="rounded-2xl border border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
                     Select a branch to view and manage locations.
                   </div>
                 ) : err ? (
-                  <div className="rounded-2xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.10)] p-4 text-sm text-xc-muted">
+                  <div className="rounded-2xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.10)] p-4 text-sm text-zc-muted">
                     Unable to load tree. Verify backend route for locations tree and permissions.
                   </div>
                 ) : q.trim() ? (
@@ -918,30 +918,30 @@ export default function SuperAdminInfrastructureLocations() {
                             setQ("");
                           }}
                           className={cn(
-                            "w-full rounded-xl border border-xc-border bg-xc-panel/15 px-3 py-2 text-left transition-all",
-                            "hover:bg-xc-panel/25"
+                            "w-full rounded-xl border border-zc-border bg-zc-panel/15 px-3 py-2 text-left transition-all",
+                            "hover:bg-zc-panel/25"
                           )}
                         >
                           <div className="flex items-center gap-2">
                             <span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones[typeTone(n.type)])}>
                               {typeLabel(n.type)}
                             </span>
-                            <span className="font-mono text-xs text-xc-muted">{n.code}</span>
-                            <span className="truncate text-sm font-semibold text-xc-text">{n.name}</span>
+                            <span className="font-mono text-xs text-zc-muted">{n.code}</span>
+                            <span className="truncate text-sm font-semibold text-zc-text">{n.name}</span>
                             <span className="ml-auto">{isActiveNow(n) ? rowPill(n) : rowPill(n)}</span>
                           </div>
                         </button>
                       ))}
                     </div>
                   ) : (
-                    <div className="rounded-2xl border border-xc-border bg-xc-panel/15 p-4 text-sm text-xc-muted">
+                    <div className="rounded-2xl border border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
                       No results.
                     </div>
                   )
                 ) : campuses.length ? (
                   <div className="grid gap-2">{renderTree()}</div>
                 ) : (
-                  <div className="rounded-2xl border border-xc-border bg-xc-panel/15 p-4 text-sm text-xc-muted">
+                  <div className="rounded-2xl border border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
                     No locations yet. Start by adding a Campus.
                   </div>
                 )}
@@ -953,7 +953,7 @@ export default function SuperAdminInfrastructureLocations() {
           <Card className="overflow-hidden">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-xc-accent" />
+                <Building2 className="h-5 w-5 text-zc-accent" />
                 Details
               </CardTitle>
               <CardDescription>Inspect and manage the selected node.</CardDescription>
@@ -961,16 +961,16 @@ export default function SuperAdminInfrastructureLocations() {
             <Separator />
             <CardContent className="pt-6">
               {!selectedBranch ? (
-                <div className="rounded-2xl border border-xc-border bg-xc-panel/15 p-4 text-sm text-xc-muted">
+                <div className="rounded-2xl border border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
                   Select a branch first.
                 </div>
               ) : !selectedNode ? (
-                <div className="rounded-2xl border border-xc-border bg-xc-panel/15 p-4 text-sm text-xc-muted">
+                <div className="rounded-2xl border border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
                   Select a node from the tree.
                 </div>
               ) : (
                 <div className="grid gap-4">
-                  <div className="rounded-2xl border border-xc-border bg-xc-panel/15 p-4">
+                  <div className="rounded-2xl border border-zc-border bg-zc-panel/15 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
@@ -981,22 +981,22 @@ export default function SuperAdminInfrastructureLocations() {
                         </div>
 
                         <div className="mt-2 flex items-center gap-2">
-                          <div className="font-mono text-sm text-xc-muted">{selectedNode.code}</div>
+                          <div className="font-mono text-sm text-zc-muted">{selectedNode.code}</div>
                           <button
-                            className="grid h-7 w-7 place-items-center rounded-lg border border-xc-border bg-xc-panel/10 hover:bg-xc-panel/25"
+                            className="grid h-7 w-7 place-items-center rounded-lg border border-zc-border bg-zc-panel/10 hover:bg-zc-panel/25"
                             title="Copy code"
                             onClick={() => {
                               copyText(selectedNode.code);
                               toast({ title: "Copied", description: "Location code copied.", duration: 1200 });
                             }}
                           >
-                            <Copy className="h-4 w-4 text-xc-muted" />
+                            <Copy className="h-4 w-4 text-zc-muted" />
                           </button>
                         </div>
 
-                        <div className="mt-2 text-lg font-semibold text-xc-text">{selectedNode.name}</div>
+                        <div className="mt-2 text-lg font-semibold text-zc-text">{selectedNode.name}</div>
 
-                        <div className="mt-3 grid gap-2 text-sm text-xc-muted">
+                        <div className="mt-3 grid gap-2 text-sm text-zc-muted">
                           <div className="flex items-center justify-between">
                             <span>Effective From</span>
                             <span className="font-mono">{fmtDateTime(selectedNode.effectiveFrom)}</span>
@@ -1012,11 +1012,11 @@ export default function SuperAdminInfrastructureLocations() {
 
                   {/* Actions */}
                   <div className="grid gap-2">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">Actions</div>
+                    <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Actions</div>
 
                     <div className="flex flex-wrap gap-2">
                       <Button
-                        variant="outline"
+                        variant="secondary"
                         className="gap-2"
                         onClick={() => setReviseState({ open: true, node: selectedNode })}
                       >
@@ -1025,7 +1025,7 @@ export default function SuperAdminInfrastructureLocations() {
                       </Button>
 
                       <Button
-                        variant="outline"
+                        variant="destructive"
                         className="gap-2"
                         onClick={() => setRetireState({ open: true, node: selectedNode })}
                       >
@@ -1036,7 +1036,7 @@ export default function SuperAdminInfrastructureLocations() {
                       {/* Add child actions based on selected type */}
                       {selectedNode.type === "CAMPUS" ? (
                         <Button
-                          variant="outline"
+                          variant="primary"
                           className="gap-2"
                           onClick={() => setCreateState({ open: true, kind: "BUILDING", parentId: selectedNode.id })}
                         >
@@ -1068,8 +1068,8 @@ export default function SuperAdminInfrastructureLocations() {
                       ) : null}
                     </div>
 
-                    <div className="rounded-2xl border border-xc-border bg-xc-panel/15 p-4 text-sm text-xc-muted">
-                      <div className="font-semibold text-xc-text">Notes</div>
+                    <div className="rounded-2xl border border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
+                      <div className="font-semibold text-zc-text">Notes</div>
                       <ul className="mt-2 list-disc pl-5 space-y-1">
                         <li>Use <span className="font-semibold">Revise</span> for changes; do not edit in-place.</li>
                         <li>Zone code is numeric (e.g., 01). Backend enforces naming/code rules.</li>
@@ -1305,8 +1305,8 @@ function CreateModal({
     tone: keyof typeof pillTones;
   }) => (
     <span className={cn("inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs", pillTones[tone])}>
-      <span className="text-xc-muted">{label}:</span>
-      <span className="font-mono text-[11px] text-xc-text">{value || "—"}</span>
+      <span className="text-zc-muted">{label}:</span>
+      <span className="font-mono text-[11px] text-zc-text">{value || "—"}</span>
     </span>
   );
 
@@ -1318,8 +1318,8 @@ function CreateModal({
       maxW="max-w-xl"
     >
       <div className="grid gap-4">
-        <div className="rounded-2xl border border-xc-border bg-xc-panel/15 p-4 text-sm text-xc-muted">
-          <div className="font-semibold text-xc-text">Suggested code pattern</div>
+        <div className="rounded-2xl border border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
+          <div className="font-semibold text-zc-text">Suggested code pattern</div>
           <div className="mt-2 flex flex-wrap gap-2">
             <PatternChip
               label="Campus"
@@ -1339,13 +1339,13 @@ function CreateModal({
             <PatternChip label="Zone" value={kind === "ZONE" ? code || "01" : "—"} tone="amber" />
           </div>
           <div className="mt-3 text-xs">
-            You enter only the <span className="font-semibold text-xc-text">segment</span> (e.g.,{" "}
+            You enter only the <span className="font-semibold text-zc-text">segment</span> (e.g.,{" "}
             <span className="font-mono">F04</span>). The backend composes the full code using the parent path.
           </div>
         </div>
 
         <div className="grid gap-2">
-          <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">Code</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Code</div>
           <div className="flex items-center gap-2">
             <Input
               ref={codeRef}
@@ -1359,38 +1359,38 @@ function CreateModal({
             </Button>
           </div>
 
-          {codeErr ? <div className="text-xs text-[rgb(var(--xc-danger))]">{codeErr}</div> : null}
+          {codeErr ? <div className="text-xs text-[rgb(var(--zc-danger))]">{codeErr}</div> : null}
           {!codeErr && fullConflict ? (
-            <div className="text-xs text-[rgb(var(--xc-danger))]">
+            <div className="text-xs text-[rgb(var(--zc-danger))]">
               This code is already used for the selected parent path.
             </div>
           ) : null}
 
-          <div className="text-xs text-xc-muted">
-            Full code preview: <span className="font-mono text-xc-text">{fullPreview || "—"}</span>
+          <div className="text-xs text-zc-muted">
+            Full code preview: <span className="font-mono text-zc-text">{fullPreview || "—"}</span>
           </div>
         </div>
 
         <div className="grid gap-2">
-          <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">Name</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Name</div>
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={`Enter ${typeLabel(kind)} name`}
             className="h-11 rounded-xl"
           />
-          {nameErr ? <div className="text-xs text-[rgb(var(--xc-danger))]">{nameErr}</div> : null}
+          {nameErr ? <div className="text-xs text-[rgb(var(--zc-danger))]">{nameErr}</div> : null}
         </div>
 
         <div className="grid gap-2">
-          <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">Effective From</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Effective From</div>
           <Input
             type="datetime-local"
             value={effectiveFrom}
             onChange={(e) => setEffectiveFrom(e.target.value)}
             className="h-11 rounded-xl"
           />
-          <div className="text-xs text-xc-muted">Creation is effective-dated. To change later, use “Revise”.</div>
+          <div className="text-xs text-zc-muted">Creation is effective-dated. To change later, use “Revise”.</div>
         </div>
 
         <div className="flex items-center justify-end gap-2 pt-2">
@@ -1439,36 +1439,36 @@ function ReviseModal({
       maxW="max-w-xl"
     >
       <div className="grid gap-4">
-        <div className="rounded-2xl border border-xc-border bg-xc-panel/15 p-4 text-sm">
-          <div className="text-xc-muted">Current</div>
+        <div className="rounded-2xl border border-zc-border bg-zc-panel/15 p-4 text-sm">
+          <div className="text-zc-muted">Current</div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones[typeTone(node.type)])}>
               {typeLabel(node.type)}
             </span>
-            <span className="font-mono text-xs text-xc-muted">{node.code}</span>
-            <span className="text-sm font-semibold text-xc-text">{node.name}</span>
+            <span className="font-mono text-xs text-zc-muted">{node.code}</span>
+            <span className="text-sm font-semibold text-zc-text">{node.name}</span>
           </div>
-          <div className="mt-2 text-xs text-xc-muted">
+          <div className="mt-2 text-xs text-zc-muted">
             Effective: {fmtDateTime(node.effectiveFrom)} → {fmtDateTime(node.effectiveTo)}
           </div>
         </div>
 
         <div className="grid gap-2">
-          <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">New Code</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">New Code</div>
           <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} className="h-11 rounded-xl" />
-          {codeErr ? <div className="text-xs text-[rgb(var(--xc-danger))]">{codeErr}</div> : null}
+          {codeErr ? <div className="text-xs text-[rgb(var(--zc-danger))]">{codeErr}</div> : null}
         </div>
 
         <div className="grid gap-2">
-          <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">New Name</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">New Name</div>
           <Input value={name} onChange={(e) => setName(e.target.value)} className="h-11 rounded-xl" />
-          {nameErr ? <div className="text-xs text-[rgb(var(--xc-danger))]">{nameErr}</div> : null}
+          {nameErr ? <div className="text-xs text-[rgb(var(--zc-danger))]">{nameErr}</div> : null}
         </div>
 
         <div className="grid gap-2">
-          <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">Effective From</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Effective From</div>
           <Input type="datetime-local" value={effectiveFrom} onChange={(e) => setEffectiveFrom(e.target.value)} className="h-11 rounded-xl" />
-          <div className="text-xs text-xc-muted">
+          <div className="text-xs text-zc-muted">
             Backend should end-date the old record automatically and activate the new revision from this time.
           </div>
         </div>
@@ -1513,7 +1513,7 @@ function RetireModal({
       maxW="max-w-xl"
     >
       <div className="grid gap-4">
-        <div className="rounded-2xl border border-amber-200/60 bg-amber-50/40 dark:border-amber-900/40 dark:bg-amber-900/15 p-4 text-sm text-xc-muted">
+        <div className="rounded-2xl border border-amber-200/60 bg-amber-50/40 dark:border-amber-900/40 dark:bg-amber-900/15 p-4 text-sm text-zc-muted">
           <div className="font-semibold text-amber-800 dark:text-amber-200">Careful</div>
           <div className="mt-1">
             Retiring a location may impact downstream units/rooms/resources bound to it. Backend should block retire if
@@ -1521,16 +1521,16 @@ function RetireModal({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-xc-border bg-xc-panel/15 p-4 text-sm">
-          <div className="text-xc-muted">Target</div>
+        <div className="rounded-2xl border border-zc-border bg-zc-panel/15 p-4 text-sm">
+          <div className="text-zc-muted">Target</div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <span className="font-mono text-xs text-xc-muted">{node.code}</span>
-            <span className="text-sm font-semibold text-xc-text">{node.name}</span>
+            <span className="font-mono text-xs text-zc-muted">{node.code}</span>
+            <span className="text-sm font-semibold text-zc-text">{node.name}</span>
           </div>
         </div>
 
         <div className="grid gap-2">
-          <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">Effective To</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Effective To</div>
           <Input type="datetime-local" value={effectiveTo} onChange={(e) => setEffectiveTo(e.target.value)} className="h-11 rounded-xl" />
         </div>
 

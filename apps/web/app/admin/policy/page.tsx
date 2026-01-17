@@ -103,13 +103,13 @@ export default function BranchPolicyOverridesPage() {
 
           <div className="flex flex-col gap-2 md:flex-row md:items-center">
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search policies" />
-            <div className="text-xs text-xc-muted md:ml-auto">{filtered.length} shown</div>
+            <div className="text-xs text-zc-muted md:ml-auto">{filtered.length} shown</div>
           </div>
 
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="text-left text-xc-muted">
-                <tr className="border-b border-xc-border">
+              <thead className="text-left text-zc-muted">
+                <tr className="border-b border-zc-border">
                   <th className="py-2">Policy</th>
                   <th>Type</th>
                   <th>Effective</th>
@@ -119,21 +119,21 @@ export default function BranchPolicyOverridesPage() {
               </thead>
               <tbody>
                 {filtered.map((r) => (
-                  <tr key={r.code} className="border-b border-xc-border">
+                  <tr key={r.code} className="border-b border-zc-border">
                     <td className="py-2">
                       <div className="font-medium">{r.name}</div>
-                      <div className="text-xs text-xc-muted">{r.code}</div>
+                      <div className="text-xs text-zc-muted">{r.code}</div>
                     </td>
                     <td>{typeLabel(r.type)}</td>
                     <td>
                       <div className="flex flex-col">
                         <span>
                           {r.effectiveVersion ? `v${r.effectiveVersion}` : "-"}{" "}
-                          <span className="text-xs text-xc-muted">
+                          <span className="text-xs text-zc-muted">
                             ({r.effectiveScope === "BRANCH_OVERRIDE" ? "Branch override" : "Global"})
                           </span>
                         </span>
-                        <span className="text-xs text-xc-muted">
+                        <span className="text-xs text-zc-muted">
                           {r.effectiveAt ? new Date(r.effectiveAt).toLocaleString() : "-"}
                         </span>
                       </div>
@@ -141,7 +141,7 @@ export default function BranchPolicyOverridesPage() {
                     <td>
                       <div className="flex items-center gap-2">
                         {overrideBadge(r.overrideState)}
-                        {r.overrideVersion ? <span className="text-xs text-xc-muted">v{r.overrideVersion}</span> : null}
+                        {r.overrideVersion ? <span className="text-xs text-zc-muted">v{r.overrideVersion}</span> : null}
                       </div>
                     </td>
                     <td className="py-2 text-right">
@@ -154,7 +154,7 @@ export default function BranchPolicyOverridesPage() {
 
                 {!filtered.length ? (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-xc-muted">
+                    <td colSpan={5} className="py-8 text-center text-zc-muted">
                       No policies found.
                     </td>
                   </tr>
@@ -163,7 +163,7 @@ export default function BranchPolicyOverridesPage() {
             </table>
           </div>
 
-          <div className="mt-3 text-xs text-xc-muted">
+          <div className="mt-3 text-xs text-zc-muted">
             Note: overrides are restricted to your own branch by the backend; you cannot create/edit another branch’s override.
           </div>
         </CardContent>

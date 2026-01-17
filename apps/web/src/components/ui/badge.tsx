@@ -9,14 +9,14 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-xc-border bg-xc-panel text-xc-text",
+        default: "border-zc-border bg-zc-panel text-zc-text",
         secondary:
-          "border-xc-border bg-[rgb(var(--xc-hover-rgb)/0.04)] text-xc-muted",
-        outline: "border-xc-border bg-transparent text-xc-text",
-        accent: "border-xc-accent/40 bg-xc-accent/15 text-xc-accent",
-        destructive: "border-xc-danger/40 bg-xc-danger/15 text-xc-danger",
-        success: "border-xc-ok/40 bg-xc-ok/15 text-xc-ok",
-        warning: "border-xc-warn/40 bg-xc-warn/15 text-xc-warn",
+          "border-zc-border bg-[rgb(var(--zc-hover-rgb)/0.04)] text-zc-muted",
+        outline: "border-zc-border bg-transparent text-zc-text",
+        accent: "border-zc-accent/40 bg-zc-accent/15 text-zc-accent",
+        destructive: "border-zc-danger/40 bg-zc-danger/15 text-zc-danger",
+        success: "border-zc-ok/40 bg-zc-ok/15 text-zc-ok",
+        warning: "border-zc-warn/40 bg-zc-warn/15 text-zc-warn",
       },
     },
     defaultVariants: {

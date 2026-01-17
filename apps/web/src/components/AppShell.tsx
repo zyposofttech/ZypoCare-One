@@ -81,8 +81,8 @@ const NAV_WORKSPACES: NavNode[] = [
       { label: "Rooms / Bays", href: "/superadmin/infrastructure/rooms" },
       { label: "Resources", href: "/superadmin/infrastructure/resources" },
 
-      { label: "Bed States + Housekeeping Gate", href: "/superadmin/infrastructure/bed-policy" },
-      { label: "OT Scheduling", href: "/superadmin/infrastructure/ot" },
+      { label: "Housekeeping Gate", href: "/superadmin/infrastructure/bed-policy" },
+      { label: "OT Setup", href: "/superadmin/infrastructure/operation-theatres" },
 
       { label: "Diagnostics Configuration", href: "/superadmin/infrastructure/diagnostics" },
       { label: "Equipment Register", href: "/superadmin/infrastructure/equipment" },
@@ -257,7 +257,15 @@ const NAV_GROUPS: NavGroup[] = [
 // Flatten the navigation tree for searching
 const ALL_NAV_ITEMS = NAV_GROUPS.flatMap((group) =>
   group.items.flatMap((item) => {
-    const results = [
+    // ✅ FIX: Explicitly type the results array to include optional parent
+    const results: {
+      label: string;
+      href: string;
+      icon: React.ComponentType<IconProps>;
+      group: string;
+      type: "Parent" | "Child";
+      parent?: string;
+    }[] = [
       {
         label: item.label,
         href: item.href,
@@ -273,7 +281,7 @@ const ALL_NAV_ITEMS = NAV_GROUPS.flatMap((group) =>
           href: child.href,
           icon: item.icon, // Inherit icon from parent module
           group: group.title,
-          type: "Child",
+          type: "Child" as const,
           parent: item.label,
         }))
       );
@@ -331,10 +339,10 @@ function NavBadge({ badge }: { badge?: NavNode["badge"] }) {
   const tone = badge.tone ?? "neutral";
   const cls =
     tone === "new"
-      ? "border-xc-accent/40 bg-xc-accent/15 text-xc-accent"
+      ? "border-zc-accent/40 bg-zc-accent/15 text-zc-accent"
       : tone === "soon"
-        ? "border-xc-border/80 bg-[rgb(var(--xc-hover-rgb)/0.04)] text-xc-muted"
-        : "border-xc-border/80 bg-[rgb(var(--xc-hover-rgb)/0.04)] text-xc-muted";
+        ? "border-zc-border/80 bg-[rgb(var(--zc-hover-rgb)/0.04)] text-zc-muted"
+        : "border-zc-border/80 bg-[rgb(var(--zc-hover-rgb)/0.04)] text-zc-muted";
 
   return (
     <span
@@ -375,10 +383,10 @@ export function AppShell({
 
   // Hydrate state from local storage on mount
   React.useEffect(() => {
-    setCollapsed(readBool("xc.sidebarCollapsed", false));
-    setOpenMap(readJSON<Record<string, boolean>>("xc.sidebarOpenMap", {}));
+    setCollapsed(readBool("zc.sidebarCollapsed", false));
+    setOpenMap(readJSON<Record<string, boolean>>("zc.sidebarOpenMap", {}));
     setGroupOpenMap(
-      readJSON<Record<string, boolean>>("xc.sidebarGroupOpenMap", {
+      readJSON<Record<string, boolean>>("zc.sidebarGroupOpenMap", {
         Workspaces: true,
         "Care Delivery": true,
         "Governance & Ops": true,
@@ -401,7 +409,7 @@ export function AppShell({
   function toggleCollapsed() {
     setCollapsed((v) => {
       const next = !v;
-      writeBool("xc.sidebarCollapsed", next);
+      writeBool("zc.sidebarCollapsed", next);
       return next;
     });
   }
@@ -409,7 +417,7 @@ export function AppShell({
   function toggleOpen(key: string) {
     setOpenMap((m) => {
       const next = { ...m, [key]: !(m[key] ?? true) };
-      writeJSON("xc.sidebarOpenMap", next);
+      writeJSON("zc.sidebarOpenMap", next);
       return next;
     });
   }
@@ -417,7 +425,7 @@ export function AppShell({
   function toggleGroup(key: string) {
     setGroupOpenMap((m) => {
       const next = { ...m, [key]: !(m[key] ?? true) };
-      writeJSON("xc.sidebarGroupOpenMap", next);
+      writeJSON("zc.sidebarGroupOpenMap", next);
       return next;
     });
   }
@@ -456,11 +464,11 @@ export function AppShell({
   }, [navQuery]);
 
   const sidebarW = collapsed ? "w-[72px]" : "w-[280px]";
-  const rowHover = "hover:bg-[rgb(var(--xc-hover-rgb)/0.06)]";
-  const rowActive = "bg-[rgb(var(--xc-hover-rgb)/0.10)]";
+  const rowHover = "hover:bg-[rgb(var(--zc-hover-rgb)/0.06)]";
+  const rowActive = "bg-[rgb(var(--zc-hover-rgb)/0.10)]";
 
   return (
-    <div className="h-screen overflow-hidden bg-xc-bg text-xc-text">
+    <div className="h-screen overflow-hidden bg-zc-bg text-zc-text">
       {/* Command Center Dialog */}
       <Dialog open={commandOpen} onOpenChange={setCommandOpen}>
         <DialogContent className="p-0 gap-0 overflow-hidden max-w-2xl bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-2xl">
@@ -499,7 +507,7 @@ export function AppShell({
                   <button
                     key={item.href + i}
                     onClick={() => {
-                      router.push(item.href);
+                      router.push(item.href as any);
                       setCommandOpen(false);
                       setCommandQuery("");
                     }}
@@ -533,7 +541,7 @@ export function AppShell({
           className={cn(
             "hidden lg:flex h-screen flex-col",
             sidebarW,
-            "shrink-0 border-r border-xc-border bg-xc-panel transition-[width] duration-300 ease-in-out", // Added smooth width transition
+            "shrink-0 border-r border-zc-border bg-zc-panel transition-[width] duration-300 ease-in-out", // Added smooth width transition
             "overflow-x-hidden"
           )}
         >
@@ -552,8 +560,8 @@ export function AppShell({
                   collapsed ? "justify-center" : ""
                 )}
               >
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-xc-border bg-xc-card">
-                  <IconZypoCare className="h-5 w-5 text-xc-accent" />
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-zc-border bg-zc-card">
+                  <IconZypoCare className="h-5 w-5 text-zc-accent" />
                 </div>
 
                 <div
@@ -563,7 +571,7 @@ export function AppShell({
                   )}
                 >
                   <div className="truncate text-sm font-semibold tracking-tight">ZypoCare ONE</div>
-                  <div className="mt-0.5 truncate text-xs text-xc-muted">
+                  <div className="mt-0.5 truncate text-xs text-zc-muted">
                     {user?.role ? user.role.replaceAll("_", " ") : "SUPER ADMIN"}
                   </div>
                 </div>
@@ -591,22 +599,22 @@ export function AppShell({
           {!collapsed ? (
             <div className="shrink-0 px-4 pb-3">
               <div className="relative">
-                <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-xc-muted" />
+                <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zc-muted" />
                 <Input
                   value={navQuery}
                   onChange={(e) => setNavQuery(e.target.value)}
                   placeholder="Search modules"
                   className={cn(
                     "h-10 pl-10 rounded-lg",
-                    "bg-xc-card border-xc-border",
-                    "focus-visible:ring-2 focus-visible:ring-xc-ring"
+                    "bg-zc-card border-zc-border",
+                    "focus-visible:ring-2 focus-visible:ring-zc-ring"
                   )}
                 />
               </div>
             </div>
           ) : (
             <div className="shrink-0 px-3 pb-3">
-              <Separator className="bg-xc-border" />
+              <Separator className="bg-zc-border" />
             </div>
           )}
 
@@ -629,8 +637,8 @@ export function AppShell({
                         onClick={() => toggleGroup(group.title)}
                         className={cn(
                           "flex items-center gap-2 rounded-md px-2 py-1.5",
-                          "text-[11px] font-semibold uppercase tracking-wide text-xc-muted",
-                          "hover:text-xc-text",
+                          "text-[11px] font-semibold uppercase tracking-wide text-zc-muted",
+                          "hover:text-zc-text",
                           rowHover,
                           "transition"
                         )}
@@ -666,7 +674,7 @@ export function AppShell({
                           <div key={node.href} className="min-w-0">
                             <div className="relative">
                               <Link
-                                href={node.href}
+                                href={node.href as any}
                                 title={collapsed ? node.label : undefined}
                                 className={cn(linkBase, active ? rowActive : "")}
                                 aria-current={active ? "page" : undefined}
@@ -675,8 +683,8 @@ export function AppShell({
                                   className={cn(
                                     "h-4 w-4 shrink-0 transition-colors",
                                     active
-                                      ? "text-xc-accent"
-                                      : "text-xc-muted group-hover:text-xc-text"
+                                      ? "text-zc-accent"
+                                      : "text-zc-muted group-hover:text-zc-text"
                                   )}
                                 />
 
@@ -684,7 +692,7 @@ export function AppShell({
                                   <span
                                     className={cn(
                                       "min-w-0 flex-1 truncate transition-colors",
-                                      active ? "text-xc-text" : "text-xc-text/90"
+                                      active ? "text-zc-text" : "text-zc-text/90"
                                     )}
                                   >
                                     {node.label}
@@ -700,7 +708,7 @@ export function AppShell({
                                   className={cn(
                                     "absolute right-2 top-1/2 -translate-y-1/2",
                                     "grid h-7 w-7 place-items-center rounded-md",
-                                    "text-xc-muted",
+                                    "text-zc-muted",
                                     rowHover,
                                     "transition-colors"
                                   )}
@@ -727,7 +735,7 @@ export function AppShell({
                                   return (
                                     <Link
                                       key={c.href}
-                                      href={c.href}
+                                      href={c.href as any}
                                       className={cn(
                                         "group flex items-center gap-2 rounded-md px-3 py-2 text-xs transition-colors",
                                         childActive ? rowActive : "",
@@ -738,15 +746,15 @@ export function AppShell({
                                       <span
                                         className={cn(
                                           "h-1.5 w-1.5 rounded-full transition-colors",
-                                          childActive ? "bg-xc-accent" : "bg-xc-border"
+                                          childActive ? "bg-zc-accent" : "bg-zc-border"
                                         )}
                                       />
                                       <span
                                         className={cn(
                                           "min-w-0 flex-1 truncate transition-colors",
                                           childActive
-                                            ? "text-xc-text"
-                                            : "text-xc-muted group-hover:text-xc-text"
+                                            ? "text-zc-text"
+                                            : "text-zc-muted group-hover:text-zc-text"
                                         )}
                                       >
                                         {c.label}
@@ -768,11 +776,11 @@ export function AppShell({
           </nav>
 
           {/* Bottom Footer */}
-          <div className={cn("shrink-0 border-t border-xc-border", collapsed ? "p-3" : "p-4")}>
+          <div className={cn("shrink-0 border-t border-zc-border", collapsed ? "p-3" : "p-4")}>
             <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-3")}>
               {!collapsed ? (
                 <>
-                  <div className="grid h-9 w-9 place-items-center rounded-full bg-xc-card border border-xc-border text-xs font-semibold">
+                  <div className="grid h-9 w-9 place-items-center rounded-full bg-zc-card border border-zc-border text-xs font-semibold">
                     {(user?.name || "ZypoCare")
                       .split(" ")
                       .slice(0, 2)
@@ -784,7 +792,7 @@ export function AppShell({
                     <div className="truncate text-sm font-semibold">
                       {user?.name ?? "Super Admin"}
                     </div>
-                    <div className="mt-0.5 truncate text-xs text-xc-muted">
+                    <div className="mt-0.5 truncate text-xs text-zc-muted">
                       ExcelCare Hospital • Bengaluru
                     </div>
                   </div>
@@ -809,13 +817,13 @@ export function AppShell({
         </aside>
 
         {/* Main Content Area */}
-        <div className="min-w-0 flex-1 flex h-screen flex-col bg-xc-bg">
-          <header className="shrink-0 border-b border-xc-border bg-xc-panel">
+        <div className="min-w-0 flex-1 flex h-screen flex-col bg-zc-bg">
+          <header className="shrink-0 border-b border-zc-border bg-zc-panel">
             <div className="flex items-center gap-3 px-4 py-3 md:px-6">
               <div className="min-w-0">
                 <div className="truncate text-sm font-semibold tracking-tight">{title}</div>
                 {user ? (
-                  <div className="mt-0.5 truncate text-xs text-xc-muted">
+                  <div className="mt-0.5 truncate text-xs text-zc-muted">
                     {user.name} • {user.role.replaceAll("_", " ")}
                   </div>
                 ) : null}
@@ -823,7 +831,7 @@ export function AppShell({
 
               <div className="hidden min-w-0 flex-1 px-3 md:flex">
                 <div className="relative w-full max-w-[720px]">
-                  <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-xc-muted" />
+                  <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zc-muted" />
                   {/* Updated Header Input to trigger Command Center */}
                   <Input
                     onClick={() => setCommandOpen(true)} // Open Command on click
@@ -831,8 +839,8 @@ export function AppShell({
                     placeholder="Search… (Ctrl/Cmd + K)"
                     className={cn(
                       "h-10 pl-10 rounded-lg cursor-pointer",
-                      "bg-xc-card border-xc-border",
-                      "focus-visible:ring-2 focus-visible:ring-xc-ring hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                      "bg-zc-card border-zc-border",
+                      "focus-visible:ring-2 focus-visible:ring-zc-ring hover:bg-zinc-50 dark:hover:bg-zinc-800"
                     )}
                   />
                 </div>

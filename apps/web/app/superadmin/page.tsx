@@ -26,13 +26,13 @@ function StatCard({
   return (
     <Card className="relative overflow-hidden">
       <CardContent className="p-6">
-        <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">
+        <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">
           {label}
         </div>
         <div className="mt-3 text-3xl font-semibold tracking-tight">{value}</div>
-        <div className="mt-2 text-sm text-xc-muted">{note}</div>
+        <div className="mt-2 text-sm text-zc-muted">{note}</div>
 
-        <div className="absolute right-5 top-5 grid h-10 w-10 place-items-center rounded-2xl border border-xc-border bg-xc-panel/30">
+        <div className="absolute right-5 top-5 grid h-10 w-10 place-items-center rounded-2xl border border-zc-border bg-zc-panel/30">
           {icon}
         </div>
       </CardContent>
@@ -52,14 +52,14 @@ function StepCard({
   href: string;
 }) {
   return (
-    <div className="rounded-2xl border border-xc-border bg-xc-panel/20 p-6 shadow-[inset_0_1px_0_rgb(255_255_255/0.04)]">
-      <div className="text-sm font-semibold text-xc-accent">{n}</div>
-      <div className="mt-3 text-base font-semibold tracking-tight text-xc-text">
+    <div className="rounded-2xl border border-zc-border bg-zc-panel/20 p-6 shadow-[inset_0_1px_0_rgb(255_255_255/0.04)]">
+      <div className="text-sm font-semibold text-zc-accent">{n}</div>
+      <div className="mt-3 text-base font-semibold tracking-tight text-zc-text">
         {title}
       </div>
-      <div className="mt-3 text-sm leading-6 text-xc-muted">{body}</div>
+      <div className="mt-3 text-sm leading-6 text-zc-muted">{body}</div>
       <div className="mt-5">
-        <Button asChild variant="ghost" className="px-0 text-xc-text hover:bg-transparent">
+        <Button asChild variant="ghost" className="px-0 text-zc-text hover:bg-transparent">
           <Link href={href}>
             Continue <IconChevronRight className="h-4 w-4" />
           </Link>
@@ -77,7 +77,7 @@ export default function Page() {
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <div className="text-4xl font-semibold tracking-tight">Admin Dashboard</div>
-            <div className="mt-3 max-w-2xl text-sm leading-6 text-xc-muted">
+            <div className="mt-3 max-w-2xl text-sm leading-6 text-zc-muted">
               A comfort-first command center for hospital operations, integrations, and
               enterprise-grade governance.
             </div>
@@ -92,7 +92,7 @@ export default function Page() {
             </Button>
             <Button
               asChild
-              className="px-5 bg-[rgb(var(--xc-warn))] text-black hover:brightness-105"
+              className="px-5 bg-[rgb(var(--zc-warn))] text-black hover:brightness-105"
             >
               <Link href="/admin/staff">Hospital Staff</Link>
             </Button>
@@ -105,25 +105,25 @@ export default function Page() {
             label="Facility"
             value="ExcelCare Hosp…"
             note="Bengaluru, Karnataka"
-            icon={<IconBuilding className="h-5 w-5 text-xc-accent" />}
+            icon={<IconBuilding className="h-5 w-5 text-zc-accent" />}
           />
           <StatCard
             label="Departments"
             value="32"
             note="Clinical + diagnostics + allied"
-            icon={<IconClipboard className="h-5 w-5 text-xc-accent" />}
+            icon={<IconClipboard className="h-5 w-5 text-zc-accent" />}
           />
           <StatCard
             label="Specialties"
             value="12"
             note="Assigned to departments"
-            icon={<IconShield className="h-5 w-5 text-xc-accent" />}
+            icon={<IconShield className="h-5 w-5 text-zc-accent" />}
           />
           <StatCard
             label="Staff"
             value="28"
             note="Doctors + nursing + operations"
-            icon={<IconUsers className="h-5 w-5 text-xc-accent" />}
+            icon={<IconUsers className="h-5 w-5 text-zc-accent" />}
           />
         </div>
 
@@ -133,12 +133,12 @@ export default function Page() {
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 text-base font-semibold">
-                  <span className="grid h-9 w-9 place-items-center rounded-2xl border border-xc-border bg-xc-panel/30">
-                    <IconShield className="h-4 w-4 text-xc-accent" />
+                  <span className="grid h-9 w-9 place-items-center rounded-2xl border border-zc-border bg-zc-panel/30">
+                    <IconShield className="h-4 w-4 text-zc-accent" />
                   </span>
                   Admin Tour
                 </div>
-                <div className="mt-2 text-sm text-xc-muted">
+                <div className="mt-2 text-sm text-zc-muted">
                   Set up foundations, access control, and integrations in the right order.
                 </div>
               </div>

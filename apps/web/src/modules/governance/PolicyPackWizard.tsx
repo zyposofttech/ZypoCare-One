@@ -24,7 +24,7 @@ function StepPill({ active, label }: { active: boolean; label: string }) {
         "inline-flex items-center rounded-full border px-3 py-1 text-xs",
         active
           ? "border-indigo-200/70 bg-indigo-50/70 text-indigo-700 dark:border-indigo-900/50 dark:bg-indigo-950/25 dark:text-indigo-200"
-          : "border-xc-border bg-xc-panel/20 text-xc-muted",
+          : "border-zc-border bg-zc-panel/20 text-zc-muted",
       )}
     >
       {label}
@@ -44,10 +44,10 @@ function ToggleRow({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex items-start justify-between gap-4 rounded-xl border border-xc-border bg-xc-panel/10 p-3">
+    <label className="flex items-start justify-between gap-4 rounded-xl border border-zc-border bg-zc-panel/10 p-3">
       <div className="min-w-0">
-        <div className="text-sm font-semibold text-xc-text">{label}</div>
-        {hint ? <div className="mt-0.5 text-xs text-xc-muted">{hint}</div> : null}
+        <div className="text-sm font-semibold text-zc-text">{label}</div>
+        {hint ? <div className="mt-0.5 text-xs text-zc-muted">{hint}</div> : null}
       </div>
       <input
         type="checkbox"
@@ -89,7 +89,7 @@ function ExportReportsEditor({ value, onChange }: { value: any; onChange: (v: an
           value={value.maxRows ?? 0}
           onChange={(e) => onChange({ ...value, maxRows: safeNum(e.target.value, 1000) })}
         />
-        <div className="text-xs text-xc-muted">Example: 1000. Use 0 for unlimited (not recommended).</div>
+        <div className="text-xs text-zc-muted">Example: 1000. Use 0 for unlimited (not recommended).</div>
       </div>
 
       <div className="grid gap-2">
@@ -127,7 +127,7 @@ function BreakGlassEditor({ value, onChange }: { value: any; onChange: (v: any) 
           value={value.sessionMinutes ?? 0}
           onChange={(e) => onChange({ ...value, sessionMinutes: safeNum(e.target.value, 30) })}
         />
-        <div className="text-xs text-xc-muted">Example: 30 minutes.</div>
+        <div className="text-xs text-zc-muted">Example: 30 minutes.</div>
       </div>
 
       <div className="grid gap-2">
@@ -137,7 +137,7 @@ function BreakGlassEditor({ value, onChange }: { value: any; onChange: (v: any) 
           onChange={(e) => onChange({ ...value, notifyEmail: e.target.value })}
           placeholder="compliance@zypocare.local"
         />
-        <div className="text-xs text-xc-muted">If set, system can notify for each break-glass event.</div>
+        <div className="text-xs text-zc-muted">If set, system can notify for each break-glass event.</div>
       </div>
     </div>
   );
@@ -159,7 +159,7 @@ function AuditRetentionEditor({ value, onChange }: { value: any; onChange: (v: a
           value={value.retentionDays ?? 0}
           onChange={(e) => onChange({ ...value, retentionDays: safeNum(e.target.value, 365) })}
         />
-        <div className="text-xs text-xc-muted">Example: 365 days (1 year).</div>
+        <div className="text-xs text-zc-muted">Example: 365 days (1 year).</div>
       </div>
     </div>
   );
@@ -182,7 +182,7 @@ function DataRetentionEditor({ value, onChange }: { value: any; onChange: (v: an
           value={value.patientDataDays ?? 0}
           onChange={(e) => onChange({ ...value, patientDataDays: safeNum(e.target.value, 3650) })}
         />
-        <div className="text-xs text-xc-muted">Example: 3650 days (10 years).</div>
+        <div className="text-xs text-zc-muted">Example: 3650 days (10 years).</div>
       </div>
 
       <div className="grid gap-2">
@@ -193,7 +193,7 @@ function DataRetentionEditor({ value, onChange }: { value: any; onChange: (v: an
           value={value.billingDays ?? 0}
           onChange={(e) => onChange({ ...value, billingDays: safeNum(e.target.value, 3650) })}
         />
-        <div className="text-xs text-xc-muted">Example: 3650 days (10 years).</div>
+        <div className="text-xs text-zc-muted">Example: 3650 days (10 years).</div>
       </div>
     </div>
   );
@@ -212,7 +212,7 @@ function EditorForTemplate({
   if (templateId === "BREAK_GLASS") return <BreakGlassEditor value={value} onChange={onChange} />;
   if (templateId === "AUDIT_RETENTION") return <AuditRetentionEditor value={value} onChange={onChange} />;
   if (templateId === "DATA_RETENTION") return <DataRetentionEditor value={value} onChange={onChange} />;
-  return <div className="text-sm text-xc-muted">Editor not available for this template.</div>;
+  return <div className="text-sm text-zc-muted">Editor not available for this template.</div>;
 }
 
 /** Used to recover existing draft if needed */
@@ -365,15 +365,15 @@ export function PolicyPackWizard({
           "max-h-[calc(100dvh-1.25rem)]",
           "overflow-hidden p-0",
           // Visual style
-          "rounded-2xl border border-indigo-200/50 dark:border-indigo-800/50 shadow-2xl shadow-indigo-500/10 bg-xc-card",
+          "rounded-2xl border border-indigo-200/50 dark:border-indigo-800/50 shadow-2xl shadow-indigo-500/10 bg-zc-card",
         ].join(" ")}
         onInteractOutside={(e) => e.preventDefault()}
       >
         <div className="flex max-h-[calc(100dvh-1.25rem)] flex-col">
           {/* Header */}
           <div className="shrink-0 px-5 py-4 sm:px-6 sm:py-5">
-            <div className="text-lg font-semibold text-xc-text">{pack.name}</div>
-            <div className="mt-1 text-sm text-xc-muted">{pack.description}</div>
+            <div className="text-lg font-semibold text-zc-text">{pack.name}</div>
+            <div className="mt-1 text-sm text-zc-muted">{pack.description}</div>
 
             <div className="mt-3 flex flex-wrap gap-2">
               <StepPill active={step === 1} label="1. Select" />
@@ -382,13 +382,13 @@ export function PolicyPackWizard({
             </div>
 
             {err ? (
-              <div className="mt-4 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
+              <div className="mt-4 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
                 {err}
               </div>
             ) : null}
           </div>
 
-          <Separator className="bg-xc-border" />
+          <Separator className="bg-zc-border" />
 
           {/* Body (scrolls) */}
           <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 sm:px-6 sm:py-5">
@@ -397,7 +397,7 @@ export function PolicyPackWizard({
               <div className="min-w-0">
                 {step === 1 ? (
                   <div className="grid gap-3">
-                    <div className="text-sm font-semibold text-xc-text">Policies in this pack</div>
+                    <div className="text-sm font-semibold text-zc-text">Policies in this pack</div>
                     {pack.items.map((it) => {
                       const tpl = getTemplateById(it.templateId);
                       const checked = !!selected[it.templateId];
@@ -411,15 +411,15 @@ export function PolicyPackWizard({
                             "w-full text-left rounded-2xl border p-4 transition",
                             activeId === it.templateId
                               ? "border-indigo-200/70 bg-indigo-50/40 dark:border-indigo-900/50 dark:bg-indigo-950/20"
-                              : "border-xc-border bg-xc-panel/10 hover:bg-xc-panel/20",
+                              : "border-zc-border bg-zc-panel/10 hover:bg-zc-panel/20",
                           )}
                         >
                           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div className="min-w-0">
-                              <div className="text-sm font-semibold text-xc-text">{tpl?.name || it.templateId}</div>
-                              <div className="mt-0.5 text-xs text-xc-muted">{tpl?.description || ""}</div>
-                              <div className="mt-1 font-mono text-xs text-xc-muted">Code: {tpl?.code || "—"}</div>
-                              {it.note ? <div className="mt-1 text-xs text-xc-muted">Preset: {it.note}</div> : null}
+                              <div className="text-sm font-semibold text-zc-text">{tpl?.name || it.templateId}</div>
+                              <div className="mt-0.5 text-xs text-zc-muted">{tpl?.description || ""}</div>
+                              <div className="mt-1 font-mono text-xs text-zc-muted">Code: {tpl?.code || "—"}</div>
+                              {it.note ? <div className="mt-1 text-xs text-zc-muted">Preset: {it.note}</div> : null}
                             </div>
 
                             <label className="inline-flex items-center gap-2 self-start">
@@ -433,7 +433,7 @@ export function PolicyPackWizard({
                                 }}
                                 onClick={(e) => e.stopPropagation()}
                               />
-                              <span className="text-xs text-xc-muted">Include</span>
+                              <span className="text-xs text-zc-muted">Include</span>
                             </label>
                           </div>
                         </button>
@@ -442,10 +442,10 @@ export function PolicyPackWizard({
                   </div>
                 ) : step === 2 ? (
                   <div className="grid gap-4">
-                    <div className="text-sm font-semibold text-xc-text">Customize selected policies</div>
+                    <div className="text-sm font-semibold text-zc-text">Customize selected policies</div>
 
                     {!chosenCount ? (
-                      <div className="rounded-2xl border border-xc-border bg-xc-panel/10 p-6 text-sm text-xc-muted">
+                      <div className="rounded-2xl border border-zc-border bg-zc-panel/10 p-6 text-sm text-zc-muted">
                         No policies selected. Go back and select at least one policy.
                       </div>
                     ) : null}
@@ -458,9 +458,9 @@ export function PolicyPackWizard({
                         <Card key={it.templateId} className="p-0">
                           <div className="p-5">
                             <div className="flex flex-col gap-1">
-                              <div className="text-sm font-semibold text-xc-text">{tpl?.name || it.templateId}</div>
-                              <div className="text-xs text-xc-muted">{tpl?.description || ""}</div>
-                              <div className="mt-1 font-mono text-xs text-xc-muted">Code: {tpl?.code || "—"}</div>
+                              <div className="text-sm font-semibold text-zc-text">{tpl?.name || it.templateId}</div>
+                              <div className="text-xs text-zc-muted">{tpl?.description || ""}</div>
+                              <div className="mt-1 font-mono text-xs text-zc-muted">Code: {tpl?.code || "—"}</div>
                             </div>
 
                             <Separator className="my-4" />
@@ -477,9 +477,9 @@ export function PolicyPackWizard({
                   </div>
                 ) : (
                   <div className="grid gap-3">
-                    <div className="text-sm font-semibold text-xc-text">Review</div>
-                    <div className="rounded-2xl border border-xc-border bg-xc-panel/10 p-5 text-sm text-xc-muted">
-                      This will create/update <span className="font-semibold text-xc-text">{chosenCount}</span> policies as <span className="font-semibold text-xc-text">Drafts</span> (Option A).
+                    <div className="text-sm font-semibold text-zc-text">Review</div>
+                    <div className="rounded-2xl border border-zc-border bg-zc-panel/10 p-5 text-sm text-zc-muted">
+                      This will create/update <span className="font-semibold text-zc-text">{chosenCount}</span> policies as <span className="font-semibold text-zc-text">Drafts</span> (Option A).
                       After install, open each policy and submit for approvals when ready.
                     </div>
 
@@ -487,9 +487,9 @@ export function PolicyPackWizard({
                       {chosenItems.map((it) => {
                         const tpl = getTemplateById(it.templateId);
                         return (
-                          <div key={it.templateId} className="rounded-xl border border-xc-border bg-xc-panel/10 p-3">
-                            <div className="text-sm font-semibold text-xc-text">{tpl?.name || it.templateId}</div>
-                            <div className="mt-0.5 font-mono text-xs text-xc-muted">Code: {tpl?.code || "—"}</div>
+                          <div key={it.templateId} className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+                            <div className="text-sm font-semibold text-zc-text">{tpl?.name || it.templateId}</div>
+                            <div className="mt-0.5 font-mono text-xs text-zc-muted">Code: {tpl?.code || "—"}</div>
                           </div>
                         );
                       })}
@@ -502,9 +502,9 @@ export function PolicyPackWizard({
               <div className="min-w-0 lg:sticky lg:top-0">
                 <Card className="p-0">
                   <div className="p-5">
-                    <div className="text-sm font-semibold text-xc-text">Summary</div>
-                    <div className="mt-1 text-sm text-xc-muted">
-                      Selected: <span className="font-semibold text-xc-text tabular-nums">{chosenCount}</span> /{" "}
+                    <div className="text-sm font-semibold text-zc-text">Summary</div>
+                    <div className="mt-1 text-sm text-zc-muted">
+                      Selected: <span className="font-semibold text-zc-text tabular-nums">{chosenCount}</span> /{" "}
                       <span className="tabular-nums">{pack.items.length}</span>
                     </div>
 
@@ -518,15 +518,15 @@ export function PolicyPackWizard({
                         placeholder="Example: Baseline pack installed for Hospital (drafts)."
                         className="min-h-[90px]"
                       />
-                      <div className="text-xs text-xc-muted">
+                      <div className="text-xs text-zc-muted">
                         This note will be attached to each draft version created by this pack.
                       </div>
                     </div>
 
                     <Separator className="my-4" />
 
-                    <div className="rounded-2xl border border-xc-border bg-xc-panel/10 p-4 text-sm text-xc-muted">
-                      Install mode: <span className="font-semibold text-xc-text">Drafts only</span> (Option A)
+                    <div className="rounded-2xl border border-zc-border bg-zc-panel/10 p-4 text-sm text-zc-muted">
+                      Install mode: <span className="font-semibold text-zc-text">Drafts only</span> (Option A)
                     </div>
                   </div>
                 </Card>
@@ -535,7 +535,7 @@ export function PolicyPackWizard({
           </div>
 
           {/* Footer */}
-          <div className="shrink-0 border-t border-xc-border bg-xc-card/95 px-5 py-4 backdrop-blur sm:px-6">
+          <div className="shrink-0 border-t border-zc-border bg-zc-card/95 px-5 py-4 backdrop-blur sm:px-6">
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
               <Button variant="outline" onClick={onClose} disabled={busy}>
                 Cancel

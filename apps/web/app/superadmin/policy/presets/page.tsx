@@ -26,7 +26,7 @@ function pillTone(label: string) {
     return "border-rose-200/70 bg-rose-50/70 text-rose-900 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-200";
   if (l.includes("operational"))
     return "border-sky-200/70 bg-sky-50/70 text-sky-800 dark:border-sky-900/50 dark:bg-sky-950/25 dark:text-sky-200";
-  return "border-xc-border bg-xc-panel/20 text-xc-muted";
+  return "border-zc-border bg-zc-panel/20 text-zc-muted";
 }
 
 function TagChip({
@@ -45,8 +45,8 @@ function TagChip({
       className={cn(
         "inline-flex items-center rounded-full border px-3 py-1 text-xs transition",
         active
-          ? "border-[rgb(var(--xc-accent-rgb)/0.45)] bg-[rgb(var(--xc-accent-rgb)/0.10)] text-xc-text"
-          : "border-xc-border bg-xc-panel/10 text-xc-muted hover:bg-xc-panel/20"
+          ? "border-[rgb(var(--zc-accent-rgb)/0.45)] bg-[rgb(var(--zc-accent-rgb)/0.10)] text-zc-text"
+          : "border-zc-border bg-zc-panel/10 text-zc-muted hover:bg-zc-panel/20"
       )}
     >
       {label}
@@ -66,13 +66,13 @@ function StatCard({
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-5">
-        <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted/80">
+        <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted/80">
           {label}
         </div>
-        <div className="mt-2 text-2xl font-semibold tracking-tight text-xc-text tabular-nums">
+        <div className="mt-2 text-2xl font-semibold tracking-tight text-zc-text tabular-nums">
           {value}
         </div>
-        {sub ? <div className="mt-1 text-sm text-xc-muted">{sub}</div> : null}
+        {sub ? <div className="mt-1 text-sm text-zc-muted">{sub}</div> : null}
       </CardContent>
     </Card>
   );
@@ -129,12 +129,12 @@ export default function SuperAdminPolicyPresetsPage() {
         {/* ✅ Standard App header layout */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-xc-border bg-xc-panel/30">
-              <IconShield className="h-5 w-5 text-xc-accent" />
+            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-zc-border bg-zc-panel/30">
+              <IconShield className="h-5 w-5 text-zc-accent" />
             </span>
             <div className="min-w-0">
               <div className="text-3xl font-semibold tracking-tight">Policy Presets</div>
-              <div className="mt-1 text-sm text-xc-muted">
+              <div className="mt-1 text-sm text-zc-muted">
                 Install a ready policy pack as Drafts. Review and submit for approvals when you’re ready.
               </div>
             </div>
@@ -157,7 +157,7 @@ export default function SuperAdminPolicyPresetsPage() {
         </div>
 
         {err ? (
-          <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
+          <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
             <AlertTriangle className="mt-0.5 h-4 w-4" />
             <div className="min-w-0">{err}</div>
           </div>
@@ -176,18 +176,18 @@ export default function SuperAdminPolicyPresetsPage() {
             <CardContent className="p-6">
               <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-xc-text">
-                    <span className="grid h-9 w-9 place-items-center rounded-2xl border border-xc-border bg-xc-panel/30">
-                      <Sparkles className="h-4 w-4 text-xc-accent" />
+                  <div className="flex items-center gap-2 text-sm font-semibold text-zc-text">
+                    <span className="grid h-9 w-9 place-items-center rounded-2xl border border-zc-border bg-zc-panel/30">
+                      <Sparkles className="h-4 w-4 text-zc-accent" />
                     </span>
                     Recommended Baseline
                   </div>
 
-                  <div className="mt-2 text-lg font-semibold text-xc-text">
+                  <div className="mt-2 text-lg font-semibold text-zc-text">
                     {recommended.name}
                   </div>
 
-                  <div className="mt-1 text-sm text-xc-muted">
+                  <div className="mt-1 text-sm text-zc-muted">
                     {recommended.description}
                   </div>
 
@@ -195,8 +195,8 @@ export default function SuperAdminPolicyPresetsPage() {
                     <span className={cn("inline-flex rounded-full border px-2.5 py-1 text-xs", pillTone(recommended.tag))}>
                       {recommended.tag}
                     </span>
-                    <span className="text-xs text-xc-muted">
-                      Includes <span className="font-semibold text-xc-text tabular-nums">{recommended.items.length}</span> policies (Draft install)
+                    <span className="text-xs text-zc-muted">
+                      Includes <span className="font-semibold text-zc-text tabular-nums">{recommended.items.length}</span> policies (Draft install)
                     </span>
                   </div>
                 </div>
@@ -227,8 +227,8 @@ export default function SuperAdminPolicyPresetsPage() {
           <CardContent className="p-6">
             <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
               <div className="min-w-0">
-                <div className="text-lg font-semibold text-xc-text">Catalog</div>
-                <div className="mt-1 text-sm text-xc-muted">
+                <div className="text-lg font-semibold text-zc-text">Catalog</div>
+                <div className="mt-1 text-sm text-zc-muted">
                   Install packs to quickly set up governance without manual configuration.
                 </div>
               </div>
@@ -239,7 +239,7 @@ export default function SuperAdminPolicyPresetsPage() {
             {/* Search + tags row */}
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="relative w-full lg:max-w-md">
-                <IconSearch className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-xc-muted" />
+                <IconSearch className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-zc-muted" />
                 <Input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
@@ -249,7 +249,7 @@ export default function SuperAdminPolicyPresetsPage() {
                 {q ? (
                   <button
                     type="button"
-                    className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-md border border-xc-border bg-xc-panel/20 text-xs text-xc-muted hover:bg-xc-panel/30"
+                    className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-md border border-zc-border bg-zc-panel/20 text-xs text-zc-muted hover:bg-zc-panel/30"
                     onClick={() => setQ("")}
                     aria-label="Clear search"
                     title="Clear"
@@ -299,12 +299,12 @@ export default function SuperAdminPolicyPresetsPage() {
                           <div className={cn("inline-flex rounded-full border px-2.5 py-1 text-xs", pillTone(p.tag))}>
                             {p.tag}
                           </div>
-                          <div className="mt-2 text-lg font-semibold text-xc-text">{p.name}</div>
-                          <div className="mt-1 text-sm text-xc-muted">{p.description}</div>
+                          <div className="mt-2 text-lg font-semibold text-zc-text">{p.name}</div>
+                          <div className="mt-1 text-sm text-zc-muted">{p.description}</div>
 
-                          <div className="mt-2 text-xs text-xc-muted">
+                          <div className="mt-2 text-xs text-zc-muted">
                             Includes{" "}
-                            <span className="font-semibold text-xc-text tabular-nums">{p.items.length}</span>{" "}
+                            <span className="font-semibold text-zc-text tabular-nums">{p.items.length}</span>{" "}
                             policies • Installs as Drafts
                           </div>
                         </div>
@@ -322,31 +322,31 @@ export default function SuperAdminPolicyPresetsPage() {
                       <Separator className="my-4" />
 
                       {/* Includes (collapsed by default) */}
-                      <div className="text-sm font-semibold text-xc-text">Includes</div>
+                      <div className="text-sm font-semibold text-zc-text">Includes</div>
                       <div className="mt-2 grid gap-2">
                         {visibleItems.map((it) => {
                           const tpl = getTemplateById(it.templateId);
                           return (
                             <div
                               key={it.templateId}
-                              className="rounded-xl border border-xc-border bg-xc-panel/10 p-3"
+                              className="rounded-xl border border-zc-border bg-zc-panel/10 p-3"
                             >
                               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
                                 <div className="min-w-0">
-                                  <div className="text-sm font-semibold text-xc-text">
+                                  <div className="text-sm font-semibold text-zc-text">
                                     {tpl?.name || it.templateId}
                                   </div>
-                                  <div className="mt-0.5 text-xs text-xc-muted line-clamp-2">
+                                  <div className="mt-0.5 text-xs text-zc-muted line-clamp-2">
                                     {tpl?.description || ""}
                                   </div>
-                                  <div className="mt-1 font-mono text-xs text-xc-muted break-all">
+                                  <div className="mt-1 font-mono text-xs text-zc-muted break-all">
                                     Code: {tpl?.code || "—"}
                                   </div>
                                   {it.note ? (
-                                    <div className="mt-1 text-xs text-xc-muted">Preset: {it.note}</div>
+                                    <div className="mt-1 text-xs text-zc-muted">Preset: {it.note}</div>
                                   ) : null}
                                 </div>
-                                <span className="shrink-0 self-start rounded-full border border-xc-border bg-xc-panel/20 px-3 py-1 text-xs text-xc-muted">
+                                <span className="shrink-0 self-start rounded-full border border-zc-border bg-zc-panel/20 px-3 py-1 text-xs text-zc-muted">
                                   Draft
                                 </span>
                               </div>
@@ -359,7 +359,7 @@ export default function SuperAdminPolicyPresetsPage() {
                         <div className="mt-3">
                           <button
                             type="button"
-                            className="text-sm font-medium text-xc-text hover:underline"
+                            className="text-sm font-medium text-zc-text hover:underline"
                             onClick={() => setExpanded((s) => ({ ...s, [p.id]: !showAll }))}
                           >
                             {showAll ? "Show less" : `Show ${remaining} more`}
@@ -367,9 +367,9 @@ export default function SuperAdminPolicyPresetsPage() {
                         </div>
                       ) : null}
 
-                      <div className="mt-4 rounded-2xl border border-xc-border bg-xc-panel/20 p-5">
-                        <div className="text-sm font-semibold text-xc-text">After install</div>
-                        <div className="mt-1 text-sm text-xc-muted">
+                      <div className="mt-4 rounded-2xl border border-zc-border bg-zc-panel/20 p-5">
+                        <div className="text-sm font-semibold text-zc-text">After install</div>
+                        <div className="mt-1 text-sm text-zc-muted">
                           Policies are created (if missing) and saved as Drafts. Review them in Policies and submit for approval when ready.
                         </div>
                       </div>
@@ -379,7 +379,7 @@ export default function SuperAdminPolicyPresetsPage() {
               })}
 
               {!filtered.length ? (
-                <div className="col-span-full rounded-2xl border border-xc-border bg-xc-panel/10 p-10 text-center text-sm text-xc-muted">
+                <div className="col-span-full rounded-2xl border border-zc-border bg-zc-panel/10 p-10 text-center text-sm text-zc-muted">
                   No matching packs found. Try a different keyword or clear filters.
                 </div>
               ) : null}

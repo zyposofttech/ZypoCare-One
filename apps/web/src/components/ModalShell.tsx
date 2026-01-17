@@ -46,20 +46,20 @@ export function ModalShell({
     >
       <div
         className={cn(
-          "w-full rounded-2xl border border-xc-border bg-xc-card shadow-elev-2",
+          "w-full rounded-2xl border border-zc-border bg-zc-card shadow-elev-2",
           maxW,
           // This is the key fix: prevent off-screen modal & enable internal scrolling
           "max-h-[90vh] overflow-hidden"
         )}
       >
         {/* Header */}
-        <div className="flex items-start justify-between gap-4 border-b border-xc-border px-5 py-4">
+        <div className="flex items-start justify-between gap-4 border-b border-zc-border px-5 py-4">
           <div className="min-w-0">
-            <div className="text-base sm:text-lg font-semibold tracking-tight text-xc-text">
+            <div className="text-base sm:text-lg font-semibold tracking-tight text-zc-text">
               {title}
             </div>
             {description ? (
-              <div className="mt-1 text-sm text-xc-muted">{description}</div>
+              <div className="mt-1 text-sm text-zc-muted">{description}</div>
             ) : null}
           </div>
 
@@ -81,7 +81,7 @@ export function ModalShell({
 
         {/* Footer (sticky-ish) */}
         {footer ? (
-          <div className="border-t border-xc-border px-5 py-4 bg-xc-card">
+          <div className="border-t border-zc-border px-5 py-4 bg-zc-card">
             {footer}
           </div>
         ) : null}

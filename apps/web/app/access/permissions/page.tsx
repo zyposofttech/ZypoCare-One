@@ -166,7 +166,7 @@ export default function AccessPermissionsPage() {
               </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-xc-muted" />
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zc-muted" />
                   <Input
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
@@ -191,11 +191,11 @@ export default function AccessPermissionsPage() {
           </CardHeader>
           <CardContent>
             {err && (
-              <div className="mb-4 rounded-xl border border-xc-danger/30 bg-xc-danger/10 px-4 py-3 text-sm text-xc-danger">
+              <div className="mb-4 rounded-xl border border-zc-danger/30 bg-zc-danger/10 px-4 py-3 text-sm text-zc-danger">
                 {err}
               </div>
             )}
-            <div className="rounded-xl border border-xc-border">
+            <div className="rounded-xl border border-zc-border">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -208,7 +208,7 @@ export default function AccessPermissionsPage() {
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="py-10 text-center text-sm text-xc-muted">
+                      <TableCell colSpan={4} className="py-10 text-center text-sm text-zc-muted">
                         <Loader2 className="mx-auto mb-3 h-5 w-5 animate-spin" />
                         Loading...
                       </TableCell>
@@ -223,14 +223,14 @@ export default function AccessPermissionsPage() {
                         <TableCell>
                           <Badge variant="outline">{p.category}</Badge>
                         </TableCell>
-                        <TableCell className="text-xc-muted text-sm">
+                        <TableCell className="text-zc-muted text-sm">
                           {p.description || "—"}
                         </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={4} className="py-10 text-center text-sm text-xc-muted">
+                      <TableCell colSpan={4} className="py-10 text-center text-sm text-zc-muted">
                         No permissions found.
                       </TableCell>
                     </TableRow>
@@ -324,7 +324,7 @@ export default function AccessPermissionsPage() {
                         <Button 
                             size="icon" 
                             variant="ghost" 
-                            className="absolute right-1 top-1 h-7 w-7 text-xc-muted hover:text-xc-text"
+                            className="absolute right-1 top-1 h-7 w-7 text-zc-muted hover:text-zc-text"
                             title="Edit manually"
                             onClick={() => setManualCode(true)}
                         >
@@ -332,7 +332,7 @@ export default function AccessPermissionsPage() {
                         </Button>
                     )}
                 </div>
-                <p className="text-[11px] text-xc-muted">
+                <p className="text-[11px] text-zc-muted">
                     Unique identifier used in code. Example: <span className="font-mono">BILLING_INVOICE_DELETE</span>
                 </p>
               </div>

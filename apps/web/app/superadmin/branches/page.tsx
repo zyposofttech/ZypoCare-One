@@ -164,7 +164,7 @@ function pillTone(label: string) {
   if (l.includes("special"))
     return "border-violet-200/70 bg-violet-50/70 text-violet-700 dark:border-violet-900/50 dark:bg-violet-950/25 dark:text-violet-200";
 
-  return "border-xc-border bg-xc-panel/30 text-xc-muted";
+  return "border-zc-border bg-zc-panel/30 text-zc-muted";
 }
 
 function Pill({ label, value }: { label: string; value: number }) {
@@ -213,12 +213,12 @@ function ModalShell({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-xl rounded-2xl border border-xc-border bg-xc-card shadow-elev-2">
+      <div className="w-full max-w-xl rounded-2xl border border-zc-border bg-zc-card shadow-elev-2">
         <div className="p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <div className="text-lg font-semibold tracking-tight text-xc-text">{title}</div>
-              {description ? <div className="mt-1 text-sm text-xc-muted">{description}</div> : null}
+              <div className="text-lg font-semibold tracking-tight text-zc-text">{title}</div>
+              {description ? <div className="mt-1 text-sm text-zc-muted">{description}</div> : null}
             </div>
             <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
               ✕
@@ -280,15 +280,15 @@ function DeleteConfirmModal({
   return (
     <ModalShell title="Delete Branch" description="Deletion is blocked if the branch has any configured setup data." onClose={onClose}>
       {err ? (
-        <div className="mb-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
           <AlertTriangle className="mt-0.5 h-4 w-4" />
           <div className="min-w-0">{err}</div>
         </div>
       ) : null}
 
-      <div className="rounded-xl border border-xc-border bg-xc-panel/20 p-4">
-        <div className="text-sm font-semibold text-xc-text">
-          {branch.name} <span className="font-mono text-xs text-xc-muted">({branch.code})</span>
+      <div className="rounded-xl border border-zc-border bg-zc-panel/20 p-4">
+        <div className="text-sm font-semibold text-zc-text">
+          {branch.name} <span className="font-mono text-xs text-zc-muted">({branch.code})</span>
         </div>
 
         <div className="mt-2 flex flex-wrap gap-2">
@@ -297,8 +297,8 @@ function DeleteConfirmModal({
           <Pill label="Specialties" value={countOf(branch, "specialties")} />
         </div>
 
-        <div className="mt-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-warn-rgb)/0.35)] bg-[rgb(var(--xc-warn-rgb)/0.12)] px-3 py-2 text-sm text-xc-text">
-          <AlertTriangle className="mt-0.5 h-4 w-4 text-[rgb(var(--xc-warn))]" />
+        <div className="mt-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-warn-rgb)/0.35)] bg-[rgb(var(--zc-warn-rgb)/0.12)] px-3 py-2 text-sm text-zc-text">
+          <AlertTriangle className="mt-0.5 h-4 w-4 text-[rgb(var(--zc-warn))]" />
           <div className="min-w-0">
             If this branch already has Facilities/Departments/Specialties configured, deletion will be rejected. Prefer retiring via governance instead of deleting.
           </div>
@@ -486,7 +486,7 @@ function BranchEditorModal({
         <Separator className="my-4" />
 
         {err ? (
-          <div className="mb-3 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
+          <div className="mb-3 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
             <AlertTriangle className="mt-0.5 h-4 w-4" />
             <div className="min-w-0">{err}</div>
           </div>
@@ -540,7 +540,7 @@ function BranchEditorModal({
                   type="button"
                   size="icon"
                   variant="ghost"
-                  className="absolute right-1 top-1 h-7 w-7 text-xc-muted hover:text-xc-text"
+                  className="absolute right-1 top-1 h-7 w-7 text-zc-muted hover:text-zc-text"
                   title="Edit manually"
                   onClick={() => setManualCode(true)}
                 >
@@ -550,7 +550,7 @@ function BranchEditorModal({
               ) : null}
             </div>
 
-            <p className="text-[11px] text-xc-muted">
+            <p className="text-[11px] text-zc-muted">
               Example: <span className="font-mono">BLR-EC</span> (City code + Campus initials)
             </p>
           </div>
@@ -565,7 +565,7 @@ function BranchEditorModal({
               maxLength={15}
               className="font-mono"
             />
-            <p className="text-[11px] text-xc-muted">Used in Accounting, invoices, and statutory reporting.</p>
+            <p className="text-[11px] text-zc-muted">Used in Accounting, invoices, and statutory reporting.</p>
           </div>
 
           <div className="grid gap-2">
@@ -575,13 +575,13 @@ function BranchEditorModal({
               onChange={(e) => setForm((s) => ({ ...s, address: e.target.value }))}
               placeholder="Street, Area, Landmark, City, State, PIN"
             />
-            <p className="text-[11px] text-xc-muted">Used in reports, invoices, and branch communications.</p>
+            <p className="text-[11px] text-zc-muted">Used in reports, invoices, and branch communications.</p>
           </div>
 
           <Separator className="my-1" />
 
           <div className="grid gap-4">
-            <div className="text-sm font-semibold text-xc-text">Contact Details</div>
+            <div className="text-sm font-semibold text-zc-text">Contact Details</div>
 
             {/* ✅ CHANGED: grid-cols-1 for mobile, sm:grid-cols-2 for desktop */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -693,12 +693,12 @@ export default function BranchesPage() {
         {/* Header */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-xc-border bg-xc-panel/30">
-              <IconBuilding className="h-5 w-5 text-xc-accent" />
+            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-zc-border bg-zc-panel/30">
+              <IconBuilding className="h-5 w-5 text-zc-accent" />
             </span>
             <div className="min-w-0">
               <div className="text-3xl font-semibold tracking-tight">Branches</div>
-              <div className="mt-1 text-sm text-xc-muted">
+              <div className="mt-1 text-sm text-zc-muted">
                 Super Admin creates Branch, configures Facilities, Departments and Specialties.
               </div>
             </div>
@@ -749,7 +749,7 @@ export default function BranchesPage() {
 
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="relative w-full lg:max-w-md">
-                <IconSearch className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-xc-muted" />
+                <IconSearch className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-zc-muted" />
                 <Input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
@@ -761,14 +761,14 @@ export default function BranchesPage() {
                 />
               </div>
 
-              <div className="text-xs text-xc-muted">
-                Showing <span className="font-semibold tabular-nums text-xc-text">{filtered.length}</span> of{" "}
-                <span className="font-semibold tabular-nums text-xc-text">{rows.length}</span>
+              <div className="text-xs text-zc-muted">
+                Showing <span className="font-semibold tabular-nums text-zc-text">{filtered.length}</span> of{" "}
+                <span className="font-semibold tabular-nums text-zc-text">{rows.length}</span>
               </div>
             </div>
 
             {err ? (
-              <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
+              <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
                 <AlertTriangle className="mt-0.5 h-4 w-4" />
                 <div className="min-w-0">{err}</div>
               </div>
@@ -786,7 +786,7 @@ export default function BranchesPage() {
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-xc-panel/20 text-xs text-xc-muted">
+              <thead className="bg-zc-panel/20 text-xs text-zc-muted">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold">Code</th>
                   <th className="px-4 py-3 text-left font-semibold">Branch</th>
@@ -800,28 +800,28 @@ export default function BranchesPage() {
               <tbody>
                 {!filtered.length ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-10 text-center text-sm text-xc-muted">
+                    <td colSpan={6} className="px-4 py-10 text-center text-sm text-zc-muted">
                       {loading ? "Loading branches…" : "No branches found."}
                     </td>
                   </tr>
                 ) : null}
 
                 {filtered.map((b) => (
-                  <tr key={b.id} className="border-t border-xc-border hover:bg-xc-panel/20">
+                  <tr key={b.id} className="border-t border-zc-border hover:bg-zc-panel/20">
                     <td className="px-4 py-3">
-                      <span className="inline-flex rounded-lg border border-xc-border bg-xc-accent/20 px-2.5 py-1 font-mono text-xs text-xc-text">
+                      <span className="inline-flex rounded-lg border border-zc-border bg-zc-accent/20 px-2.5 py-1 font-mono text-xs text-zc-text">
                         {b.code}
                       </span>
                     </td>
 
                     <td className="px-4 py-3">
-                      <div className="font-semibold text-xc-text">{b.name}</div>
+                      <div className="font-semibold text-zc-text">{b.name}</div>
                     </td>
 
-                    <td className="px-4 py-3 text-xc-muted">{b.city}</td>
+                    <td className="px-4 py-3 text-zc-muted">{b.city}</td>
 
                     <td className="px-4 py-3">
-                      <span className="font-mono text-xs text-xc-text">{b.gstNumber || "-"}</span>
+                      <span className="font-mono text-xs text-zc-text">{b.gstNumber || "-"}</span>
                     </td>
 
                     <td className="px-4 py-3">
@@ -854,7 +854,7 @@ export default function BranchesPage() {
                               Edit
                             </Button>
 
-                            <Button asChild variant="outline" className="px-3">
+                            <Button variant="success" className="px-3">
                               <Link href={`/superadmin/branches/${encodeURIComponent(b.id)}/facility-setup`}>Facility Setup</Link>
                             </Button>
 
@@ -881,11 +881,11 @@ export default function BranchesPage() {
         </Card>
 
         {/* Onboarding callout */}
-        <div className="rounded-2xl border border-xc-border bg-xc-panel/20 p-5">
+        <div className="rounded-2xl border border-zc-border bg-zc-panel/20 p-5">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-xc-text">Recommended setup order</div>
-              <div className="mt-1 text-sm text-xc-muted">
+              <div className="text-sm font-semibold text-zc-text">Recommended setup order</div>
+              <div className="mt-1 text-sm text-zc-muted">
                 1) Create Branch (GSTIN) → 2) Facility Setup (Facilities → Departments → Specialties → Mapping) → 3) Branch Admin config (later).
               </div>
             </div>

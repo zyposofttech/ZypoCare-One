@@ -20,14 +20,14 @@ export const DropdownMenuSubTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       "flex cursor-default select-none items-center gap-2 rounded-lg px-2.5 py-2 text-sm outline-none",
-      "text-xc-text hover:bg-[rgb(var(--xc-hover-rgb)/0.06)]",
+      "text-zc-text hover:bg-[rgb(var(--zc-hover-rgb)/0.06)]",
       inset && "pl-8",
       className
     )}
     {...props}
   >
     {children}
-    <ChevronRight className="ml-auto h-4 w-4 text-xc-muted" />
+    <ChevronRight className="ml-auto h-4 w-4 text-zc-muted" />
   </DropdownMenuPrimitive.SubTrigger>
 ));
 DropdownMenuSubTrigger.displayName = "DropdownMenuSubTrigger";
@@ -39,7 +39,7 @@ export const DropdownMenuSubContent = React.forwardRef<
   <DropdownMenuPrimitive.SubContent
     ref={ref}
     className={cn(
-      "z-50 min-w-[180px] overflow-hidden rounded-xl border border-xc-border bg-xc-card p-1 shadow-elev-2",
+      "z-50 min-w-[180px] overflow-hidden rounded-xl border border-zc-border bg-zc-card p-1 shadow-elev-2",
       className
     )}
     {...props}
@@ -56,7 +56,7 @@ export const DropdownMenuContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        "z-50 min-w-[200px] overflow-hidden rounded-xl border border-xc-border bg-xc-card p-1 shadow-elev-2",
+        "z-50 min-w-[200px] overflow-hidden rounded-xl border border-zc-border bg-zc-card p-1 shadow-elev-2",
         className
       )}
       {...props}
@@ -75,8 +75,8 @@ export const DropdownMenuItem = React.forwardRef<
     ref={ref}
     className={cn(
       "relative flex cursor-default select-none items-center gap-2 rounded-lg px-2.5 py-2 text-sm outline-none",
-      "text-xc-text hover:bg-[rgb(var(--xc-hover-rgb)/0.06)]",
-      "focus:bg-[rgb(var(--xc-hover-rgb)/0.06)]",
+      "text-zc-text hover:bg-[rgb(var(--zc-hover-rgb)/0.06)]",
+      "focus:bg-[rgb(var(--zc-hover-rgb)/0.06)]",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       inset && "pl-8",
       className
@@ -92,7 +92,7 @@ export const DropdownMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.Separator
     ref={ref}
-    className={cn("my-1 h-px bg-xc-border", className)}
+    className={cn("my-1 h-px bg-zc-border", className)}
     {...props}
   />
 ));
@@ -106,7 +106,7 @@ export const DropdownMenuCheckboxItem = React.forwardRef<
     ref={ref}
     className={cn(
       "relative flex cursor-default select-none items-center gap-2 rounded-lg py-2 pl-8 pr-2.5 text-sm outline-none",
-      "text-xc-text hover:bg-[rgb(var(--xc-hover-rgb)/0.06)]",
+      "text-zc-text hover:bg-[rgb(var(--zc-hover-rgb)/0.06)]",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
@@ -115,7 +115,7 @@ export const DropdownMenuCheckboxItem = React.forwardRef<
   >
     <span className="absolute left-2 flex h-4 w-4 items-center justify-center">
       <DropdownMenuPrimitive.ItemIndicator>
-        <Check className="h-4 w-4 text-xc-accent" />
+        <Check className="h-4 w-4 text-zc-accent" />
       </DropdownMenuPrimitive.ItemIndicator>
     </span>
     {children}

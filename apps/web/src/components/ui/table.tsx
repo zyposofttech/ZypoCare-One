@@ -36,7 +36,7 @@ export function TableFooter({
   return (
     <tfoot
       className={cn(
-        "border-t border-xc-border bg-[rgb(var(--xc-hover-rgb)/0.03)]",
+        "border-t border-zc-border bg-[rgb(var(--zc-hover-rgb)/0.03)]",
         className
       )}
       {...props}
@@ -51,7 +51,7 @@ export function TableRow({
   return (
     <tr
       className={cn(
-        "border-b border-xc-border transition-colors hover:bg-[rgb(var(--xc-hover-rgb)/0.04)]",
+        "border-b border-zc-border transition-colors hover:bg-[rgb(var(--zc-hover-rgb)/0.04)]",
         className
       )}
       {...props}
@@ -66,7 +66,7 @@ export function TableHead({
   return (
     <th
       className={cn(
-        "h-10 px-4 text-left align-middle text-xs font-semibold text-xc-muted",
+        "h-10 px-4 text-left align-middle text-xs font-semibold text-zc-muted",
         className
       )}
       {...props}
@@ -89,7 +89,7 @@ export function TableCaption({
 }: React.HTMLAttributes<HTMLTableCaptionElement>) {
   return (
     <caption
-      className={cn("mt-3 text-sm text-xc-muted", className)}
+      className={cn("mt-3 text-sm text-zc-muted", className)}
       {...props}
     />
   );

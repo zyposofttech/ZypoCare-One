@@ -87,7 +87,7 @@ function badgeTone(label: string) {
   if (l.includes("PENDING")) return "border-amber-200/70 bg-amber-50/70 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-200";
   if (l.includes("ACTIVE")) return "border-emerald-200/70 bg-emerald-50/70 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/25 dark:text-emerald-200";
   if (l.includes("DRAFT")) return "border-sky-200/70 bg-sky-50/70 text-sky-800 dark:border-sky-900/50 dark:bg-sky-950/25 dark:text-sky-200";
-  return "border-xc-border bg-xc-panel/20 text-xc-muted";
+  return "border-zc-border bg-zc-panel/20 text-zc-muted";
 }
 
 function Pill({ label, tone }: { label: string; tone?: string }) {
@@ -200,12 +200,12 @@ export default function PoliciesList() {
         {/* Header */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-xc-border bg-xc-panel/30">
-              <IconShield className="h-5 w-5 text-xc-accent" />
+            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-zc-border bg-zc-panel/30">
+              <IconShield className="h-5 w-5 text-zc-accent" />
             </span>
             <div className="min-w-0">
               <div className="text-3xl font-semibold tracking-tight">Policies</div>
-              <div className="mt-1 text-sm text-xc-muted">
+              <div className="mt-1 text-sm text-zc-muted">
                 Create, review and manage global policy baselines. Choose a branch to preview effective enforcement.
               </div>
             </div>
@@ -258,7 +258,7 @@ export default function PoliciesList() {
             </div>
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="relative w-full lg:max-w-md">
-                <IconSearch className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-xc-muted" />
+                <IconSearch className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-zc-muted" />
                 <Input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
@@ -268,11 +268,11 @@ export default function PoliciesList() {
               </div>
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <Label className="text-sm text-xc-muted">Branch preview</Label>
+                <Label className="text-sm text-zc-muted">Branch preview</Label>
                 <select
                   value={branchId}
                   onChange={(e) => setBranchId(e.target.value)}
-                  className="h-10 rounded-lg border border-xc-border bg-xc-card px-3 text-sm text-xc-text"
+                  className="h-10 rounded-lg border border-zc-border bg-zc-card px-3 text-sm text-zc-text"
                 >
                   <option value="">Global baseline (no overrides)</option>
                   {branches.map((b) => (
@@ -285,7 +285,7 @@ export default function PoliciesList() {
             </div>
 
             {err ? (
-              <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
+              <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
                 <AlertTriangle className="mt-0.5 h-4 w-4" />
                 <div className="min-w-0">{err}</div>
               </div>
@@ -303,7 +303,7 @@ export default function PoliciesList() {
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-xc-panel/20 text-xs text-xc-muted">
+              <thead className="bg-zc-panel/20 text-xs text-zc-muted">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold">Policy</th>
                   <th className="px-4 py-3 text-left font-semibold">Type</th>
@@ -316,7 +316,7 @@ export default function PoliciesList() {
               <tbody>
                 {!filtered.length ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-10 text-center text-sm text-xc-muted">
+                    <td colSpan={6} className="px-4 py-10 text-center text-sm text-zc-muted">
                       {loading ? "Loading policies…" : "No policies found."}
                     </td>
                   </tr>
@@ -332,16 +332,16 @@ export default function PoliciesList() {
                   return (
                     <tr
                       key={p.id}
-                      className="cursor-pointer border-t border-xc-border hover:bg-xc-panel/20"
+                      className="cursor-pointer border-t border-zc-border hover:bg-zc-panel/20"
                       onClick={() => {
                         router.push(`/superadmin/policy/policies/${encodeURIComponent(p.id)}`);
                       }}
                     >
                       <td className="px-4 py-3">
-                        <div className="font-semibold text-xc-text">{p.name}</div>
-                        <div className="mt-0.5 font-mono text-xs text-xc-muted">{p.code}</div>
+                        <div className="font-semibold text-zc-text">{p.name}</div>
+                        <div className="mt-0.5 font-mono text-xs text-zc-muted">{p.code}</div>
                       </td>
-                      <td className="px-4 py-3 text-xc-muted">{p.type}</td>
+                      <td className="px-4 py-3 text-zc-muted">{p.type}</td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap items-center gap-2">
                           <Pill label={status} />
@@ -351,11 +351,11 @@ export default function PoliciesList() {
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap items-center gap-2">
                           <Pill label={scopeLabel} tone={scopeLabel === "Override" ? badgeTone("DRAFT") : badgeTone("ACTIVE")} />
-                          <span className="text-xs text-xc-muted">{effVersion}</span>
+                          <span className="text-xs text-zc-muted">{effVersion}</span>
                         </div>
-                        {effAt ? <div className="mt-1 text-xs text-xc-muted">{new Date(effAt).toLocaleString()}</div> : <div className="mt-1 text-xs text-xc-muted">—</div>}
+                        {effAt ? <div className="mt-1 text-xs text-zc-muted">{new Date(effAt).toLocaleString()}</div> : <div className="mt-1 text-xs text-zc-muted">—</div>}
                       </td>
-                      <td className="px-4 py-3 text-xc-muted">{p.updatedAt ? new Date(p.updatedAt).toLocaleString() : "—"}</td>
+                      <td className="px-4 py-3 text-zc-muted">{p.updatedAt ? new Date(p.updatedAt).toLocaleString() : "—"}</td>
                       <td className="px-4 py-3 text-right">
                         <Button asChild variant="outline" className="px-3" onClick={(e) => e.stopPropagation()}>
                           <Link href={`/superadmin/policy/policies/${encodeURIComponent(p.id)}`}>Open</Link>
@@ -559,7 +559,7 @@ function CreatePolicyModal({
         <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
           <div className="grid gap-5">
             {error ? (
-              <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
+              <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
                 <AlertTriangle className="mt-0.5 h-4 w-4" />
                 <div className="min-w-0">{error}</div>
               </div>
@@ -574,7 +574,7 @@ function CreatePolicyModal({
                 <select
                   value={form.templateId}
                   onChange={(e) => setForm((p) => ({ ...p, templateId: e.target.value }))}
-                  className="h-10 w-full rounded-lg border border-xc-border bg-xc-card px-3 text-sm text-xc-text"
+                  className="h-10 w-full rounded-lg border border-zc-border bg-zc-card px-3 text-sm text-zc-text"
                 >
                   {templates.map((t) => (
                     <option key={t.id} value={t.id}>
@@ -582,7 +582,7 @@ function CreatePolicyModal({
                     </option>
                   ))}
                 </select>
-                <div className="text-xs text-xc-muted min-h-[1rem]">
+                <div className="text-xs text-zc-muted min-h-[1rem]">
                   {templates.find((t) => t.id === form.templateId)?.description ?? ""}
                 </div>
               </div>
@@ -595,7 +595,7 @@ function CreatePolicyModal({
                   onChange={(e) => setForm((p) => ({ ...p, code: normalizeCode(e.target.value) }))}
                   placeholder="RETENTION_CLINICAL_RECORDS"
                 />
-                <div className="text-xs text-xc-muted min-h-[1rem]">Allowed: A–Z, 0–9, underscore. Max 64 chars.</div>
+                <div className="text-xs text-zc-muted min-h-[1rem]">Allowed: A–Z, 0–9, underscore. Max 64 chars.</div>
               </div>
 
               {/* Column 3: Type */}
@@ -673,7 +673,7 @@ function CreatePolicyModal({
                       return (
                         <label
                           key={b.id}
-                          className="flex items-start gap-2 rounded-xl border border-xc-border bg-xc-panel/10 p-3"
+                          className="flex items-start gap-2 rounded-xl border border-zc-border bg-zc-panel/10 p-3"
                         >
                           <input
                             type="checkbox"
@@ -687,8 +687,8 @@ function CreatePolicyModal({
                             }}
                           />
                           <div className="min-w-0">
-                            <div className="text-sm font-semibold text-xc-text">{b.name}</div>
-                            <div className="text-xs text-xc-muted">
+                            <div className="text-sm font-semibold text-zc-text">{b.name}</div>
+                            <div className="text-xs text-zc-muted">
                               {b.city ?? ""} {b.code ? `• ${b.code}` : ""}
                             </div>
                           </div>
@@ -707,7 +707,7 @@ function CreatePolicyModal({
                 onChange={(e) => setForm((p) => ({ ...p, payloadJson: e.target.value }))}
                 className="min-h-[160px] sm:min-h-[220px] font-mono text-xs"
               />
-              <div className="text-xs text-xc-muted">
+              <div className="text-xs text-zc-muted">
                 Tip: If you selected a template, this is pre-filled. You can still modify it.
               </div>
             </div>
@@ -719,7 +719,7 @@ function CreatePolicyModal({
           <Separator />
           <DialogFooter className="p-4 sm:p-6">
             <div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <label className="inline-flex items-center gap-2 text-sm text-xc-muted">
+              <label className="inline-flex items-center gap-2 text-sm text-zc-muted">
                 <input
                   type="checkbox"
                   checked={form.submitNow}

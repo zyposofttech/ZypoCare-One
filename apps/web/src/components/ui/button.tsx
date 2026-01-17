@@ -7,18 +7,26 @@ import { cn } from "@/lib/cn";
 
 // ChatGPT-like buttons: flatter, cleaner, and consistent across dark/light.
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-xc-ring disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-zc-ring disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
         primary:
-          "bg-xc-accent text-white shadow-elev-1 hover:bg-xc-accent2 active:opacity-95",
+          "bg-zc-accent text-white shadow-elev-1 hover:bg-zc-accent2 active:opacity-95",
         secondary:
-          "bg-xc-panel text-xc-text border border-xc-border hover:bg-[rgb(var(--xc-hover-rgb)/0.04)]",
+          "bg-[rgb(var(--zc-accent)/0.1)] text-zc-white hover:bg-[rgb(var(--zc-accent)/0.05)] border border-transparent",
+
+        // Outline: Becomes "alive" on hover by adopting the accent color for the border/text
         outline:
-          "border border-xc-border bg-transparent text-xc-text hover:bg-[rgb(var(--xc-hover-rgb)/0.06)]",
-        ghost: "bg-transparent text-xc-text hover:bg-[rgb(var(--xc-hover-rgb)/0.06)]",
-        destructive: "bg-xc-danger text-white hover:opacity-90",
+          "border border-zc-border bg-transparent text-zc-text hover:border-zc-accent hover:text-zc-accent hover:bg-[rgb(var(--zc-accent)/0.03)]",
+
+        // Ghost: Subtle gray hover, uses your 'muted' text color by default so it's not distracting
+        ghost:
+          "bg-transparent text-zc-muted hover:text-zc-text hover:bg-[rgb(var(--zc-text)/0.05)]",
+        destructive: "bg-zc-danger text-white hover:opacity-90",
+        
+        // Success variant added exactly as requested
+        success: "bg-[rgb(4,120,87)] text-white shadow-elev-1 hover:opacity-90",
       },
       size: {
         sm: "h-9 px-3",
@@ -37,7 +45,7 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
 

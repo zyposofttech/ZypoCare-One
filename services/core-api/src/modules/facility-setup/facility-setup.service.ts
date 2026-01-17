@@ -172,62 +172,81 @@ export class FacilitySetupService {
   // Readiness (uses only delegates that exist in your Prisma schema)
   // ---------------------------------------------------------------------------
 
-  async getBranchReadiness(principal: Principal, branchIdParam?: string) {
-    const branchId = this.resolveBranchId(principal, branchIdParam ?? null);
+ async getBranchReadiness(principal: Principal, branchIdParam?: string) {
+  const branchId = this.resolveBranchId(principal, branchIdParam ?? null);
 
-    const [enabledFacilities, departments, specialties, doctors, otRooms, beds] = await Promise.all([
-      this.prisma.branchFacility.count({ where: { branchId, isEnabled: true } }),
-      this.prisma.department.count({ where: { branchId, isActive: true } }),
-      this.prisma.specialty.count({ where: { branchId, isActive: true } }),
+  // IMPORTANT: Infrastructure single source of truth
+  // Legacy Ward/Room/Bed/OT tables are treated as read-only projections.
+  // Readiness must derive only from LocationNode/Unit/UnitRoom/UnitResource.
 
-      // Staff has NO "role" field in your schema; heuristic via designation
-      this.prisma.staff.count({
-        where: {
-          branchId,
-          isActive: true,
-          OR: [
-            { designation: { contains: "doctor", mode: "insensitive" } },
-            { designation: { contains: "consultant", mode: "insensitive" } },
-            { designation: { contains: "surgeon", mode: "insensitive" } },
-          ],
-        },
-      }),
+  const [enabledFacilities, departments, specialties, doctors, otRooms, otTables, beds] = await Promise.all([
+    this.prisma.branchFacility.count({ where: { branchId, isEnabled: true } }),
+    this.prisma.department.count({ where: { branchId, isActive: true } }),
+    this.prisma.specialty.count({ where: { branchId, isActive: true } }),
 
-      // model OT => prisma.oT
-      this.prisma.oT.count({ where: { branchId, isActive: true } }),
+    // Staff has NO "role" field in your schema; heuristic via designation
+    this.prisma.staff.count({
+      where: {
+        branchId,
+        isActive: true,
+        OR: [
+          { designation: { contains: "doctor", mode: "insensitive" } },
+          { designation: { contains: "consultant", mode: "insensitive" } },
+          { designation: { contains: "surgeon", mode: "insensitive" } },
+        ],
+      },
+    }),
 
-      // model Bed => prisma.bed
-      this.prisma.bed.count({ where: { branchId, isActive: true } }),
-    ]);
+    // OT readiness: either explicit OT rooms under an OT unit, OR OT tables as resources
+    this.prisma.unitRoom.count({
+      where: {
+        branchId,
+        isActive: true,
+        unit: { isActive: true, unitType: { code: "OT" } },
+      },
+    }),
 
-    const summary = { enabledFacilities, departments, specialties, doctors, otRooms, beds };
+    this.prisma.unitResource.count({
+      where: {
+        branchId,
+        isActive: true,
+        resourceType: "OT_TABLE" as any,
+      },
+    }),
 
-    const score =
-      (enabledFacilities > 0 ? 20 : 0) +
-      (departments > 0 ? 20 : 0) +
-      (specialties > 0 ? 20 : 0) +
-      (doctors > 0 ? 20 : 0) +
-      (beds > 0 ? 10 : 0) +
-      (otRooms > 0 ? 10 : 0);
+    // Beds must be represented as UnitResourceType=BED
+    this.prisma.unitResource.count({
+      where: {
+        branchId,
+        isActive: true,
+        resourceType: "BED" as any,
+      },
+    }),
+  ]);
 
-    const blockers: string[] = [];
-    if (enabledFacilities === 0) blockers.push("No facilities enabled.");
-    if (departments === 0) blockers.push("No departments created.");
-    if (doctors === 0) blockers.push("No doctors detected (designation missing 'Doctor/Consultant/Surgeon').");
+  const otSetup = Math.max(otRooms, otTables);
+  const summary = { enabledFacilities, departments, specialties, doctors, otRooms: otSetup, beds };
 
-    const warnings: string[] = [];
-    if (beds === 0) warnings.push("No beds configured.");
-    if (otRooms === 0) warnings.push("No OT rooms defined.");
+  const score =
+    (enabledFacilities > 0 ? 20 : 0) +
+    (departments > 0 ? 20 : 0) +
+    (specialties > 0 ? 20 : 0) +
+    (doctors > 0 ? 20 : 0) +
+    (beds > 0 ? 10 : 0) +
+    (otSetup > 0 ? 10 : 0);
 
-    return {
-      branchId,
-      score,
-      summary,
-      blockers,
-      warnings,
-      generatedAt: new Date().toISOString(),
-    };
-  }
+  const blockers: string[] = [];
+  if (enabledFacilities === 0) blockers.push("No facilities enabled.");
+  if (departments === 0) blockers.push("No departments created.");
+  if (doctors === 0) blockers.push("No doctors detected (designation missing 'Doctor/Consultant/Surgeon').");
+
+  const warnings: string[] = [];
+  if (beds === 0) warnings.push("No beds configured.");
+  if (otSetup === 0) warnings.push("No OT setup configured (no OT rooms or OT tables found).");
+
+  return { score, blockers, warnings, summary };
+}
+
 
   // ---------------------------------------------------------------------------
   // Departments under facilities + doctor assignment + HOD
@@ -474,24 +493,68 @@ export class FacilitySetupService {
 
   async listSpecialties(
     principal: Principal,
-    q: { branchId?: string; includeInactive?: boolean; q?: string },
+    q: { branchId?: string; includeInactive?: boolean; includeMappings?: boolean; q?: string },
   ) {
     const branchId = this.resolveBranchId(principal, q.branchId ?? null);
 
     const where: any = { branchId };
     if (!q.includeInactive) where.isActive = true;
-    if (q.q)
+    if (q.q) {
       where.OR = [
         { name: { contains: q.q, mode: "insensitive" } },
         { code: { contains: q.q, mode: "insensitive" } },
       ];
+    }
 
-    return this.prisma.specialty.findMany({
+    // Default: lightweight listing
+    if (!q.includeMappings) {
+      return this.prisma.specialty.findMany({
+        where,
+        orderBy: [{ name: "asc" }],
+        select: { id: true, branchId: true, code: true, name: true, isActive: true, createdAt: true, updatedAt: true },
+      });
+    }
+
+    // With mappings: include departments and isPrimary flags (from DepartmentSpecialty)
+    const rows = await this.prisma.specialty.findMany({
       where,
       orderBy: [{ name: "asc" }],
-      select: { id: true, branchId: true, code: true, name: true, isActive: true, createdAt: true, updatedAt: true },
+      select: {
+        id: true,
+        branchId: true,
+        code: true,
+        name: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+        departmentLinks: {
+          where: { isActive: true },
+          orderBy: [{ isPrimary: "desc" }, { department: { name: "asc" } }],
+          select: {
+            departmentId: true,
+            isPrimary: true,
+            department: { select: { id: true, code: true, name: true, isActive: true } },
+          },
+        },
+      },
     });
+
+    return rows.map((s) => ({
+      id: s.id,
+      branchId: s.branchId,
+      code: s.code,
+      name: s.name,
+      isActive: s.isActive,
+      createdAt: s.createdAt,
+      updatedAt: s.updatedAt,
+      departments: s.departmentLinks.map((dl) => ({
+        departmentId: dl.departmentId,
+        isPrimary: dl.isPrimary,
+        department: dl.department,
+      })),
+    }));
   }
+
 
   async createSpecialty(principal: Principal, dto: CreateSpecialtyDto) {
     const branchId = this.resolveBranchId(principal, dto.branchId ?? null);

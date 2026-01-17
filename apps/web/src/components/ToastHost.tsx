@@ -12,15 +12,15 @@ type ToastItem = NotifyPayload & {
 function toneStyles(tone: NotifyTone) {
   switch (tone) {
     case "success":
-      return "border-[rgb(var(--xc-ok)/0.35)] bg-[rgb(var(--xc-ok)/0.08)]";
+      return "border-[rgb(var(--zc-ok)/0.35)] bg-[rgb(var(--zc-ok)/0.08)]";
     case "info":
-      return "border-[rgb(var(--xc-accent)/0.35)] bg-[rgb(var(--xc-accent)/0.08)]";
+      return "border-[rgb(var(--zc-accent)/0.35)] bg-[rgb(var(--zc-accent)/0.08)]";
     case "warning":
-      return "border-[rgb(var(--xc-warn)/0.35)] bg-[rgb(var(--xc-warn)/0.08)]";
+      return "border-[rgb(var(--zc-warn)/0.35)] bg-[rgb(var(--zc-warn)/0.08)]";
     case "danger":
-      return "border-[rgb(var(--xc-danger)/0.35)] bg-[rgb(var(--xc-danger)/0.08)]";
+      return "border-[rgb(var(--zc-danger)/0.35)] bg-[rgb(var(--zc-danger)/0.08)]";
     default:
-      return "border-xc-border bg-xc-panel/20";
+      return "border-zc-border bg-zc-panel/20";
   }
 }
 
@@ -72,13 +72,13 @@ export function ToastHost() {
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-xc-text">{t.title}</div>
+              <div className="text-sm font-semibold text-zc-text">{t.title}</div>
               {t.description ? (
-                <div className="mt-1 text-xs leading-5 text-xc-muted">{t.description}</div>
+                <div className="mt-1 text-xs leading-5 text-zc-muted">{t.description}</div>
               ) : null}
             </div>
             <button
-              className="rounded-md px-2 py-1 text-xs text-xc-muted hover:bg-xc-panel/30 hover:text-xc-text"
+              className="rounded-md px-2 py-1 text-xs text-zc-muted hover:bg-zc-panel/30 hover:text-zc-text"
               onClick={() => setItems((prev) => prev.filter((x) => x.id !== t.id))}
               aria-label="Dismiss"
               type="button"

@@ -21,7 +21,7 @@ import {
 @Controller()
 @UseGuards(PrincipalGuard, PermissionsGuard)
 export class FacilitySetupController {
-  constructor(private svc: FacilitySetupService) {}
+  constructor(private svc: FacilitySetupService) { }
 
   private principal(req: any): Principal {
     return req.principal as Principal;
@@ -129,7 +129,7 @@ export class FacilitySetupController {
     return this.svc.updateDepartmentAssignments(this.principal(req), id, dto);
   }
 
-  
+
 
   // -------------------- Department ↔ Specialty mapping --------------------
 
@@ -144,7 +144,7 @@ export class FacilitySetupController {
   async setDepartmentSpecialties(@Param("id") id: string, @Body() dto: SetDepartmentSpecialtiesDto, @Req() req: any) {
     return this.svc.setDepartmentSpecialties(this.principal(req), id, dto);
   }
-// -------------------- Specialties --------------------
+  // -------------------- Specialties --------------------
 
   @Get("specialties")
   @Permissions(PERM.SPECIALTY_READ)
@@ -152,11 +152,13 @@ export class FacilitySetupController {
     @Req() req: any,
     @Query("branchId") branchId?: string,
     @Query("includeInactive") includeInactive?: string,
+    @Query("includeMappings") includeMappings?: string,
     @Query("q") q?: string,
   ) {
     return this.svc.listSpecialties(this.principal(req), {
       branchId,
       includeInactive: includeInactive === "true",
+      includeMappings: includeMappings === "true",
       q,
     });
   }

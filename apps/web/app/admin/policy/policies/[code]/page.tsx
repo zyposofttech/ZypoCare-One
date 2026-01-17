@@ -193,7 +193,7 @@ export default function BranchPolicyDetailPage() {
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <div className="text-2xl font-semibold tracking-tight">{detail?.name || code}</div>
-            <div className="mt-1 text-sm text-xc-muted">
+            <div className="mt-1 text-sm text-zc-muted">
               {detail?.description || "Branch override proposals require Super Admin approval."}
             </div>
           </div>
@@ -234,15 +234,15 @@ export default function BranchPolicyDetailPage() {
           <CardContent>
             {effective ? (
               <>
-                <div className="text-xs text-xc-muted">
+                <div className="text-xs text-zc-muted">
                   Version v{effective.version} · Effective: {new Date(effective.effectiveAt).toLocaleString()}
                 </div>
-                <pre className="mt-3 max-h-[420px] overflow-auto rounded-lg border border-xc-border bg-white/40 p-3 text-xs">
+                <pre className="mt-3 max-h-[420px] overflow-auto rounded-lg border border-zc-border bg-white/40 p-3 text-xs">
                   {pretty(effective.payload)}
                 </pre>
               </>
             ) : (
-              <div className="rounded-xl border border-xc-border bg-xc-card p-4 text-sm text-xc-muted">
+              <div className="rounded-xl border border-zc-border bg-zc-card p-4 text-sm text-zc-muted">
                 No effective policy found for this branch.
               </div>
             )}
@@ -263,15 +263,15 @@ export default function BranchPolicyDetailPage() {
                     {statusBadge(globalActive.status)}
                     <Badge variant="info">v{globalActive.version}</Badge>
                   </div>
-                  <div className="mt-2 text-xs text-xc-muted">
+                  <div className="mt-2 text-xs text-zc-muted">
                     Effective: {new Date(globalActive.effectiveAt).toLocaleString()}
                   </div>
-                  <pre className="mt-3 max-h-[260px] overflow-auto rounded-lg border border-xc-border bg-white/40 p-3 text-xs">
+                  <pre className="mt-3 max-h-[260px] overflow-auto rounded-lg border border-zc-border bg-white/40 p-3 text-xs">
                     {pretty(globalActive.payload)}
                   </pre>
                 </>
               ) : (
-                <div className="rounded-xl border border-xc-border bg-xc-card p-4 text-sm text-xc-muted">
+                <div className="rounded-xl border border-zc-border bg-zc-card p-4 text-sm text-zc-muted">
                   No approved global baseline found.
                 </div>
               )}
@@ -293,15 +293,15 @@ export default function BranchPolicyDetailPage() {
                     {statusBadge(overrideActive.status)}
                     <Badge variant="success">v{overrideActive.version}</Badge>
                   </div>
-                  <div className="mt-2 text-xs text-xc-muted">
+                  <div className="mt-2 text-xs text-zc-muted">
                     Effective: {new Date(overrideActive.effectiveAt).toLocaleString()}
                   </div>
-                  <pre className="mt-3 max-h-[260px] overflow-auto rounded-lg border border-xc-border bg-white/40 p-3 text-xs">
+                  <pre className="mt-3 max-h-[260px] overflow-auto rounded-lg border border-zc-border bg-white/40 p-3 text-xs">
                     {pretty(overrideActive.payload)}
                   </pre>
                 </>
               ) : (
-                <div className="rounded-xl border border-xc-border bg-xc-card p-4 text-sm text-xc-muted">
+                <div className="rounded-xl border border-zc-border bg-zc-card p-4 text-sm text-zc-muted">
                   No active override for this branch.
                 </div>
               )}
@@ -332,7 +332,7 @@ export default function BranchPolicyDetailPage() {
           <CardContent>
             {overrideDraft ? (
               <div className="grid gap-4 md:grid-cols-3">
-                <div className="md:col-span-1 rounded-xl border border-xc-border bg-xc-card p-4">
+                <div className="md:col-span-1 rounded-xl border border-zc-border bg-zc-card p-4">
                   <div className="flex items-center justify-between">
                     <div className="text-sm font-semibold">Draft metadata</div>
                     <Badge variant="info">v{overrideDraft.version}</Badge>
@@ -346,7 +346,7 @@ export default function BranchPolicyDetailPage() {
                         value={draftEffective}
                         onChange={(e) => setDraftEffective(e.target.value)}
                       />
-                      <div className="text-xs text-xc-muted">Use effective-dating for scheduled activation.</div>
+                      <div className="text-xs text-zc-muted">Use effective-dating for scheduled activation.</div>
                     </div>
 
                     <div className="grid gap-1">
@@ -363,19 +363,19 @@ export default function BranchPolicyDetailPage() {
                       Submit for approval
                     </Button>
                     {overrideDraft.status !== "DRAFT" ? (
-                      <div className="text-xs text-xc-muted">
+                      <div className="text-xs text-zc-muted">
                         This draft is not editable because it is {overrideDraft.status.replaceAll("_", " ")}.
                       </div>
                     ) : null}
                   </div>
                 </div>
 
-                <div className="md:col-span-2 rounded-xl border border-xc-border bg-xc-card p-4">
+                <div className="md:col-span-2 rounded-xl border border-zc-border bg-zc-card p-4">
                   <div className="flex items-center justify-between">
                     <div className="text-sm font-semibold">Override payload (JSON)</div>
                     <div className="flex items-center gap-2">{statusBadge(overrideDraft.status)}</div>
                   </div>
-                  <div className="mt-2 text-xs text-xc-muted">
+                  <div className="mt-2 text-xs text-zc-muted">
                     Edit the override payload as JSON. When approved, it will supersede global policy for your branch.
                   </div>
                   <div className="mt-3">
@@ -393,12 +393,12 @@ export default function BranchPolicyDetailPage() {
                   <Badge variant="warning">Pending approval</Badge>
                   <span className="font-semibold">An override submission is awaiting Super Admin review.</span>
                 </div>
-                <div className="mt-2 text-xs text-xc-muted">
+                <div className="mt-2 text-xs text-zc-muted">
                   Version v{pendingOverride.version} · Effective: {new Date(pendingOverride.effectiveAt).toLocaleString()}
                 </div>
               </div>
             ) : (
-              <div className="rounded-xl border border-xc-border bg-xc-card p-4 text-sm text-xc-muted">
+              <div className="rounded-xl border border-zc-border bg-zc-card p-4 text-sm text-zc-muted">
                 No override draft exists. Click “Create Override Draft” to propose a branch-specific override.
               </div>
             )}
@@ -414,8 +414,8 @@ export default function BranchPolicyDetailPage() {
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="text-left text-xc-muted">
-                  <tr className="border-b border-xc-border">
+                <thead className="text-left text-zc-muted">
+                  <tr className="border-b border-zc-border">
                     <th className="py-2">Version</th>
                     <th>Status</th>
                     <th>Effective</th>
@@ -426,7 +426,7 @@ export default function BranchPolicyDetailPage() {
                 </thead>
                 <tbody>
                   {(detail?.overrideHistory ?? []).map((v) => (
-                    <tr key={v.id} className="border-b border-xc-border">
+                    <tr key={v.id} className="border-b border-zc-border">
                       <td className="py-2 font-medium">v{v.version}</td>
                       <td>{statusBadge(v.status)}</td>
                       <td>{new Date(v.effectiveAt).toLocaleString()}</td>
@@ -435,7 +435,7 @@ export default function BranchPolicyDetailPage() {
                       <td className="py-2 text-right">
                         <button
                           type="button"
-                          className="rounded-md border border-xc-border bg-xc-card px-3 py-1 text-sm hover:bg-[rgb(var(--xc-hover-rgb)/0.06)]"
+                          className="rounded-md border border-zc-border bg-zc-card px-3 py-1 text-sm hover:bg-[rgb(var(--zc-hover-rgb)/0.06)]"
                           onClick={() => {
                             notify.info(`Override v${v.version}`, `Status: ${v.status.replaceAll("_", " ")}`);
                             window.navigator.clipboard
@@ -451,7 +451,7 @@ export default function BranchPolicyDetailPage() {
                   ))}
                   {!detail?.overrideHistory?.length ? (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-xc-muted">
+                      <td colSpan={6} className="py-8 text-center text-zc-muted">
                         No override versions yet.
                       </td>
                     </tr>

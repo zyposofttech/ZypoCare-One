@@ -11,10 +11,10 @@ export const Switch = React.forwardRef<
   <SwitchPrimitive.Root
     ref={ref}
     className={cn(
-      "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-xc-border",
-      "bg-[rgb(var(--xc-hover-rgb)/0.06)] transition-colors",
-      "focus:outline-none focus:ring-2 focus:ring-xc-ring",
-      "data-[state=checked]:border-xc-accent data-[state=checked]:bg-xc-accent/80",
+      "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-zc-border",
+      "bg-[rgb(var(--zc-hover-rgb)/0.06)] transition-colors",
+      "focus:outline-none focus:ring-2 focus:ring-zc-ring",
+      "data-[state=checked]:border-zc-accent data-[state=checked]:bg-zc-accent/80",
       "disabled:opacity-50 disabled:cursor-not-allowed",
       className
     )}
@@ -22,7 +22,7 @@ export const Switch = React.forwardRef<
   >
     <SwitchPrimitive.Thumb
       className={cn(
-        "pointer-events-none block h-5 w-5 translate-x-0.5 rounded-full bg-xc-card shadow-elev-1 transition-transform",
+        "pointer-events-none block h-5 w-5 translate-x-0.5 rounded-full bg-zc-card shadow-elev-1 transition-transform",
         "data-[state=checked]:translate-x-[1.35rem]"
       )}
     />

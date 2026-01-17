@@ -38,6 +38,7 @@ import type {
   UpsertServiceChargeMappingDto,
   ValidateImportDto,
   UpdateFixItDto,
+  UpdateBranchInfraConfigDto,
 } from "./infrastructure.dto";
 
 function uniq(ids: string[]) {
@@ -255,6 +256,47 @@ export class InfrastructureService {
     return rev.code;
   }
 
+
+  private async assertValidLocationNode(
+    branchId: string,
+    locationNodeId: string,
+    opts?: { allowKinds?: ("CAMPUS" | "BUILDING" | "FLOOR" | "ZONE")[] },
+  ) {
+    if (!locationNodeId?.trim()) throw new BadRequestException("locationNodeId is required");
+
+    const at = new Date();
+    const node = await this.prisma.locationNode.findFirst({
+      where: { id: locationNodeId, branchId },
+      select: {
+        id: true,
+        kind: true,
+        parentId: true,
+        revisions: {
+          where: {
+            effectiveFrom: { lte: at },
+            OR: [{ effectiveTo: null }, { effectiveTo: { gt: at } }],
+          },
+          orderBy: [{ effectiveFrom: "desc" }],
+          take: 1,
+          select: { code: true, name: true, isActive: true, effectiveFrom: true, effectiveTo: true },
+        },
+      },
+    });
+
+    if (!node) throw new BadRequestException("Invalid locationNodeId (must belong to your branch)");
+
+    const current = node.revisions?.[0];
+    if (!current) throw new BadRequestException("Location node has no current effective revision");
+    if (!current.isActive) throw new BadRequestException("Location node is inactive (cannot assign units)");
+
+    const allow = opts?.allowKinds;
+    if (allow?.length && !allow.includes(node.kind as any)) {
+      throw new BadRequestException(`Units must be mapped to one of: ${allow.join(', ')}.`);
+    }
+
+    return { id: node.id, kind: node.kind, parentId: node.parentId, current };
+  }
+
   async updateLocation(principal: Principal, id: string, dto: UpdateLocationNodeDto) {
     const node = await this.prisma.locationNode.findUnique({ where: { id }, select: { id: true, branchId: true, kind: true, parentId: true } });
     if (!node) throw new NotFoundException("Location not found");
@@ -330,6 +372,38 @@ export class InfrastructureService {
     });
   }
 
+  async getUnit(principal: Principal, id: string) {
+    if (!id?.trim()) throw new BadRequestException("Unit id is required");
+
+    const at = new Date();
+    const unit = await this.prisma.unit.findUnique({
+      where: { id },
+      include: {
+        department: { select: { id: true, name: true, code: true } },
+        unitType: { select: { id: true, code: true, name: true } },
+        locationNode: {
+          select: {
+            id: true,
+            kind: true,
+            parentId: true,
+            revisions: {
+              where: { effectiveFrom: { lte: at }, OR: [{ effectiveTo: null }, { effectiveTo: { gt: at } }] },
+              orderBy: [{ effectiveFrom: "desc" }],
+              take: 1,
+              select: { code: true, name: true, isActive: true, effectiveFrom: true, effectiveTo: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!unit) throw new NotFoundException("Unit not found");
+
+    // Enforce branch isolation / access
+    this.resolveBranchId(principal, unit.branchId);
+
+    return unit;
+  }
   async getBranchUnitTypes(principal: Principal, branchIdParam?: string) {
     const branchId = this.resolveBranchId(principal, branchIdParam ?? null);
 
@@ -409,34 +483,65 @@ export class InfrastructureService {
   // Units / Rooms / Resources (naming convention enforced)
   // ---------------------------------------------------------------------------
 
+
   async listUnits(principal: Principal, q: any) {
     const branchId = this.resolveBranchId(principal, q.branchId ?? null);
     const where: any = { branchId };
     if (q.departmentId) where.departmentId = q.departmentId;
     if (q.unitTypeId) where.unitTypeId = q.unitTypeId;
+    if (q.locationNodeId) where.locationNodeId = q.locationNodeId;
     if (!q.includeInactive) where.isActive = true;
     if (q.q) where.OR = [{ name: { contains: q.q, mode: "insensitive" } }, { code: { contains: q.q, mode: "insensitive" } }];
+
+    const at = new Date();
 
     return this.prisma.unit.findMany({
       where,
       orderBy: [{ createdAt: "desc" }],
-      include: { department: { select: { id: true, name: true, code: true } }, unitType: { select: { id: true, code: true, name: true } } },
+      include: {
+        department: { select: { id: true, name: true, code: true } },
+        unitType: { select: { id: true, code: true, name: true } },
+        locationNode: {
+          select: {
+            id: true,
+            kind: true,
+            parentId: true,
+            revisions: {
+              where: { effectiveFrom: { lte: at }, OR: [{ effectiveTo: null }, { effectiveTo: { gt: at } }] },
+              orderBy: [{ effectiveFrom: "desc" }],
+              take: 1,
+              select: { code: true, name: true, isActive: true, effectiveFrom: true, effectiveTo: true },
+            },
+          },
+        },
+      },
     });
   }
 
-  async createUnit(principal: Principal, dto: CreateUnitDto) {
-    const branchId = this.resolveBranchId(principal, null);
 
+  async createUnit(principal: Principal, dto: CreateUnitDto, branchIdParam?: string) {
+   const branchId = this.resolveBranchId(principal, branchIdParam ?? null);
     const code = assertUnitCode(dto.code);
-    const dept = await this.prisma.department.findFirst({ where: { id: dto.departmentId, branchId }, select: { id: true } });
+
+    const dept = await this.prisma.department.findFirst({
+      where: { id: dto.departmentId, branchId },
+      select: { id: true },
+    });
     if (!dept) throw new BadRequestException("Invalid departmentId (must belong to your branch)");
 
-    const ut = await this.prisma.unitTypeCatalog.findUnique({ where: { id: dto.unitTypeId }, select: { id: true, usesRoomsDefault: true } });
+    const ut = await this.prisma.unitTypeCatalog.findUnique({
+      where: { id: dto.unitTypeId },
+      select: { id: true, usesRoomsDefault: true },
+    });
     if (!ut) throw new BadRequestException("Invalid unitTypeId");
+
+    // Validate location node belongs to branch and is active
+    const loc = await this.assertValidLocationNode(branchId, dto.locationNodeId, { allowKinds: ["FLOOR", "ZONE"] });
 
     const created = await this.prisma.unit.create({
       data: {
         branchId,
+        locationNodeId: loc.id,
         departmentId: dto.departmentId,
         unitTypeId: dto.unitTypeId,
         code,
@@ -446,9 +551,19 @@ export class InfrastructureService {
       },
     });
 
-    await this.audit.log({ branchId, actorUserId: principal.userId, action: "INFRA_UNIT_CREATE", entity: "Unit", entityId: created.id, meta: dto });
-    return created;
+    await this.audit.log({
+      branchId,
+      actorUserId: principal.userId,
+      action: "INFRA_UNIT_CREATE",
+      entity: "Unit",
+      entityId: created.id,
+      meta: dto,
+    });
+
+    return this.getUnit(principal, created.id);
   }
+
+
 
   async updateUnit(principal: Principal, id: string, dto: UpdateUnitDto) {
     const unit = await this.prisma.unit.findUnique({ where: { id }, select: { id: true, branchId: true } });
@@ -456,34 +571,93 @@ export class InfrastructureService {
 
     const branchId = this.resolveBranchId(principal, unit.branchId);
 
-    const updated = await this.prisma.unit.update({
+    if (dto.locationNodeId) {
+      await this.assertValidLocationNode(branchId, dto.locationNodeId, { allowKinds: ["FLOOR", "ZONE"] });
+    }
+
+    await this.prisma.unit.update({
       where: { id },
       data: {
-        name: dto.name?.trim(),
-        usesRooms: dto.usesRooms,
-        isActive: dto.isActive,
+        ...(dto.locationNodeId ? { locationNodeId: dto.locationNodeId } : {}),
+        ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
+        ...(dto.usesRooms !== undefined ? { usesRooms: dto.usesRooms } : {}),
+        ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
       },
     });
 
     await this.audit.log({ branchId, actorUserId: principal.userId, action: "INFRA_UNIT_UPDATE", entity: "Unit", entityId: id, meta: dto });
-    return updated;
+
+    return this.getUnit(principal, id);
   }
 
-  async listRooms(principal: Principal, unitId: string) {
-    const unit = await this.prisma.unit.findUnique({ where: { id: unitId }, select: { id: true, branchId: true } });
-    if (!unit) throw new NotFoundException("Unit not found");
-    this.resolveBranchId(principal, unit.branchId);
+  async listRooms(
+    principal: Principal,
+    q: { unitId?: string | null; branchId?: string | null; includeInactive?: boolean } | string,
+  ) {
+    // Backward compatible: older callers might still pass unitId as a string
+    if (typeof q === "string") {
+      const unitId = q;
+      const unit = await this.prisma.unit.findUnique({ where: { id: unitId }, select: { id: true, branchId: true } });
+      if (!unit) throw new NotFoundException("Unit not found");
+      this.resolveBranchId(principal, unit.branchId);
+      return this.prisma.unitRoom.findMany({ where: { unitId }, orderBy: [{ code: "asc" }] });
+    }
 
-    return this.prisma.unitRoom.findMany({ where: { unitId }, orderBy: [{ code: "asc" }] });
+    const unitId = q.unitId ?? null;
+    const includeInactive = !!q.includeInactive;
+
+    if (unitId) {
+      const unit = await this.prisma.unit.findUnique({ where: { id: unitId }, select: { id: true, branchId: true } });
+      if (!unit) throw new NotFoundException("Unit not found");
+      this.resolveBranchId(principal, unit.branchId);
+
+      return this.prisma.unitRoom.findMany({
+        where: { unitId, ...(includeInactive ? {} : { isActive: true }) },
+        orderBy: [{ code: "asc" }],
+      });
+    }
+
+    const branchId = this.resolveBranchId(principal, q.branchId ?? null);
+
+    return this.prisma.unitRoom.findMany({
+      where: { branchId, ...(includeInactive ? {} : { isActive: true }) },
+      orderBy: [{ code: "asc" }],
+    });
   }
-
+  async listDepartments(principal: Principal, branchIdParam: string | null) {
+    const branchId = this.resolveBranchId(principal, branchIdParam);
+    return this.prisma.department.findMany({
+      where: {
+        branchId,
+        isActive: true,
+      },
+      orderBy: { name: "asc" },
+    });
+  }
   async createRoom(principal: Principal, dto: CreateUnitRoomDto) {
-    const unit = await this.prisma.unit.findUnique({ where: { id: dto.unitId }, select: { id: true, branchId: true, code: true, usesRooms: true } });
+    const unit = await this.prisma.unit.findUnique({
+      where: { id: dto.unitId },
+      select: { id: true, branchId: true, code: true, usesRooms: true, isActive: true },
+    });
     if (!unit) throw new NotFoundException("Unit not found");
+
     const branchId = this.resolveBranchId(principal, unit.branchId);
-    if (!unit.usesRooms) throw new BadRequestException("This unit is configured as open-bay (usesRooms=false). Rooms are not allowed.");
+
+    if (!unit.usesRooms) {
+      throw new BadRequestException(
+        "This unit is configured as open-bay (usesRooms=false). Rooms are not allowed.",
+      );
+    }
+
+    const willBeActive = dto.isActive ?? true;
+    if (!unit.isActive && willBeActive) {
+      throw new BadRequestException("Cannot create an active room under an inactive unit");
+    }
 
     const code = assertRoomCode(unit.code, dto.code);
+
+    const dup = await this.prisma.unitRoom.findFirst({ where: { unitId: unit.id, code }, select: { id: true } });
+    if (dup) throw new BadRequestException(`Room code "${code}" already exists in this unit`);
 
     const created = await this.prisma.unitRoom.create({
       data: {
@@ -491,11 +665,19 @@ export class InfrastructureService {
         branchId,
         code,
         name: dto.name.trim(),
-        isActive: dto.isActive ?? true,
+        isActive: willBeActive,
       },
     });
 
-    await this.audit.log({ branchId, actorUserId: principal.userId, action: "INFRA_ROOM_CREATE", entity: "UnitRoom", entityId: created.id, meta: dto });
+    await this.audit.log({
+      branchId,
+      actorUserId: principal.userId,
+      action: "INFRA_ROOM_CREATE",
+      entity: "UnitRoom",
+      entityId: created.id,
+      meta: dto,
+    });
+
     return created;
   }
 
@@ -513,30 +695,87 @@ export class InfrastructureService {
     return updated;
   }
 
-  async listResources(principal: Principal, q: { unitId: string; roomId: string | null }) {
-    const unit = await this.prisma.unit.findUnique({ where: { id: q.unitId }, select: { id: true, branchId: true } });
-    if (!unit) throw new NotFoundException("Unit not found");
-    this.resolveBranchId(principal, unit.branchId);
+  async listResources(
+    principal: Principal,
+    q: {
+      branchId?: string | null;
+      unitId?: string | null;
+      roomId?: string | null;
+      resourceType?: any;
+      state?: any;
+      q?: string;
+      includeInactive?: boolean;
+    },
+  ) {
+    const includeInactive = !!q.includeInactive;
+
+    // Determine branch scope
+    let branchId: string;
+    if (q.unitId) {
+      const unit = await this.prisma.unit.findUnique({ where: { id: q.unitId }, select: { id: true, branchId: true } });
+      if (!unit) throw new NotFoundException("Unit not found");
+      branchId = this.resolveBranchId(principal, unit.branchId);
+    } else {
+      branchId = this.resolveBranchId(principal, q.branchId ?? null);
+    }
+
+    const where: any = {
+      branchId,
+      ...(includeInactive ? {} : { isActive: true }),
+    };
+
+    if (q.unitId) where.unitId = q.unitId;
+    if (q.roomId) where.roomId = q.roomId;
+    if (q.resourceType) where.resourceType = q.resourceType;
+    if (q.state) where.state = q.state;
+
+    if (q.q) {
+      where.OR = [
+        { code: { contains: q.q, mode: "insensitive" } },
+        { name: { contains: q.q, mode: "insensitive" } },
+      ];
+    }
 
     return this.prisma.unitResource.findMany({
-      where: { unitId: q.unitId, ...(q.roomId ? { roomId: q.roomId } : {}) },
+      where,
       orderBy: [{ code: "asc" }],
     });
   }
 
   async createResource(principal: Principal, dto: CreateUnitResourceDto) {
-    const unit = await this.prisma.unit.findUnique({ where: { id: dto.unitId }, select: { id: true, branchId: true, code: true, usesRooms: true } });
+    const unit = await this.prisma.unit.findUnique({
+      where: { id: dto.unitId },
+      select: { id: true, branchId: true, code: true, usesRooms: true, isActive: true },
+    });
     if (!unit) throw new NotFoundException("Unit not found");
+
     const branchId = this.resolveBranchId(principal, unit.branchId);
 
     const room = dto.roomId
-      ? await this.prisma.unitRoom.findUnique({ where: { id: dto.roomId }, select: { id: true, unitId: true, code: true } })
+      ? await this.prisma.unitRoom.findUnique({
+          where: { id: dto.roomId },
+          select: { id: true, unitId: true, code: true, isActive: true },
+        })
       : null;
 
-    if (dto.roomId && (!room || room.unitId !== unit.id)) throw new BadRequestException("Invalid roomId for this unit");
+    if (dto.roomId && (!room || room.unitId !== unit.id)) {
+      throw new BadRequestException("Invalid roomId for this unit");
+    }
 
-    if (unit.usesRooms && !room) throw new BadRequestException("This unit uses rooms; roomId is required for resources.");
-    if (!unit.usesRooms && room) throw new BadRequestException("This unit is open-bay; roomId must be null.");
+    if (unit.usesRooms && !room) {
+      throw new BadRequestException("This unit uses rooms; roomId is required for resources.");
+    }
+    if (!unit.usesRooms && room) {
+      throw new BadRequestException("This unit is open-bay; roomId must be null.");
+    }
+
+    const willBeActive = dto.isActive ?? true;
+    if (!unit.isActive && willBeActive) {
+      throw new BadRequestException("Cannot create an active resource under an inactive unit");
+    }
+    if (room && !room.isActive && willBeActive) {
+      throw new BadRequestException("Cannot create an active resource under an inactive room");
+    }
 
     const code = assertResourceCode({
       unitCode: unit.code,
@@ -544,6 +783,12 @@ export class InfrastructureService {
       resourceType: dto.resourceType as any,
       resourceCode: dto.code,
     });
+
+    const dup = await this.prisma.unitResource.findFirst({
+      where: { unitId: unit.id, code },
+      select: { id: true },
+    });
+    if (dup) throw new BadRequestException(`Resource code "${code}" already exists in this unit`);
 
     const created = await this.prisma.unitResource.create({
       data: {
@@ -554,12 +799,20 @@ export class InfrastructureService {
         code,
         name: dto.name.trim(),
         state: "AVAILABLE",
-        isActive: dto.isActive ?? true,
+        isActive: willBeActive,
         isSchedulable: dto.isSchedulable ?? (dto.resourceType !== "BED"),
       },
     });
 
-    await this.audit.log({ branchId, actorUserId: principal.userId, action: "INFRA_RESOURCE_CREATE", entity: "UnitResource", entityId: created.id, meta: dto });
+    await this.audit.log({
+      branchId,
+      actorUserId: principal.userId,
+      action: "INFRA_RESOURCE_CREATE",
+      entity: "UnitResource",
+      entityId: created.id,
+      meta: dto,
+    });
+
     return created;
   }
 
@@ -581,22 +834,68 @@ export class InfrastructureService {
     return updated;
   }
 
+  private async ensureBranchInfraConfig(branchId: string) {
+    const cfg = await this.prisma.branchInfraConfig.findUnique({
+      where: { branchId },
+      select: { id: true, branchId: true, housekeepingGateEnabled: true },
+    });
+    if (cfg) return cfg;
+    return this.prisma.branchInfraConfig.create({
+      data: { branchId, housekeepingGateEnabled: true },
+      select: { id: true, branchId: true, housekeepingGateEnabled: true },
+    });
+  }
+
+  async getBranchInfraConfig(principal: Principal, branchIdParam: string) {
+    const branchId = this.resolveBranchId(principal, branchIdParam ?? null);
+    return this.ensureBranchInfraConfig(branchId);
+  }
+
+  async updateBranchInfraConfig(principal: Principal, branchIdParam: string, dto: UpdateBranchInfraConfigDto) {
+    const branchId = this.resolveBranchId(principal, branchIdParam ?? null);
+
+    const saved = await this.prisma.branchInfraConfig.upsert({
+      where: { branchId },
+      update: { housekeepingGateEnabled: dto.housekeepingGateEnabled },
+      create: { branchId, housekeepingGateEnabled: dto.housekeepingGateEnabled },
+      select: { id: true, branchId: true, housekeepingGateEnabled: true },
+    });
+
+    await this.audit.log({
+      branchId,
+      actorUserId: principal.userId,
+      action: "INFRA_CONFIG_UPDATE",
+      entity: "BranchInfraConfig",
+      entityId: saved.id,
+      meta: dto,
+    });
+
+    return saved;
+  }
+
   async setResourceState(principal: Principal, id: string, nextState: any) {
     const res = await this.prisma.unitResource.findUnique({
       where: { id },
-      select: { id: true, branchId: true, resourceType: true, state: true },
+      select: { id: true, branchId: true, resourceType: true, state: true, isActive: true },
     });
     if (!res) throw new NotFoundException("Resource not found");
+
     const branchId = this.resolveBranchId(principal, res.branchId);
 
-    // Enforce discharge/housekeeping gating for beds (policy-configurable later)
+    if (!res.isActive) throw new BadRequestException("Cannot change state of an inactive resource");
+
+    // Housekeeping gate (setup-only): applies only to BED resources when enabled
     if (res.resourceType === "BED") {
+      const cfg = await this.ensureBranchInfraConfig(branchId);
+      const gateEnabled = cfg.housekeepingGateEnabled;
+
       const allowed = new Set(["AVAILABLE", "OCCUPIED", "CLEANING", "MAINTENANCE", "INACTIVE"]);
       if (!allowed.has(nextState)) throw new BadRequestException("Invalid state");
 
-      // Strict gating: OCCUPIED cannot jump to AVAILABLE directly
-      if (res.state === "OCCUPIED" && nextState === "AVAILABLE") {
-        throw new BadRequestException("Bed cannot move from OCCUPIED to AVAILABLE directly. Must go through CLEANING (housekeeping gate).");
+      if (gateEnabled && res.state === "OCCUPIED" && nextState === "AVAILABLE") {
+        throw new BadRequestException(
+          "Housekeeping Gate: Bed cannot move from OCCUPIED to AVAILABLE directly. Move to CLEANING first.",
+        );
       }
     }
 

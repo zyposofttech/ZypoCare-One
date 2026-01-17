@@ -18,7 +18,11 @@ type AuthUserPayload = {
   id: string;
   email: string;
   name: string;
+  // Legacy string role (kept for backward compatibility)
   role: string;
+  // Canonical role code sourced from RoleTemplate (preferred)
+  roleCode: string;
+  roleScope: "GLOBAL" | "BRANCH" | null;
   branchId: string | null;
   mustChangePassword: boolean;
   isActive: boolean;
@@ -33,11 +37,15 @@ export class AuthService {
   ) {}
 
   private toAuthUser(u: any): AuthUserPayload {
+    const roleCode = u?.roleVersion?.roleTemplate?.code ?? u.role;
+    const roleScope = (u?.roleVersion?.roleTemplate?.scope as any) ?? null;
     return {
       id: u.id,
       email: u.email,
       name: u.name,
       role: u.role,
+      roleCode,
+      roleScope,
       branchId: u.branchId ?? null,
       mustChangePassword: !!u.mustChangePassword,
       isActive: !!u.isActive,
@@ -45,14 +53,14 @@ export class AuthService {
   }
 
   private signToken(user: AuthUserPayload) {
-    // IMPORTANT: Include mustChangePassword in token so guard can enforce it
     return this.jwtService.sign({
       sub: user.id,
       email: user.email,
       role: user.role,
-      // ✅ FIX: Added realm_access to satisfy Keycloak-style RolesGuard
+      roleCode: user.roleCode,
+      roleScope: user.roleScope,
       realm_access: {
-        roles: [user.role],
+        roles: [user.roleCode || user.role],
       },
       branchId: user.branchId,
       mustChangePassword: user.mustChangePassword,
@@ -64,6 +72,9 @@ export class AuthService {
 
     const user = await this.prisma.user.findUnique({
       where: { email },
+      include: {
+        roleVersion: { include: { roleTemplate: true } },
+      },
     });
 
     if (!user || !user.passwordHash) return null;
@@ -81,26 +92,19 @@ export class AuthService {
 
     return {
       access_token: this.signToken(user),
-      user, // includes mustChangePassword
+      user,
     };
   }
 
   async changePassword(userId: string, currentPassword: string, newPassword: string) {
     if (!userId) throw new UnauthorizedException("Invalid token");
 
-    if (!currentPassword?.trim()) {
-      throw new BadRequestException("Current password is required");
-    }
-    if (!newPassword?.trim()) {
-      throw new BadRequestException("New password is required");
-    }
+    if (!currentPassword?.trim()) throw new BadRequestException("Current password is required");
+    if (!newPassword?.trim()) throw new BadRequestException("New password is required");
 
     const policyErrors = validatePassword(newPassword);
     if (policyErrors.length) {
-      throw new BadRequestException({
-        message: "Password policy violation",
-        errors: policyErrors,
-      });
+      throw new BadRequestException({ message: "Password policy violation", errors: policyErrors });
     }
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -116,6 +120,7 @@ export class AuthService {
         passwordHash: hashPassword(newPassword),
         mustChangePassword: false,
       },
+      include: { roleVersion: { include: { roleTemplate: true } } },
     });
 
     await this.audit.log({
@@ -130,7 +135,7 @@ export class AuthService {
     const authUser = this.toAuthUser(updated);
 
     return {
-      access_token: this.signToken(authUser), // NEW token with mustChangePassword=false
+      access_token: this.signToken(authUser),
       user: authUser,
       ok: true,
     };

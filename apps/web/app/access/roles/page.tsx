@@ -229,7 +229,7 @@ export default function AccessRolesPage() {
     return (
       <div className="flex flex-col gap-2">
         <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-xc-muted" />
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zc-muted" />
           <Input
             placeholder="Filter permissions..."
             className="pl-9 h-9"
@@ -237,9 +237,9 @@ export default function AccessRolesPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="h-[280px] overflow-y-auto rounded-md border border-xc-border bg-xc-card p-2">
+        <div className="h-[280px] overflow-y-auto rounded-md border border-zc-border bg-zc-card p-2">
           {list.length === 0 ? (
-            <div className="py-8 text-center text-xs text-xc-muted">
+            <div className="py-8 text-center text-xs text-zc-muted">
               No permissions found.
             </div>
           ) : (
@@ -249,7 +249,7 @@ export default function AccessRolesPage() {
                 return (
                   <label
                     key={p.code}
-                    className="flex cursor-pointer items-start gap-3 rounded-md p-2 hover:bg-xc-panel transition-colors"
+                    className="flex cursor-pointer items-start gap-3 rounded-md p-2 hover:bg-zc-panel transition-colors"
                   >
                     <Checkbox
                       checked={isChecked}
@@ -262,7 +262,7 @@ export default function AccessRolesPage() {
                       <div className="text-sm font-medium leading-none">
                         {p.name}
                       </div>
-                      <div className="text-xs text-xc-muted font-mono">
+                      <div className="text-xs text-zc-muted font-mono">
                         {p.code}
                       </div>
                     </div>
@@ -277,8 +277,8 @@ export default function AccessRolesPage() {
             </div>
           )}
         </div>
-        <div className="text-xs text-xc-muted text-right">
-          Selected: <span className="font-medium text-xc-text">{selected.length}</span>
+        <div className="text-xs text-zc-muted text-right">
+          Selected: <span className="font-medium text-zc-text">{selected.length}</span>
         </div>
       </div>
     );
@@ -299,7 +299,7 @@ export default function AccessRolesPage() {
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-xc-muted" />
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zc-muted" />
                   <Input
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
@@ -342,12 +342,12 @@ export default function AccessRolesPage() {
 
           <CardContent>
             {err ? (
-              <div className="mb-4 rounded-xl border border-xc-danger/30 bg-xc-danger/10 px-4 py-3 text-sm text-xc-danger">
+              <div className="mb-4 rounded-xl border border-zc-danger/30 bg-zc-danger/10 px-4 py-3 text-sm text-zc-danger">
                 {err}
               </div>
             ) : null}
 
-            <div className="rounded-xl border border-xc-border">
+            <div className="rounded-xl border border-zc-border">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -364,7 +364,7 @@ export default function AccessRolesPage() {
                     <TableRow>
                       <TableCell
                         colSpan={5}
-                        className="py-10 text-center text-sm text-xc-muted"
+                        className="py-10 text-center text-sm text-zc-muted"
                       >
                         <Loader2 className="mx-auto mb-3 h-5 w-5 animate-spin" />
                         Loading roles...
@@ -378,13 +378,13 @@ export default function AccessRolesPage() {
                           <TableCell className="font-medium">
                             {r.roleName}
                           </TableCell>
-                          <TableCell className="font-mono text-xs text-xc-muted">
+                          <TableCell className="font-mono text-xs text-zc-muted">
                             {r.roleCode}
                           </TableCell>
                           <TableCell>
                             <Badge variant={s.variant}>{s.label}</Badge>
                           </TableCell>
-                          <TableCell className="text-xc-muted">
+                          <TableCell className="text-zc-muted">
                             {r.permissions.length} grants
                           </TableCell>
                           <TableCell className="text-right">
@@ -404,7 +404,7 @@ export default function AccessRolesPage() {
                     <TableRow>
                       <TableCell
                         colSpan={5}
-                        className="py-10 text-center text-sm text-xc-muted"
+                        className="py-10 text-center text-sm text-zc-muted"
                       >
                         No roles found.
                       </TableCell>
@@ -482,7 +482,7 @@ export default function AccessRolesPage() {
                       <SelectItem value="BRANCH">Branch Specific</SelectItem>
                     </SelectContent>
                   </Select>
-                  <div className="text-xs text-xc-muted">
+                  <div className="text-xs text-zc-muted">
                     {cScope === "GLOBAL"
                       ? "User assigned this role will have these permissions across the entire organization."
                       : "User must be assigned to a specific branch to use this role."}
@@ -551,7 +551,7 @@ export default function AccessRolesPage() {
 
                 <div className="grid gap-2">
                   <Label>Scope</Label>
-                  <div className="flex items-center gap-2 rounded-md border border-xc-border bg-xc-panel px-3 py-2 text-sm text-xc-muted">
+                  <div className="flex items-center gap-2 rounded-md border border-zc-border bg-zc-panel px-3 py-2 text-sm text-zc-muted">
                     <Badge variant={editTarget?.scope === "GLOBAL" ? "accent" : "secondary"}>
                       {editTarget?.scope}
                     </Badge>

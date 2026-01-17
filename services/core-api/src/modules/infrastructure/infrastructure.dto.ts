@@ -80,11 +80,19 @@ export class SetBranchUnitTypesDto {
 }
 
 export class CreateUnitDto {
+  @IsOptional()
+  @IsString()
+  branchId?: string;
+  
   @IsString()
   departmentId!: string;
 
   @IsString()
   unitTypeId!: string;
+
+  // Unit must be bound to a specific location node under the branch
+  @IsString()
+  locationNodeId!: string;
 
   @Matches(RX_UNIT_CODE)
   code!: string;
@@ -103,6 +111,11 @@ export class CreateUnitDto {
 }
 
 export class UpdateUnitDto {
+  // Optional: move unit to another location node (must belong to same branch)
+  @IsOptional()
+  @IsString()
+  locationNodeId?: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(160)
@@ -199,6 +212,11 @@ export class UpdateUnitResourceDto {
 export class SetResourceStateDto {
   @IsIn(["AVAILABLE", "OCCUPIED", "CLEANING", "MAINTENANCE", "INACTIVE"])
   state!: "AVAILABLE" | "OCCUPIED" | "CLEANING" | "MAINTENANCE" | "INACTIVE";
+}
+
+export class UpdateBranchInfraConfigDto {
+  @IsBoolean()
+  housekeepingGateEnabled!: boolean;
 }
 
 // ---------------- Equipment ----------------

@@ -64,7 +64,9 @@ type Department = {
   code: string;
   name: string;
   isActive: boolean;
-  specialties: DepartmentSpecialtyLink[];
+  // Backward/forward compatible: old API may return `specialties`, new API may return `departmentSpecialties`
+  specialties?: DepartmentSpecialtyLink[];
+  departmentSpecialties?: DepartmentSpecialtyLink[];
   createdAt: string;
   updatedAt: string;
 };
@@ -79,11 +81,22 @@ type Specialty = {
   updatedAt: string;
 };
 
-type DeptSpecialtiesResponse = Array<{
+// Backend shape compatibility:
+// - Legacy/flat: [ { specialtyId, isPrimary, specialty } ]
+// - Current: { department: {...}, items: [ { specialtyId, isPrimary, specialty, ... } ] }
+type DeptSpecialtiesItem = {
   specialtyId: string;
   isPrimary: boolean;
   specialty: { id: string; code: string; name: string; isActive: boolean };
-}>;
+};
+
+type DeptSpecialtiesResponse =
+  | DeptSpecialtiesItem[]
+  | {
+      department?: any;
+      items?: DeptSpecialtiesItem[];
+    }
+  | any;
 
 /* ----------------------------- Small UI Helpers ----------------------------- */
 
@@ -97,7 +110,7 @@ const pillTones: Record<Tone, string> = {
   cyan: "border-cyan-200/70 bg-cyan-50/70 text-cyan-700 dark:border-cyan-900/40 dark:bg-cyan-900/20 dark:text-cyan-200",
   amber:
     "border-amber-200/70 bg-amber-50/70 text-amber-700 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200",
-  zinc: "border-xc-border bg-xc-panel/20 text-xc-text",
+  zinc: "border-zc-border bg-zc-panel/20 text-zc-text",
   rose: "border-rose-200/70 bg-rose-50/70 text-rose-700 dark:border-rose-900/40 dark:bg-rose-900/20 dark:text-rose-200",
 };
 
@@ -106,14 +119,14 @@ function MetricPill(props: { label: string; value: React.ReactNode; tone: Tone; 
     <span className={cn("inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm", pillTones[props.tone])}>
       {props.icon ? <span className="grid place-items-center">{props.icon}</span> : null}
       <span className="font-medium">{props.label}</span>
-      <span className="text-xc-muted/70">•</span>
+      <span className="text-zc-muted/70">•</span>
       <span className="font-mono font-semibold">{props.value}</span>
     </span>
   );
 }
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-md bg-xc-panel/30", className)} />;
+  return <div className={cn("animate-pulse rounded-md bg-zc-panel/30", className)} />;
 }
 
 function SoftCheckbox(props: { checked: boolean; disabled?: boolean }) {
@@ -121,12 +134,12 @@ function SoftCheckbox(props: { checked: boolean; disabled?: boolean }) {
     <span
       className={cn(
         "grid h-5 w-5 place-items-center rounded-md border transition-all",
-        "border-xc-border bg-xc-panel/30",
-        props.checked && "border-[rgb(var(--xc-accent-rgb)/0.55)] bg-[rgb(var(--xc-accent-rgb)/0.18)]",
+        "border-zc-border bg-zc-panel/30",
+        props.checked && "border-[rgb(var(--zc-accent-rgb)/0.55)] bg-[rgb(var(--zc-accent-rgb)/0.18)]",
         props.disabled && "opacity-50",
       )}
     >
-      {props.checked ? <Check className="h-4 w-4 text-[rgb(var(--xc-accent))]" /> : null}
+      {props.checked ? <Check className="h-4 w-4 text-[rgb(var(--zc-accent))]" /> : null}
     </span>
   );
 }
@@ -187,20 +200,20 @@ function ModalShell({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 animate-in fade-in duration-200">
       <div
         className={cn(
-          "w-full rounded-2xl border border-xc-border bg-xc-card shadow-elev-2 animate-in zoom-in-95 duration-200",
+          "w-full rounded-2xl border border-zc-border bg-zc-card shadow-elev-2 animate-in zoom-in-95 duration-200",
           maxW,
         )}
       >
         <div className="p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <div className="text-lg font-semibold tracking-tight text-xc-text">{title}</div>
-              {description ? <div className="mt-1 text-sm text-xc-muted">{description}</div> : null}
+              <div className="text-lg font-semibold tracking-tight text-zc-text">{title}</div>
+              {description ? <div className="mt-1 text-sm text-zc-muted">{description}</div> : null}
             </div>
 
             <button
               onClick={onClose}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-xc-border bg-xc-panel/25 text-xc-muted hover:bg-xc-panel hover:text-xc-text transition-colors"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-zc-border bg-zc-panel/25 text-zc-muted hover:bg-zc-panel hover:text-zc-text transition-colors"
               aria-label="Close"
               title="Close"
             >
@@ -231,18 +244,18 @@ function Stepper(props: { step: StepId; onGo: (s: StepId) => void }) {
   const idx = steps.findIndex((s) => s.id === props.step);
 
   return (
-    <div className="rounded-2xl border border-xc-border bg-xc-card shadow-elev-1 overflow-hidden">
+    <div className="rounded-2xl border border-zc-border bg-zc-card shadow-elev-1 overflow-hidden">
       <div className="p-4 md:p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <div className="text-sm font-semibold text-xc-text">{steps[idx]?.title}</div>
-            <div className="mt-1 text-sm text-xc-muted">{steps[idx]?.subtitle}</div>
+            <div className="text-sm font-semibold text-zc-text">{steps[idx]?.title}</div>
+            <div className="mt-1 text-sm text-zc-muted">{steps[idx]?.subtitle}</div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-xc-muted">
-            <span className="rounded-full border border-xc-border bg-xc-panel/20 px-3 py-1">
-              Step <span className="font-semibold text-xc-text">{idx + 1}</span> of{" "}
-              <span className="font-semibold text-xc-text">{steps.length}</span>
+          <div className="flex items-center gap-2 text-xs text-zc-muted">
+            <span className="rounded-full border border-zc-border bg-zc-panel/20 px-3 py-1">
+              Step <span className="font-semibold text-zc-text">{idx + 1}</span> of{" "}
+              <span className="font-semibold text-zc-text">{steps.length}</span>
             </span>
           </div>
         </div>
@@ -258,19 +271,19 @@ function Stepper(props: { step: StepId; onGo: (s: StepId) => void }) {
                 onClick={() => props.onGo(s.id)}
                 className={cn(
                   "rounded-xl border px-3 py-2 text-left transition-all",
-                  "border-xc-border bg-xc-panel/16 hover:bg-xc-panel/24",
+                  "border-zc-border bg-zc-panel/16 hover:bg-zc-panel/24",
                   active &&
-                    "border-[rgb(var(--xc-accent-rgb)/0.55)] bg-[rgb(var(--xc-accent-rgb)/0.18)] shadow-elev-2",
+                    "border-[rgb(var(--zc-accent-rgb)/0.55)] bg-[rgb(var(--zc-accent-rgb)/0.18)] shadow-elev-2",
                   done && !active && "bg-emerald-50/40 dark:bg-emerald-900/10",
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <div className={cn("text-sm font-semibold", active ? "text-[rgb(var(--xc-accent))]" : "text-xc-text")}>
+                  <div className={cn("text-sm font-semibold", active ? "text-[rgb(var(--zc-accent))]" : "text-zc-text")}>
                     {i + 1}. {s.title}
                   </div>
                   {done ? <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-300" /> : null}
                 </div>
-                <div className="mt-1 text-xs text-xc-muted">{s.subtitle}</div>
+                <div className="mt-1 text-xs text-zc-muted">{s.subtitle}</div>
               </button>
             );
           })}
@@ -336,13 +349,18 @@ export default function BranchFacilitySetupWizardPage() {
 
   const facilitiesByCat = React.useMemo(() => groupFacilities(catalog), [catalog]);
 
+  // Backward/forward compatible access to Department ↔ Specialty mappings
+  const deptLinks = React.useCallback((d: Department): DepartmentSpecialtyLink[] => {
+    return (d.specialties ?? d.departmentSpecialties ?? []) as DepartmentSpecialtyLink[];
+  }, []);
+
   const loadAll = React.useCallback(async () => {
     setLoading(true);
     try {
       const [cat, enabled, depts, specs] = await Promise.all([
         apiFetch<FacilityCatalog[]>("/api/facilities/master?includeInactive=true"),
         apiFetch<BranchFacility[]>(`/api/branches/${branchId}/facilities`),
-        apiFetch<Department[]>(`/api/departments?branchId=${branchId}&includeInactive=true`),
+        apiFetch<Department[]>(`/api/departments?branchId=${branchId}&includeInactive=true&includeMappings=true`),
         apiFetch<Specialty[]>(`/api/specialties?branchId=${branchId}&includeInactive=true`),
       ]);
 
@@ -521,9 +539,23 @@ export default function BranchFacilitySetupWizardPage() {
 
     setMapLoading(true);
     try {
-      const rows = await apiFetch<DeptSpecialtiesResponse>(`/api/departments/${d.id}/specialties`);
-      const ids = (rows ?? []).map((x) => x.specialtyId);
-      const primary = (rows ?? []).find((x) => x.isPrimary)?.specialtyId ?? null;
+      const raw = await apiFetch<DeptSpecialtiesResponse>(`/api/departments/${d.id}/specialties`);
+
+      // Normalize response to an array of mapping items.
+      // Backend may return either:
+      //  - an array (legacy)
+      //  - { department, items: [...] } (current)
+      //  - { data/items: [...] } (future wrappers)
+      const rows: DeptSpecialtiesItem[] = Array.isArray(raw)
+        ? (raw as any)
+        : Array.isArray((raw as any)?.items)
+          ? ((raw as any).items as any)
+          : Array.isArray((raw as any)?.data)
+            ? ((raw as any).data as any)
+            : [];
+
+      const ids = rows.map((x) => x.specialtyId);
+      const primary = rows.find((x) => x.isPrimary)?.specialtyId ?? null;
       setSelectedSpecIds(ids);
       setPrimarySpecId(primary);
     } catch (e: any) {
@@ -562,9 +594,9 @@ export default function BranchFacilitySetupWizardPage() {
 
   const unmappedActiveDeptCount = React.useMemo(() => {
     const hasActiveSpec = (d: Department) =>
-      (d.specialties ?? []).some((x) => (x.specialty?.isActive ?? true) === true);
+      deptLinks(d).some((x) => (x.specialty?.isActive ?? true) === true);
     return activeDepartments.filter((d) => !hasActiveSpec(d)).length;
-  }, [activeDepartments]);
+  }, [activeDepartments, deptLinks]);
 
   const mappedActiveDeptCount = activeDepartments.length - unmappedActiveDeptCount;
 
@@ -589,10 +621,10 @@ export default function BranchFacilitySetupWizardPage() {
 
   const warnings = React.useMemo(() => {
     const w: string[] = [];
-    const inactiveMapped = activeDepartments.some((d) => (d.specialties ?? []).some((x) => x.specialty?.isActive === false));
+    const inactiveMapped = activeDepartments.some((d) => deptLinks(d).some((x) => x.specialty?.isActive === false));
     if (inactiveMapped) w.push("Some departments are mapped to inactive specialties. Consider cleanup.");
     return w;
-  }, [activeDepartments]);
+  }, [activeDepartments, deptLinks]);
 
   const selectedCatList = facilitiesByCat[facilityCat] ?? [];
   const selectedCatListFiltered = React.useMemo(() => {
@@ -662,23 +694,23 @@ export default function BranchFacilitySetupWizardPage() {
               </span>
 
               <div className="min-w-0">
-                <div className="text-sm text-xc-muted">
+                <div className="text-sm text-zc-muted">
                   <Link href="/superadmin/branches" className="hover:underline">
                     Branches
                   </Link>
-                  <span className="mx-2 text-xc-muted/60">/</span>
-                  <span className="text-xc-text">Facility Setup Wizard</span>
+                  <span className="mx-2 text-zc-muted/60">/</span>
+                  <span className="text-zc-text">Facility Setup Wizard</span>
                 </div>
 
-                <div className="mt-1 text-3xl font-semibold tracking-tight text-xc-text">
+                <div className="mt-1 text-3xl font-semibold tracking-tight text-zc-text">
                   {loading ? <Skeleton className="h-9 w-72" /> : "Branch Setup"}
                 </div>
 
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-xc-muted">
-                  <span className="rounded-md border border-xc-border bg-xc-panel/25 px-2 py-0.5 font-mono text-[12px] text-xc-text">
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-zc-muted">
+                  <span className="rounded-md border border-zc-border bg-zc-panel/25 px-2 py-0.5 font-mono text-[12px] text-zc-text">
                     {branchId}
                   </span>
-                  <span className="text-xc-muted/60">•</span>
+                  <span className="text-zc-muted/60">•</span>
                   <span className="inline-flex items-center gap-1">
                     <Wrench className="h-4 w-4" /> Super Admin: Facilities → Departments → Specialties → Mapping
                   </span>
@@ -705,7 +737,7 @@ export default function BranchFacilitySetupWizardPage() {
             <span className={cn("inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm", pillTones[setupScoreMeta.tone])}>
               {setupScoreMeta.icon}
               <span className="font-semibold">{setupScoreMeta.label}</span>
-              <span className="text-xc-muted/70">•</span>
+              <span className="text-zc-muted/70">•</span>
               <span className="font-mono">{setupScore}/100</span>
             </span>
           </div>
@@ -716,13 +748,13 @@ export default function BranchFacilitySetupWizardPage() {
 
         {/* Step: Facilities */}
         {step === "facilities" ? (
-          <div className="rounded-2xl border border-xc-border bg-xc-card shadow-elev-1 overflow-hidden">
-            <div className="p-4 md:p-5 border-b border-xc-border">
+          <div className="rounded-2xl border border-zc-border bg-zc-card shadow-elev-1 overflow-hidden">
+            <div className="p-4 md:p-5 border-b border-zc-border">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0">
-                  <div className="text-sm font-semibold text-xc-text">Enable facilities for this branch</div>
-                  <div className="mt-1 text-sm text-xc-muted">
-                    Select facilities and <span className="font-semibold text-xc-text">Save</span> before continuing.
+                  <div className="text-sm font-semibold text-zc-text">Enable facilities for this branch</div>
+                  <div className="mt-1 text-sm text-zc-muted">
+                    Select facilities and <span className="font-semibold text-zc-text">Save</span> before continuing.
                   </div>
 
                   {facilitiesDirty ? (
@@ -760,7 +792,7 @@ export default function BranchFacilitySetupWizardPage() {
 
               <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 {/* Segmented switch */}
-                <div className="inline-flex rounded-2xl border border-xc-border bg-xc-panel/20 p-1">
+                <div className="inline-flex rounded-2xl border border-zc-border bg-zc-panel/20 p-1">
                   {([
                     { id: "CLINICAL", label: "Clinical", icon: <Stethoscope className="h-4 w-4" /> },
                     { id: "SERVICE", label: "Service", icon: <Wrench className="h-4 w-4" /> },
@@ -775,15 +807,15 @@ export default function BranchFacilitySetupWizardPage() {
                         className={cn(
                           "inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-all",
                           active
-                            ? "bg-[rgb(var(--xc-accent-rgb)/0.18)] text-[rgb(var(--xc-accent))] shadow-elev-1 border border-[rgb(var(--xc-accent-rgb)/0.45)]"
-                            : "text-xc-text hover:bg-xc-panel/25",
+                            ? "bg-[rgb(var(--zc-accent-rgb)/0.18)] text-[rgb(var(--zc-accent))] shadow-elev-1 border border-[rgb(var(--zc-accent-rgb)/0.45)]"
+                            : "text-zc-text hover:bg-zc-panel/25",
                         )}
                       >
-                        <span className={cn("opacity-90", active ? "text-[rgb(var(--xc-accent))]" : "text-xc-muted")}>
+                        <span className={cn("opacity-90", active ? "text-[rgb(var(--zc-accent))]" : "text-zc-muted")}>
                           {c.icon}
                         </span>
                         {c.label}
-                        <span className="ml-1 rounded-full border border-xc-border bg-xc-panel/25 px-2 py-0.5 text-[11px] font-mono text-xc-muted">
+                        <span className="ml-1 rounded-full border border-zc-border bg-zc-panel/25 px-2 py-0.5 text-[11px] font-mono text-zc-muted">
                           {(facilitiesByCat[c.id] ?? []).length}
                         </span>
                       </button>
@@ -793,7 +825,7 @@ export default function BranchFacilitySetupWizardPage() {
 
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="relative w-full md:w-[360px]">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-xc-muted" />
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zc-muted" />
                     <Input
                       value={facilityQ}
                       onChange={(e) => setFacilityQ(e.target.value)}
@@ -810,7 +842,7 @@ export default function BranchFacilitySetupWizardPage() {
                     title={allActiveSelectedInCat ? "Deselect all active facilities in this category" : "Select all active facilities in this category"}
                   >
                     {allActiveSelectedInCat ? "Deselect all" : "Select all"}
-                    <span className="rounded-full border border-xc-border bg-xc-panel/25 px-2 py-0.5 text-[11px] font-mono text-xc-muted">
+                    <span className="rounded-full border border-zc-border bg-zc-panel/25 px-2 py-0.5 text-[11px] font-mono text-zc-muted">
                       {selectedCountInCat}
                     </span>
                   </Button>
@@ -845,30 +877,30 @@ export default function BranchFacilitySetupWizardPage() {
                         }}
                         className={cn(
                           "group flex items-center gap-3 rounded-2xl border p-3 text-left transition-all",
-                          "border-xc-border bg-xc-panel/10 hover:bg-xc-panel/18",
-                          checked && "border-[rgb(var(--xc-accent-rgb)/0.55)] bg-[rgb(var(--xc-accent-rgb)/0.18)] shadow-elev-2",
-                          disabled && "opacity-55 cursor-not-allowed hover:bg-xc-panel/10",
+                          "border-zc-border bg-zc-panel/10 hover:bg-zc-panel/18",
+                          checked && "border-[rgb(var(--zc-accent-rgb)/0.55)] bg-[rgb(var(--zc-accent-rgb)/0.18)] shadow-elev-2",
+                          disabled && "opacity-55 cursor-not-allowed hover:bg-zc-panel/10",
                         )}
                       >
                         <SoftCheckbox checked={checked} disabled={disabled} />
 
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center justify-between gap-3">
-                            <div className={cn("truncate text-sm font-semibold", checked ? "text-[rgb(var(--xc-accent))]" : "text-xc-text")}>
+                            <div className={cn("truncate text-sm font-semibold", checked ? "text-[rgb(var(--zc-accent))]" : "text-zc-text")}>
                               {f.name}
                             </div>
-                            <span className="rounded-md border border-xc-border bg-xc-panel/20 px-2 py-0.5 text-[11px] font-mono text-xc-muted">
+                            <span className="rounded-md border border-zc-border bg-zc-panel/20 px-2 py-0.5 text-[11px] font-mono text-zc-muted">
                               {f.code}
                             </span>
                           </div>
-                          <div className="mt-1 flex items-center gap-2 text-xs text-xc-muted">
+                          <div className="mt-1 flex items-center gap-2 text-xs text-zc-muted">
                             {disabled ? (
                               <span className="inline-flex items-center gap-1">
                                 <X className="h-3.5 w-3.5" /> Inactive
                               </span>
                             ) : checked ? (
                               <span className="inline-flex items-center gap-1">
-                                <Check className="h-3.5 w-3.5 text-[rgb(var(--xc-accent))]" /> Selected
+                                <Check className="h-3.5 w-3.5 text-[rgb(var(--zc-accent))]" /> Selected
                               </span>
                             ) : (
                               <span className="inline-flex items-center gap-1">
@@ -884,7 +916,7 @@ export default function BranchFacilitySetupWizardPage() {
               )}
 
               {!loading && selectedCatListFiltered.length === 0 ? (
-                <div className="mt-4 rounded-2xl border border-xc-border bg-xc-panel/12 p-4 text-sm text-xc-muted">
+                <div className="mt-4 rounded-2xl border border-zc-border bg-zc-panel/12 p-4 text-sm text-zc-muted">
                   No facilities match your search in this category.
                 </div>
               ) : null}
@@ -894,17 +926,17 @@ export default function BranchFacilitySetupWizardPage() {
 
         {/* Step: Departments */}
         {step === "departments" ? (
-          <div className="rounded-2xl border border-xc-border bg-xc-card shadow-elev-1 overflow-hidden">
-            <div className="p-4 md:p-5 border-b border-xc-border">
+          <div className="rounded-2xl border border-zc-border bg-zc-card shadow-elev-1 overflow-hidden">
+            <div className="p-4 md:p-5 border-b border-zc-border">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0">
-                  <div className="text-sm font-semibold text-xc-text">Departments</div>
-                  <div className="mt-1 text-sm text-xc-muted">Create departments under enabled facilities.</div>
+                  <div className="text-sm font-semibold text-zc-text">Departments</div>
+                  <div className="mt-1 text-sm text-zc-muted">Create departments under enabled facilities.</div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="relative w-full sm:w-[320px]">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-xc-muted" />
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zc-muted" />
                     <Input value={deptQ} onChange={(e) => setDeptQ(e.target.value)} placeholder="Search departments…" className="pl-9" />
                   </div>
                   <Button
@@ -928,26 +960,26 @@ export default function BranchFacilitySetupWizardPage() {
                   ))}
                 </div>
               ) : filteredDepartments.length === 0 ? (
-                <div className="rounded-2xl border border-xc-border bg-xc-panel/12 p-4 text-sm text-xc-muted">
+                <div className="rounded-2xl border border-zc-border bg-zc-panel/12 p-4 text-sm text-zc-muted">
                   No departments found. Create one to continue.
                 </div>
               ) : (
                 <div className="grid gap-3">
                   {filteredDepartments.map((d) => {
-                    const mapped = (d.specialties ?? []).filter((x) => x.specialty?.isActive !== false);
-                    const primary = (d.specialties ?? []).find((x) => x.isPrimary)?.specialty;
+                    const mapped = deptLinks(d).filter((x) => x.specialty?.isActive !== false);
+                    const primary = deptLinks(d).find((x) => x.isPrimary)?.specialty;
                     return (
-                      <div key={d.id} className="rounded-2xl border border-xc-border bg-xc-panel/10 p-4 hover:bg-xc-panel/16 transition-all">
+                      <div key={d.id} className="rounded-2xl border border-zc-border bg-zc-panel/10 p-4 hover:bg-zc-panel/16 transition-all">
                         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
-                              <div className="text-sm font-semibold text-xc-text">{d.name}</div>
-                              <span className="rounded-md border border-xc-border bg-xc-panel/20 px-2 py-0.5 text-[11px] font-mono text-xc-muted">{d.code}</span>
-                              <span className="rounded-md border border-xc-border bg-xc-panel/20 px-2 py-0.5 text-[11px] text-xc-muted">
+                              <div className="text-sm font-semibold text-zc-text">{d.name}</div>
+                              <span className="rounded-md border border-zc-border bg-zc-panel/20 px-2 py-0.5 text-[11px] font-mono text-zc-muted">{d.code}</span>
+                              <span className="rounded-md border border-zc-border bg-zc-panel/20 px-2 py-0.5 text-[11px] text-zc-muted">
                                 {d.facility?.name ?? "Facility"}
                               </span>
                               {!d.isActive ? (
-                                <span className="rounded-full border border-xc-border bg-xc-panel/20 px-2 py-0.5 text-[11px] text-xc-muted">
+                                <span className="rounded-full border border-zc-border bg-zc-panel/20 px-2 py-0.5 text-[11px] text-zc-muted">
                                   Inactive
                                 </span>
                               ) : null}
@@ -975,10 +1007,10 @@ export default function BranchFacilitySetupWizardPage() {
                                     {x.specialty.name}
                                   </span>
                                 ))}
-                                {mapped.length > 4 ? <span className="text-xs text-xc-muted">+{mapped.length - 4} more</span> : null}
+                                {mapped.length > 4 ? <span className="text-xs text-zc-muted">+{mapped.length - 4} more</span> : null}
                               </div>
                             ) : (
-                              <div className="mt-2 text-xs text-xc-muted">Map specialties in the next step.</div>
+                              <div className="mt-2 text-xs text-zc-muted">Map specialties in the next step.</div>
                             )}
                           </div>
 
@@ -1003,17 +1035,17 @@ export default function BranchFacilitySetupWizardPage() {
 
         {/* Step: Specialties */}
         {step === "specialties" ? (
-          <div className="rounded-2xl border border-xc-border bg-xc-card shadow-elev-1 overflow-hidden">
-            <div className="p-4 md:p-5 border-b border-xc-border">
+          <div className="rounded-2xl border border-zc-border bg-zc-card shadow-elev-1 overflow-hidden">
+            <div className="p-4 md:p-5 border-b border-zc-border">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0">
-                  <div className="text-sm font-semibold text-xc-text">Specialties Catalog (Branch-level)</div>
-                  <div className="mt-1 text-sm text-xc-muted">Create the master specialty list for this branch.</div>
+                  <div className="text-sm font-semibold text-zc-text">Specialties Catalog (Branch-level)</div>
+                  <div className="mt-1 text-sm text-zc-muted">Create the master specialty list for this branch.</div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="relative w-full sm:w-[320px]">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-xc-muted" />
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zc-muted" />
                     <Input value={specQ} onChange={(e) => setSpecQ(e.target.value)} placeholder="Search specialties…" className="pl-9" />
                   </div>
                   <Button onClick={openCreateSpec} className="gap-2">
@@ -1032,27 +1064,27 @@ export default function BranchFacilitySetupWizardPage() {
                   ))}
                 </div>
               ) : filteredSpecialties.length === 0 ? (
-                <div className="rounded-2xl border border-xc-border bg-xc-panel/12 p-4 text-sm text-xc-muted">
+                <div className="rounded-2xl border border-zc-border bg-zc-panel/12 p-4 text-sm text-zc-muted">
                   No specialties found. Add at least one to proceed to mapping.
                 </div>
               ) : (
                 <div className="grid gap-3">
                   {filteredSpecialties.map((s) => (
-                    <div key={s.id} className="rounded-2xl border border-xc-border bg-xc-panel/10 p-4 hover:bg-xc-panel/16 transition-all">
+                    <div key={s.id} className="rounded-2xl border border-zc-border bg-zc-panel/10 p-4 hover:bg-zc-panel/16 transition-all">
                       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <div className="text-sm font-semibold text-xc-text">{s.name}</div>
-                            <span className="rounded-md border border-xc-border bg-xc-panel/20 px-2 py-0.5 text-[11px] font-mono text-xc-muted">{s.code}</span>
+                            <div className="text-sm font-semibold text-zc-text">{s.name}</div>
+                            <span className="rounded-md border border-zc-border bg-zc-panel/20 px-2 py-0.5 text-[11px] font-mono text-zc-muted">{s.code}</span>
                             {!s.isActive ? (
-                              <span className="rounded-full border border-xc-border bg-xc-panel/20 px-2 py-0.5 text-[11px] text-xc-muted">
+                              <span className="rounded-full border border-zc-border bg-zc-panel/20 px-2 py-0.5 text-[11px] text-zc-muted">
                                 Inactive
                               </span>
                             ) : (
                               <span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.emerald)}>Active</span>
                             )}
                           </div>
-                          <div className="mt-1 text-xs text-xc-muted">Branch-level specialty. Map it to departments in the next step.</div>
+                          <div className="mt-1 text-xs text-zc-muted">Branch-level specialty. Map it to departments in the next step.</div>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
@@ -1071,10 +1103,10 @@ export default function BranchFacilitySetupWizardPage() {
 
         {/* Step: Mapping */}
         {step === "mapping" ? (
-          <div className="rounded-2xl border border-xc-border bg-xc-card shadow-elev-1 overflow-hidden">
-            <div className="p-4 md:p-5 border-b border-xc-border">
-              <div className="text-sm font-semibold text-xc-text">Department ↔ Specialty Mapping</div>
-              <div className="mt-1 text-sm text-xc-muted">
+          <div className="rounded-2xl border border-zc-border bg-zc-card shadow-elev-1 overflow-hidden">
+            <div className="p-4 md:p-5 border-b border-zc-border">
+              <div className="text-sm font-semibold text-zc-text">Department ↔ Specialty Mapping</div>
+              <div className="mt-1 text-sm text-zc-muted">
                 Map one or more specialties to each active department and optionally mark a Primary specialty.
               </div>
             </div>
@@ -1083,25 +1115,25 @@ export default function BranchFacilitySetupWizardPage() {
               {loading ? (
                 <Skeleton className="h-16 rounded-2xl" />
               ) : activeDepartments.length === 0 ? (
-                <div className="rounded-2xl border border-xc-border bg-xc-panel/12 p-4 text-sm text-xc-muted">
+                <div className="rounded-2xl border border-zc-border bg-zc-panel/12 p-4 text-sm text-zc-muted">
                   Create at least one active department first.
                 </div>
               ) : activeSpecialties.length === 0 ? (
-                <div className="rounded-2xl border border-xc-border bg-xc-panel/12 p-4 text-sm text-xc-muted">
+                <div className="rounded-2xl border border-zc-border bg-zc-panel/12 p-4 text-sm text-zc-muted">
                   Create at least one active specialty first.
                 </div>
               ) : (
                 activeDepartments.map((d) => {
-                  const mapped = (d.specialties ?? []).filter((x) => x.specialty?.isActive !== false);
-                  const primary = (d.specialties ?? []).find((x) => x.isPrimary)?.specialty;
+                  const mapped = deptLinks(d).filter((x) => x.specialty?.isActive !== false);
+                  const primary = deptLinks(d).find((x) => x.isPrimary)?.specialty;
                   return (
-                    <div key={d.id} className="rounded-2xl border border-xc-border bg-xc-panel/10 p-4 hover:bg-xc-panel/16 transition-all">
+                    <div key={d.id} className="rounded-2xl border border-zc-border bg-zc-panel/10 p-4 hover:bg-zc-panel/16 transition-all">
                       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <div className="text-sm font-semibold text-xc-text">{d.name}</div>
-                            <span className="rounded-md border border-xc-border bg-xc-panel/20 px-2 py-0.5 text-[11px] font-mono text-xc-muted">{d.code}</span>
-                            <span className="rounded-md border border-xc-border bg-xc-panel/20 px-2 py-0.5 text-[11px] text-xc-muted">
+                            <div className="text-sm font-semibold text-zc-text">{d.name}</div>
+                            <span className="rounded-md border border-zc-border bg-zc-panel/20 px-2 py-0.5 text-[11px] font-mono text-zc-muted">{d.code}</span>
+                            <span className="rounded-md border border-zc-border bg-zc-panel/20 px-2 py-0.5 text-[11px] text-zc-muted">
                               {d.facility?.name}
                             </span>
 
@@ -1124,10 +1156,10 @@ export default function BranchFacilitySetupWizardPage() {
                                   {x.specialty.name}
                                 </span>
                               ))}
-                              {mapped.length > 6 ? <span className="text-xs text-xc-muted">+{mapped.length - 6} more</span> : null}
+                              {mapped.length > 6 ? <span className="text-xs text-zc-muted">+{mapped.length - 6} more</span> : null}
                             </div>
                           ) : (
-                            <div className="mt-2 text-xs text-xc-muted">No specialties mapped. Open mapping to assign.</div>
+                            <div className="mt-2 text-xs text-zc-muted">No specialties mapped. Open mapping to assign.</div>
                           )}
                         </div>
 
@@ -1148,10 +1180,10 @@ export default function BranchFacilitySetupWizardPage() {
 
         {/* Step: Review */}
         {step === "review" ? (
-          <div className="rounded-2xl border border-xc-border bg-xc-card shadow-elev-1 overflow-hidden">
-            <div className="p-4 md:p-5 border-b border-xc-border">
-              <div className="text-sm font-semibold text-xc-text">Review & Finish (Super Admin)</div>
-              <div className="mt-1 text-sm text-xc-muted">
+          <div className="rounded-2xl border border-zc-border bg-zc-card shadow-elev-1 overflow-hidden">
+            <div className="p-4 md:p-5 border-b border-zc-border">
+              <div className="text-sm font-semibold text-zc-text">Review & Finish (Super Admin)</div>
+              <div className="mt-1 text-sm text-zc-muted">
                 This validates only the Super Admin setup scope (Facilities, Departments, Specialties, Mapping).
               </div>
             </div>
@@ -1205,7 +1237,7 @@ export default function BranchFacilitySetupWizardPage() {
 
         {/* Footer navigation */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm text-xc-muted">
+          <div className="text-sm text-zc-muted">
             {step === "facilities" && facilitiesDirty ? "Save facility selection to continue." : null}
             {step === "facilities" && !facilitiesDirty && enabledCount === 0 ? "Enable at least one facility to continue." : null}
             {step === "departments" && activeDepartments.length === 0 ? "Create at least one active department to continue." : null}
@@ -1242,15 +1274,15 @@ export default function BranchFacilitySetupWizardPage() {
           maxW="max-w-2xl"
         >
           <div className="grid gap-4">
-            <div className="rounded-2xl border border-xc-border bg-xc-panel/12 p-4">
-              <div className="text-sm font-semibold text-xc-text">Department Details</div>
-              <div className="mt-1 text-sm text-xc-muted">Use a short code and a clear name.</div>
+            <div className="rounded-2xl border border-zc-border bg-zc-panel/12 p-4">
+              <div className="text-sm font-semibold text-zc-text">Department Details</div>
+              <div className="mt-1 text-sm text-zc-muted">Use a short code and a clear name.</div>
 
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2 md:col-span-2">
-                  <div className="text-sm font-medium text-xc-text">Facility</div>
+                  <div className="text-sm font-medium text-zc-text">Facility</div>
                   <select
-                    className="w-full rounded-xl border border-xc-border bg-xc-card px-3 py-2 text-sm text-xc-text shadow-sm focus:outline-none focus:ring-2 focus:ring-xc-ring"
+                    className="w-full rounded-xl border border-zc-border bg-zc-card px-3 py-2 text-sm text-zc-text shadow-sm focus:outline-none focus:ring-2 focus:ring-zc-ring"
                     value={deptForm.facilityId}
                     onChange={(e) => setDeptForm((p) => ({ ...p, facilityId: e.target.value }))}
                     disabled={deptMode === "edit"}
@@ -1271,7 +1303,7 @@ export default function BranchFacilitySetupWizardPage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <div className="text-sm font-medium text-xc-text">Code</div>
+                  <div className="text-sm font-medium text-zc-text">Code</div>
                   <Input
                     placeholder="E.g. CARDIO"
                     value={deptForm.code}
@@ -1281,9 +1313,9 @@ export default function BranchFacilitySetupWizardPage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <div className="text-sm font-medium text-xc-text">Status</div>
+                  <div className="text-sm font-medium text-zc-text">Status</div>
                   <select
-                    className="w-full rounded-xl border border-xc-border bg-xc-card px-3 py-2 text-sm text-xc-text shadow-sm focus:outline-none focus:ring-2 focus:ring-xc-ring"
+                    className="w-full rounded-xl border border-zc-border bg-zc-card px-3 py-2 text-sm text-zc-text shadow-sm focus:outline-none focus:ring-2 focus:ring-zc-ring"
                     value={deptForm.isActive ? "true" : "false"}
                     onChange={(e) => setDeptForm((p) => ({ ...p, isActive: e.target.value === "true" }))}
                   >
@@ -1293,7 +1325,7 @@ export default function BranchFacilitySetupWizardPage() {
                 </div>
 
                 <div className="grid gap-2 md:col-span-2">
-                  <div className="text-sm font-medium text-xc-text">Name</div>
+                  <div className="text-sm font-medium text-zc-text">Name</div>
                   <Input
                     placeholder="E.g. Cardiology Department"
                     value={deptForm.name}
@@ -1325,12 +1357,12 @@ export default function BranchFacilitySetupWizardPage() {
           maxW="max-w-2xl"
         >
           <div className="grid gap-4">
-            <div className="rounded-2xl border border-xc-border bg-xc-panel/12 p-4">
-              <div className="text-sm font-semibold text-xc-text">Specialty Details</div>
+            <div className="rounded-2xl border border-zc-border bg-zc-panel/12 p-4">
+              <div className="text-sm font-semibold text-zc-text">Specialty Details</div>
 
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2">
-                  <div className="text-sm font-medium text-xc-text">Code</div>
+                  <div className="text-sm font-medium text-zc-text">Code</div>
                   <Input
                     placeholder="E.g. CARD"
                     value={specForm.code}
@@ -1340,9 +1372,9 @@ export default function BranchFacilitySetupWizardPage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <div className="text-sm font-medium text-xc-text">Status</div>
+                  <div className="text-sm font-medium text-zc-text">Status</div>
                   <select
-                    className="w-full rounded-xl border border-xc-border bg-xc-card px-3 py-2 text-sm text-xc-text shadow-sm focus:outline-none focus:ring-2 focus:ring-xc-ring"
+                    className="w-full rounded-xl border border-zc-border bg-zc-card px-3 py-2 text-sm text-zc-text shadow-sm focus:outline-none focus:ring-2 focus:ring-zc-ring"
                     value={specForm.isActive ? "true" : "false"}
                     onChange={(e) => setSpecForm((p) => ({ ...p, isActive: e.target.value === "true" }))}
                   >
@@ -1352,7 +1384,7 @@ export default function BranchFacilitySetupWizardPage() {
                 </div>
 
                 <div className="grid gap-2 md:col-span-2">
-                  <div className="text-sm font-medium text-xc-text">Name</div>
+                  <div className="text-sm font-medium text-zc-text">Name</div>
                   <Input
                     value={specForm.name}
                     onChange={(e) => setSpecForm((p) => ({ ...p, name: e.target.value }))}
@@ -1387,12 +1419,12 @@ export default function BranchFacilitySetupWizardPage() {
           maxW="max-w-5xl"
         >
           <div className="grid gap-4">
-            <div className="rounded-2xl border border-xc-border bg-xc-panel/12 p-4">
+            <div className="rounded-2xl border border-zc-border bg-zc-panel/12 p-4">
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="min-w-0">
-                  <div className="text-sm text-xc-muted">Department</div>
-                  <div className="mt-1 text-lg font-semibold text-xc-text">{mapDept?.name ?? "—"}</div>
-                  <div className="mt-1 text-xs text-xc-muted">Pick specialties from the branch catalog below.</div>
+                  <div className="text-sm text-zc-muted">Department</div>
+                  <div className="mt-1 text-lg font-semibold text-zc-text">{mapDept?.name ?? "—"}</div>
+                  <div className="mt-1 text-xs text-zc-muted">Pick specialties from the branch catalog below.</div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
@@ -1405,7 +1437,7 @@ export default function BranchFacilitySetupWizardPage() {
 
               <div className="mt-4 flex flex-col md:flex-row gap-2">
                 <div className="relative flex-1">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-xc-muted" />
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zc-muted" />
                   <Input placeholder="Search specialties…" value={mapQ} onChange={(e) => setMapQ(e.target.value)} className="pl-9" />
                 </div>
 
@@ -1450,10 +1482,10 @@ export default function BranchFacilitySetupWizardPage() {
               ) : null}
             </div>
 
-            <div className="rounded-2xl border border-xc-border bg-xc-card overflow-hidden">
+            <div className="rounded-2xl border border-zc-border bg-zc-card overflow-hidden">
               <div className="max-h-[520px] overflow-auto">
                 <table className="w-full text-sm">
-                  <thead className="sticky top-0 bg-xc-panel/25 backdrop-blur">
+                  <thead className="sticky top-0 bg-zc-panel/25 backdrop-blur">
                     <tr>
                       <th className="text-left p-3">Map</th>
                       <th className="text-left p-3">Primary</th>
@@ -1480,7 +1512,7 @@ export default function BranchFacilitySetupWizardPage() {
                         .map((s) => {
                           const mapped = selectedSpecIds.includes(s.id);
                           return (
-                            <tr key={s.id} className="border-t hover:bg-xc-panel/15 transition-colors">
+                            <tr key={s.id} className="border-t hover:bg-zc-panel/15 transition-colors">
                               <td className="p-3">
                                 <button
                                   type="button"
@@ -1492,13 +1524,13 @@ export default function BranchFacilitySetupWizardPage() {
                                     });
                                   }}
                                   className={cn(
-                                    "inline-flex h-9 w-9 items-center justify-center rounded-xl border border-xc-border bg-xc-panel/20 transition-all",
-                                    "hover:bg-xc-panel hover:shadow-elev-2",
-                                    mapped && "border-[rgb(var(--xc-accent-rgb)/0.55)] bg-[rgb(var(--xc-accent-rgb)/0.18)]",
+                                    "inline-flex h-9 w-9 items-center justify-center rounded-xl border border-zc-border bg-zc-panel/20 transition-all",
+                                    "hover:bg-zc-panel hover:shadow-elev-2",
+                                    mapped && "border-[rgb(var(--zc-accent-rgb)/0.55)] bg-[rgb(var(--zc-accent-rgb)/0.18)]",
                                   )}
                                   title={mapped ? "Unmap" : "Map"}
                                 >
-                                  {mapped ? <Check className="h-4 w-4 text-[rgb(var(--xc-accent))]" /> : <Link2 className="h-4 w-4 text-xc-muted" />}
+                                  {mapped ? <Check className="h-4 w-4 text-[rgb(var(--zc-accent))]" /> : <Link2 className="h-4 w-4 text-zc-muted" />}
                                 </button>
                               </td>
 
@@ -1510,8 +1542,8 @@ export default function BranchFacilitySetupWizardPage() {
                                   className={cn(
                                     "inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs transition-all",
                                     !mapped
-                                      ? "cursor-not-allowed opacity-50 border-xc-border bg-xc-panel/10 text-xc-muted"
-                                      : "border-[rgb(var(--xc-accent-rgb)/0.55)] bg-[rgb(var(--xc-accent-rgb)/0.18)] text-[rgb(var(--xc-accent))]",
+                                      ? "cursor-not-allowed opacity-50 border-zc-border bg-zc-panel/10 text-zc-muted"
+                                      : "border-[rgb(var(--zc-accent-rgb)/0.55)] bg-[rgb(var(--zc-accent-rgb)/0.18)] text-[rgb(var(--zc-accent))]",
                                     primarySpecId === s.id && pillTones.emerald,
                                   )}
                                   title={!mapped ? "Map first" : "Set as primary"}
@@ -1522,11 +1554,11 @@ export default function BranchFacilitySetupWizardPage() {
                               </td>
 
                               <td className="p-3">
-                                <div className="font-semibold text-xc-text">{s.name}</div>
+                                <div className="font-semibold text-zc-text">{s.name}</div>
                               </td>
 
                               <td className="p-3">
-                                <span className="rounded-md border border-xc-border bg-xc-panel/25 px-2 py-0.5 font-mono text-[12px] text-xc-text">
+                                <span className="rounded-md border border-zc-border bg-zc-panel/25 px-2 py-0.5 font-mono text-[12px] text-zc-text">
                                   {s.code}
                                 </span>
                               </td>

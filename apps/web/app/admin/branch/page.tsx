@@ -83,7 +83,7 @@ type Department = {
   updatedAt: string;
 };
 
-const LS_BRANCH_FILTER = "xc.admin.branchFilter";
+const LS_BRANCH_FILTER = "zc.admin.branchFilter";
 
 function uniq<T>(arr: T[]) {
   return Array.from(new Set(arr));

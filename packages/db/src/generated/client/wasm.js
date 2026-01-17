@@ -192,7 +192,6 @@ exports.Prisma.DepartmentSpecialtyScalarFieldEnum = {
 exports.Prisma.SpecialtyScalarFieldEnum = {
   id: 'id',
   branchId: 'branchId',
-  departmentId: 'departmentId',
   code: 'code',
   name: 'name',
   isActive: 'isActive',
@@ -546,6 +545,7 @@ exports.Prisma.BranchUnitTypeScalarFieldEnum = {
 exports.Prisma.UnitScalarFieldEnum = {
   id: 'id',
   branchId: 'branchId',
+  locationNodeId: 'locationNodeId',
   departmentId: 'departmentId',
   unitTypeId: 'unitTypeId',
   code: 'code',
@@ -578,6 +578,14 @@ exports.Prisma.UnitResourceScalarFieldEnum = {
   state: 'state',
   isActive: 'isActive',
   isSchedulable: 'isSchedulable',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BranchInfraConfigScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  housekeepingGateEnabled: 'housekeepingGateEnabled',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -936,6 +944,7 @@ exports.Prisma.ModelName = {
   Unit: 'Unit',
   UnitRoom: 'UnitRoom',
   UnitResource: 'UnitResource',
+  BranchInfraConfig: 'BranchInfraConfig',
   EquipmentAsset: 'EquipmentAsset',
   DowntimeTicket: 'DowntimeTicket',
   ChargeMasterItem: 'ChargeMasterItem',

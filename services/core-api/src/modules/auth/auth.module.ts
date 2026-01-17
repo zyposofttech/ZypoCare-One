@@ -16,9 +16,7 @@ import { PermissionsGuard } from "./permissions.guard";
 
 @Module({
   imports: [
-    // ✅ Needed because AuthService injects AuditService
     AuditModule,
-
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET || "dev-secret-key",
@@ -29,20 +27,17 @@ import { PermissionsGuard } from "./permissions.guard";
   providers: [
     AuthService,
 
-    // ✅ Required for PrincipalGuard / PermissionsGuard to work wherever used
     AccessPolicyService,
     PrincipalGuard,
     PermissionsGuard,
 
-    // Global guards (existing behavior)
+    // Global guards (standardized behavior)
+    // Order matters: JWT -> Principal -> Permission/Role evaluation
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: PrincipalGuard },
+    { provide: APP_GUARD, useClass: PermissionsGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
-  exports: [
-    AuthService,
-    AccessPolicyService,
-    PrincipalGuard,
-    PermissionsGuard,
-  ],
+  exports: [AuthService, AccessPolicyService, PrincipalGuard, PermissionsGuard],
 })
 export class AuthModule {}

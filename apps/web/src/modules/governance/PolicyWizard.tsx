@@ -48,7 +48,7 @@ function StepPill({ active, label }: { active: boolean; label: string }) {
         "inline-flex items-center rounded-full border px-3 py-1 text-xs",
         active
           ? "border-indigo-200/70 bg-indigo-50/70 text-indigo-700 dark:border-indigo-900/50 dark:bg-indigo-950/25 dark:text-indigo-200"
-          : "border-xc-border bg-xc-panel/20 text-xc-muted",
+          : "border-zc-border bg-zc-panel/20 text-zc-muted",
       )}
     >
       {label}
@@ -68,10 +68,10 @@ function ToggleRow({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex items-start justify-between gap-4 rounded-xl border border-xc-border bg-xc-panel/10 p-3">
+    <label className="flex items-start justify-between gap-4 rounded-xl border border-zc-border bg-zc-panel/10 p-3">
       <div className="min-w-0">
-        <div className="text-sm font-semibold text-xc-text">{label}</div>
-        {hint ? <div className="mt-0.5 text-xs text-xc-muted">{hint}</div> : null}
+        <div className="text-sm font-semibold text-zc-text">{label}</div>
+        {hint ? <div className="mt-0.5 text-xs text-zc-muted">{hint}</div> : null}
       </div>
       <input
         type="checkbox"
@@ -146,7 +146,7 @@ function ConsentEditor({ value, onChange }: { value: ConsentDefaultsValues; onCh
       <div className="grid gap-2">
         <Label>Default Consent Status</Label>
         <select
-          className="h-10 w-full rounded-md border border-xc-border bg-xc-card px-3 text-sm"
+          className="h-10 w-full rounded-md border border-zc-border bg-zc-card px-3 text-sm"
           value={value.defaultStatus}
           onChange={(e) => onChange({ ...value, defaultStatus: (e.target.value as any) || "GRANTED" })}
         >
@@ -205,7 +205,7 @@ function ExportEditor({ value, onChange }: { value: ExportGuardrailsValues; onCh
         <div className="grid gap-2">
           <Label>Max rows per export</Label>
           <Input type="number" min={0} value={value.maxRows} onChange={(e) => onChange({ ...value, maxRows: safeNum(e.target.value, 50000) })} />
-          <div className="text-xs text-xc-muted">Use 0 to block exports entirely.</div>
+          <div className="text-xs text-zc-muted">Use 0 to block exports entirely.</div>
         </div>
         <div className="grid gap-2">
           <Label>Approval required above (rows)</Label>
@@ -411,7 +411,7 @@ export function PolicyWizard({
         </div>
 
         {err ? (
-          <div className="mt-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
+          <div className="mt-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
             <div className="min-w-0">{err}</div>
           </div>
         ) : null}
@@ -431,15 +431,15 @@ export function PolicyWizard({
                       "rounded-2xl border p-4 transition",
                       active
                         ? "border-indigo-300 bg-indigo-50/40 dark:border-indigo-800/60 dark:bg-indigo-950/20"
-                        : "border-xc-border bg-xc-panel/10 hover:bg-xc-panel/20",
+                        : "border-zc-border bg-zc-panel/10 hover:bg-zc-panel/20",
                     )}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="text-xs text-xc-muted">{t.category}</div>
-                        <div className="mt-1 text-sm font-semibold text-xc-text">{t.name}</div>
-                        <div className="mt-1 text-sm text-xc-muted">{t.description}</div>
-                        <div className="mt-3 font-mono text-xs text-xc-muted">Code: {t.code}</div>
+                        <div className="text-xs text-zc-muted">{t.category}</div>
+                        <div className="mt-1 text-sm font-semibold text-zc-text">{t.name}</div>
+                        <div className="mt-1 text-sm text-zc-muted">{t.description}</div>
+                        <div className="mt-3 font-mono text-xs text-zc-muted">Code: {t.code}</div>
                       </div>
                       {active ? (
                         <span className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2 py-1 text-xs text-indigo-700 dark:border-indigo-900/50 dark:bg-indigo-950/25 dark:text-indigo-200">
@@ -468,7 +468,7 @@ export function PolicyWizard({
                   <div className="grid gap-2">
                     <Label>Policy Code</Label>
                     <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder={tpl.code} className="font-mono" />
-                    <div className="text-xs text-xc-muted">Code is normalized to UPPERCASE_WITH_UNDERSCORES.</div>
+                    <div className="text-xs text-zc-muted">Code is normalized to UPPERCASE_WITH_UNDERSCORES.</div>
                   </div>
                   <div className="grid gap-2">
                     <Label>Description (optional)</Label>
@@ -515,23 +515,23 @@ export function PolicyWizard({
                 </CardHeader>
                 <CardContent className="grid gap-3">
                   <div className="grid gap-2 sm:grid-cols-2">
-                    <div className="rounded-xl border border-xc-border bg-xc-panel/10 p-3">
-                      <div className="text-xs text-xc-muted">Policy</div>
-                      <div className="mt-1 text-sm font-semibold text-xc-text">{name || tpl.name}</div>
-                      <div className="mt-1 font-mono text-xs text-xc-muted">{normalizeCode(code || tpl.code)}</div>
+                    <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+                      <div className="text-xs text-zc-muted">Policy</div>
+                      <div className="mt-1 text-sm font-semibold text-zc-text">{name || tpl.name}</div>
+                      <div className="mt-1 font-mono text-xs text-zc-muted">{normalizeCode(code || tpl.code)}</div>
                     </div>
-                    <div className="rounded-xl border border-xc-border bg-xc-panel/10 p-3">
-                      <div className="text-xs text-xc-muted">Type</div>
-                      <div className="mt-1 text-sm font-semibold text-xc-text">{tpl.type}</div>
-                      <div className="mt-1 text-xs text-xc-muted">Template: {tpl.name}</div>
+                    <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+                      <div className="text-xs text-zc-muted">Type</div>
+                      <div className="mt-1 text-sm font-semibold text-zc-text">{tpl.type}</div>
+                      <div className="mt-1 text-xs text-zc-muted">Template: {tpl.name}</div>
                     </div>
                   </div>
 
                   <Separator />
 
                   <div className="grid gap-2">
-                    <div className="text-xs text-xc-muted">Summary</div>
-                    <ul className="list-disc pl-5 text-sm text-xc-text">
+                    <div className="text-xs text-zc-muted">Summary</div>
+                    <ul className="list-disc pl-5 text-sm text-zc-text">
                       {summary.map((s, i) => (
                         <li key={i}>{s}</li>
                       ))}

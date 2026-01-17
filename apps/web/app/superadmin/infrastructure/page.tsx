@@ -6,7 +6,6 @@ import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
@@ -30,13 +29,7 @@ import {
   Stethoscope,
 } from "lucide-react";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // ---------------- Types ----------------
 
@@ -67,9 +60,64 @@ type BranchRow = {
   oTsCount?: number;
 };
 
+type GoLiveSnapshot = {
+  enabledUnitTypes: number;
+  units: number;
+  rooms: number;
+  resources: number;
+  beds: number;
+  schedulableOts: number;
+  equipmentCount: number;
+  fixItsOpen: number;
+  generatedAt: string;
+};
+
+type GoLivePreview = {
+  branchId: string;
+  score: number;
+  blockers: string[];
+  warnings: string[];
+  snapshot: GoLiveSnapshot;
+  reportId?: string;
+};
+
+type LocationNode = {
+  id: string;
+  branchId: string;
+  type: "CAMPUS" | "BUILDING" | "FLOOR" | "ZONE";
+  parentId?: string | null;
+  code: string;
+  name: string;
+  isActive: boolean;
+  effectiveFrom?: string | null;
+  effectiveTo?: string | null;
+
+  buildings?: LocationNode[];
+  floors?: LocationNode[];
+  zones?: LocationNode[];
+};
+
+type LocationTree = { campuses: LocationNode[] };
+
+type BranchReadiness = {
+  branchId: string;
+  score: number;
+  summary: {
+    enabledFacilities: number;
+    departments: number;
+    specialties: number;
+    doctors: number;
+    otRooms: number;
+    beds: number;
+  };
+  blockers: string[];
+  warnings: string[];
+  generatedAt: string;
+};
+
 // ---------------- Utilities (same visual language as Branch Details) ----------------
 
-const LS_KEY = "xc.superadmin.infrastructure.branchId";
+const LS_KEY = "zc.superadmin.infrastructure.branchId";
 
 const pillTones = {
   sky: "border-sky-200/70 bg-sky-50/70 text-sky-700 dark:border-sky-900/40 dark:bg-sky-900/20 dark:text-sky-200",
@@ -83,6 +131,7 @@ const pillTones = {
   indigo:
     "border-indigo-200/70 bg-indigo-50/70 text-indigo-700 dark:border-indigo-900/40 dark:bg-indigo-900/20 dark:text-indigo-200",
 };
+
 
 function Skeleton({ className }: { className?: string }) {
   return <div className={cn("animate-pulse rounded bg-zinc-200 dark:bg-zinc-800", className)} />;
@@ -184,8 +233,11 @@ function readinessFlag(kind: "ready" | "pending" | "warn" | "block", note?: stri
 function ProgressBar({ value }: { value: number }) {
   const v = Math.max(0, Math.min(100, Number.isFinite(value) ? value : 0));
   return (
-    <div className="mt-3 h-2 w-full rounded-full border border-xc-border bg-xc-panel/30 overflow-hidden">
-      <div className="h-full rounded-full bg-indigo-500/80 dark:bg-indigo-400/70 transition-[width] duration-300" style={{ width: `${v}%` }} />
+    <div className="mt-3 h-2 w-full overflow-hidden rounded-full border border-zc-border bg-zc-panel/30">
+      <div
+        className="h-full rounded-full bg-indigo-500/80 transition-[width] duration-300 dark:bg-indigo-400/70"
+        style={{ width: `${v}%` }}
+      />
     </div>
   );
 }
@@ -210,12 +262,12 @@ function InfoTile({
         ? "border-emerald-200/50 bg-emerald-50/40 dark:border-emerald-900/35 dark:bg-emerald-900/15"
         : tone === "cyan"
           ? "border-cyan-200/50 bg-cyan-50/40 dark:border-cyan-900/35 dark:bg-cyan-900/15"
-          : "border-xc-border bg-xc-panel/15";
+          : "border-zc-border bg-zc-panel/15";
 
   return (
     <div className={cn("rounded-xl border p-4", toneCls, className)}>
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-xc-muted">
-        {icon ? <span className="text-xc-muted">{icon}</span> : null}
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zc-muted">
+        {icon ? <span className="text-zc-muted">{icon}</span> : null}
         <span>{label}</span>
       </div>
       <div className="mt-2">{value}</div>
@@ -230,6 +282,8 @@ function ModuleCard({
   href,
   tone = "zinc",
   disabled,
+  metricLabel = "Items",
+  metricValue = 0,
   rightTag,
 }: {
   title: string;
@@ -238,39 +292,41 @@ function ModuleCard({
   href: string;
   tone?: keyof typeof pillTones;
   disabled?: boolean;
+  metricLabel?: string;
+  metricValue?: number;
   rightTag?: React.ReactNode;
 }) {
   const card = (
     <div
       className={cn(
-        "group block rounded-2xl border border-xc-border bg-xc-panel/20 p-4 transition-all",
+        "group block rounded-2xl border border-zc-border bg-zc-panel/20 p-4 transition-all",
         disabled
-          ? "opacity-60 cursor-not-allowed"
-          : "hover:bg-xc-panel/35 hover:shadow-elev-2 hover:-translate-y-0.5"
+          ? "cursor-not-allowed opacity-60"
+          : "hover:-translate-y-0.5 hover:bg-zc-panel/35 hover:shadow-elev-2"
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-xl border border-xc-border bg-xc-panel/25">
+            <span className="grid h-9 w-9 place-items-center rounded-xl border border-zc-border bg-zc-panel/25">
               {icon}
             </span>
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-xc-text group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+              <div className="text-sm font-semibold text-zc-text group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
                 {title}
               </div>
-              <div className="mt-1 text-sm text-xc-muted">{description}</div>
+              <div className="mt-1 text-sm text-zc-muted">{description}</div>
             </div>
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <MetricPill label="Module" value={1} tone={tone} />
+            <MetricPill label={metricLabel} value={metricValue} tone={tone} />
             {rightTag}
           </div>
         </div>
 
-        <div className="mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-transparent group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/50 transition-colors">
-          <IconChevronRight className="h-4 w-4 text-xc-muted group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all group-hover:translate-x-0.5" />
+        <div className="mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-transparent transition-colors group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/50">
+          <IconChevronRight className="h-4 w-4 text-zc-muted transition-all group-hover:translate-x-0.5 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
         </div>
       </div>
     </div>
@@ -293,10 +349,19 @@ export default function SuperAdminInfrastructureOverview() {
   const [busy, setBusy] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
 
+  const [ctxBusy, setCtxBusy] = React.useState(false);
+  const [ctxErr, setCtxErr] = React.useState<string | null>(null);
+
   const [branches, setBranches] = React.useState<BranchRow[]>([]);
   const [branchId, setBranchId] = React.useState<string | undefined>(undefined);
 
-  async function load(showToast = false) {
+  const [goLive, setGoLive] = React.useState<GoLivePreview | null>(null);
+  const [locTree, setLocTree] = React.useState<LocationTree | null>(null);
+  const [facilityReadiness, setFacilityReadiness] =
+    React.useState<BranchReadiness | null>(null);
+  const ctxReqSeq = React.useRef(0);
+
+  async function loadBranches(showToast = false) {
     setErr(null);
     setBusy(true);
     try {
@@ -325,17 +390,68 @@ export default function SuperAdminInfrastructureOverview() {
     }
   }
 
+  async function loadBranchContext(branchIdParam: string, showToast = false) {
+    if (!branchIdParam) return;
+    setFacilityReadiness(null);
+    const seq = ++ctxReqSeq.current;
+    setCtxErr(null);
+    setCtxBusy(true);
+
+    try {
+      const q = encodeURIComponent(branchIdParam);
+
+      const [gl, tree, rd] = await Promise.all([
+        apiFetch<GoLivePreview>(`/api/infrastructure/branch/go-live?branchId=${q}`),
+        apiFetch<LocationTree>(`/api/infrastructure/locations/tree?branchId=${q}`),
+        apiFetch<BranchReadiness>(`/api/branches/${q}/readiness`),
+      ]);
+
+      if (seq !== ctxReqSeq.current) return;
+
+      setGoLive(gl || null);
+      setLocTree(tree || null);
+      setFacilityReadiness(rd || null);
+
+
+      setFacilityReadiness(rd || null);
+
+
+      if (seq !== ctxReqSeq.current) return; // ignore stale responses
+
+      setGoLive(gl || null);
+      setLocTree(tree || null);
+
+      if (showToast) {
+        toast({ title: "Updated", description: "Loaded latest infrastructure signals.", duration: 1600 });
+      }
+    } catch (e: any) {
+      const msg = e?.message || "Unable to load infrastructure signals.";
+      if (seq !== ctxReqSeq.current) return;
+
+      setCtxErr(msg);
+      if (showToast) toast({ title: "Refresh failed", description: msg, variant: "destructive" as any });
+    } finally {
+      if (seq === ctxReqSeq.current) setCtxBusy(false);
+    }
+  }
+
   React.useEffect(() => {
-    void load(false);
+    void loadBranches(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  React.useEffect(() => {
+    if (!branchId) return;
+    void loadBranchContext(branchId, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [branchId]);
 
   const selected = React.useMemo(
     () => branches.find((b) => b.id === branchId) || null,
     [branches, branchId]
   );
 
-  const metrics = React.useMemo(() => {
+  const orgMetrics = React.useMemo(() => {
     return {
       users: countOf(selected, "users"),
       departments: countOf(selected, "departments"),
@@ -346,35 +462,76 @@ export default function SuperAdminInfrastructureOverview() {
     };
   }, [selected]);
 
-  const readiness = React.useMemo(() => {
-    const blockers: string[] = [];
-    const warnings: string[] = [];
+  const locCounts = React.useMemo(() => {
+    const campuses = locTree?.campuses ?? [];
+    let buildings = 0;
+    let floors = 0;
+    let zones = 0;
 
-    if (metrics.departments <= 0) blockers.push("Departments not configured.");
-    if (metrics.wards <= 0) blockers.push("Units/Wards not configured.");
-    if (metrics.beds <= 0) blockers.push("Beds/Resources not configured.");
-    if (metrics.users <= 0) warnings.push("No staff/users linked to this branch yet (IAM).");
+    for (const c of campuses) {
+      const bs = c.buildings ?? [];
+      buildings += bs.length;
 
-    // provisional score based on known counts
-    const knownMax = 75; // depts 20 + wards 20 + beds 20 + users 10 + specialties 5
-    const pts =
-      (metrics.departments > 0 ? 20 : 0) +
-      (metrics.wards > 0 ? 20 : 0) +
-      (metrics.beds > 0 ? 20 : 0) +
-      (metrics.users > 0 ? 10 : 0) +
-      (metrics.specialties > 0 ? 5 : 0);
+      for (const b of bs) {
+        const fs = b.floors ?? [];
+        floors += fs.length;
 
-    const score = knownMax ? Math.round((pts / knownMax) * 100) : 0;
+        for (const f of fs) {
+          const zs = f.zones ?? [];
+          zones += zs.length;
+        }
+      }
+    }
 
-    return { blockers, warnings, score };
-  }, [metrics]);
+    return { campuses: campuses.length, buildings, floors, zones };
+  }, [locTree]);
+
+  const snap = goLive?.snapshot ?? null;
+
+  const moduleFlags = React.useMemo(() => {
+    const zones = locCounts.zones;
+    const enabledUnitTypes = safeNum(snap?.enabledUnitTypes);
+    const units = safeNum(snap?.units);
+    const rooms = safeNum(snap?.rooms);
+    const resources = safeNum(snap?.resources);
+    const beds = safeNum(snap?.beds);
+    const schedulableOts = safeNum(snap?.schedulableOts);
+    const equipmentCount = safeNum(snap?.equipmentCount);
+    const fixItsOpen = safeNum(snap?.fixItsOpen);
+
+    return {
+      locations: zones > 0 ? readinessFlag("ready") : readinessFlag("pending"),
+      unitTypes: enabledUnitTypes > 0 ? readinessFlag("ready") : readinessFlag("block"),
+      units: units > 0 ? readinessFlag("ready") : readinessFlag("block"),
+      rooms: rooms > 0 ? readinessFlag("ready") : readinessFlag("warn"),
+      resources: beds > 0 ? readinessFlag("ready") : readinessFlag("block"),
+      ot: schedulableOts > 0 ? readinessFlag("ready") : readinessFlag("block"),
+      equipment: equipmentCount > 0 ? readinessFlag("ready") : readinessFlag("warn"),
+      mapping: fixItsOpen === 0 ? readinessFlag("ready") : readinessFlag("warn", `${fixItsOpen} open`),
+
+      // counts
+      enabledUnitTypes,
+      units,
+      rooms,
+      resources,
+      beds,
+      schedulableOts,
+      equipmentCount,
+      fixItsOpen,
+    };
+  }, [locCounts.zones, snap]);
+
+  const score = goLive?.score ?? 0;
+  const blockers = goLive?.blockers ?? [];
+  const warnings = goLive?.warnings ?? [];
+  const generatedAt = snap?.generatedAt ?? null;
 
   const branchHref = selected ? `/superadmin/branches/${encodeURIComponent(selected.id)}` : "/superadmin/branches";
 
   return (
     <AppShell title="Infrastructure Setup">
       <div className="grid gap-6">
-        {/* Header (Branch-details-like hero) */}
+        {/* Header */}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <div className="flex items-center gap-3">
@@ -383,38 +540,59 @@ export default function SuperAdminInfrastructureOverview() {
               </span>
 
               <div className="min-w-0">
-                <div className="text-sm text-xc-muted">
+                <div className="text-sm text-zc-muted">
                   <Link href="/superadmin/dashboard" className="hover:underline">
                     Super Admin
                   </Link>
-                  <span className="mx-2 text-xc-muted/60">/</span>
-                  <span className="text-xc-text">Infrastructure</span>
+                  <span className="mx-2 text-zc-muted/60">/</span>
+                  <span className="text-zc-text">Infrastructure</span>
                 </div>
 
-                <div className="mt-1 text-3xl font-semibold tracking-tight">
-                  Infrastructure Setup
+                <div className="mt-1 text-3xl font-semibold tracking-tight">Infrastructure Setup</div>
+
+                <div className="mt-2 max-w-3xl text-sm leading-6 text-zc-muted">
+                  This page is now live: it reads the latest branch infra state from backend (Go-Live preview + Location tree) and reflects
+                  readiness, blockers, and module-level progress automatically.
                 </div>
 
-                <div className="mt-2 max-w-3xl text-sm leading-6 text-xc-muted">
-                  Configure and validate branch infrastructure: locations (Campus → Building → Floor → Zone),
-                  unit configuration, rooms/bays, resources (beds), OT scheduling readiness, diagnostics/equipment
-                  compliance, and service ↔ charge master mapping.
-                </div>
+                {generatedAt ? (
+                  <div className="mt-2 text-xs text-zc-muted">
+                    Last signal refresh: <span className="font-mono">{new Date(generatedAt).toLocaleString()}</span>
+                    {ctxBusy ? <span className="ml-2">(updating…)</span> : null}
+                  </div>
+                ) : null}
               </div>
             </div>
 
             {err ? (
-              <div className="mt-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
+              <div className="mt-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
                 <AlertTriangle className="mt-0.5 h-4 w-4" />
                 <div className="min-w-0">{err}</div>
+              </div>
+            ) : null}
+
+            {ctxErr ? (
+              <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-200/60 bg-amber-50/40 px-3 py-2 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/15 dark:text-amber-200">
+                <Wrench className="mt-0.5 h-4 w-4" />
+                <div className="min-w-0">{ctxErr}</div>
               </div>
             ) : null}
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" className="gap-2" onClick={() => void load(true)} disabled={busy}>
+            <Button variant="outline" className="gap-2" onClick={() => void loadBranches(true)} disabled={busy}>
               <RefreshCw className={cn("h-4 w-4", busy ? "animate-spin" : "")} />
-              Refresh
+              Refresh Branches
+            </Button>
+
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => (branchId ? void loadBranchContext(branchId, true) : undefined)}
+              disabled={!branchId || ctxBusy}
+            >
+              <RefreshCw className={cn("h-4 w-4", ctxBusy ? "animate-spin" : "")} />
+              Refresh Infra Signals
             </Button>
 
             <Button asChild className="gap-2">
@@ -431,7 +609,7 @@ export default function SuperAdminInfrastructureOverview() {
           <Card className="overflow-hidden">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-xc-accent" />
+                <Building2 className="h-5 w-5 text-zc-accent" />
                 Target Branch
               </CardTitle>
               <CardDescription>Select the branch to onboard/validate. Saved locally on this device.</CardDescription>
@@ -446,9 +624,7 @@ export default function SuperAdminInfrastructureOverview() {
               ) : (
                 <div className="grid gap-4">
                   <div className="grid gap-2">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">
-                      Branch Selector
-                    </div>
+                    <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Branch Selector</div>
 
                     <Select
                       value={branchId}
@@ -457,50 +633,61 @@ export default function SuperAdminInfrastructureOverview() {
                         writeLS(LS_KEY, v);
                       }}
                     >
-                      <SelectTrigger className="h-11 rounded-xl bg-xc-card border-xc-border">
+                      <SelectTrigger className="h-11 rounded-xl border-zc-border bg-zc-card">
                         <SelectValue placeholder="Select a branch…" />
                       </SelectTrigger>
                       <SelectContent>
                         {branches.map((b) => (
                           <SelectItem key={b.id} value={b.id}>
-                            {b.name}{" "}
-                            <span className="font-mono text-xs text-xc-muted">({b.code})</span>{" "}
-                            <span className="text-xs text-xc-muted">• {b.city}</span>
+                            {b.name} <span className="font-mono text-xs text-zc-muted">({b.code})</span>{" "}
+                            <span className="text-xs text-zc-muted">• {b.city}</span>
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
 
-                    <div className="text-xs text-xc-muted">
-                      Tip: Infra setup will be strictly validated (codes, naming conventions, effective dating).
+                    <div className="text-xs text-zc-muted">
+                      Infra readiness and module counts below are fetched live from backend for the selected branch.
                     </div>
                   </div>
 
                   {selected ? (
-                    <div className="rounded-2xl border border-xc-border bg-xc-panel/20 p-4">
+                    <div className="rounded-2xl border border-zc-border bg-zc-panel/20 p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <div className="text-sm font-semibold text-xc-text">
-                            {selected.name}{" "}
-                            <span className="font-mono text-xs text-xc-muted">({selected.code})</span>
+                          <div className="text-sm font-semibold text-zc-text">
+                            {selected.name} <span className="font-mono text-xs text-zc-muted">({selected.code})</span>
                           </div>
-                          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-xc-muted">
+                          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-zc-muted">
                             <span className="inline-flex items-center gap-1">
                               <MapPin className="h-4 w-4" /> {selected.city}
                             </span>
                             {selected.address ? (
                               <>
-                                <span className="text-xc-muted/60">•</span>
+                                <span className="text-zc-muted/60">•</span>
                                 <span className="truncate">{selected.address}</span>
                               </>
                             ) : null}
                           </div>
 
                           <div className="mt-3 flex flex-wrap gap-2">
-                            <MetricPill label="Users" value={metrics.users} tone="sky" />
-                            <MetricPill label="Departments" value={metrics.departments} tone="emerald" />
-                            <MetricPill label="Specialties" value={metrics.specialties} tone="violet" />
+                            <MetricPill
+                              label="Facilities"
+                              value={facilityReadiness?.summary?.enabledFacilities ?? 0}
+                              tone="sky"
+                            />
+                            <MetricPill
+                              label="Departments"
+                              value={facilityReadiness?.summary?.departments ?? 0}
+                              tone="emerald"
+                            />
+                            <MetricPill
+                              label="Specialties"
+                              value={facilityReadiness?.summary?.specialties ?? 0}
+                              tone="violet"
+                            />
                           </div>
+
                         </div>
 
                         <div className="grid h-10 w-10 place-items-center rounded-2xl border border-indigo-200/50 bg-indigo-50/40 dark:border-indigo-900/35 dark:bg-indigo-900/15">
@@ -509,7 +696,7 @@ export default function SuperAdminInfrastructureOverview() {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-sm text-xc-muted">No branch selected.</div>
+                    <div className="text-sm text-zc-muted">No branch selected.</div>
                   )}
                 </div>
               )}
@@ -519,16 +706,18 @@ export default function SuperAdminInfrastructureOverview() {
           <Card className="overflow-hidden">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-xc-accent" />
-                Readiness Preview
+                <Sparkles className="h-5 w-5 text-zc-accent" />
+                Go-Live Preview (Live)
               </CardTitle>
               <CardDescription>
-                Provisional readiness score based on currently available signals. Final blockers/warnings will be computed by Go-Live Validator.
+                This panel is now backend-driven. Score, blockers and warnings are computed by the Go-Live Validator service.
               </CardDescription>
             </CardHeader>
             <Separator />
             <CardContent className="pt-6">
-              {loading ? (
+              {!selected ? (
+                <div className="text-sm text-zc-muted">Select a branch to view readiness.</div>
+              ) : ctxBusy && !goLive ? (
                 <div className="grid gap-3">
                   <Skeleton className="h-7 w-32" />
                   <Skeleton className="h-2 w-full" />
@@ -538,104 +727,137 @@ export default function SuperAdminInfrastructureOverview() {
                 <div className="grid gap-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">
-                        Score
+                      <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Score</div>
+                      <div className="mt-2 text-3xl font-semibold tabular-nums tracking-tight">{goLive ? `${score}%` : "—"}</div>
+                      <div className="mt-2 text-sm text-zc-muted">
+                        This score is computed from enabled unit types, units, beds, schedulable OT tables, equipment registry, and open Fix-It tasks.
                       </div>
-                      <div className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">
-                        {selected ? `${readiness.score}%` : "—"}
-                      </div>
-                      <div className="mt-2 text-sm text-xc-muted">
-                        Defaults are stricter at scheduling time. Compliance blockers (AERB/PCPNDT) will be enforced before “schedulable”.
-                      </div>
-                      <ProgressBar value={selected ? readiness.score : 0} />
+                      <ProgressBar value={goLive ? score : 0} />
                     </div>
 
-                    <div className="grid h-10 w-10 place-items-center rounded-2xl border border-xc-border bg-xc-panel/25">
-                      <Wrench className="h-5 w-5 text-xc-accent" />
+                    <div className="grid h-10 w-10 place-items-center rounded-2xl border border-zc-border bg-zc-panel/25">
+                      <Wrench className="h-5 w-5 text-zc-accent" />
                     </div>
                   </div>
 
-                  {!selected ? (
-                    <div className="text-sm text-xc-muted">Select a branch to view readiness.</div>
-                  ) : (
-                    <div className="grid gap-3">
-                      <div className="rounded-2xl border border-xc-border bg-xc-panel/15 p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="text-sm font-semibold text-xc-text">Core Setup Health</div>
-                          {readiness.blockers.length === 0 ? readinessFlag("ready") : readinessFlag("block", `${readiness.blockers.length} blockers`)}
-                        </div>
-
-                        <div className="mt-3 grid gap-2 text-sm">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xc-muted">Departments</span>
-                            {metrics.departments > 0 ? readinessFlag("ready") : readinessFlag("block")}
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xc-muted">Units/Wards</span>
-                            {metrics.wards > 0 ? readinessFlag("ready") : readinessFlag("block")}
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xc-muted">Beds/Resources</span>
-                            {metrics.beds > 0 ? readinessFlag("ready") : readinessFlag("block")}
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xc-muted">Users (IAM)</span>
-                            {metrics.users > 0 ? readinessFlag("ready") : readinessFlag("warn")}
-                          </div>
-                        </div>
-                      </div>
-
-                      {readiness.blockers.length ? (
-                        <div className="rounded-2xl border border-red-200/60 bg-red-50/40 dark:border-red-900/40 dark:bg-red-900/15 p-4">
-                          <div className="flex items-center gap-2 text-sm font-semibold text-red-700 dark:text-red-200">
-                            <AlertTriangle className="h-4 w-4" />
-                            Blockers
-                          </div>
-                          <ul className="mt-2 list-disc pl-5 text-sm text-xc-muted">
-                            {readiness.blockers.map((b, i) => (
-                              <li key={i}>{b}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      ) : null}
-
-                      {readiness.warnings.length ? (
-                        <div className="rounded-2xl border border-amber-200/60 bg-amber-50/40 dark:border-amber-900/40 dark:bg-amber-900/15 p-4">
-                          <div className="flex items-center gap-2 text-sm font-semibold text-amber-800 dark:text-amber-200">
-                            <Wrench className="h-4 w-4" />
-                            Warnings
-                          </div>
-                          <ul className="mt-2 list-disc pl-5 text-sm text-xc-muted">
-                            {readiness.warnings.map((w, i) => (
-                              <li key={i}>{w}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      ) : null}
+                  {/* Core checks */}
+                  <div className="rounded-2xl border border-zc-border bg-zc-panel/15 p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm font-semibold text-zc-text">Core Infra Checks</div>
+                      {blockers.length === 0 ? readinessFlag("ready") : readinessFlag("block", `${blockers.length} blockers`)}
                     </div>
-                  )}
+
+                    <div className="mt-3 grid gap-2 text-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="text-zc-muted">Location Zones</span>
+                        {locCounts.zones > 0 ? readinessFlag("ready") : readinessFlag("pending")}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-zc-muted">Unit Types Enabled</span>
+                        {moduleFlags.enabledUnitTypes > 0 ? readinessFlag("ready") : readinessFlag("block")}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-zc-muted">Units</span>
+                        {moduleFlags.units > 0 ? readinessFlag("ready") : readinessFlag("block")}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-zc-muted">Beds</span>
+                        {moduleFlags.beds > 0 ? readinessFlag("ready") : readinessFlag("block")}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-zc-muted">Schedulable OT Tables</span>
+                        {moduleFlags.schedulableOts > 0 ? readinessFlag("ready") : readinessFlag("block")}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-zc-muted">Equipment Register</span>
+                        {moduleFlags.equipmentCount > 0 ? readinessFlag("ready") : readinessFlag("warn")}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-zc-muted">Fix-It Queue</span>
+                        {moduleFlags.fixItsOpen === 0 ? readinessFlag("ready") : readinessFlag("warn", `${moduleFlags.fixItsOpen} open`)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {blockers.length ? (
+                    <div className="rounded-2xl border border-red-200/60 bg-red-50/40 p-4 dark:border-red-900/40 dark:bg-red-900/15">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-red-700 dark:text-red-200">
+                        <AlertTriangle className="h-4 w-4" />
+                        Blockers
+                      </div>
+                      <ul className="mt-2 list-disc pl-5 text-sm text-zc-muted">
+                        {blockers.map((b, i) => (
+                          <li key={i}>{b}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+
+                  {warnings.length ? (
+                    <div className="rounded-2xl border border-amber-200/60 bg-amber-50/40 p-4 dark:border-amber-900/40 dark:bg-amber-900/15">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-amber-800 dark:text-amber-200">
+                        <Wrench className="h-4 w-4" />
+                        Warnings
+                      </div>
+                      <ul className="mt-2 list-disc pl-5 text-sm text-zc-muted">
+                        {warnings.map((w, i) => (
+                          <li key={i}>{w}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
 
-        {/* KPI strip */}
+        {/* KPI strip (Infra-focused + location counts) */}
         <div className="grid gap-4 md:grid-cols-6">
-          <InfoTile label="Users" tone="cyan" icon={<ClipboardList className="h-4 w-4" />} value={<div className="text-2xl font-semibold tabular-nums">{selected ? metrics.users : "—"}</div>} />
-          <InfoTile label="Departments" tone="emerald" icon={<Layers className="h-4 w-4" />} value={<div className="text-2xl font-semibold tabular-nums">{selected ? metrics.departments : "—"}</div>} />
-          <InfoTile label="Specialties" tone="indigo" icon={<Stethoscope className="h-4 w-4" />} value={<div className="text-2xl font-semibold tabular-nums">{selected ? metrics.specialties : "—"}</div>} />
-          <InfoTile label="Units/Wards" tone="indigo" icon={<Layers className="h-4 w-4" />} value={<div className="text-2xl font-semibold tabular-nums">{selected ? metrics.wards : "—"}</div>} />
-          <InfoTile label="Beds/Resources" tone="emerald" icon={<Hammer className="h-4 w-4" />} value={<div className="text-2xl font-semibold tabular-nums">{selected ? metrics.beds : "—"}</div>} />
-          <InfoTile label="OTs" tone="zinc" icon={<CalendarClock className="h-4 w-4" />} value={<div className="text-2xl font-semibold tabular-nums">{selected ? metrics.ots : "—"}</div>} />
+          <InfoTile
+            label="Campuses"
+            tone="indigo"
+            icon={<MapPin className="h-4 w-4" />}
+            value={<div className="text-2xl font-semibold tabular-nums">{selected ? locCounts.campuses : "—"}</div>}
+          />
+          <InfoTile
+            label="Buildings"
+            tone="cyan"
+            icon={<Building2 className="h-4 w-4" />}
+            value={<div className="text-2xl font-semibold tabular-nums">{selected ? locCounts.buildings : "—"}</div>}
+          />
+          <InfoTile
+            label="Floors"
+            tone="emerald"
+            icon={<Layers className="h-4 w-4" />}
+            value={<div className="text-2xl font-semibold tabular-nums">{selected ? locCounts.floors : "—"}</div>}
+          />
+          <InfoTile
+            label="Zones"
+            tone="indigo"
+            icon={<Layers className="h-4 w-4" />}
+            value={<div className="text-2xl font-semibold tabular-nums">{selected ? locCounts.zones : "—"}</div>}
+          />
+          <InfoTile
+            label="Units"
+            tone="emerald"
+            icon={<ClipboardList className="h-4 w-4" />}
+            value={<div className="text-2xl font-semibold tabular-nums">{selected ? safeNum(snap?.units) : "—"}</div>}
+          />
+          <InfoTile
+            label="Beds"
+            tone="zinc"
+            icon={<Hammer className="h-4 w-4" />}
+            value={<div className="text-2xl font-semibold tabular-nums">{selected ? safeNum(snap?.beds) : "—"}</div>}
+          />
         </div>
 
-        {/* Modules grid (colorful cards) */}
+        {/* Modules grid (now status + counts are live; Locations is enabled) */}
         <Card className="overflow-hidden">
           <CardHeader className="pb-0">
             <CardTitle>Infrastructure Modules</CardTitle>
             <CardDescription>
-              We will enable these pages one-by-one. “Soon” modules are visible but intentionally disabled until implemented.
+              Status and counts are live. Pages that are not implemented yet remain disabled, but still reflect backend progress.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6">
@@ -643,125 +865,187 @@ export default function SuperAdminInfrastructureOverview() {
               <ModuleCard
                 title="Locations"
                 description="Campus → Building → Floor → Zone (effective-dated, strict codes)"
-                icon={<MapPin className="h-4 w-4 text-xc-accent" />}
+                icon={<MapPin className="h-4 w-4 text-zc-accent" />}
                 href="/superadmin/infrastructure/locations"
                 tone="indigo"
-                disabled
-                rightTag={<span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.amber)}>Soon</span>}
+                metricLabel="Zones"
+                metricValue={selected ? locCounts.zones : 0}
+                rightTag={
+                  <>
+                    {moduleFlags.locations}
+                    <span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.emerald)}>Live</span>
+                  </>
+                }
               />
 
               <ModuleCard
                 title="Unit Types (Enablement)"
                 description="Day-1 unit types catalog. Branch enable/disable"
-                icon={<Layers className="h-4 w-4 text-xc-accent" />}
+                icon={<Layers className="h-4 w-4 text-zc-accent" />}
                 href="/superadmin/infrastructure/unit-types"
                 tone="violet"
                 disabled
-                rightTag={<span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.amber)}>Soon</span>}
+                metricLabel="Enabled"
+                metricValue={selected ? moduleFlags.enabledUnitTypes : 0}
+                rightTag={
+                  <>
+                    {moduleFlags.unitTypes}
+                    <span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.amber)}>UI Soon</span>
+                  </>
+                }
               />
 
               <ModuleCard
                 title="Units / Wards"
                 description="Care units: Ward/ICU/OT/Diagnostics with naming validation"
-                icon={<Building2 className="h-4 w-4 text-xc-accent" />}
+                icon={<Building2 className="h-4 w-4 text-zc-accent" />}
                 href="/superadmin/infrastructure/units"
                 tone="sky"
                 disabled
-                rightTag={<span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.amber)}>Soon</span>}
+                metricLabel="Units"
+                metricValue={selected ? moduleFlags.units : 0}
+                rightTag={
+                  <>
+                    {moduleFlags.units}
+                    <span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.amber)}>UI Soon</span>
+                  </>
+                }
               />
 
               <ModuleCard
                 title="Rooms / Bays"
                 description="Rooms (beds in room) + option for Open Bays"
-                icon={<Layers className="h-4 w-4 text-xc-accent" />}
+                icon={<Layers className="h-4 w-4 text-zc-accent" />}
                 href="/superadmin/infrastructure/rooms"
                 tone="emerald"
                 disabled
-                rightTag={<span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.amber)}>Soon</span>}
+                metricLabel="Rooms"
+                metricValue={selected ? moduleFlags.rooms : 0}
+                rightTag={
+                  <>
+                    {moduleFlags.rooms}
+                    <span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.amber)}>UI Soon</span>
+                  </>
+                }
               />
 
               <ModuleCard
                 title="Resources (Beds/OT Tables/etc.)"
                 description="Bed states + housekeeping gate; support bays & rooms"
-                icon={<Hammer className="h-4 w-4 text-xc-accent" />}
+                icon={<Hammer className="h-4 w-4 text-zc-accent" />}
                 href="/superadmin/infrastructure/resources"
                 tone="emerald"
                 disabled
-                rightTag={<span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.amber)}>Soon</span>}
+                metricLabel="Resources"
+                metricValue={selected ? moduleFlags.resources : 0}
+                rightTag={
+                  <>
+                    {moduleFlags.resources}
+                    <span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.amber)}>UI Soon</span>
+                  </>
+                }
               />
 
               <ModuleCard
                 title="OT Scheduling Readiness"
                 description="Conflict detection + pre-check blockers (consent/anesthesia/checklists)"
-                icon={<CalendarClock className="h-4 w-4 text-xc-accent" />}
+                icon={<CalendarClock className="h-4 w-4 text-zc-accent" />}
                 href="/superadmin/infrastructure/ot"
                 tone="indigo"
                 disabled
-                rightTag={<span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.amber)}>Soon</span>}
+                metricLabel="Schedulable"
+                metricValue={selected ? moduleFlags.schedulableOts : 0}
+                rightTag={
+                  <>
+                    {moduleFlags.ot}
+                    <span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.amber)}>UI Soon</span>
+                  </>
+                }
               />
 
               <ModuleCard
                 title="Diagnostics Configuration"
                 description="Orderables, modalities, worklists, validation policy"
-                icon={<Database className="h-4 w-4 text-xc-accent" />}
+                icon={<Database className="h-4 w-4 text-zc-accent" />}
                 href="/superadmin/infrastructure/diagnostics"
                 tone="sky"
                 disabled
+                metricLabel="Planned"
+                metricValue={1}
                 rightTag={<span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.amber)}>Soon</span>}
               />
 
               <ModuleCard
                 title="Equipment Register"
-                description="Make/model/serial, location binding, AMC/PM schedules, downtime tickets; AERB/PCPNDT blockers"
-                icon={<ShieldCheck className="h-4 w-4 text-xc-accent" />}
+                description="Make/model/serial, AMC/PM schedules, downtime tickets; AERB/PCPNDT gates"
+                icon={<ShieldCheck className="h-4 w-4 text-zc-accent" />}
                 href="/superadmin/infrastructure/equipment"
                 tone="violet"
                 disabled
-                rightTag={<span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.amber)}>Soon</span>}
+                metricLabel="Assets"
+                metricValue={selected ? moduleFlags.equipmentCount : 0}
+                rightTag={
+                  <>
+                    {moduleFlags.equipment}
+                    <span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.amber)}>UI Soon</span>
+                  </>
+                }
               />
 
               <ModuleCard
                 title="Service Items + Charge Mapping"
                 description="Orderable ServiceItem → versioned Charge Master code; Fix-It queue for unmapped"
-                icon={<ClipboardList className="h-4 w-4 text-xc-accent" />}
+                icon={<ClipboardList className="h-4 w-4 text-zc-accent" />}
                 href="/superadmin/infrastructure/service-items"
                 tone="indigo"
                 disabled
-                rightTag={<span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.amber)}>Soon</span>}
+                metricLabel="Fix-Its"
+                metricValue={selected ? moduleFlags.fixItsOpen : 0}
+                rightTag={
+                  <>
+                    {moduleFlags.mapping}
+                    <span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.amber)}>UI Soon</span>
+                  </>
+                }
               />
 
               <ModuleCard
                 title="Bulk Import (CSV/XLS)"
-                description="Templates: Departments / Units / Rooms / Resources / Assets / Service Items"
-                icon={<Database className="h-4 w-4 text-xc-accent" />}
+                description="Templates: Units / Rooms / Resources / Assets / Service Items"
+                icon={<Database className="h-4 w-4 text-zc-accent" />}
                 href="/superadmin/infrastructure/import"
                 tone="zinc"
                 disabled
+                metricLabel="Planned"
+                metricValue={1}
                 rightTag={<span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.amber)}>Soon</span>}
               />
 
               <ModuleCard
                 title="Go-Live Validator"
                 description="Readiness score + blockers/warnings + recommended fixes + immutable snapshot report"
-                icon={<Sparkles className="h-4 w-4 text-xc-accent" />}
+                icon={<Sparkles className="h-4 w-4 text-zc-accent" />}
                 href="/superadmin/infrastructure/go-live"
                 tone="emerald"
                 disabled
-                rightTag={<span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.amber)}>Soon</span>}
+                metricLabel="Score"
+                metricValue={selected ? score : 0}
+                rightTag={
+                  <>
+                    {blockers.length === 0 ? readinessFlag("ready") : readinessFlag("block", `${blockers.length}`)}
+                    <span className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.amber)}>UI Soon</span>
+                  </>
+                }
               />
             </div>
 
-            <div className="mt-6 rounded-2xl border border-xc-border bg-xc-panel/15 p-4 text-sm text-xc-muted">
-              <div className="font-semibold text-xc-text">Next we will implement:</div>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span className={cn("rounded-full border px-3 py-1 text-xs", pillTones.indigo)}>Locations</span>
-                <span className={cn("rounded-full border px-3 py-1 text-xs", pillTones.emerald)}>Units</span>
-                <span className={cn("rounded-full border px-3 py-1 text-xs", pillTones.violet)}>Rooms/Bays</span>
-                <span className={cn("rounded-full border px-3 py-1 text-xs", pillTones.sky)}>Resources</span>
-              </div>
-              <div className="mt-2 text-xs">
-                Note: Defaults are stricter at scheduling time. Compliance gates (AERB/PCPNDT) will be hard blockers before schedulable.
-              </div>
+            <div className="mt-6 rounded-2xl border border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
+              <div className="font-semibold text-zc-text">What changed (so it is “live” now)</div>
+              <ul className="mt-2 list-disc pl-5 text-sm">
+                <li>Locations card is enabled and shows live location counts from the backend location-tree endpoint.</li>
+                <li>Readiness is computed by backend Go-Live Preview (not hardcoded heuristics).</li>
+                <li>All module cards reflect real counts/status even if their UI pages are not enabled yet.</li>
+              </ul>
             </div>
           </CardContent>
         </Card>

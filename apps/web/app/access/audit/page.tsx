@@ -112,23 +112,23 @@ export default function AccessAuditPage() {
 
             <div className="grid gap-3 md:grid-cols-5">
               <div className="grid gap-2">
-                <Label className="text-xs text-xc-muted">Entity</Label>
+                <Label className="text-xs text-zc-muted">Entity</Label>
                 <Input value={entity} onChange={(e) => setEntity(e.target.value)} placeholder="User" />
               </div>
               <div className="grid gap-2">
-                <Label className="text-xs text-xc-muted">Entity ID</Label>
+                <Label className="text-xs text-zc-muted">Entity ID</Label>
                 <Input value={entityId} onChange={(e) => setEntityId(e.target.value)} placeholder="uuid" />
               </div>
               <div className="grid gap-2">
-                <Label className="text-xs text-xc-muted">Actor User ID</Label>
+                <Label className="text-xs text-zc-muted">Actor User ID</Label>
                 <Input value={actorUserId} onChange={(e) => setActorUserId(e.target.value)} placeholder="uuid" />
               </div>
               <div className="grid gap-2">
-                <Label className="text-xs text-xc-muted">Action</Label>
+                <Label className="text-xs text-zc-muted">Action</Label>
                 <Input value={action} onChange={(e) => setAction(e.target.value)} placeholder="IAM_USER_*" />
               </div>
               <div className="grid gap-2">
-                <Label className="text-xs text-xc-muted">Rows</Label>
+                <Label className="text-xs text-zc-muted">Rows</Label>
                 <Select value={take} onValueChange={setTake}>
                   <SelectTrigger>
                     <SelectValue placeholder="Take" />
@@ -152,12 +152,12 @@ export default function AccessAuditPage() {
 
           <CardContent>
             {err ? (
-              <div className="mb-4 rounded-xl border border-xc-danger/30 bg-xc-danger/10 px-4 py-3 text-sm text-xc-danger">
+              <div className="mb-4 rounded-xl border border-zc-danger/30 bg-zc-danger/10 px-4 py-3 text-sm text-zc-danger">
                 {err}
               </div>
             ) : null}
 
-            <div className="rounded-xl border border-xc-border">
+            <div className="rounded-xl border border-zc-border">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -174,7 +174,7 @@ export default function AccessAuditPage() {
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="py-10 text-center text-sm text-xc-muted">
+                      <TableCell colSpan={7} className="py-10 text-center text-sm text-zc-muted">
                         <Loader2 className="mx-auto mb-3 h-5 w-5 animate-spin" />
                         Loading audit events...
                       </TableCell>
@@ -186,7 +186,7 @@ export default function AccessAuditPage() {
                         <TableCell className="text-sm">{e.branchName || "—"}</TableCell>
                         <TableCell className="text-sm">
                           <div className="font-medium">{e.actorName || "—"}</div>
-                          <div className="font-mono text-xs text-xc-muted">{e.actorEmail || e.actorUserId || "—"}</div>
+                          <div className="font-mono text-xs text-zc-muted">{e.actorEmail || e.actorUserId || "—"}</div>
                         </TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="font-mono text-xs">
@@ -195,9 +195,9 @@ export default function AccessAuditPage() {
                         </TableCell>
                         <TableCell className="text-sm">
                           <div className="font-medium">{e.entity}</div>
-                          <div className="font-mono text-xs text-xc-muted">{e.entityId || "—"}</div>
+                          <div className="font-mono text-xs text-zc-muted">{e.entityId || "—"}</div>
                         </TableCell>
-                        <TableCell className="max-w-[420px] truncate font-mono text-xs text-xc-muted">
+                        <TableCell className="max-w-[420px] truncate font-mono text-xs text-zc-muted">
                           {compactMeta(e.meta)}
                         </TableCell>
                         <TableCell className="text-right">
@@ -210,7 +210,7 @@ export default function AccessAuditPage() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="py-10 text-center text-sm text-xc-muted">
+                      <TableCell colSpan={7} className="py-10 text-center text-sm text-zc-muted">
                         No audit events found.
                       </TableCell>
                     </TableRow>
@@ -235,32 +235,32 @@ export default function AccessAuditPage() {
               <>
                 <div className="grid gap-2 text-sm">
                   <div>
-                    <span className="text-xc-muted">Time:</span>{" "}
+                    <span className="text-zc-muted">Time:</span>{" "}
                     <span className="font-medium">{fmt(selected.createdAt)}</span>
                   </div>
                   <div>
-                    <span className="text-xc-muted">Branch:</span>{" "}
+                    <span className="text-zc-muted">Branch:</span>{" "}
                     <span className="font-medium">{selected.branchName || "—"}</span>
                   </div>
                   <div>
-                    <span className="text-xc-muted">Actor:</span>{" "}
+                    <span className="text-zc-muted">Actor:</span>{" "}
                     <span className="font-medium">{selected.actorName || "—"}</span>{" "}
-                    <span className="text-xc-muted">({selected.actorEmail || selected.actorUserId || "—"})</span>
+                    <span className="text-zc-muted">({selected.actorEmail || selected.actorUserId || "—"})</span>
                   </div>
                   <div>
-                    <span className="text-xc-muted">Action:</span>{" "}
+                    <span className="text-zc-muted">Action:</span>{" "}
                     <span className="font-mono">{selected.action}</span>
                   </div>
                   <div>
-                    <span className="text-xc-muted">Entity:</span>{" "}
+                    <span className="text-zc-muted">Entity:</span>{" "}
                     <span className="font-medium">{selected.entity}</span>{" "}
-                    <span className="text-xc-muted">({selected.entityId || "—"})</span>
+                    <span className="text-zc-muted">({selected.entityId || "—"})</span>
                   </div>
                 </div>
 
-                <div className="mt-4 rounded-xl border border-xc-border bg-xc-panel p-3">
+                <div className="mt-4 rounded-xl border border-zc-border bg-zc-panel p-3">
                   <div className="text-sm font-semibold">Meta</div>
-                  <pre className="mt-2 max-h-[420px] overflow-auto rounded-lg border border-xc-border bg-xc-card p-3 text-xs">
+                  <pre className="mt-2 max-h-[420px] overflow-auto rounded-lg border border-zc-border bg-zc-card p-3 text-xs">
 {JSON.stringify(selected.meta ?? null, null, 2)}
                   </pre>
                 </div>

@@ -17,25 +17,25 @@ export function Toaster() {
 
         const tone =
           variant === "destructive"
-            ? "border-[rgb(var(--xc-danger-rgb)/0.40)] bg-[rgb(var(--xc-danger-rgb)/0.12)]"
+            ? "border-[rgb(var(--zc-danger-rgb)/0.40)] bg-[rgb(var(--zc-danger-rgb)/0.12)]"
             : variant === "success"
               ? "border-emerald-200/70 bg-emerald-50/70 dark:border-emerald-900/50 dark:bg-emerald-950/25"
               : variant === "warning"
                 ? "border-amber-200/70 bg-amber-50/70 dark:border-amber-900/50 dark:bg-amber-950/25"
                 : variant === "info"
                   ? "border-sky-200/70 bg-sky-50/70 dark:border-sky-900/50 dark:bg-sky-950/25"
-                  : "border-xc-border bg-xc-card";
+                  : "border-zc-border bg-zc-card";
 
         const descTone =
           variant === "destructive"
-            ? "text-[rgb(var(--xc-danger))]"
+            ? "text-[rgb(var(--zc-danger))]"
             : variant === "success"
               ? "text-emerald-800 dark:text-emerald-200"
               : variant === "warning"
                 ? "text-amber-900 dark:text-amber-200"
                 : variant === "info"
                   ? "text-sky-800 dark:text-sky-200"
-                  : "text-xc-muted";
+                  : "text-zc-muted";
 
         return (
           <ToastPrimitives.Root
@@ -52,16 +52,16 @@ export function Toaster() {
           >
             <ToastPrimitives.Close
               className={cn(
-                "absolute right-3 top-3 rounded-lg p-1 text-xc-muted",
-                "hover:bg-[rgb(var(--xc-hover-rgb)/0.08)] hover:text-xc-text",
-                "focus:outline-none focus-visible:ring-2 focus-visible:ring-xc-ring"
+                "absolute right-3 top-3 rounded-lg p-1 text-zc-muted",
+                "hover:bg-[rgb(var(--zc-hover-rgb)/0.08)] hover:text-zc-text",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-zc-ring"
               )}
             >
               <X className="h-4 w-4" />
             </ToastPrimitives.Close>
 
             {t.title ? (
-              <ToastPrimitives.Title className="text-sm font-semibold text-xc-text">
+              <ToastPrimitives.Title className="text-sm font-semibold text-zc-text">
                 {t.title}
               </ToastPrimitives.Title>
             ) : null}

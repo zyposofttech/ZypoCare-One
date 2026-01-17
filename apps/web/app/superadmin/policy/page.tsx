@@ -50,12 +50,12 @@ export default function SuperAdminPolicyLandingPage() {
         {/* ✅ MATCHED HEADER (like attached page.tsx) */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-xc-border bg-xc-panel/30">
-              <Notebook className="h-5 w-5 text-xc-accent" />
+            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-zc-border bg-zc-panel/30">
+              <Notebook className="h-5 w-5 text-zc-accent" />
             </span>
             <div>
               <div className="text-3xl font-semibold tracking-tight">Policy Governance</div>
-              <div className="mt-1 text-sm text-xc-muted">
+              <div className="mt-1 text-sm text-zc-muted">
                 Configure, approve, and audit hospital policies. Super Admin can view effective policy per branch.
               </div>
             </div>
@@ -79,7 +79,7 @@ export default function SuperAdminPolicyLandingPage() {
 
         {/* Error banner (same as attached) */}
         {err ? (
-          <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
+          <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
             <AlertTriangle className="mt-0.5 h-4 w-4" />
             <div className="min-w-0">{err}</div>
           </div>
@@ -106,17 +106,17 @@ export default function SuperAdminPolicyLandingPage() {
         <Card className="overflow-hidden">
           <CardContent className="p-6">
             <div className="flex items-center gap-2 text-base font-semibold">
-              <span className="grid h-9 w-9 place-items-center rounded-2xl border border-xc-border bg-xc-panel/30">
-                <IconShield className="h-4 w-4 text-xc-accent" />
+              <span className="grid h-9 w-9 place-items-center rounded-2xl border border-zc-border bg-zc-panel/30">
+                <IconShield className="h-4 w-4 text-zc-accent" />
               </span>
               Governance Workbench
             </div>
 
-            <div className="mt-2 text-sm text-xc-muted">
+            <div className="mt-2 text-sm text-zc-muted">
               Manage policy lifecycle end-to-end: versions, approvals, audit evidence, and branch overrides.
             </div>
 
-            <Separator className="my-6 bg-xc-border" />
+            <Separator className="my-6 bg-zc-border" />
 
             <div className="grid gap-4 lg:grid-cols-3">
               <QuickLink
@@ -156,21 +156,21 @@ const TONES = {
     border: "border-blue-200/60 hover:border-blue-300 dark:border-blue-900/50",
     iconBox: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
     text: "text-blue-950 dark:text-blue-100",
-    kpiBg: "bg-gradient-to-br from-white to-blue-50/80 dark:from-xc-card dark:to-blue-950/20",
+    kpiBg: "bg-gradient-to-br from-white to-blue-50/80 dark:from-zc-card dark:to-blue-950/20",
   },
   amber: {
     bg: "bg-amber-50/50 hover:bg-amber-50 dark:bg-amber-950/10 dark:hover:bg-amber-950/20",
     border: "border-amber-200/60 hover:border-amber-300 dark:border-amber-900/50",
     iconBox: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
     text: "text-amber-950 dark:text-amber-100",
-    kpiBg: "bg-gradient-to-br from-white to-amber-50/80 dark:from-xc-card dark:to-amber-950/20",
+    kpiBg: "bg-gradient-to-br from-white to-amber-50/80 dark:from-zc-card dark:to-amber-950/20",
   },
   violet: {
     bg: "bg-violet-50/50 hover:bg-violet-50 dark:bg-violet-950/10 dark:hover:bg-violet-950/20",
     border: "border-violet-200/60 hover:border-violet-300 dark:border-violet-900/50",
     iconBox: "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300",
     text: "text-violet-950 dark:text-violet-100",
-    kpiBg: "bg-gradient-to-br from-white to-violet-50/80 dark:from-xc-card dark:to-violet-950/20",
+    kpiBg: "bg-gradient-to-br from-white to-violet-50/80 dark:from-zc-card dark:to-violet-950/20",
   },
 };
 
@@ -200,7 +200,7 @@ function KpiCard({
       )}
     >
       <div className="flex items-center justify-between">
-        <div className="text-xs font-semibold uppercase tracking-wider text-xc-muted/80">{label}</div>
+        <div className="text-xs font-semibold uppercase tracking-wider text-zc-muted/80">{label}</div>
         <div className={cn("rounded-lg p-1.5", styles.iconBox)}>{icon}</div>
       </div>
       <div className={cn("mt-3 text-3xl font-bold tracking-tight", styles.text)}>{value}</div>
@@ -263,7 +263,7 @@ function QuickLink({
 
       <div>
         <div className={cn("text-lg font-bold", styles.text)}>{title}</div>
-        <div className="mt-1 text-sm text-xc-muted line-clamp-2">{desc}</div>
+        <div className="mt-1 text-sm text-zc-muted line-clamp-2">{desc}</div>
       </div>
     </Link>
   );

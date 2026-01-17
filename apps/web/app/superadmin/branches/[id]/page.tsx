@@ -194,7 +194,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={onCopy}
-      className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-md text-xc-muted hover:bg-xc-panel hover:text-xc-text transition-colors"
+      className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-md text-zc-muted hover:bg-zc-panel hover:text-zc-text transition-colors"
       title="Copy"
       type="button"
     >
@@ -223,12 +223,12 @@ function InfoTile({
         ? "border-emerald-200/50 bg-emerald-50/40 dark:border-emerald-900/35 dark:bg-emerald-900/15"
         : tone === "cyan"
           ? "border-cyan-200/50 bg-cyan-50/40 dark:border-cyan-900/35 dark:bg-cyan-900/15"
-          : "border-xc-border bg-xc-panel/15";
+          : "border-zc-border bg-zc-panel/15";
 
   return (
     <div className={cn("rounded-xl border p-4", toneCls, className)}>
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-xc-muted">
-        {icon ? <span className="text-xc-muted">{icon}</span> : null}
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zc-muted">
+        {icon ? <span className="text-zc-muted">{icon}</span> : null}
         <span>{label}</span>
       </div>
       <div className="mt-2">{value}</div>
@@ -255,21 +255,21 @@ function ModuleCard({
     <Link
       href={href}
       className={cn(
-        "group block rounded-2xl border border-xc-border bg-xc-panel/20 p-4 transition-all",
-        "hover:bg-xc-panel/35 hover:shadow-elev-2 hover:-translate-y-0.5",
+        "group block rounded-2xl border border-zc-border bg-zc-panel/20 p-4 transition-all",
+        "hover:bg-zc-panel/35 hover:shadow-elev-2 hover:-translate-y-0.5",
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-xl border border-xc-border bg-xc-panel/25">
+            <span className="grid h-9 w-9 place-items-center rounded-xl border border-zc-border bg-zc-panel/25">
               {icon}
             </span>
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-xc-text group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+              <div className="text-sm font-semibold text-zc-text group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
                 {title}
               </div>
-              <div className="mt-1 text-sm text-xc-muted">{description}</div>
+              <div className="mt-1 text-sm text-zc-muted">{description}</div>
             </div>
           </div>
 
@@ -281,7 +281,7 @@ function ModuleCard({
         </div>
 
         <div className="mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-transparent group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/50 transition-colors">
-          <IconChevronRight className="h-4 w-4 text-xc-muted group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all group-hover:translate-x-0.5" />
+          <IconChevronRight className="h-4 w-4 text-zc-muted group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all group-hover:translate-x-0.5" />
         </div>
       </div>
     </Link>
@@ -303,12 +303,12 @@ function ModalShell({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl rounded-2xl border border-indigo-200/40 bg-xc-card shadow-elev-2 dark:border-indigo-900/40 animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-2xl rounded-2xl border border-indigo-200/40 bg-zc-card shadow-elev-2 dark:border-indigo-900/40 animate-in zoom-in-95 duration-200">
         <div className="p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <div className="text-lg font-semibold tracking-tight text-xc-text">{title}</div>
-              {description ? <div className="mt-1 text-sm text-xc-muted">{description}</div> : null}
+              <div className="text-lg font-semibold tracking-tight text-zc-text">{title}</div>
+              {description ? <div className="mt-1 text-sm text-zc-muted">{description}</div> : null}
             </div>
             <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
               ✕
@@ -416,7 +416,7 @@ function EditBranchModal({
       onClose={onClose}
     >
       {err ? (
-        <div className="mb-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
           <AlertTriangle className="mt-0.5 h-4 w-4" />
           <div className="min-w-0">{err}</div>
         </div>
@@ -425,11 +425,11 @@ function EditBranchModal({
       <div className="grid gap-4">
         <div className="grid gap-3 md:grid-cols-2">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">Branch code</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Branch code</div>
             <Input value={branch.code} disabled className="mt-1 font-mono" />
           </div>
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">City</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">City</div>
             <Input
               value={form.city}
               onChange={(e) => setForm((s) => ({ ...s, city: e.target.value }))}
@@ -439,7 +439,7 @@ function EditBranchModal({
         </div>
 
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">Branch name</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Branch name</div>
           <Input
             value={form.name}
             onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
@@ -448,7 +448,7 @@ function EditBranchModal({
         </div>
 
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">GST Number (GSTIN)</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">GST Number (GSTIN)</div>
           <Input
             value={form.gstNumber}
             onChange={(e) => setForm((s) => ({ ...s, gstNumber: e.target.value.toUpperCase() }))}
@@ -456,25 +456,25 @@ function EditBranchModal({
             maxLength={15}
             className="mt-1 font-mono"
           />
-          <div className="mt-1 text-xs text-xc-muted">Used in Accounting, invoices, statutory reporting.</div>
+          <div className="mt-1 text-xs text-zc-muted">Used in Accounting, invoices, statutory reporting.</div>
         </div>
 
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">Address</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Address</div>
           <textarea
             value={form.address}
             onChange={(e) => setForm((s) => ({ ...s, address: e.target.value }))}
             placeholder="Address line for this campus"
             className={cn(
-              "mt-1 min-h-[90px] w-full rounded-lg border border-xc-border bg-transparent px-3 py-2 text-sm text-xc-text outline-none",
-              "focus-visible:ring-2 focus-visible:ring-xc-ring",
+              "mt-1 min-h-[90px] w-full rounded-lg border border-zc-border bg-transparent px-3 py-2 text-sm text-zc-text outline-none",
+              "focus-visible:ring-2 focus-visible:ring-zc-ring",
             )}
           />
         </div>
 
         <div className="grid gap-3 md:grid-cols-2">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">Contact phone 1</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Contact phone 1</div>
             <Input
               value={form.contactPhone1}
               onChange={(e) => setForm((s) => ({ ...s, contactPhone1: e.target.value }))}
@@ -483,7 +483,7 @@ function EditBranchModal({
             />
           </div>
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">Contact phone 2</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Contact phone 2</div>
             <Input
               value={form.contactPhone2}
               onChange={(e) => setForm((s) => ({ ...s, contactPhone2: e.target.value }))}
@@ -494,7 +494,7 @@ function EditBranchModal({
         </div>
 
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-xc-muted">Contact email</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Contact email</div>
           <Input
             value={form.contactEmail}
             onChange={(e) => setForm((s) => ({ ...s, contactEmail: e.target.value }))}
@@ -574,18 +574,18 @@ function DeleteConfirmModal({
       onClose={onClose}
     >
       {err ? (
-        <div className="mb-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
           <AlertTriangle className="mt-0.5 h-4 w-4" />
           <div className="min-w-0">{err}</div>
         </div>
       ) : null}
 
-      <div className="rounded-xl border border-xc-border bg-xc-panel/20 p-4">
-        <div className="text-sm text-xc-muted">You are deleting</div>
-        <div className="mt-1 text-base font-semibold text-xc-text">
-          {branch.name} <span className="text-xc-muted">({branch.code})</span>
+      <div className="rounded-xl border border-zc-border bg-zc-panel/20 p-4">
+        <div className="text-sm text-zc-muted">You are deleting</div>
+        <div className="mt-1 text-base font-semibold text-zc-text">
+          {branch.name} <span className="text-zc-muted">({branch.code})</span>
         </div>
-        <div className="mt-2 text-sm text-xc-muted">City: {branch.city}</div>
+        <div className="mt-2 text-sm text-zc-muted">City: {branch.city}</div>
 
         <div className="mt-3 flex flex-wrap gap-2">
           <MetricPill label="Facilities" value={countOf(branch, "facilities")} tone="sky" />
@@ -594,8 +594,8 @@ function DeleteConfirmModal({
         </div>
 
         {deps > 0 ? (
-          <div className="mt-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-warn-rgb)/0.35)] bg-[rgb(var(--xc-warn-rgb)/0.12)] px-3 py-2 text-sm text-xc-text">
-            <AlertTriangle className="mt-0.5 h-4 w-4 text-[rgb(var(--xc-warn))]" />
+          <div className="mt-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-warn-rgb)/0.35)] bg-[rgb(var(--zc-warn-rgb)/0.12)] px-3 py-2 text-sm text-zc-text">
+            <AlertTriangle className="mt-0.5 h-4 w-4 text-[rgb(var(--zc-warn))]" />
             <div className="min-w-0">
               This branch already has setup data. Delete is blocked. Use governance/retirement instead.
             </div>
@@ -696,12 +696,12 @@ export default function BranchDetailPage() {
               </span>
 
               <div className="min-w-0">
-                <div className="text-sm text-xc-muted">
+                <div className="text-sm text-zc-muted">
                   <Link href="/superadmin/branches" className="hover:underline">
                     Branches
                   </Link>
-                  <span className="mx-2 text-xc-muted/60">/</span>
-                  <span className="text-xc-text">Details</span>
+                  <span className="mx-2 text-zc-muted/60">/</span>
+                  <span className="text-zc-text">Details</span>
                 </div>
 
                 <div className="mt-1 text-3xl font-semibold tracking-tight">
@@ -709,15 +709,15 @@ export default function BranchDetailPage() {
                 </div>
 
                 {!loading && row ? (
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-xc-muted">
-                    <span className="rounded-md border border-xc-border bg-xc-panel/25 px-2 py-0.5 font-mono text-[12px] text-xc-text">
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-zc-muted">
+                    <span className="rounded-md border border-zc-border bg-zc-panel/25 px-2 py-0.5 font-mono text-[12px] text-zc-text">
                       {row.code}
                     </span>
-                    <span className="text-xc-muted/60">•</span>
+                    <span className="text-zc-muted/60">•</span>
                     <span className="inline-flex items-center gap-1">
                       <MapPin className="h-4 w-4" /> {row.city}
                     </span>
-                    <span className="text-xc-muted/60">•</span>
+                    <span className="text-zc-muted/60">•</span>
                     <span
                       className={cn(
                         "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] border",
@@ -745,7 +745,7 @@ export default function BranchDetailPage() {
             ) : null}
 
             {err ? (
-              <div className="mt-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--xc-danger-rgb)/0.35)] bg-[rgb(var(--xc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--xc-danger))]">
+              <div className="mt-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
                 <AlertTriangle className="mt-0.5 h-4 w-4" />
                 <div className="min-w-0">{err}</div>
               </div>
@@ -795,19 +795,19 @@ export default function BranchDetailPage() {
             </CardHeader>
             <CardContent className="grid gap-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-xc-muted">Facilities</span>
+                <span className="text-zc-muted">Facilities</span>
                 {readinessFlag(readyFacilities)}
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-xc-muted">Departments</span>
+                <span className="text-zc-muted">Departments</span>
                 {readinessFlag(readyDepartments)}
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-xc-muted">Specialties Catalog</span>
+                <span className="text-zc-muted">Specialties Catalog</span>
                 {readinessFlag(readySpecialties)}
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-xc-muted">Dept ↔ Specialty Mapping</span>
+                <span className="text-zc-muted">Dept ↔ Specialty Mapping</span>
                 {readinessFlag(readyMapping, "Review in Setup")}
               </div>
             </CardContent>
@@ -857,7 +857,7 @@ export default function BranchDetailPage() {
                   />
                 </div>
               ) : (
-                <div className="text-sm text-xc-muted">No data.</div>
+                <div className="text-sm text-zc-muted">No data.</div>
               )}
             </CardContent>
           </Card>
@@ -896,7 +896,7 @@ export default function BranchDetailPage() {
 
                   <InfoTile
                     label="Address"
-                    value={<div className="text-sm text-xc-text">{valOrDash(row.address)}</div>}
+                    value={<div className="text-sm text-zc-text">{valOrDash(row.address)}</div>}
                     className="md:col-span-2"
                     icon={<MapPin className="h-4 w-4" />}
                     tone="indigo"
@@ -905,9 +905,9 @@ export default function BranchDetailPage() {
                   <InfoTile
                     label="Contact Phones"
                     value={
-                      <div className="text-sm text-xc-text">
+                      <div className="text-sm text-zc-text">
                         <div>{valOrDash(row.contactPhone1)}</div>
-                        {row.contactPhone2?.trim() ? <div className="text-xc-muted">{row.contactPhone2}</div> : null}
+                        {row.contactPhone2?.trim() ? <div className="text-zc-muted">{row.contactPhone2}</div> : null}
                         {!row.contactPhone1?.trim() && !row.contactPhone2?.trim() ? <span>—</span> : null}
                       </div>
                     }
@@ -916,15 +916,15 @@ export default function BranchDetailPage() {
 
                   <InfoTile
                     label="Contact Email"
-                    value={<div className="text-sm text-xc-text">{valOrDash(row.contactEmail)}</div>}
+                    value={<div className="text-sm text-zc-text">{valOrDash(row.contactEmail)}</div>}
                     tone="zinc"
                   />
 
-                  <InfoTile label="Created At" value={<span className="text-sm text-xc-text">{fmtDate(row.createdAt)}</span>} />
-                  <InfoTile label="Updated At" value={<span className="text-sm text-xc-text">{fmtDate(row.updatedAt)}</span>} />
+                  <InfoTile label="Created At" value={<span className="text-sm text-zc-text">{fmtDate(row.createdAt)}</span>} />
+                  <InfoTile label="Updated At" value={<span className="text-sm text-zc-text">{fmtDate(row.updatedAt)}</span>} />
                 </div>
               ) : (
-                <div className="text-sm text-xc-muted">No data.</div>
+                <div className="text-sm text-zc-muted">No data.</div>
               )}
             </CardContent>
           </Card>
@@ -942,7 +942,7 @@ export default function BranchDetailPage() {
                   title="Facility Setup"
                   description="Facilities → Departments → Specialties → Mapping"
                   count={undefined}
-                  icon={<Wand2 className="h-4 w-4 text-xc-accent" />}
+                  icon={<Wand2 className="h-4 w-4 text-zc-accent" />}
                   href={facilitySetupHref}
                   tone="zinc"
                 />
@@ -950,7 +950,7 @@ export default function BranchDetailPage() {
                   title="Facilities Enabled"
                   description="Branch facility catalog (enabled)"
                   count={facilities}
-                  icon={<Layers className="h-4 w-4 text-xc-accent" />}
+                  icon={<Layers className="h-4 w-4 text-zc-accent" />}
                   href={facilitySetupHref}
                   tone="sky"
                 />
@@ -958,7 +958,7 @@ export default function BranchDetailPage() {
                   title="Departments"
                   description="Departments created under facilities"
                   count={departments}
-                  icon={<Layers className="h-4 w-4 text-xc-accent" />}
+                  icon={<Layers className="h-4 w-4 text-zc-accent" />}
                   href={facilitySetupHref}
                   tone="emerald"
                 />
@@ -966,7 +966,7 @@ export default function BranchDetailPage() {
                   title="Specialties Catalog"
                   description="Branch-level specialties (master list)"
                   count={specialties}
-                  icon={<Layers className="h-4 w-4 text-xc-accent" />}
+                  icon={<Layers className="h-4 w-4 text-zc-accent" />}
                   href={facilitySetupHref}
                   tone="violet"
                 />
@@ -982,24 +982,24 @@ export default function BranchDetailPage() {
               <CardContent className="pt-6 grid gap-3">
                 <Link
                   href={policyOverridesHref}
-                  className="group flex items-center justify-between rounded-2xl border border-xc-border bg-xc-panel/20 p-4 hover:bg-xc-panel/35 hover:shadow-elev-2 transition-all"
+                  className="group flex items-center justify-between rounded-2xl border border-zc-border bg-zc-panel/20 p-4 hover:bg-zc-panel/35 hover:shadow-elev-2 transition-all"
                 >
                   <div className="flex items-start gap-3">
-                    <span className="grid h-9 w-9 place-items-center rounded-xl border border-xc-border bg-xc-panel/25">
-                      <ShieldCheck className="h-4 w-4 text-xc-accent" />
+                    <span className="grid h-9 w-9 place-items-center rounded-xl border border-zc-border bg-zc-panel/25">
+                      <ShieldCheck className="h-4 w-4 text-zc-accent" />
                     </span>
                     <div>
-                      <div className="text-sm font-semibold text-xc-text group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                      <div className="text-sm font-semibold text-zc-text group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
                         Policy Overrides
                       </div>
-                      <div className="mt-1 text-sm text-xc-muted">Branch-specific exceptions and rollouts</div>
+                      <div className="mt-1 text-sm text-zc-muted">Branch-specific exceptions and rollouts</div>
                     </div>
                   </div>
-                  <IconChevronRight className="h-4 w-4 text-xc-muted group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
+                  <IconChevronRight className="h-4 w-4 text-zc-muted group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
                 </Link>
 
-                <div className="rounded-2xl border border-xc-border bg-xc-panel/15 p-4 text-sm text-xc-muted">
-                  <div className="font-semibold text-xc-text">Super Admin shortcuts</div>
+                <div className="rounded-2xl border border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
+                  <div className="font-semibold text-zc-text">Super Admin shortcuts</div>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <Button asChild variant="outline">
                       <Link href={policiesHref}>Policies</Link>

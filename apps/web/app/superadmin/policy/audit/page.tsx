@@ -32,7 +32,7 @@ type AuditRow = {
 };
 
 function toneDanger() {
-  return "border-[rgb(var(--xc-danger-rgb)/0.45)] bg-[rgb(var(--xc-danger-rgb)/0.10)] text-[rgb(var(--xc-danger))]";
+  return "border-[rgb(var(--zc-danger-rgb)/0.45)] bg-[rgb(var(--zc-danger-rgb)/0.10)] text-[rgb(var(--zc-danger))]";
 }
 
 async function fetchBranches(): Promise<BranchLite[]> {
@@ -123,12 +123,12 @@ export default function SuperAdminPolicyAuditPage() {
         {/* Header */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-xc-border bg-xc-panel/30">
-              <IconShield className="h-5 w-5 text-xc-accent" />
+            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-zc-border bg-zc-panel/30">
+              <IconShield className="h-5 w-5 text-zc-accent" />
             </span>
             <div className="min-w-0">
               <div className="text-3xl font-semibold tracking-tight">Audit</div>
-              <div className="mt-1 text-sm text-xc-muted">
+              <div className="mt-1 text-sm text-zc-muted">
                 Immutable trace of policy edits, submissions, approvals, and override activity.
               </div>
             </div>
@@ -153,23 +153,23 @@ export default function SuperAdminPolicyAuditPage() {
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Search & Filter</CardTitle>
             <CardDescription className="text-sm">
-              Showing <span className="font-semibold text-xc-text tabular-nums">{filtered.length}</span> of{" "}
-              <span className="font-semibold text-xc-text tabular-nums">{rows.length}</span> events.
+              Showing <span className="font-semibold text-zc-text tabular-nums">{filtered.length}</span> of{" "}
+              <span className="font-semibold text-zc-text tabular-nums">{rows.length}</span> events.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="relative w-full lg:max-w-md">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-xc-muted" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zc-muted" />
                 <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search audit…" className="pl-9" />
               </div>
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <Label className="text-sm text-xc-muted">Branch</Label>
+                <Label className="text-sm text-zc-muted">Branch</Label>
                 <select
                   value={branchId}
                   onChange={(e) => setBranchId(e.target.value)}
-                  className="h-10 rounded-lg border border-xc-border bg-xc-card px-3 text-sm text-xc-text"
+                  className="h-10 rounded-lg border border-zc-border bg-zc-card px-3 text-sm text-zc-text"
                 >
                   <option value="">All branches</option>
                   {branches.map((b) => (
@@ -196,11 +196,11 @@ export default function SuperAdminPolicyAuditPage() {
             <CardTitle className="text-base">Audit Events</CardTitle>
             <CardDescription className="text-sm">Most recent events first (up to 200).</CardDescription>
           </CardHeader>
-          <Separator className="bg-xc-border" />
+          <Separator className="bg-zc-border" />
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-xc-panel/20 text-xs text-xc-muted">
+              <thead className="bg-zc-panel/20 text-xs text-zc-muted">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold">Time</th>
                   <th className="px-4 py-3 text-left font-semibold">Actor</th>
@@ -212,7 +212,7 @@ export default function SuperAdminPolicyAuditPage() {
               <tbody>
                 {!filtered.length ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-10 text-center text-sm text-xc-muted">
+                    <td colSpan={5} className="px-4 py-10 text-center text-sm text-zc-muted">
                       {loading ? "Loading audit…" : "No audit events."}
                     </td>
                   </tr>
@@ -238,16 +238,16 @@ export default function SuperAdminPolicyAuditPage() {
                     .join(" • ");
 
                   return (
-                    <tr key={r.id} className="border-t border-xc-border hover:bg-xc-panel/20">
-                      <td className="px-4 py-3 text-xc-muted">{new Date(r.createdAt).toLocaleString()}</td>
-                      <td className="px-4 py-3 text-xc-muted">{who}</td>
-                      <td className="px-4 py-3 font-semibold text-xc-text">{r.action}</td>
-                      <td className="px-4 py-3 text-xc-muted">{r.branchName ?? "—"}</td>
+                    <tr key={r.id} className="border-t border-zc-border hover:bg-zc-panel/20">
+                      <td className="px-4 py-3 text-zc-muted">{new Date(r.createdAt).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-zc-muted">{who}</td>
+                      <td className="px-4 py-3 font-semibold text-zc-text">{r.action}</td>
+                      <td className="px-4 py-3 text-zc-muted">{r.branchName ?? "—"}</td>
                       <td className="px-4 py-3">
                         {details ? (
-                          <div className="text-xs text-xc-muted">{details}</div>
+                          <div className="text-xs text-zc-muted">{details}</div>
                         ) : (
-                          <div className="text-xs text-xc-muted">—</div>
+                          <div className="text-xs text-zc-muted">—</div>
                         )}
                       </td>
                     </tr>

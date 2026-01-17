@@ -39,7 +39,7 @@ export const DialogContent = React.forwardRef<
       ref={ref}
       className={cn(
         "fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2",
-        "rounded-xl border border-xc-border bg-xc-card shadow-elev-2",
+        "rounded-xl border border-zc-border bg-zc-card shadow-elev-2",
         "p-5",
         "data-[state=open]:opacity-100 data-[state=closed]:opacity-0 transition-opacity",
         "data-[state=open]:scale-100 data-[state=closed]:scale-95 transition-transform",
@@ -54,9 +54,9 @@ export const DialogContent = React.forwardRef<
         <DialogPrimitive.Close
           className={cn(
             "absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-lg",
-            "border border-xc-border bg-transparent text-xc-muted",
-            "hover:bg-[rgb(var(--xc-hover-rgb)/0.06)] hover:text-xc-text",
-            "focus:outline-none focus:ring-2 focus:ring-xc-ring"
+            "border border-zc-border bg-transparent text-zc-muted",
+            "hover:bg-[rgb(var(--zc-hover-rgb)/0.06)] hover:text-zc-text",
+            "focus:outline-none focus:ring-2 focus:ring-zc-ring"
           )}
           aria-label="Close"
         >
@@ -108,7 +108,7 @@ export const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-xc-muted", className)}
+    className={cn("text-sm text-zc-muted", className)}
     {...props}
   />
 ));

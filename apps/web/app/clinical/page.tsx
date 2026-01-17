@@ -10,7 +10,7 @@ export default function Page() {
           <CardDescription>Doctor workflows: patients, encounters, orders, prescriptions.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-sm text-xc-muted">Coming next as we build modules.</div>
+          <div className="text-sm text-zc-muted">Coming next as we build modules.</div>
         </CardContent>
       </Card>
     </AppShell>
