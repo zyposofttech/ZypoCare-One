@@ -82,5 +82,5 @@ Ensure you have the following installed:
 ### 2. Environment Setup
 Copy the example environment file:
 ```bash
-cp .env.example .env
+
 pnpm turbo dev --filter @zypocare/web --filter @zypocare/core-api
