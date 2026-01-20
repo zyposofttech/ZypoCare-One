@@ -21,7 +21,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased bg-zc-bg text-zc-text`}>
         <ThemeProvider>
-          {/* Global Suspense boundary fixes: useSearchParams() must be inside Suspense */}
           <Suspense fallback={<div className="p-6 text-sm text-zc-muted">Loading…</div>}>
             <GlobalNavWatcher />
             <NavigationLoader />
