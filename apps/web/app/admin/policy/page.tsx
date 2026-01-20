@@ -40,8 +40,8 @@ function typeLabel(t: string) {
 function overrideBadge(state: BranchPolicyRow["overrideState"]) {
   if (state === "ACTIVE") return <Badge variant="success">Override active</Badge>;
   if (state === "PENDING_APPROVAL") return <Badge variant="warning">Pending approval</Badge>;
-  if (state === "DRAFT") return <Badge variant="info">Draft</Badge>;
-  return <Badge variant="neutral">None</Badge>;
+  if (state === "DRAFT") return <Badge variant="warning">Draft</Badge>;
+  return <Badge variant="secondary">None</Badge>;
 }
 
 export default function BranchPolicyOverridesPage() {
