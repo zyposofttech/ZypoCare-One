@@ -72,7 +72,7 @@ A modern Next.js 15 application utilizing React 19, Tailwind CSS, and Radix UI. 
 
 ## 🚀 Getting Started
 
-### 1. Prerequisites
+### 1. Prerequisites..
 Ensure you have the following installed:
 * **Node.js** (v20+ recommended)
 * **pnpm** (v9+)
