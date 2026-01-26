@@ -485,7 +485,7 @@ export default function Page() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className={`rounded-2xl border p-4 ${pillTone.indigo}`}>
-                  <div className="text-xs font-semibold uppercase">Network occupancy</div>
+                  <div className="text-xs font-semibold uppercase">Bed occupancy</div>
                   <div className="mt-3 text-3xl font-semibold text-zc-text">
                     {occupancyRate}%
                   </div>
@@ -497,14 +497,14 @@ export default function Page() {
                   </div>
                 </div>
                 <div className={`rounded-2xl border p-4 ${pillTone.sky}`}>
-                  <div className="text-xs font-semibold uppercase">Revenue run-rate</div>
+                  <div className="text-xs font-semibold uppercase">Toal Revenue</div>
                   <div className="mt-3 text-3xl font-semibold text-zc-text">6.1 Cr</div>
                   <div className="mt-3">
                     <SparkBars data={billingSpark} />
                   </div>
                 </div>
                 <div className={`rounded-2xl border p-4 ${pillTone.amber}`}>
-                  <div className="text-xs font-semibold uppercase">Alert index</div>
+                  <div className="text-xs font-semibold uppercase">Critical Alerts</div>
                   <div className="mt-3 text-3xl font-semibold text-zc-text">
                     {alerts.length}
                   </div>
