@@ -18,6 +18,17 @@ import { LocationNodePicker } from "@/components/infrastructure/LocationNodePick
 
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
+
+function drawerClassName(extra?: string) {
+  return cn(
+    "left-auto right-0 top-0 h-screen w-[95vw] max-w-[980px] translate-x-0 translate-y-0",
+    "rounded-2xl",
+    "border border-indigo-200/50 dark:border-indigo-800/50 bg-zc-card",
+    "shadow-2xl shadow-indigo-500/10",
+    "overflow-y-auto",
+    extra,
+  );
+}
 import { useAuthStore } from "@/lib/auth/store";
 
 import { IconBuilding, IconChevronRight, IconPlus, IconSearch } from "@/components/icons";
@@ -258,10 +269,7 @@ function UnitEditorModal({
         }
       }}
     >
-      <DialogContent
-        className="w-[95vw] sm:max-w-[700px] max-h-[85vh] overflow-y-auto border-indigo-200/50 dark:border-indigo-800/50 shadow-2xl shadow-indigo-500/10"
-        onInteractOutside={(e) => e.preventDefault()}
-      >
+      <DialogContent className={drawerClassName("max-w-[820px]")} onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-indigo-700 dark:text-indigo-400">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">

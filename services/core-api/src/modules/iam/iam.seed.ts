@@ -11,8 +11,8 @@ export class IamSeedService implements OnModuleInit {
     if (process.env.AUTH_DEV_SEED !== "true") return;
 
     const seedBranches = [
-      { code: "BLR-HQ", name: "ExcelCare Hospital – Central Campus", city: "Bengaluru", gstNumber: "29ABCDE1234F1Z5" },
-      { code: "BLR-EC", name: "ExcelCare Hospital – Electronic City Campus", city: "Bengaluru", gstNumber: "29ABCDE1234F2Z4" },
+      { code: "BLR-HQ", name: "ZypoCare Hospital – Central Campus", city: "Bengaluru", gstNumber: "29ABCDE1234F1Z5" },
+      { code: "BLR-EC", name: "ZypoCare Hospital – Electronic City Campus", city: "Bengaluru", gstNumber: "29ABCDE1234F2Z4" },
     ];
 
     for (const b of seedBranches) {
@@ -99,6 +99,29 @@ export class IamSeedService implements OnModuleInit {
       { code: PERM.INFRA_SERVICE_READ, name: "Read infra services", category: "Infrastructure" },
       { code: PERM.INFRA_SERVICE_CREATE, name: "Create infra services", category: "Infrastructure" },
       { code: PERM.INFRA_SERVICE_UPDATE, name: "Update infra services", category: "Infrastructure" },
+
+      // Service Catalogues
+      { code: PERM.INFRA_SERVICE_CATALOGUE_CREATE, name: "Create service catalogues", category: "Infrastructure" },
+      { code: PERM.INFRA_SERVICE_CATALOGUE_READ, name: "Read service catalogues", category: "Infrastructure" },
+      { code: PERM.INFRA_SERVICE_CATALOGUE_UPDATE, name: "Update service catalogues", category: "Infrastructure" },
+      { code: PERM.INFRA_SERVICE_CATALOGUE_PUBLISH, name: "Publish service catalogues", category: "Infrastructure" },
+
+      // Service Packages
+      { code: PERM.INFRA_SERVICE_PACKAGE_CREATE, name: "Create service packages", category: "Infrastructure" },
+      { code: PERM.INFRA_SERVICE_PACKAGE_READ, name: "Read service packages", category: "Infrastructure" },
+      { code: PERM.INFRA_SERVICE_PACKAGE_UPDATE, name: "Update service packages", category: "Infrastructure" },
+      { code: PERM.INFRA_SERVICE_PACKAGE_PUBLISH, name: "Publish service packages", category: "Infrastructure" },
+
+      // Order Sets
+      { code: PERM.INFRA_ORDER_SET_CREATE, name: "Create order sets", category: "Infrastructure" },
+      { code: PERM.INFRA_ORDER_SET_READ, name: "Read order sets", category: "Infrastructure" },
+      { code: PERM.INFRA_ORDER_SET_UPDATE, name: "Update order sets", category: "Infrastructure" },
+      { code: PERM.INFRA_ORDER_SET_PUBLISH, name: "Publish order sets", category: "Infrastructure" },
+
+      // Service Library / Code Sets
+      { code: PERM.INFRA_CODE_SET_CREATE, name: "Create code sets", category: "Infrastructure" },
+      { code: PERM.INFRA_CODE_SET_READ, name: "Read code sets", category: "Infrastructure" },
+      { code: PERM.INFRA_CODE_SET_UPDATE, name: "Update code sets", category: "Infrastructure" },
 
       { code: PERM.INFRA_CHARGE_MASTER_READ, name: "Read charge master", category: "Infrastructure" },
       { code: PERM.INFRA_CHARGE_MASTER_CREATE, name: "Create charge master", category: "Infrastructure" },
@@ -245,7 +268,7 @@ export class IamSeedService implements OnModuleInit {
         await this.prisma.user.create({
           data: {
             email,
-            name: "ExcelCare Super Admin",
+            name: "ZypoCare Super Admin",
             role: ROLE.SUPER_ADMIN,
             roleVersionId: superV1.id,
             passwordHash: hash,

@@ -9,7 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
@@ -306,6 +308,17 @@ function ModalShell({
   );
 }
 
+function drawerClassName(extra?: string) {
+  return cn(
+    "left-auto right-0 top-0 h-screen w-[95vw] max-w-[980px] translate-x-0 translate-y-0",
+    "rounded-2xl",
+    "border border-indigo-200/50 dark:border-indigo-800/50 bg-zc-card",
+    "shadow-2xl shadow-indigo-500/10",
+    "overflow-y-auto",
+    extra,
+  );
+}
+
 /* -------------------------------------------------------------------------- */
 /*                             Create/Revise Forms                             */
 /* -------------------------------------------------------------------------- */
@@ -399,6 +412,7 @@ export default function SuperAdminInfrastructureLocations() {
   const [expanded, setExpanded] = React.useState<Record<string, boolean>>({});
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [q, setQ] = React.useState("");
+  const [activeTab, setActiveTab] = React.useState<"overview" | "hierarchy">("overview");
 
   const [createState, setCreateState] = React.useState<CreateState>({ open: false, kind: "CAMPUS", parentId: null });
   const [reviseState, setReviseState] = React.useState<ReviseState>({ open: false, node: null });
@@ -801,6 +815,78 @@ export default function SuperAdminInfrastructureLocations() {
           </div>
         </div>
 
+        {/* Snapshot */}
+        <Card className="overflow-hidden">
+          <CardHeader className="py-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <CardTitle className="text-base">Snapshot</CardTitle>
+                <CardDescription>Branch and location totals.</CardDescription>
+              </div>
+              <div className="text-sm text-zc-muted">
+                {selectedBranch ? `${selectedBranch.name} (${selectedBranch.code})` : "Select a branch"}
+              </div>
+            </div>
+          </CardHeader>
+          <Separator />
+          <CardContent className="pb-6 pt-6">
+            <div className="grid gap-4 md:grid-cols-4">
+              <div className="rounded-xl border border-indigo-200/60 bg-indigo-50/50 p-4 text-indigo-800 dark:border-indigo-900/40 dark:bg-indigo-950/20 dark:text-indigo-200">
+                <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Campuses</div>
+                <div className="mt-1 text-2xl font-semibold tabular-nums">{counts.campus}</div>
+                <div className="mt-1 text-sm opacity-80">Top-level sites</div>
+              </div>
+              <div className="rounded-xl border border-cyan-200/60 bg-cyan-50/50 p-4 text-cyan-800 dark:border-cyan-900/40 dark:bg-cyan-950/20 dark:text-cyan-200">
+                <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Buildings</div>
+                <div className="mt-1 text-2xl font-semibold tabular-nums">{counts.building}</div>
+                <div className="mt-1 text-sm opacity-80">Structures</div>
+              </div>
+              <div className="rounded-xl border border-emerald-200/60 bg-emerald-50/50 p-4 text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-200">
+                <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Floors</div>
+                <div className="mt-1 text-2xl font-semibold tabular-nums">{counts.floor}</div>
+                <div className="mt-1 text-sm opacity-80">Levels</div>
+              </div>
+              <div className="rounded-xl border border-amber-200/60 bg-amber-50/50 p-4 text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200">
+                <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Zones</div>
+                <div className="mt-1 text-2xl font-semibold tabular-nums">{counts.zone}</div>
+                <div className="mt-1 text-sm opacity-80">Patient areas</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        {/* Tabs */}
+        <Card>
+          <CardHeader className="py-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <CardTitle className="text-base">Locations</CardTitle>
+                <CardDescription>Overview and hierarchy management.</CardDescription>
+              </div>
+
+              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+                <TabsList className="h-10 rounded-2xl border border-zc-border bg-zc-panel/20 p-1">
+                  <TabsTrigger
+                    value="overview"
+                    className="rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm"
+                  >
+                    <MapPin className="mr-2 h-4 w-4" />
+                    Overview
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="hierarchy"
+                    className="rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm"
+                  >
+                    <Layers className="mr-2 h-4 w-4" />
+                    Hierarchy
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+          </CardHeader>
+
+          <CardContent className="pb-6">
+            <Tabs value={activeTab}>
+              <TabsContent value="overview" className="mt-0">
         {/* Branch selector + KPI pills */}
         <Card className="overflow-hidden">
           <CardHeader>
@@ -841,21 +927,59 @@ export default function SuperAdminInfrastructureLocations() {
                     </SelectContent>
                   </Select>
                   <div className="text-xs text-zc-muted">
-                    Codes must be unique within the branch. Zones must be numeric.
+                    Codes are unique per branch. Zones are numeric (01, 02…).
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-                  <MetricPill label="Campuses" value={counts.campus} tone="indigo" />
-                  <MetricPill label="Buildings" value={counts.building} tone="cyan" />
-                  <MetricPill label="Floors" value={counts.floor} tone="emerald" />
-                  <MetricPill label="Zones" value={counts.zone} tone="amber" />
+                <div className="rounded-2xl border border-zc-border bg-zc-panel/15 p-4">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Hierarchy summary</div>
+                  <div className="mt-2 grid gap-2 text-sm text-zc-muted">
+                    <div className="flex items-center justify-between">
+                      <span>Campuses</span>
+                      <span className="font-mono text-zc-text">{counts.campus}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Buildings</span>
+                      <span className="font-mono text-zc-text">{counts.building}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Floors</span>
+                      <span className="font-mono text-zc-text">{counts.floor}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Zones</span>
+                      <span className="font-mono text-zc-text">{counts.zone}</span>
+                    </div>
+                    <div className="flex items-center justify-between border-t border-zc-border pt-2">
+                      <span>Total nodes</span>
+                      <span className="font-semibold text-zc-text tabular-nums">{allNodes.length}</span>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Button asChild variant="outline" className="gap-2" disabled={!selectedBranch}>
+                      <Link href={branchHref}>
+                        <Building2 className="h-4 w-4" />
+                        Open Branch
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="primary"
+                      className="gap-2"
+                      disabled={!selectedBranch}
+                      onClick={() => setCreateState({ open: true, kind: "CAMPUS", parentId: null })}
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add Campus
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
           </CardContent>
         </Card>
+              </TabsContent>
 
+              <TabsContent value="hierarchy" className="mt-0">
         {/* Main layout: Tree + Details */}
         <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
           {/* Tree */}
@@ -1082,8 +1206,10 @@ export default function SuperAdminInfrastructureLocations() {
             </CardContent>
           </Card>
         </div>
-      </div>
-
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       {/* ------------------------------- Create Modal ------------------------------ */}
       {createState.open && selectedBranch ? (
         <CreateModal
@@ -1227,6 +1353,7 @@ export default function SuperAdminInfrastructureLocations() {
           busy={busy}
         />
       ) : null}
+      </div>
     </AppShell>
   );
 }
@@ -1311,13 +1438,21 @@ function CreateModal({
   );
 
   return (
-    <ModalShell
-      title={`Add ${typeLabel(kind)}`}
-      description={`Branch: ${branch.name} (${branch.code})`}
-      onClose={onClose}
-      maxW="max-w-xl"
-    >
-      <div className="grid gap-4">
+    <Dialog open onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className={drawerClassName()} onInteractOutside={(e) => e.preventDefault()}>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-3 text-indigo-700 dark:text-indigo-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
+              <Plus className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            {`Add ${typeLabel(kind)}`}
+          </DialogTitle>
+          <DialogDescription>Branch: {branch.name} ({branch.code})</DialogDescription>
+        </DialogHeader>
+
+        <Separator className="my-4" />
+
+        <div className="grid gap-4">
         <div className="rounded-2xl border border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
           <div className="font-semibold text-zc-text">Suggested code pattern</div>
           <div className="mt-2 flex flex-wrap gap-2">
@@ -1392,8 +1527,8 @@ function CreateModal({
           />
           <div className="text-xs text-zc-muted">Creation is effective-dated. To change later, use “Revise”.</div>
         </div>
-
-        <div className="flex items-center justify-end gap-2 pt-2">
+        </div>
+        <DialogFooter className="pt-2">
           <Button variant="outline" onClick={onClose} type="button" disabled={busy}>
             Cancel
           </Button>
@@ -1404,9 +1539,9 @@ function CreateModal({
           >
             Create
           </Button>
-        </div>
-      </div>
-    </ModalShell>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

@@ -241,7 +241,7 @@ function SparkBars({ data }: { data: number[] }) {
 export default function Page() {
   const facilities = [
     {
-      name: "ExcelCare Hospital",
+      name: "ZypoCare Hospital",
       location: "Bengaluru, Karnataka",
       type: "Multi-specialty",
       beds: 420,

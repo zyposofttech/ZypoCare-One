@@ -6,8 +6,8 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -20,13 +20,19 @@ import { cn } from "@/lib/cn";
 import { useToast } from "@/components/ui/use-toast";
 
 import {
+  AlertTriangle,
+  CheckCircle2,
   ClipboardList,
+  Compass,
+  ChevronLeft,
+  ChevronRight,
   Pencil,
   Plus,
   RefreshCw,
   Settings2,
   Search,
   Trash2,
+  TriangleAlert,
   ArrowUp,
   ArrowDown,
   X,
@@ -351,6 +357,13 @@ function safeArray<T = any>(v: unknown): T[] {
   return Array.isArray(v) ? (v as T[]) : [];
 }
 
+function normalizeEquipmentList(resp: unknown): EquipmentAssetRow[] {
+  if (Array.isArray(resp)) return resp as EquipmentAssetRow[];
+  const rows = (resp as any)?.rows;
+  if (Array.isArray(rows)) return rows as EquipmentAssetRow[];
+  return [];
+}
+
 function flattenLocationTree(nodes: LocationTreeNode[], parentPath = ""): FlatLocationNode[] {
   const out: FlatLocationNode[] = [];
   for (const n of safeArray<LocationTreeNode>(nodes)) {
@@ -376,7 +389,7 @@ function asRecord(v: any): Record<string, any> {
    Page + Tabs
    ========================================================= */
 
-type ActiveTab = "catalog" | "panels" | "lab" | "templates" | "servicePoints" | "capabilities" | "packs";
+type ActiveTab = "packs" | "servicePoints" | "catalog" | "panels" | "lab" | "templates" | "capabilities" | "goLive";
 type TabProps = { branchId: string };
 
 export default function DiagnosticsConfigPage() {
@@ -386,6 +399,38 @@ export default function DiagnosticsConfigPage() {
   const [branchId, setBranchId] = React.useState("");
   const [loadingBranches, setLoadingBranches] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<ActiveTab>("packs");
+
+  // "Fix"-driven focus targets (from Go-Live checks)
+  const [focusItemId, setFocusItemId] = React.useState<string | null>(null);
+  const [focusPanelId, setFocusPanelId] = React.useState<string | null>(null);
+  const [focusServicePointId, setFocusServicePointId] = React.useState<string | null>(null);
+
+  const FLOW: Array<{ key: ActiveTab; title: string; help: string }> = React.useMemo(
+    () => [
+      { key: "packs", title: "Quick Start", help: "Apply a pack to bootstrap sections, tests, templates & routing defaults." },
+      { key: "servicePoints", title: "Service Points", help: "Create labs/radiology units and map rooms/resources/equipment." },
+      { key: "catalog", title: "Test Library", help: "Define sections, categories, specimens and diagnostic items." },
+      { key: "panels", title: "Panels", help: "Build profiles/panels by composing multiple tests." },
+      { key: "lab", title: "Result Schema", help: "For lab tests: define parameters and reference ranges." },
+      { key: "templates", title: "Report Templates", help: "Create report templates for lab/imaging/procedure items." },
+      { key: "capabilities", title: "Routing Rules", help: "Map items to service points (capabilities) with modality + constraints." },
+      { key: "goLive", title: "Go‑Live Check", help: "Validate readiness and jump directly to fixes." },
+    ],
+    [],
+  );
+
+  const activeStepIndex = React.useMemo(() => FLOW.findIndex((s) => s.key === activeTab), [FLOW, activeTab]);
+
+  function goTo(tab: ActiveTab, opts?: { itemId?: string | null; panelId?: string | null; servicePointId?: string | null }) {
+    const norm = (v?: string | null) => {
+      const s = (v ?? "").trim();
+      return s ? s : null;
+    };
+    setActiveTab(tab);
+    setFocusItemId(norm(opts?.itemId));
+    setFocusPanelId(norm(opts?.panelId));
+    setFocusServicePointId(norm(opts?.servicePointId));
+  }
 
   React.useEffect(() => {
     const saved = localStorage.getItem(LS_KEY);
@@ -436,152 +481,146 @@ export default function DiagnosticsConfigPage() {
             </Button>
           </div>
         </div>
+        {/* Overview */}
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base">Overview</CardTitle>
+            <CardDescription className="text-sm">Select a branch and follow a guided setup flow.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <div className="grid gap-2">
+              <Label>Branch</Label>
+              <Select value={branchId} onValueChange={setBranchId}>
+                <SelectTrigger className="h-11 w-full rounded-xl border-zc-border bg-zc-card">
+                  <SelectValue placeholder="Select a branch..." />
+                </SelectTrigger>
+                <SelectContent className="max-h-[320px] overflow-y-auto">
+                  {branches.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name} <span className="font-mono text-xs text-zc-muted">({b.code})</span>
+                      {b.city ? <span className="text-xs text-zc-muted"> - {b.city}</span> : null}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ActiveTab)}>
-          {/* Single full-width setup header + tab navigation */}
-          <Card className="overflow-hidden">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2">
-                <ClipboardList className="h-5 w-5 text-zc-accent" />
-                Diagnostics Setup
-              </CardTitle>
-              <CardDescription>Select branch and configure diagnostics catalog, service points, and templates.</CardDescription>
-            </CardHeader>
-            <Separator />
-            <CardContent className="pt-6">
-              <div className="grid gap-4">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-                  <div className="grid w-full gap-2 lg:max-w-[560px]">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Branch</div>
-                    <Select value={branchId} onValueChange={setBranchId}>
-                      <SelectTrigger className="h-11 w-full rounded-xl border-zc-border bg-zc-card">
-                        <SelectValue placeholder="Select a branch…" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[320px] overflow-y-auto">
-                        {branches.map((b) => (
-                          <SelectItem key={b.id} value={b.id}>
-                            {b.name} <span className="font-mono text-xs text-zc-muted">({b.code})</span>
-                            {b.city ? <span className="text-xs text-zc-muted"> • {b.city}</span> : null}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" className="h-11 rounded-xl px-5 gap-2" onClick={loadBranches} disabled={loadingBranches} title="Refresh branches">
-                      <RefreshCw className={loadingBranches ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-                      Refresh
-                    </Button>
-                  </div>
+            <div className="rounded-2xl border border-dashed border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
+              Recommended flow: <span className="font-semibold text-zc-text">Packs</span> → Service Points → Catalog → Panels → Lab Params → Templates → Capabilities → Go‑Live.
+              {branch ? (
+                <div className="mt-2 text-xs text-zc-muted">
+                  Active branch: <span className="font-mono">{branch.code}</span> - {branch.name}
                 </div>
+              ) : null}
+            </div>
+          </CardContent>
+        </Card>
 
-                <div className="grid gap-2">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Configuration</div>
-
-                  <TabsList className="grid w-full h-auto grid-cols-2 gap-2 rounded-2xl border border-zc-border bg-zc-panel/20 p-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
-                    <TabsTrigger
-                      value="packs"
-                      disabled={!branchId}
-                      className="rounded-xl data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm"
-                    >
-                      Packs
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="servicePoints"
-                      disabled={!branchId}
-                      className="rounded-xl data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm"
-                    >
-                      Service Points
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="catalog"
-                      disabled={!branchId}
-                      className="rounded-xl data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm"
-                    >
-                      Catalog
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="panels"
-                      disabled={!branchId}
-                      className="rounded-xl data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm"
-                    >
-                      Panels
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="lab"
-                      disabled={!branchId}
-                      className="rounded-xl data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm"
-                    >
-                      Lab Params
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="templates"
-                      disabled={!branchId}
-                      className="rounded-xl data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm"
-                    >
-                      Templates
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="capabilities"
-                      disabled={!branchId}
-                      className="rounded-xl data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm"
-                    >
-                      Capabilities
-                    </TabsTrigger>
-                  </TabsList>
-
-                  <div className="rounded-2xl border border-dashed border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
-                    Recommended flow: <span className="font-semibold text-zc-text">Packs</span> → Service Points → Catalog → Panels → Lab Params → Templates → Capabilities.
-                    {branch ? (
-                      <div className="mt-2 text-xs text-zc-muted">
-                        Active branch: <span className="font-mono">{branch.code}</span> — {branch.name}
-                      </div>
-                    ) : null}
-                  </div>
+        {/* Guided setup flow */}
+        <Card className="overflow-hidden">
+          <CardHeader className="py-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <CardTitle className="text-base">Setup Flow</CardTitle>
+                <CardDescription className="text-sm">{FLOW[Math.max(0, activeStepIndex)]?.help}</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => goTo(FLOW[Math.max(0, activeStepIndex - 1)]?.key ?? "packs")}
+                  disabled={!branchId || activeStepIndex <= 0}
+                  className="gap-2"
+                >
+                  <ChevronLeft className="h-4 w-4" /> Back
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => goTo(FLOW[Math.min(FLOW.length - 1, activeStepIndex + 1)]?.key ?? "goLive")}
+                  disabled={!branchId || activeStepIndex >= FLOW.length - 1}
+                  className="gap-2"
+                >
+                  Next <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid gap-4 md:grid-cols-[260px,1fr]">
+              <div className="rounded-2xl border border-zc-border bg-zc-panel/10 p-2">
+                <div className="grid gap-1">
+                  {FLOW.map((s, idx) => {
+                    const isActive = s.key === activeTab;
+                    const isDone = idx < activeStepIndex;
+                    return (
+                      <button
+                        key={s.key}
+                        type="button"
+                        onClick={() => goTo(s.key)}
+                        disabled={!branchId}
+                        className={cn(
+                          "flex w-full items-start gap-3 rounded-xl border px-3 py-2 text-left transition",
+                          isActive
+                            ? "border-indigo-200/80 bg-indigo-50/70 text-indigo-900 dark:border-indigo-900/50 dark:bg-indigo-950/20 dark:text-indigo-100"
+                            : "border-transparent hover:border-zc-border hover:bg-zc-panel/20",
+                          !branchId ? "opacity-60" : "",
+                        )}
+                      >
+                        <div className="mt-0.5 grid h-6 w-6 place-items-center rounded-lg border border-zc-border bg-zc-card text-xs font-semibold">
+                          {isDone ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : idx + 1}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold">{s.title}</div>
+                          <div className="mt-0.5 line-clamp-2 text-xs text-zc-muted">{s.help}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Full-width active tab content */}
-          {!branchId ? (
-            <Card>
-              <CardContent className="py-6 text-sm text-zc-muted">Select a branch to start.</CardContent>
-            </Card>
-          ) : (
-            <>
-              <TabsContent value="packs" className="mt-0">
-                <PacksTab branchId={branchId} />
-              </TabsContent>
-
-              <TabsContent value="servicePoints" className="mt-0">
-                <ServicePointsTab branchId={branchId} />
-              </TabsContent>
-
-              <TabsContent value="catalog" className="mt-0">
-                <CatalogTab branchId={branchId} />
-              </TabsContent>
-
-              <TabsContent value="panels" className="mt-0">
-                <PanelsTab branchId={branchId} />
-              </TabsContent>
-
-              <TabsContent value="lab" className="mt-0">
-                <LabParamsTab branchId={branchId} />
-              </TabsContent>
-
-              <TabsContent value="templates" className="mt-0">
-                <TemplatesTab branchId={branchId} />
-              </TabsContent>
-
-              <TabsContent value="capabilities" className="mt-0">
-                <CapabilitiesTab branchId={branchId} />
-              </TabsContent>
-            </>
-          )}
-        </Tabs>
-
+              <div className="min-w-0">
+                {!branchId ? (
+                  <Card>
+                    <CardContent className="py-6 text-sm text-zc-muted">Select a branch to start.</CardContent>
+                  </Card>
+                ) : activeTab === "packs" ? (
+                  <PacksTab branchId={branchId} />
+                ) : activeTab === "servicePoints" ? (
+                  <ServicePointsTab branchId={branchId} initialServicePointId={focusServicePointId} />
+                ) : activeTab === "catalog" ? (
+                  <CatalogTab branchId={branchId} />
+                ) : activeTab === "panels" ? (
+                  <PanelsTab branchId={branchId} initialPanelId={focusPanelId} />
+                ) : activeTab === "lab" ? (
+                  <LabParamsTab branchId={branchId} initialTestId={focusItemId} />
+                ) : activeTab === "templates" ? (
+                  <TemplatesTab branchId={branchId} initialItemId={focusItemId} />
+                ) : activeTab === "capabilities" ? (
+                  <CapabilitiesTab
+                    branchId={branchId}
+                    initialDiagnosticItemId={focusItemId}
+                    initialServicePointId={focusServicePointId}
+                    autoOpenCreate={Boolean(focusItemId || focusServicePointId)}
+                  />
+                ) : (
+                  <GoLiveTab
+                    branchId={branchId}
+                    onFix={(fix) => {
+                      if (fix.kind === "labParams") goTo("lab", { itemId: fix.itemId });
+                      else if (fix.kind === "templates") goTo("templates", { itemId: fix.itemId });
+                      else if (fix.kind === "capability") goTo("capabilities", { itemId: fix.itemId, servicePointId: fix.servicePointId ?? null });
+                      else if (fix.kind === "panel") goTo("panels", { panelId: fix.panelId });
+                      else if (fix.kind === "servicePoint") goTo("servicePoints", { servicePointId: fix.servicePointId });
+                      else if (fix.kind === "catalog") goTo("catalog");
+                      else goTo("servicePoints");
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
       </div>
     </AppShell>
@@ -680,6 +719,18 @@ function modalClassName(extra?: string) {
   return cn("rounded-2xl border border-indigo-200/50 dark:border-indigo-800/50 bg-zc-card shadow-2xl shadow-indigo-500/10", extra);
 }
 
+function drawerClassName(extra?: string) {
+  return cn(
+    "h-screen w-[95vw] max-w-[980px]",
+    "!left-auto !right-0 !top-0 !bottom-0 !translate-x-0 !translate-y-0",
+    "rounded-2xl",
+    "border border-indigo-200/50 dark:border-indigo-800/50 bg-zc-card",
+    "shadow-2xl shadow-indigo-500/10",
+    "overflow-y-auto",
+    extra,
+  );
+}
+
 function ModalHeader({
   title,
   description,
@@ -710,13 +761,274 @@ function ModalHeader({
 }
 
 /* =========================================================
+   TAB 8: Go‑Live Check (Readiness)
+   ========================================================= */
+
+type GoLiveFix =
+  | { kind: "catalog" }
+  | { kind: "servicePoint"; servicePointId: string }
+  | { kind: "panel"; panelId: string }
+  | { kind: "labParams"; itemId: string }
+  | { kind: "templates"; itemId: string }
+  | { kind: "capability"; itemId: string; servicePointId?: string | null };
+
+function GoLiveTab({
+  branchId,
+  onFix,
+}: {
+  branchId: string;
+  onFix: (fix: GoLiveFix) => void;
+}) {
+  const { toast } = useToast();
+  const [loading, setLoading] = React.useState(false);
+  const [err, setErr] = React.useState<string | null>(null);
+  const [servicePoints, setServicePoints] = React.useState<DiagnosticServicePointRow[]>([]);
+  const [items, setItems] = React.useState<DiagnosticItemRow[]>([]);
+  const [caps, setCaps] = React.useState<CapabilityRow[]>([]);
+
+  async function load() {
+    setLoading(true);
+    setErr(null);
+    try {
+      const [sp, it, cp] = await Promise.all([
+        apiFetch<DiagnosticServicePointRow[]>(`/api/infrastructure/diagnostics/service-points?branchId=${encodeURIComponent(branchId)}`),
+        apiFetch<DiagnosticItemRow[]>(`/api/infrastructure/diagnostics/items?branchId=${encodeURIComponent(branchId)}`),
+        apiFetch<CapabilityRow[]>(`/api/infrastructure/diagnostics/capabilities?branchId=${encodeURIComponent(branchId)}`),
+      ]);
+      setServicePoints(safeArray(sp).filter((s) => s.isActive));
+      setItems(safeArray(it).filter((i) => i.isActive));
+      setCaps(safeArray(cp).filter((c) => c.isActive));
+    } catch (e: any) {
+      setErr(e?.message || "Failed to load readiness data");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  React.useEffect(() => {
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [branchId]);
+
+  const capCountByItem = React.useMemo(() => {
+    const m = new Map<string, number>();
+    for (const c of caps) m.set(c.diagnosticItemId, (m.get(c.diagnosticItemId) ?? 0) + 1);
+    return m;
+  }, [caps]);
+
+  const capCountByServicePoint = React.useMemo(() => {
+    const m = new Map<string, number>();
+    for (const c of caps) m.set(c.servicePointId, (m.get(c.servicePointId) ?? 0) + 1);
+    return m;
+  }, [caps]);
+
+  type Issue = {
+    severity: "blocker" | "warn";
+    title: string;
+    detail: string;
+    fix?: GoLiveFix;
+  };
+
+  const issues: Issue[] = React.useMemo(() => {
+    const out: Issue[] = [];
+
+    if (servicePoints.length === 0) {
+      out.push({
+        severity: "blocker",
+        title: "No service points",
+        detail: "Create at least one service point (Lab/Radiology/etc.) to route diagnostic items.",
+        fix: { kind: "servicePoint", servicePointId: "" },
+      });
+    }
+
+    const tests = items.filter((i) => !i.isPanel);
+    if (tests.length === 0) {
+      out.push({
+        severity: "blocker",
+        title: "No diagnostic items",
+        detail: "Add at least one diagnostic item (lab test, imaging or procedure) in the test library.",
+        fix: { kind: "catalog" },
+      });
+    }
+
+    // Panels must have children
+    for (const p of items.filter((i) => i.isPanel)) {
+      const n = p._count?.panelChildren ?? 0;
+      if (n === 0) {
+        out.push({
+          severity: "blocker",
+          title: `Panel has no tests: ${p.name}`,
+          detail: "Add at least one child test to the panel.",
+          fix: { kind: "panel", panelId: p.id },
+        });
+      }
+    }
+
+    // Lab tests must have parameters
+    for (const t of tests.filter((i) => i.kind === "LAB")) {
+      const pcount = t._count?.parameters ?? 0;
+      if (pcount === 0) {
+        out.push({
+          severity: "blocker",
+          title: `Lab test missing parameters: ${t.name}`,
+          detail: "Define at least one parameter (result schema) so results can be recorded.",
+          fix: { kind: "labParams", itemId: t.id },
+        });
+      }
+      const tmpl = t._count?.templates ?? 0;
+      if (tmpl === 0) {
+        out.push({
+          severity: "warn",
+          title: `Lab test missing template: ${t.name}`,
+          detail: "Recommended: add a report template for consistent printing.",
+          fix: { kind: "templates", itemId: t.id },
+        });
+      }
+    }
+
+    // Imaging/procedure should have templates
+    for (const t of tests.filter((i) => i.kind !== "LAB")) {
+      const tmpl = t._count?.templates ?? 0;
+      if (tmpl === 0) {
+        out.push({
+          severity: "blocker",
+          title: `Missing template: ${t.name}`,
+          detail: "Add a report template for this diagnostic item.",
+          fix: { kind: "templates", itemId: t.id },
+        });
+      }
+    }
+
+    // Every non-panel item should be routable
+    for (const t of tests) {
+      const ccount = capCountByItem.get(t.id) ?? 0;
+      if (ccount === 0) {
+        out.push({
+          severity: "blocker",
+          title: `No routing capability: ${t.name}`,
+          detail: "Create a capability to route this item to a service point.",
+          fix: { kind: "capability", itemId: t.id },
+        });
+      }
+    }
+
+    // Service points with zero capabilities (warning)
+    for (const sp of servicePoints) {
+      const n = capCountByServicePoint.get(sp.id) ?? 0;
+      if (n === 0) {
+        out.push({
+          severity: "warn",
+          title: `Service point has no routing rules: ${sp.name}`,
+          detail: "Recommended: add at least one capability mapping so this service point can be used for orders.",
+          fix: { kind: "capability", itemId: "", servicePointId: sp.id },
+        });
+      }
+    }
+
+    return out;
+  }, [servicePoints, items, capCountByItem, capCountByServicePoint]);
+
+  const blockers = issues.filter((i) => i.severity === "blocker").length;
+  const warns = issues.filter((i) => i.severity === "warn").length;
+  const ready = blockers === 0;
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">Go‑Live Check</CardTitle>
+        <CardDescription>Fast readiness validation with one-click navigation to fixes.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {err ? <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{err}</div> : null}
+
+        <div className={cn(
+          "mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4",
+          ready
+            ? "border-emerald-200/70 bg-emerald-50/60 text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-100"
+            : "border-amber-200/70 bg-amber-50/70 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-100",
+        )}>
+          <div className="flex items-center gap-3">
+            {ready ? <CheckCircle2 className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
+            <div>
+              <div className="text-sm font-semibold">{ready ? "Ready to go live" : "Needs attention"}</div>
+              <div className="text-xs opacity-80">{blockers} blocker(s), {warns} warning(s)</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => { void load(); toast({ title: "Re-running checks" }); }} disabled={loading} className="gap-2">
+              <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} /> Re-run
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-3">
+          <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+            <div className="text-xs text-zc-muted">Active service points</div>
+            <div className="mt-1 text-2xl font-semibold">{servicePoints.length}</div>
+          </div>
+          <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+            <div className="text-xs text-zc-muted">Active items (incl panels)</div>
+            <div className="mt-1 text-2xl font-semibold">{items.length}</div>
+          </div>
+          <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+            <div className="text-xs text-zc-muted">Active capabilities</div>
+            <div className="mt-1 text-2xl font-semibold">{caps.length}</div>
+          </div>
+        </div>
+
+        <Separator className="my-4" />
+
+        <div className="grid gap-2">
+          {issues.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-zc-border p-4 text-sm text-zc-muted">No issues detected.</div>
+          ) : (
+            issues.map((i, idx) => (
+              <div key={`${i.title}-${idx}`} className={cn(
+                "flex flex-wrap items-start justify-between gap-3 rounded-xl border p-3",
+                i.severity === "blocker"
+                  ? "border-rose-200/70 bg-rose-50/60 dark:border-rose-900/50 dark:bg-rose-950/20"
+                  : "border-amber-200/70 bg-amber-50/60 dark:border-amber-900/50 dark:bg-amber-950/20",
+              )}>
+                <div className="min-w-0">
+                  <div className={cn(
+                    "text-sm font-semibold",
+                    i.severity === "blocker" ? "text-rose-800 dark:text-rose-200" : "text-amber-800 dark:text-amber-200",
+                  )}>
+                    {i.title}
+                  </div>
+                  <div className="mt-1 text-xs text-zc-muted">{i.detail}</div>
+                </div>
+                {i.fix ? (
+                  <Button
+                    size="sm"
+                    variant={i.severity === "blocker" ? "primary" : "outline"}
+                    onClick={() => {
+                      const fix = i.fix;
+                      if (!fix) return;
+                      if (fix.kind === "servicePoint" && (fix as any).servicePointId === "") {
+                        onFix({ kind: "servicePoint", servicePointId: "" });
+                        return;
+                      }
+                      onFix(fix);
+                    }}
+                    className="gap-2"
+                  >
+                    Fix
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                ) : null}
+              </div>
+            ))
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/* =========================================================
    TAB 1: Catalog (Sections, Categories, Specimens, Items)
    ========================================================= */
-/* ---------------  NOTE ---------------
-   The remaining tabs + dialogs are included,
-   but to keep this message within reasonable size,
-   I am splitting the file continuation into the next block.
-   ------------------------------------- */
 
 function CatalogTab({ branchId }: TabProps) {
   const { toast } = useToast();
@@ -732,6 +1044,7 @@ function CatalogTab({ branchId }: TabProps) {
   const [q, setQ] = React.useState("");
   const [includeInactive, setIncludeInactive] = React.useState(false);
   const [panelFilter, setPanelFilter] = React.useState<"all" | "panel" | "test">("all");
+  const [showFilters, setShowFilters] = React.useState(false);
 
   const [sectionId, setSectionId] = React.useState("all");
   const [categoryId, setCategoryId] = React.useState("all");
@@ -814,66 +1127,84 @@ function CatalogTab({ branchId }: TabProps) {
       <CardContent>
         {err ? <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{err}</div> : null}
 
-        <div className="grid gap-3 md:grid-cols-4">
-          <Field label="Kind">
-            <Select value={kind} onValueChange={(v) => setKind(v as DiagnosticKind)}>
-              <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {DIAG_KINDS.map((k) => <SelectItem key={k.value} value={k.value}>{k.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </Field>
-
-          <Field label="Section filter">
-            <Select value={sectionId} onValueChange={setSectionId}>
-              <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
-              <SelectContent className="max-h-[320px] overflow-y-auto">
-                <SelectItem value="all">All</SelectItem>
-                {sections.filter((s) => s.isActive).map((s) => (
-                  <SelectItem key={s.id} value={s.id}>{s.name} ({s.code})</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-
-          <Field label="Category filter">
-            <Select value={categoryId} onValueChange={setCategoryId} disabled={sectionId === "all"}>
-              <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
-              <SelectContent className="max-h-[320px] overflow-y-auto">
-                <SelectItem value="all">All</SelectItem>
-                {visibleCategories.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name} ({c.code})</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-
-          <Field label="Search">
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-zc-muted" />
-                <Input className="h-10 pl-9" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search code/name" />
-              </div>
-              <Button variant="outline" className="h-10" onClick={loadAll} disabled={loading}>
-                <RefreshCw className="h-4 w-4" />
-              </Button>
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex w-full gap-2 lg:max-w-md">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-zc-muted" />
+              <Input className="h-10 pl-9" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search code/name" />
             </div>
-          </Field>
+            <Button variant="outline" className="h-10" onClick={loadAll} disabled={loading}>
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters((s) => !s)}
+            >
+              {showFilters ? "Hide Filters" : "Show Filters"}
+            </Button>
+          </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Checkbox checked={includeInactive} onCheckedChange={(v) => setIncludeInactive(Boolean(v))} />
-            <span className="text-sm text-zc-muted">Include inactive</span>
+        {showFilters ? (
+          <div className="mt-3 grid gap-3 rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+            <div className="grid gap-3 md:grid-cols-3">
+              <Field label="Kind">
+                <Select value={kind} onValueChange={(v) => setKind(v as DiagnosticKind)}>
+                  <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {DIAG_KINDS.map((k) => <SelectItem key={k.value} value={k.value}>{k.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </Field>
 
-            <Select value={panelFilter} onValueChange={(v) => setPanelFilter(v as any)}>
-              <SelectTrigger className="h-9 w-[140px]"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All items</SelectItem>
-                <SelectItem value="panel">Panels only</SelectItem>
-                <SelectItem value="test">Tests only</SelectItem>
-              </SelectContent>
-            </Select>
+              <Field label="Section filter">
+                <Select value={sectionId} onValueChange={setSectionId}>
+                  <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                  <SelectContent className="max-h-[320px] overflow-y-auto">
+                    <SelectItem value="all">All</SelectItem>
+                    {sections.filter((s) => s.isActive).map((s) => (
+                      <SelectItem key={s.id} value={s.id}>{s.name} ({s.code})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+
+              <Field label="Category filter">
+                <Select value={categoryId} onValueChange={setCategoryId} disabled={sectionId === "all"}>
+                  <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                  <SelectContent className="max-h-[320px] overflow-y-auto">
+                    <SelectItem value="all">All</SelectItem>
+                    {visibleCategories.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name} ({c.code})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Checkbox checked={includeInactive} onCheckedChange={(v) => setIncludeInactive(Boolean(v))} />
+              <span className="text-sm text-zc-muted">Include Inactive</span>
+
+              <Select value={panelFilter} onValueChange={(v) => setPanelFilter(v as any)}>
+                <SelectTrigger className="h-9 w-[140px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All items</SelectItem>
+                  <SelectItem value="panel">Panels only</SelectItem>
+                  <SelectItem value="test">Tests only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="text-xs text-zc-muted">
+            Showing <span className="font-semibold tabular-nums text-zc-text">{items.length}</span>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -1082,7 +1413,7 @@ function SectionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[560px] max-h-[85vh] overflow-y-auto")}>
+      <DialogContent className={drawerClassName()}>
         <ModalHeader
           title={editing ? "Edit Section" : "Create Section"}
           description="Sections group diagnostic items in the catalog."
@@ -1200,7 +1531,7 @@ function CategoryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[560px] max-h-[85vh] overflow-y-auto")}>
+      <DialogContent className={drawerClassName()}>
         <ModalHeader
           title={editing ? "Edit Category" : "Create Category"}
           description="Categories are scoped to a section."
@@ -1329,7 +1660,7 @@ function SpecimenDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[620px] max-h-[85vh] overflow-y-auto")}>
+      <DialogContent className={drawerClassName()}>
         <ModalHeader
           title={editing ? "Edit Specimen" : "Create Specimen"}
           description="Specimens are referenced by lab items."
@@ -1480,7 +1811,7 @@ function ItemDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[720px] max-h-[85vh] overflow-y-auto")}>
+      <DialogContent className={drawerClassName()}>
         <ModalHeader
           title={editing ? "Edit Item" : "Create Item"}
           description="Catalog items can be lab tests, imaging, or procedures."
@@ -1592,7 +1923,13 @@ function ItemDialog({
    TAB 2: Panels
    ========================================================= */
 
-function PanelsTab({ branchId }: TabProps) {
+function PanelsTab({
+  branchId,
+  initialPanelId,
+}: {
+  branchId: string;
+  initialPanelId?: string | null;
+}) {
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
@@ -1641,6 +1978,10 @@ function PanelsTab({ branchId }: TabProps) {
     void loadLists();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [branchId]);
+
+  React.useEffect(() => {
+    if (initialPanelId) setPanelId(initialPanelId);
+  }, [initialPanelId]);
 
   React.useEffect(() => {
     void loadPanelItems(panelId);
@@ -1701,33 +2042,35 @@ function PanelsTab({ branchId }: TabProps) {
       </CardHeader>
       <CardContent>
         {err ? <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{err}</div> : null}
-        <div className="grid gap-3 md:grid-cols-2">
-          <Field label="Panel">
-            <Select value={panelId} onValueChange={setPanelId} disabled={loading}>
-              <SelectTrigger className="h-10"><SelectValue placeholder="Select panel" /></SelectTrigger>
-              <SelectContent className="max-h-[280px] overflow-y-auto">
-                {panels.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>{p.name} ({p.code})</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-          <Field label="Add item">
-            <div className="flex gap-2">
-              <Select value={addItemId} onValueChange={setAddItemId}>
-                <SelectTrigger className="h-10"><SelectValue placeholder="Select item" /></SelectTrigger>
+        <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+          <div className="grid gap-3 md:grid-cols-2">
+            <Field label="Panel">
+              <Select value={panelId} onValueChange={setPanelId} disabled={loading}>
+                <SelectTrigger className="h-10"><SelectValue placeholder="Select panel" /></SelectTrigger>
                 <SelectContent className="max-h-[280px] overflow-y-auto">
-                  <SelectItem value="none">Select item</SelectItem>
-                  {allItems.filter((i) => i.id !== panelId).map((i) => (
-                    <SelectItem key={i.id} value={i.id}>{i.name} ({i.code})</SelectItem>
+                  {panels.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.name} ({p.code})</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Button variant="outline" onClick={addItem} disabled={!panelId || addItemId === "none"}>
-                Add
-              </Button>
-            </div>
-          </Field>
+            </Field>
+            <Field label="Add item">
+              <div className="flex gap-2">
+                <Select value={addItemId} onValueChange={setAddItemId}>
+                  <SelectTrigger className="h-10"><SelectValue placeholder="Select item" /></SelectTrigger>
+                  <SelectContent className="max-h-[280px] overflow-y-auto">
+                    <SelectItem value="none">Select item</SelectItem>
+                    {allItems.filter((i) => i.id !== panelId).map((i) => (
+                      <SelectItem key={i.id} value={i.id}>{i.name} ({i.code})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" onClick={addItem} disabled={!panelId || addItemId === "none"}>
+                  Add
+                </Button>
+              </div>
+            </Field>
+          </div>
         </div>
         <Separator className="my-4" />
         <div className="grid gap-2">
@@ -1763,7 +2106,13 @@ function PanelsTab({ branchId }: TabProps) {
    TAB 3: Lab Params
    ========================================================= */
 
-function LabParamsTab({ branchId }: TabProps) {
+function LabParamsTab({
+  branchId,
+  initialTestId,
+}: {
+  branchId: string;
+  initialTestId?: string | null;
+}) {
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
@@ -1813,6 +2162,10 @@ function LabParamsTab({ branchId }: TabProps) {
   }, [branchId]);
 
   React.useEffect(() => {
+    if (initialTestId) setTestId(initialTestId);
+  }, [initialTestId]);
+
+  React.useEffect(() => {
     void loadParameters(testId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [testId]);
@@ -1825,20 +2178,22 @@ function LabParamsTab({ branchId }: TabProps) {
       </CardHeader>
       <CardContent>
         {err ? <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{err}</div> : null}
-        <div className="flex flex-wrap items-end gap-2">
-          <Field label="Lab test">
-            <Select value={testId} onValueChange={setTestId} disabled={loading}>
-              <SelectTrigger className="h-10 w-[320px]"><SelectValue placeholder="Select test" /></SelectTrigger>
-              <SelectContent className="max-h-[280px] overflow-y-auto">
-                {tests.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>{t.name} ({t.code})</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-          <Button onClick={() => { setEditingParam(null); setParamDialogOpen(true); }} disabled={!testId}>
-            <Plus className="mr-2 h-4 w-4" /> Parameter
-          </Button>
+        <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+          <div className="flex flex-wrap items-end gap-2">
+            <Field label="Lab test">
+              <Select value={testId} onValueChange={setTestId} disabled={loading}>
+                <SelectTrigger className="h-10 w-[320px]"><SelectValue placeholder="Select test" /></SelectTrigger>
+                <SelectContent className="max-h-[280px] overflow-y-auto">
+                  {tests.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>{t.name} ({t.code})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Button onClick={() => { setEditingParam(null); setParamDialogOpen(true); }} disabled={!testId}>
+              <Plus className="mr-2 h-4 w-4" /> Parameter
+            </Button>
+          </div>
         </div>
         <Separator className="my-4" />
         <div className="grid gap-3">
@@ -2014,7 +2369,7 @@ function ParameterDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[620px] max-h-[85vh] overflow-y-auto")}>
+      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[760px] max-h-[85vh] overflow-y-auto")}>
         <ModalHeader
           title={editing ? "Edit Parameter" : "Add Parameter"}
           description="Define result data type and validation details."
@@ -2151,7 +2506,7 @@ function RangeDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[620px] max-h-[85vh] overflow-y-auto")}>
+      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[760px] max-h-[85vh] overflow-y-auto")}>
         <ModalHeader
           title={editing ? "Edit Range" : "Add Range"}
           description="Reference ranges for numeric or text results."
@@ -2207,7 +2562,13 @@ function RangeDialog({
    TAB 4: Templates
    ========================================================= */
 
-function TemplatesTab({ branchId }: TabProps) {
+function TemplatesTab({
+  branchId,
+  initialItemId,
+}: {
+  branchId: string;
+  initialItemId?: string | null;
+}) {
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
@@ -2254,6 +2615,10 @@ function TemplatesTab({ branchId }: TabProps) {
   }, [branchId]);
 
   React.useEffect(() => {
+    if (initialItemId) setItemId(initialItemId);
+  }, [initialItemId]);
+
+  React.useEffect(() => {
     void loadTemplates(itemId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itemId]);
@@ -2266,20 +2631,22 @@ function TemplatesTab({ branchId }: TabProps) {
       </CardHeader>
       <CardContent>
         {err ? <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{err}</div> : null}
-        <div className="flex flex-wrap items-end gap-2">
-          <Field label="Item">
-            <Select value={itemId} onValueChange={setItemId} disabled={loading}>
-              <SelectTrigger className="h-10 w-[320px]"><SelectValue placeholder="Select item" /></SelectTrigger>
-              <SelectContent className="max-h-[280px] overflow-y-auto">
-                {items.map((i) => (
-                  <SelectItem key={i.id} value={i.id}>{i.name} ({i.code})</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-          <Button onClick={() => { setEditingTemplate(null); setDialogOpen(true); }} disabled={!itemId}>
-            <Plus className="mr-2 h-4 w-4" /> Template
-          </Button>
+        <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+          <div className="flex flex-wrap items-end gap-2">
+            <Field label="Item">
+              <Select value={itemId} onValueChange={setItemId} disabled={loading}>
+                <SelectTrigger className="h-10 w-[320px]"><SelectValue placeholder="Select item" /></SelectTrigger>
+                <SelectContent className="max-h-[280px] overflow-y-auto">
+                  {items.map((i) => (
+                    <SelectItem key={i.id} value={i.id}>{i.name} ({i.code})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Button onClick={() => { setEditingTemplate(null); setDialogOpen(true); }} disabled={!itemId}>
+              <Plus className="mr-2 h-4 w-4" /> Template
+            </Button>
+          </div>
         </div>
         <Separator className="my-4" />
         <div className="grid gap-3">
@@ -2410,7 +2777,7 @@ function TemplateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[720px] max-h-[85vh] overflow-y-auto")}>
+      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[760px] max-h-[85vh] overflow-y-auto")}>
         <ModalHeader
           title={editing ? "Edit Template" : "Create Template"}
           description="Plain text report template (MVP)."
@@ -2458,7 +2825,13 @@ function TemplateDialog({
    TAB 5: Service Points
    ========================================================= */
 
-function ServicePointsTab({ branchId }: TabProps) {
+function ServicePointsTab({
+  branchId,
+  initialServicePointId,
+}: {
+  branchId: string;
+  initialServicePointId?: string | null;
+}) {
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
@@ -2467,11 +2840,17 @@ function ServicePointsTab({ branchId }: TabProps) {
   const [locations, setLocations] = React.useState<FlatLocationNode[]>([]);
   const [includeInactive, setIncludeInactive] = React.useState(false);
   const [typeFilter, setTypeFilter] = React.useState<ServicePointType | "all">("all");
+  const [showFilters, setShowFilters] = React.useState(false);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<DiagnosticServicePointRow | null>(null);
   const [roomsDialog, setRoomsDialog] = React.useState<DiagnosticServicePointRow | null>(null);
   const [resourcesDialog, setResourcesDialog] = React.useState<DiagnosticServicePointRow | null>(null);
   const [equipmentDialog, setEquipmentDialog] = React.useState<DiagnosticServicePointRow | null>(null);
+  const [highlightId, setHighlightId] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    setHighlightId(initialServicePointId ?? null);
+  }, [initialServicePointId]);
 
   async function loadLists() {
     setLoading(true);
@@ -2501,6 +2880,12 @@ function ServicePointsTab({ branchId }: TabProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [branchId, includeInactive, typeFilter]);
 
+  React.useEffect(() => {
+    if (!highlightId) return;
+    const el = document.getElementById(`sp-${highlightId}`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlightId, servicePoints.length]);
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -2509,31 +2894,50 @@ function ServicePointsTab({ branchId }: TabProps) {
       </CardHeader>
       <CardContent>
         {err ? <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{err}</div> : null}
-        <div className="flex flex-wrap items-end gap-3">
-          <Field label="Type filter">
-            <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as any)}>
-              <SelectTrigger className="h-10 w-[220px]"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                {SERVICE_POINT_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </Field>
-          <div className="flex items-center gap-2">
-            <Checkbox checked={includeInactive} onCheckedChange={(v) => setIncludeInactive(Boolean(v))} />
-            <span className="text-sm text-zc-muted">Include inactive</span>
-          </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <Button onClick={() => { setEditing(null); setDialogOpen(true); }} disabled={loading}>
             <Plus className="mr-2 h-4 w-4" /> Service point
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowFilters((s) => !s)}>
+            {showFilters ? "Hide Filters" : "Show Filters"}
+          </Button>
         </div>
+
+        {showFilters ? (
+          <div className="mt-3 grid gap-3 rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+            <Field label="Type filter">
+              <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as any)}>
+                <SelectTrigger className="h-10 w-[220px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  {SERVICE_POINT_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </Field>
+            <div className="flex items-center gap-2">
+              <Checkbox checked={includeInactive} onCheckedChange={(v) => setIncludeInactive(Boolean(v))} />
+              <span className="text-sm text-zc-muted">Include Inactive</span>
+            </div>
+          </div>
+        ) : null}
+
         <Separator className="my-4" />
         <div className="grid gap-3">
           {servicePoints.length === 0 ? (
             <div className="rounded-xl border border-dashed border-zc-border p-4 text-sm text-zc-muted">No service points yet.</div>
           ) : (
             servicePoints.map((sp) => (
-              <div key={sp.id} className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+              <div
+                key={sp.id}
+                id={`sp-${sp.id}`}
+                className={cn(
+                  "rounded-xl border bg-zc-panel/10 p-3",
+                  highlightId === sp.id
+                    ? "border-indigo-300/70 bg-indigo-50/40 shadow-sm shadow-indigo-500/10 dark:border-indigo-900/60 dark:bg-indigo-950/15"
+                    : "border-zc-border",
+                )}
+              >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -2704,7 +3108,7 @@ function ServicePointDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[720px] max-h-[85vh] overflow-y-auto")}>
+      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[760px] max-h-[85vh] overflow-y-auto")}>
         <ModalHeader
           title={editing ? "Edit Service Point" : "Create Service Point"}
           description="Service points are diagnostic units bound to a location."
@@ -3066,8 +3470,8 @@ function ServicePointEquipmentDialog({
   async function loadAll(sp: DiagnosticServicePointRow) {
     setLoading(true);
     try {
-      const equipment = await apiFetch<EquipmentAssetRow[]>(`/api/infrastructure/equipment?branchId=${encodeURIComponent(branchId)}`);
-      setAvailable(safeArray(equipment));
+      const equipment = await apiFetch(`/api/infrastructure/equipment?branchId=${encodeURIComponent(branchId)}`);
+      setAvailable(normalizeEquipmentList(equipment));
       const mapped = await apiFetch<EquipmentMapRow[]>(`/api/infrastructure/diagnostics/service-points/${encodeURIComponent(sp.id)}/equipment?branchId=${encodeURIComponent(branchId)}`);
       setRows(safeArray(mapped));
     } finally {
@@ -3083,7 +3487,9 @@ function ServicePointEquipmentDialog({
   async function add() {
     if (!servicePoint || equipmentId === "none") return;
     try {
-      await apiFetch(`/api/infrastructure/diagnostics/service-points/${encodeURIComponent(servicePoint.id)}/equipment?branchId=${encodeURIComponent(branchId)}`, {
+      const created = await apiFetch<EquipmentMapRow>(
+        `/api/infrastructure/diagnostics/service-points/${encodeURIComponent(servicePoint.id)}/equipment?branchId=${encodeURIComponent(branchId)}`,
+        {
         method: "POST",
         body: JSON.stringify({
           equipmentId,
@@ -3091,8 +3497,15 @@ function ServicePointEquipmentDialog({
           sortOrder: toInt(sortOrder) ?? undefined,
           notes: notes.trim() || undefined,
         }),
-      });
+        },
+      );
       toast({ title: "Equipment added" });
+      if (created?.id) {
+        setRows((prev) => {
+          const next = prev.filter((r) => r.id !== created.id);
+          return [created, ...next];
+        });
+      }
       setEquipmentId("none");
       setSortOrder("");
       setNotes("");
@@ -3179,7 +3592,17 @@ function ServicePointEquipmentDialog({
    TAB 6: Capabilities
    ========================================================= */
 
-function CapabilitiesTab({ branchId }: TabProps) {
+function CapabilitiesTab({
+  branchId,
+  initialDiagnosticItemId,
+  initialServicePointId,
+  autoOpenCreate,
+}: {
+  branchId: string;
+  initialDiagnosticItemId?: string | null;
+  initialServicePointId?: string | null;
+  autoOpenCreate?: boolean;
+}) {
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
@@ -3187,11 +3610,13 @@ function CapabilitiesTab({ branchId }: TabProps) {
   const [servicePoints, setServicePoints] = React.useState<DiagnosticServicePointRow[]>([]);
   const [items, setItems] = React.useState<DiagnosticItemRow[]>([]);
   const [includeInactive, setIncludeInactive] = React.useState(false);
+  const [showFilters, setShowFilters] = React.useState(false);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<CapabilityRow | null>(null);
   const [allowedRooms, setAllowedRooms] = React.useState<CapabilityRow | null>(null);
   const [allowedResources, setAllowedResources] = React.useState<CapabilityRow | null>(null);
   const [allowedEquipment, setAllowedEquipment] = React.useState<CapabilityRow | null>(null);
+  const autoOpenedRef = React.useRef<string>("");
 
   async function loadAll() {
     setLoading(true);
@@ -3220,6 +3645,17 @@ function CapabilitiesTab({ branchId }: TabProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [branchId, includeInactive]);
 
+  React.useEffect(() => {
+    if (!autoOpenCreate) return;
+    const key = `${branchId}|${initialServicePointId ?? ""}|${initialDiagnosticItemId ?? ""}`;
+    if (!initialServicePointId && !initialDiagnosticItemId) return;
+    if (autoOpenedRef.current === key) return;
+    if (!servicePoints.length || !items.length) return;
+    setEditing(null);
+    setDialogOpen(true);
+    autoOpenedRef.current = key;
+  }, [autoOpenCreate, branchId, initialServicePointId, initialDiagnosticItemId, servicePoints.length, items.length]);
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -3228,22 +3664,42 @@ function CapabilitiesTab({ branchId }: TabProps) {
       </CardHeader>
       <CardContent>
         {err ? <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{err}</div> : null}
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="flex items-center gap-2">
-            <Checkbox checked={includeInactive} onCheckedChange={(v) => setIncludeInactive(Boolean(v))} />
-            <span className="text-sm text-zc-muted">Include inactive</span>
-          </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <Button onClick={() => { setEditing(null); setDialogOpen(true); }} disabled={loading}>
             <Plus className="mr-2 h-4 w-4" /> Capability
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowFilters((s) => !s)}>
+            {showFilters ? "Hide Filters" : "Show Filters"}
+          </Button>
         </div>
+
+        {showFilters ? (
+          <div className="mt-3 flex items-center gap-2 rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+            <Checkbox checked={includeInactive} onCheckedChange={(v) => setIncludeInactive(Boolean(v))} />
+            <span className="text-sm text-zc-muted">Include Inactive</span>
+          </div>
+        ) : null}
+
         <Separator className="my-4" />
         <div className="grid gap-3">
           {caps.length === 0 ? (
             <div className="rounded-xl border border-dashed border-zc-border p-4 text-sm text-zc-muted">No capabilities configured.</div>
           ) : (
-            caps.map((c) => (
-              <div key={c.id} className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+            caps.map((c) => {
+              const matchesItem = initialDiagnosticItemId ? c.diagnosticItemId === initialDiagnosticItemId : false;
+              const matchesServicePoint = initialServicePointId ? c.servicePointId === initialServicePointId : false;
+              const highlight = matchesItem || matchesServicePoint;
+              return (
+                <div
+                  key={c.id}
+                  className={cn(
+                    "rounded-xl border bg-zc-panel/10 p-3",
+                    highlight
+                      ? "border-indigo-300/70 bg-indigo-50/40 shadow-sm shadow-indigo-500/10 dark:border-indigo-900/60 dark:bg-indigo-950/15"
+                      : "border-zc-border",
+                  )}
+                >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
                     <div className="text-sm font-semibold text-zc-text">
@@ -3281,7 +3737,8 @@ function CapabilitiesTab({ branchId }: TabProps) {
                   </div>
                 </div>
               </div>
-            ))
+              );
+            })
           )}
         </div>
         <CapabilityDialog
@@ -3289,6 +3746,8 @@ function CapabilitiesTab({ branchId }: TabProps) {
           onOpenChange={setDialogOpen}
           branchId={branchId}
           editing={editing}
+          prefillServicePointId={initialServicePointId}
+          prefillDiagnosticItemId={initialDiagnosticItemId}
           servicePoints={servicePoints}
           items={items}
           onSaved={loadAll}
@@ -3321,6 +3780,8 @@ function CapabilityDialog({
   onOpenChange,
   branchId,
   editing,
+  prefillServicePointId,
+  prefillDiagnosticItemId,
   servicePoints,
   items,
   onSaved,
@@ -3329,6 +3790,8 @@ function CapabilityDialog({
   onOpenChange: (v: boolean) => void;
   branchId: string;
   editing: CapabilityRow | null;
+  prefillServicePointId?: string | null;
+  prefillDiagnosticItemId?: string | null;
   servicePoints: DiagnosticServicePointRow[];
   items: DiagnosticItemRow[];
   onSaved: () => void | Promise<void>;
@@ -3345,14 +3808,14 @@ function CapabilityDialog({
 
   React.useEffect(() => {
     if (!open) return;
-    setServicePointId(editing?.servicePointId ?? "");
-    setDiagnosticItemId(editing?.diagnosticItemId ?? "");
+    setServicePointId(editing?.servicePointId ?? (prefillServicePointId ?? ""));
+    setDiagnosticItemId(editing?.diagnosticItemId ?? (prefillDiagnosticItemId ?? ""));
     setModality((editing?.modality as Modality) ?? "none");
     setDefaultDurationMins(editing?.defaultDurationMins != null ? String(editing.defaultDurationMins) : "");
     setIsPrimary(editing?.isPrimary ?? false);
     setIsActive(editing?.isActive ?? true);
     setErr(null);
-  }, [open, editing]);
+  }, [open, editing, prefillServicePointId, prefillDiagnosticItemId]);
 
   async function save() {
     if (!servicePointId || !diagnosticItemId) {
@@ -3398,7 +3861,7 @@ function CapabilityDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[720px] max-h-[85vh] overflow-y-auto")}>
+      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[760px] max-h-[85vh] overflow-y-auto")}>
         <ModalHeader
           title={editing ? "Edit Capability" : "Create Capability"}
           description="Connect an item to a service point and configure modality."
@@ -3511,7 +3974,7 @@ function CapabilityRoomsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[720px] max-h-[85vh] overflow-y-auto")}>
+      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[760px] max-h-[85vh] overflow-y-auto")}>
         <ModalHeader
           title="Allowed Rooms"
           description={capability?.diagnosticItem?.name || "Capability"}
@@ -3609,7 +4072,7 @@ function CapabilityResourcesDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[720px] max-h-[85vh] overflow-y-auto")}>
+      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[760px] max-h-[85vh] overflow-y-auto")}>
         <ModalHeader
           title="Allowed Resources"
           description={capability?.diagnosticItem?.name || "Capability"}
@@ -3679,8 +4142,8 @@ function CapabilityEquipmentDialog({
   const [equipmentId, setEquipmentId] = React.useState("none");
 
   async function loadAll(cap: CapabilityRow) {
-    const equipment = await apiFetch<EquipmentAssetRow[]>(`/api/infrastructure/equipment?branchId=${encodeURIComponent(branchId)}`);
-    setAvailable(safeArray(equipment));
+    const equipment = await apiFetch(`/api/infrastructure/equipment?branchId=${encodeURIComponent(branchId)}`);
+    setAvailable(normalizeEquipmentList(equipment));
     const mapped = await apiFetch<AllowedEquipmentRow[]>(`/api/infrastructure/diagnostics/capabilities/${encodeURIComponent(cap.id)}/equipment?branchId=${encodeURIComponent(branchId)}`);
     setRows(safeArray(mapped));
   }
@@ -3707,7 +4170,7 @@ function CapabilityEquipmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[720px] max-h-[85vh] overflow-y-auto")}>
+      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[760px] max-h-[85vh] overflow-y-auto")}>
         <ModalHeader
           title="Allowed Equipment"
           description={capability?.diagnosticItem?.name || "Capability"}
@@ -3777,6 +4240,7 @@ function PacksTab({ branchId }: TabProps) {
   const [applying, setApplying] = React.useState(false);
   const [labType, setLabType] = React.useState<LabType>("LAB_CORE");
   const [quickLocationId, setQuickLocationId] = React.useState("");
+  const [showQuickSetup, setShowQuickSetup] = React.useState(false);
 
   const [packDialogOpen, setPackDialogOpen] = React.useState(false);
   const [editingPack, setEditingPack] = React.useState<DiagnosticPackRow | null>(null);
@@ -3926,63 +4390,74 @@ function PacksTab({ branchId }: TabProps) {
   }
 
   return (
-    <Card>
+    <Card className="mt-4">
       <CardHeader className="pb-2">
         <CardTitle className="text-base">Diagnostic Packs</CardTitle>
         <CardDescription>Backend-stored packs with versioning. Import, edit, and apply to a branch.</CardDescription>
       </CardHeader>
       <CardContent>
         {err ? <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{err}</div> : null}
-        <div className="mb-4 rounded-xl border border-zc-border bg-zc-panel/10 p-4">
-          <div className="text-sm font-semibold text-zc-text">Lab Type Setup</div>
-          <div className="mt-1 text-xs text-zc-muted">
-            Step 1: choose a lab type and location. Step 2: select a predefined template. Step 3: apply.
-          </div>
-          <div className="mt-3 grid gap-3 md:grid-cols-3">
-            <Field label="Lab type" required>
-              <Select value={labType} onValueChange={(v) => setLabType(v as LabType)}>
-                <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {LAB_TYPE_OPTIONS.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field label="Location" required>
-              <Select value={quickLocationId} onValueChange={setQuickLocationId}>
-                <SelectTrigger className="h-10"><SelectValue placeholder="Select location" /></SelectTrigger>
-                <SelectContent className="max-h-[280px] overflow-y-auto">
-                  {locations.map((l) => (
-                    <SelectItem key={l.id} value={l.id}>{l.path}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field label="Template" required>
-              <Select value={packId} onValueChange={setPackId}>
-                <SelectTrigger className="h-10"><SelectValue placeholder="Select template" /></SelectTrigger>
-                <SelectContent className="max-h-[280px] overflow-y-auto">
-                  {labTypePacks.length === 0 ? (
-                    <SelectItem value="none" disabled>No templates for this lab type</SelectItem>
-                  ) : (
-                    labTypePacks.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </Field>
-          </div>
-          <div className="mt-3 flex items-center gap-2">
-            <Button onClick={applyQuickSetup} disabled={applying || !selectedVersion || !quickLocationId || !labTypePacks.length}>
-              Apply template
-            </Button>
-            <div className="text-xs text-zc-muted">Uses the active version of the selected template.</div>
-          </div>
+
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-sm font-semibold text-zc-text">Quick setup</div>
+          <Button variant="outline" size="sm" onClick={() => setShowQuickSetup((s) => !s)}>
+            {showQuickSetup ? "Hide Quick Setup" : "Show Quick Setup"}
+          </Button>
         </div>
+
+        {showQuickSetup ? (
+          <div className="mb-4 rounded-xl border border-zc-border bg-zc-panel/10 p-4">
+            <div className="text-sm font-semibold text-zc-text">Lab Type Setup</div>
+            <div className="mt-1 text-xs text-zc-muted">
+              Step 1: choose a lab type and location. Step 2: select a predefined template. Step 3: apply.
+            </div>
+            <div className="mt-3 grid gap-3 md:grid-cols-3">
+              <Field label="Lab type" required>
+                <Select value={labType} onValueChange={(v) => setLabType(v as LabType)}>
+                  <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {LAB_TYPE_OPTIONS.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field label="Location" required>
+                <Select value={quickLocationId} onValueChange={setQuickLocationId}>
+                  <SelectTrigger className="h-10"><SelectValue placeholder="Select location" /></SelectTrigger>
+                  <SelectContent className="max-h-[280px] overflow-y-auto">
+                    {locations.map((l) => (
+                      <SelectItem key={l.id} value={l.id}>{l.path}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field label="Template" required>
+                <Select value={packId} onValueChange={setPackId}>
+                  <SelectTrigger className="h-10"><SelectValue placeholder="Select template" /></SelectTrigger>
+                  <SelectContent className="max-h-[280px] overflow-y-auto">
+                    {labTypePacks.length === 0 ? (
+                      <SelectItem value="none" disabled>No templates for this lab type</SelectItem>
+                    ) : (
+                      labTypePacks.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </Field>
+            </div>
+            <div className="mt-3 flex items-center gap-2">
+              <Button onClick={applyQuickSetup} disabled={applying || !selectedVersion || !quickLocationId || !labTypePacks.length}>
+                Apply template
+              </Button>
+              <div className="text-xs text-zc-muted">Uses the active version of the selected template.</div>
+            </div>
+          </div>
+        ) : null}
+
         <div className="grid gap-4 lg:grid-cols-[280px,1fr]">
           <div className="rounded-xl border border-zc-border p-3">
             <div className="mb-2 flex items-center justify-between">
@@ -4216,7 +4691,7 @@ function PackDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[620px] max-h-[85vh] overflow-y-auto")}>
+      <DialogContent className={drawerClassName()}>
         <ModalHeader
           title={editing ? "Edit Pack" : "Create Pack"}
           description="Pack metadata stored in the backend."
@@ -4510,7 +4985,7 @@ function PackVersionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[900px] max-h-[85vh] overflow-y-auto")}>
+      <DialogContent className={drawerClassName()}>
         <ModalHeader
           title={editing ? "Edit Pack Version" : "Create Pack Version"}
           description="Versions are immutable snapshots you can apply to branches."

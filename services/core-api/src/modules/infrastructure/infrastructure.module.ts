@@ -1,10 +1,8 @@
 import { Module } from "@nestjs/common";
-import { AuditModule } from "../audit/audit.module";
 import { AuthModule } from "../auth/auth.module";
-import { PolicyEngineModule } from "../policy-engine/policy-engine.module";
 import { InfrastructureSeedService } from "./infrastructure.seed";
 
-import { InfraContextService } from "./shared/infra-context.service";
+import { InfraSharedModule } from "./shared/infra-shared.module";
 
 import { LocationController } from "./location/location.controller";
 import { LocationService } from "./location/location.service";
@@ -30,10 +28,12 @@ import { EquipmentService } from "./equipment/equipment.service";
 import { ChargeMasterController } from "./charge-master/charge-master.controller";
 import { ChargeMasterService } from "./charge-master/charge-master.service";
 
-import { ServiceItemsController } from "./service-items/service-items.controller";
-import { ServiceItemsService } from "./service-items/service-items.service";
-import { ServiceChargeMappingController } from "./service-items/service-charge-mapping.controller";
-import { ServiceChargeMappingService } from "./service-items/service-charge-mapping.service";
+import { ServiceItemsModule } from "./service-items/service-items.module";
+
+import { ServiceCatalogueModule } from "./service-catalogue/service-catalogue.module";
+import { ServicePackagesModule } from "./service-packages/service-packages.module";
+import { OrderSetsModule } from "./order-sets/order-sets.module";
+import { ServiceLibraryModule } from "./service-library/service-library.module";
 
 import { FixItController } from "./fixit/fixit.controller";
 import { FixItService } from "./fixit/fixit.service";
@@ -51,10 +51,14 @@ import { DiagnosticsModule } from "./diagnostics/diagnostics.module";
 
 @Module({
   imports: [
-    AuditModule,
     AuthModule,
-    PolicyEngineModule,
+    InfraSharedModule,
     DiagnosticsModule,
+    ServiceItemsModule,
+    ServiceCatalogueModule,
+    ServicePackagesModule,
+    OrderSetsModule,
+    ServiceLibraryModule,
   ],
   controllers: [
     LocationController,
@@ -65,15 +69,12 @@ import { DiagnosticsModule } from "./diagnostics/diagnostics.module";
     BranchConfigController,
     EquipmentController,
     ChargeMasterController,
-    ServiceItemsController,
-    ServiceChargeMappingController,
     FixItController,
     SchedulingController,
     ImportController,
     GoLiveController,
   ],
   providers: [
-    InfraContextService,
     LocationService,
     UnitTypesService,
     UnitsService,
@@ -82,8 +83,6 @@ import { DiagnosticsModule } from "./diagnostics/diagnostics.module";
     BranchConfigService,
     EquipmentService,
     ChargeMasterService,
-    ServiceChargeMappingService,
-    ServiceItemsService,
     FixItService,
     SchedulingService,
     ImportService,

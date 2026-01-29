@@ -14,6 +14,7 @@ import { GovernanceModule } from "../governance/governance.module";
 import { FacilitySetupModule } from "../facility-setup/facility-setup.module";
 import { InfrastructureModule } from "../infrastructure/infrastructure.module";
 import { OtModule } from "../infrastructure/ot/ot.module";
+// import { NatsModule } from "../nats/nats.module";
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { OtModule } from "../infrastructure/ot/ot.module";
     FacilitySetupModule,
     InfrastructureModule,
     OtModule,
+    //NatsModule
   ],
   controllers: [HealthController],
 })

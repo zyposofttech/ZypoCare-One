@@ -7,8 +7,10 @@ import type { AppHref } from "@/lib/linking";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiFetch } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth/store";
 import { cn } from "@/lib/cn";
@@ -85,6 +87,17 @@ const pillTones = {
 
 function Skeleton({ className }: { className?: string }) {
   return <div className={cn("animate-pulse rounded bg-zinc-200 dark:bg-zinc-800", className)} />;
+}
+
+function drawerClassName(extra?: string) {
+  return cn(
+    "left-auto right-0 top-0 h-screen w-[95vw] max-w-[980px] translate-x-0 translate-y-0",
+    "rounded-2xl",
+    "border border-indigo-200/50 dark:border-indigo-800/50 bg-zc-card",
+    "shadow-2xl shadow-indigo-500/10",
+    "overflow-y-auto",
+    extra,
+  );
 }
 
 function fmtDate(v?: string) {
@@ -410,109 +423,124 @@ function EditBranchModal({
   if (!open || !branch) return null;
 
   return (
-    <ModalShell
-      title="Edit Branch"
-      description="Update GSTIN, address & contact details. Branch code is immutable."
-      onClose={onClose}
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) onClose();
+      }}
     >
-      {err ? (
-        <div className="mb-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
-          <AlertTriangle className="mt-0.5 h-4 w-4" />
-          <div className="min-w-0">{err}</div>
-        </div>
-      ) : null}
+      <DialogContent className={drawerClassName()} onInteractOutside={(e) => e.preventDefault()}>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-3 text-indigo-700 dark:text-indigo-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
+              <Building2 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            Edit Branch
+          </DialogTitle>
+          <DialogDescription>Update GSTIN, address & contact details. Branch code is immutable.</DialogDescription>
+        </DialogHeader>
 
-      <div className="grid gap-4">
-        <div className="grid gap-3 md:grid-cols-2">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Branch code</div>
-            <Input value={branch.code} disabled className="mt-1 font-mono" />
+        <Separator className="my-4" />
+
+        {err ? (
+          <div className="mb-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
+            <AlertTriangle className="mt-0.5 h-4 w-4" />
+            <div className="min-w-0">{err}</div>
           </div>
+        ) : null}
+
+        <div className="grid gap-4">
+          <div className="grid gap-3 md:grid-cols-2">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Branch code</div>
+              <Input value={branch.code} disabled className="mt-1 font-mono" />
+            </div>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">City</div>
+              <Input
+                value={form.city}
+                onChange={(e) => setForm((s) => ({ ...s, city: e.target.value }))}
+                className="mt-1"
+              />
+            </div>
+          </div>
+
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">City</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Branch name</div>
             <Input
-              value={form.city}
-              onChange={(e) => setForm((s) => ({ ...s, city: e.target.value }))}
+              value={form.name}
+              onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">GST Number (GSTIN)</div>
+            <Input
+              value={form.gstNumber}
+              onChange={(e) => setForm((s) => ({ ...s, gstNumber: e.target.value.toUpperCase() }))}
+              placeholder="29ABCDE1234F1Z5"
+              maxLength={15}
+              className="mt-1 font-mono"
+            />
+            <div className="mt-1 text-xs text-zc-muted">Used in Accounting, invoices, statutory reporting.</div>
+          </div>
+
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Address</div>
+            <textarea
+              value={form.address}
+              onChange={(e) => setForm((s) => ({ ...s, address: e.target.value }))}
+              placeholder="Address line for this campus"
+              className={cn(
+                "mt-1 min-h-[90px] w-full rounded-lg border border-zc-border bg-transparent px-3 py-2 text-sm text-zc-text outline-none",
+                "focus-visible:ring-2 focus-visible:ring-zc-ring",
+              )}
+            />
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Contact phone 1</div>
+              <Input
+                value={form.contactPhone1}
+                onChange={(e) => setForm((s) => ({ ...s, contactPhone1: e.target.value }))}
+                placeholder="+91 9XXXXXXXXX"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Contact phone 2</div>
+              <Input
+                value={form.contactPhone2}
+                onChange={(e) => setForm((s) => ({ ...s, contactPhone2: e.target.value }))}
+                placeholder="Optional alternate number"
+                className="mt-1"
+              />
+            </div>
+          </div>
+
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Contact email</div>
+            <Input
+              value={form.contactEmail}
+              onChange={(e) => setForm((s) => ({ ...s, contactEmail: e.target.value }))}
+              placeholder="branch@zypocare.local"
               className="mt-1"
             />
           </div>
         </div>
 
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Branch name</div>
-          <Input
-            value={form.name}
-            onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
-            className="mt-1"
-          />
-        </div>
-
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">GST Number (GSTIN)</div>
-          <Input
-            value={form.gstNumber}
-            onChange={(e) => setForm((s) => ({ ...s, gstNumber: e.target.value.toUpperCase() }))}
-            placeholder="29ABCDE1234F1Z5"
-            maxLength={15}
-            className="mt-1 font-mono"
-          />
-          <div className="mt-1 text-xs text-zc-muted">Used in Accounting, invoices, statutory reporting.</div>
-        </div>
-
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Address</div>
-          <textarea
-            value={form.address}
-            onChange={(e) => setForm((s) => ({ ...s, address: e.target.value }))}
-            placeholder="Address line for this campus"
-            className={cn(
-              "mt-1 min-h-[90px] w-full rounded-lg border border-zc-border bg-transparent px-3 py-2 text-sm text-zc-text outline-none",
-              "focus-visible:ring-2 focus-visible:ring-zc-ring",
-            )}
-          />
-        </div>
-
-        <div className="grid gap-3 md:grid-cols-2">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Contact phone 1</div>
-            <Input
-              value={form.contactPhone1}
-              onChange={(e) => setForm((s) => ({ ...s, contactPhone1: e.target.value }))}
-              placeholder="+91 9XXXXXXXXX"
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Contact phone 2</div>
-            <Input
-              value={form.contactPhone2}
-              onChange={(e) => setForm((s) => ({ ...s, contactPhone2: e.target.value }))}
-              placeholder="Optional alternate number"
-              className="mt-1"
-            />
-          </div>
-        </div>
-
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Contact email</div>
-          <Input
-            value={form.contactEmail}
-            onChange={(e) => setForm((s) => ({ ...s, contactEmail: e.target.value }))}
-            placeholder="branch@zypocare.local"
-            className="mt-1"
-          />
-        </div>
-      </div>
-
-      <div className="mt-5 flex items-center justify-end gap-2">
-        <Button variant="outline" onClick={onClose} disabled={busy}>
-          Cancel
-        </Button>
-        <Button onClick={onSubmit} disabled={busy}>
-          {busy ? "Saving…" : "Save"}
-        </Button>
-      </div>
-    </ModalShell>
+        <DialogFooter className="mt-5">
+          <Button variant="outline" onClick={onClose} disabled={busy}>
+            Cancel
+          </Button>
+          <Button onClick={onSubmit} disabled={busy}>
+            {busy ? "Saving..." : "Save"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -636,6 +664,7 @@ export default function BranchDetailPage() {
 
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState<"overview" | "setup">("overview");
 
   const facilitySetupHref = `/superadmin/branches/${encodeURIComponent(id)}/facility-setup`;
   const policyOverridesHref = `/admin/policy-overrides?branchId=${encodeURIComponent(id)}`;
@@ -691,6 +720,10 @@ export default function BranchDetailPage() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <div className="flex items-center gap-3">
+              <Button variant="outline" className="h-10" onClick={() => router.back()}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
+              </Button>
               <span className="grid h-10 w-10 place-items-center rounded-2xl border border-indigo-200/60 bg-indigo-50/60 dark:border-indigo-900/40 dark:bg-indigo-900/20">
                 <IconBuilding className="h-5 w-5 text-indigo-600 dark:text-indigo-300" />
               </span>
@@ -736,13 +769,13 @@ export default function BranchDetailPage() {
               </div>
             </div>
 
-            {!loading && row ? (
+            {/* {!loading && row ? (
               <div className="mt-3 flex flex-wrap gap-2">
                 <MetricPill label="Facilities" value={facilities} tone="sky" />
                 <MetricPill label="Departments" value={departments} tone="emerald" />
                 <MetricPill label="Specialties" value={specialties} tone="violet" />
               </div>
-            ) : null}
+            ) : null} */}
 
             {err ? (
               <div className="mt-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
@@ -753,10 +786,6 @@ export default function BranchDetailPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" className="gap-2" onClick={() => router.back()}>
-              <ArrowLeft className="h-4 w-4" /> Go Back
-            </Button>
-
             <Button variant="outline" className="gap-2" onClick={() => void refresh(true)} disabled={loading}>
               <RefreshCw className={cn("h-4 w-4", loading ? "animate-spin" : "")} />
               Refresh
@@ -786,237 +815,286 @@ export default function BranchDetailPage() {
           </div>
         </div>
 
-        {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="overflow-hidden">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Setup Health</CardTitle>
-              <CardDescription className="text-xs">Super Admin setup readiness for this branch.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-zc-muted">Facilities</span>
-                {readinessFlag(readyFacilities)}
+        {/* Snapshot */}
+        <Card className="overflow-hidden">
+          <CardHeader className="py-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <CardTitle className="text-base">Snapshot</CardTitle>
+                <CardDescription>Status, setup counts, and identifiers.</CardDescription>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-zc-muted">Departments</span>
-                {readinessFlag(readyDepartments)}
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-zc-muted">Specialties Catalog</span>
-                {readinessFlag(readySpecialties)}
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-zc-muted">Dept ↔ Specialty Mapping</span>
-                {readinessFlag(readyMapping, "Review in Setup")}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="overflow-hidden md:col-span-3">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Branch Snapshot</CardTitle>
-              <CardDescription className="text-xs">Identifiers, GSTIN, timestamps.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="grid gap-3 md:grid-cols-3">
-                  <Skeleton className="h-16" />
-                  <Skeleton className="h-16" />
-                  <Skeleton className="h-16" />
-                </div>
-              ) : row ? (
-                <div className="grid gap-4 md:grid-cols-3">
-                  <InfoTile
-                    label="Branch ID"
-                    icon={<ClipboardList className="h-4 w-4" />}
-                    tone="zinc"
-                    value={
-                      <div className="flex items-center">
-                        <span className="font-mono text-xs break-all">{row.id}</span>
-                        <CopyButton text={row.id} />
-                      </div>
-                    }
-                  />
-                  <InfoTile
-                    label="Code"
-                    icon={<Layers className="h-4 w-4" />}
-                    tone="indigo"
-                    value={<span className="font-mono text-sm font-semibold">{row.code}</span>}
-                  />
-                  <InfoTile
-                    label="GSTIN"
-                    icon={<Building2 className="h-4 w-4" />}
-                    tone="emerald"
-                    value={
-                      <div className="flex items-center">
-                        <span className="font-mono text-sm font-semibold">{valOrDash(row.gstNumber)}</span>
-                        {row.gstNumber ? <CopyButton text={row.gstNumber} /> : null}
-                      </div>
-                    }
-                  />
+              {!loading && row ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <MetricPill label="Facilities" value={facilities} tone="sky" />
+                  <MetricPill label="Departments" value={departments} tone="emerald" />
+                  <MetricPill label="Specialties" value={specialties} tone="violet" />
                 </div>
               ) : (
-                <div className="text-sm text-zc-muted">No data.</div>
+                <div className="text-sm text-zc-muted">--</div>
               )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Dashboard Grid */}
-        <div className="grid gap-4 lg:grid-cols-3">
-          {/* Profile + Contacts */}
-          <Card className="lg:col-span-2 overflow-hidden">
-            <CardHeader>
-              <CardTitle>Branch Profile</CardTitle>
-              <CardDescription>Accounting and operational identity for this campus.</CardDescription>
-            </CardHeader>
-            <Separator />
-            <CardContent className="pt-6">
-              {loading ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <Skeleton className="h-14" />
-                    <Skeleton className="h-14" />
-                  </div>
-                  <Skeleton className="h-20" />
-                </div>
-              ) : row ? (
-                <div className="grid gap-4 md:grid-cols-2">
-                  <InfoTile label="Name" value={<span className="text-sm font-semibold">{row.name}</span>} />
-                  <InfoTile label="City" value={<span className="text-sm font-semibold">{row.city}</span>} />
-
-                  <InfoTile
-                    label="GSTIN"
-                    value={<span className="font-mono text-sm font-semibold">{valOrDash(row.gstNumber)}</span>}
-                    className="md:col-span-2"
-                    icon={<Building2 className="h-4 w-4" />}
-                    tone="emerald"
-                  />
-
-                  <InfoTile
-                    label="Address"
-                    value={<div className="text-sm text-zc-text">{valOrDash(row.address)}</div>}
-                    className="md:col-span-2"
-                    icon={<MapPin className="h-4 w-4" />}
-                    tone="indigo"
-                  />
-
-                  <InfoTile
-                    label="Contact Phones"
-                    value={
-                      <div className="text-sm text-zc-text">
-                        <div>{valOrDash(row.contactPhone1)}</div>
-                        {row.contactPhone2?.trim() ? <div className="text-zc-muted">{row.contactPhone2}</div> : null}
-                        {!row.contactPhone1?.trim() && !row.contactPhone2?.trim() ? <span>—</span> : null}
-                      </div>
-                    }
-                    tone="cyan"
-                  />
-
-                  <InfoTile
-                    label="Contact Email"
-                    value={<div className="text-sm text-zc-text">{valOrDash(row.contactEmail)}</div>}
-                    tone="zinc"
-                  />
-
-                  <InfoTile label="Created At" value={<span className="text-sm text-zc-text">{fmtDate(row.createdAt)}</span>} />
-                  <InfoTile label="Updated At" value={<span className="text-sm text-zc-text">{fmtDate(row.updatedAt)}</span>} />
-                </div>
-              ) : (
-                <div className="text-sm text-zc-muted">No data.</div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Right column: Setup + Governance */}
-          <div className="grid gap-4">
-            <Card className="overflow-hidden">
-              <CardHeader>
-                <CardTitle>Branch Setup</CardTitle>
-                <CardDescription>Super Admin configuration (before Branch Admin onboarding).</CardDescription>
-              </CardHeader>
-              <Separator />
-              <CardContent className="pt-6 grid gap-3">
-                <ModuleCard
-                  title="Facility Setup"
-                  description="Facilities → Departments → Specialties → Mapping"
-                  count={undefined}
-                  icon={<Wand2 className="h-4 w-4 text-zc-accent" />}
-                  href={facilitySetupHref}
+            </div>
+          </CardHeader>
+          <Separator />
+          <CardContent className="pb-6 pt-6">
+            {loading ? (
+              <div className="grid gap-3 md:grid-cols-3">
+                <Skeleton className="h-16" />
+                <Skeleton className="h-16" />
+                <Skeleton className="h-16" />
+              </div>
+            ) : row ? (
+              <div className="grid gap-4 md:grid-cols-3">
+                <InfoTile
+                  label="Branch ID"
+                  icon={<ClipboardList className="h-4 w-4" />}
                   tone="zinc"
-                />
-                <ModuleCard
-                  title="Facilities Enabled"
-                  description="Branch facility catalog (enabled)"
-                  count={facilities}
-                  icon={<Layers className="h-4 w-4 text-zc-accent" />}
-                  href={facilitySetupHref}
-                  tone="sky"
-                />
-                <ModuleCard
-                  title="Departments"
-                  description="Departments created under facilities"
-                  count={departments}
-                  icon={<Layers className="h-4 w-4 text-zc-accent" />}
-                  href={facilitySetupHref}
-                  tone="emerald"
-                />
-                <ModuleCard
-                  title="Specialties Catalog"
-                  description="Branch-level specialties (master list)"
-                  count={specialties}
-                  icon={<Layers className="h-4 w-4 text-zc-accent" />}
-                  href={facilitySetupHref}
-                  tone="violet"
-                />
-              </CardContent>
-            </Card>
-
-            <Card className="overflow-hidden">
-              <CardHeader>
-                <CardTitle>Governance</CardTitle>
-                <CardDescription>Policies and approvals remain global; branch overrides are scoped here.</CardDescription>
-              </CardHeader>
-              <Separator />
-              <CardContent className="pt-6 grid gap-3">
-                <Link
-                  href={policyOverridesHref}
-                  className="group flex items-center justify-between rounded-2xl border border-zc-border bg-zc-panel/20 p-4 hover:bg-zc-panel/35 hover:shadow-elev-2 transition-all"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="grid h-9 w-9 place-items-center rounded-xl border border-zc-border bg-zc-panel/25">
-                      <ShieldCheck className="h-4 w-4 text-zc-accent" />
-                    </span>
-                    <div>
-                      <div className="text-sm font-semibold text-zc-text group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                        Policy Overrides
-                      </div>
-                      <div className="mt-1 text-sm text-zc-muted">Branch-specific exceptions and rollouts</div>
+                  value={
+                    <div className="flex items-center">
+                      <span className="font-mono text-xs break-all">{row.id}</span>
+                      <CopyButton text={row.id} />
                     </div>
-                  </div>
-                  <IconChevronRight className="h-4 w-4 text-zc-muted group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
-                </Link>
+                  }
+                />
+                <InfoTile
+                  label="Code"
+                  icon={<Layers className="h-4 w-4" />}
+                  tone="indigo"
+                  value={<span className="font-mono text-sm font-semibold">{row.code}</span>}
+                />
+                <InfoTile
+                  label="GSTIN"
+                  icon={<Building2 className="h-4 w-4" />}
+                  tone="emerald"
+                  value={
+                    <div className="flex items-center">
+                      <span className="font-mono text-sm font-semibold">{valOrDash(row.gstNumber)}</span>
+                      {row.gstNumber ? <CopyButton text={row.gstNumber} /> : null}
+                    </div>
+                  }
+                />
+              </div>
+            ) : (
+              <div className="text-sm text-zc-muted">No data.</div>
+            )}
+          </CardContent>
+        </Card>
 
-                <div className="rounded-2xl border border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
-                  <div className="font-semibold text-zc-text">Super Admin shortcuts</div>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <Button asChild variant="outline">
-                      <Link href={policiesHref}>Policies</Link>
-                    </Button>
-                    <Button asChild variant="outline">
-                      <Link href={approvalsHref}>Approvals</Link>
-                    </Button>
-                    <Button asChild variant="outline">
-                      <Link href={auditHref}>Audit Trail</Link>
-                    </Button>
-                  </div>
-                  <div className="mt-2 text-xs">Tip: Keep definitions global; use overrides only for branch deviations.</div>
+        {/* Tabs */}
+        <Card>
+          <CardHeader className="py-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <CardTitle className="text-base">Branch Details</CardTitle>
+                <CardDescription>Overview, setup readiness, and governance shortcuts.</CardDescription>
+              </div>
+
+              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+                <TabsList className="h-10 rounded-2xl border border-zc-border bg-zc-panel/20 p-1">
+                  <TabsTrigger
+                    value="overview"
+                    className="rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm"
+                  >
+                    <ClipboardList className="mr-2 h-4 w-4" />
+                    Overview
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="setup"
+                    className="rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm"
+                  >
+                    <Wand2 className="mr-2 h-4 w-4" />
+                    Setup
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+          </CardHeader>
+
+          <CardContent className="pb-6">
+            <Tabs value={activeTab}>
+              <TabsContent value="overview" className="mt-0">
+                <div className="grid gap-4 lg:grid-cols-3">
+                  <Card className="lg:col-span-2 overflow-hidden">
+                    <CardHeader>
+                      <CardTitle>Branch Profile</CardTitle>
+                      <CardDescription>Accounting and operational identity for this campus.</CardDescription>
+                    </CardHeader>
+                    <Separator />
+                    <CardContent className="pt-6">
+                      {loading ? (
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <Skeleton className="h-14" />
+                            <Skeleton className="h-14" />
+                          </div>
+                          <Skeleton className="h-20" />
+                        </div>
+                      ) : row ? (
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <InfoTile label="Name" value={<span className="text-sm font-semibold">{row.name}</span>} />
+                          <InfoTile label="City" value={<span className="text-sm font-semibold">{row.city}</span>} />
+
+                          <InfoTile
+                            label="GSTIN"
+                            value={<span className="font-mono text-sm font-semibold">{valOrDash(row.gstNumber)}</span>}
+                            className="md:col-span-2"
+                            icon={<Building2 className="h-4 w-4" />}
+                            tone="emerald"
+                          />
+
+                          <InfoTile
+                            label="Address"
+                            value={<div className="text-sm text-zc-text">{valOrDash(row.address)}</div>}
+                            className="md:col-span-2"
+                            icon={<MapPin className="h-4 w-4" />}
+                            tone="indigo"
+                          />
+
+                          <InfoTile
+                            label="Contact Phones"
+                            value={
+                              <div className="text-sm text-zc-text">
+                                <div>{valOrDash(row.contactPhone1)}</div>
+                                {row.contactPhone2?.trim() ? <div className="text-zc-muted">{row.contactPhone2}</div> : null}
+                                {!row.contactPhone1?.trim() && !row.contactPhone2?.trim() ? <span>--</span> : null}
+                              </div>
+                            }
+                            tone="cyan"
+                          />
+
+                          <InfoTile
+                            label="Contact Email"
+                            value={<div className="text-sm text-zc-text">{valOrDash(row.contactEmail)}</div>}
+                            tone="zinc"
+                          />
+
+                          <InfoTile label="Created At" value={<span className="text-sm text-zc-text">{fmtDate(row.createdAt)}</span>} />
+                          <InfoTile label="Updated At" value={<span className="text-sm text-zc-text">{fmtDate(row.updatedAt)}</span>} />
+                        </div>
+                      ) : (
+                        <div className="text-sm text-zc-muted">No data.</div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card className="overflow-hidden">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm">Setup Health</CardTitle>
+                      <CardDescription className="text-xs">Super Admin setup readiness for this branch.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-zc-muted">Facilities</span>
+                        {readinessFlag(readyFacilities)}
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-zc-muted">Departments</span>
+                        {readinessFlag(readyDepartments)}
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-zc-muted">Specialties Catalog</span>
+                        {readinessFlag(readySpecialties)}
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-zc-muted">Dept - Specialty Mapping</span>
+                        {readinessFlag(readyMapping, "Review in Setup")}
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+              </TabsContent>
+
+              <TabsContent value="setup" className="mt-0">
+                <div className="grid gap-4 lg:grid-cols-3">
+                  <Card className="overflow-hidden lg:col-span-2">
+                    <CardHeader>
+                      <CardTitle>Branch Setup</CardTitle>
+                      <CardDescription>Super Admin configuration (before Branch Admin onboarding).</CardDescription>
+                    </CardHeader>
+                    <Separator />
+                    <CardContent className="pt-6 grid gap-3">
+                      <ModuleCard
+                        title="Facility Setup"
+                        description="Facilities -> Departments -> Specialties -> Mapping"
+                        count={undefined}
+                        icon={<Wand2 className="h-4 w-4 text-zc-accent" />}
+                        href={facilitySetupHref}
+                        tone="zinc"
+                      />
+                      <ModuleCard
+                        title="Facilities Enabled"
+                        description="Branch facility catalog (enabled)"
+                        count={facilities}
+                        icon={<Layers className="h-4 w-4 text-zc-accent" />}
+                        href={facilitySetupHref}
+                        tone="sky"
+                      />
+                      <ModuleCard
+                        title="Departments"
+                        description="Departments created under facilities"
+                        count={departments}
+                        icon={<Layers className="h-4 w-4 text-zc-accent" />}
+                        href={facilitySetupHref}
+                        tone="emerald"
+                      />
+                      <ModuleCard
+                        title="Specialties Catalog"
+                        description="Branch-level specialties (master list)"
+                        count={specialties}
+                        icon={<Layers className="h-4 w-4 text-zc-accent" />}
+                        href={facilitySetupHref}
+                        tone="violet"
+                      />
+                    </CardContent>
+                  </Card>
+
+                  <Card className="overflow-hidden">
+                    <CardHeader>
+                      <CardTitle>Governance</CardTitle>
+                      <CardDescription>Policies and approvals remain global; branch overrides are scoped here.</CardDescription>
+                    </CardHeader>
+                    <Separator />
+                    <CardContent className="pt-6 grid gap-3">
+                      <Link
+                        href={policyOverridesHref}
+                        className="group flex items-center justify-between rounded-2xl border border-zc-border bg-zc-panel/20 p-4 hover:bg-zc-panel/35 hover:shadow-elev-2 transition-all"
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="grid h-9 w-9 place-items-center rounded-xl border border-zc-border bg-zc-panel/25">
+                            <ShieldCheck className="h-4 w-4 text-zc-accent" />
+                          </span>
+                          <div>
+                            <div className="text-sm font-semibold text-zc-text group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                              Policy Overrides
+                            </div>
+                            <div className="mt-1 text-sm text-zc-muted">Branch-specific exceptions and rollouts</div>
+                          </div>
+                        </div>
+                        <IconChevronRight className="h-4 w-4 text-zc-muted group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
+                      </Link>
+
+                      <div className="rounded-2xl border border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
+                        <div className="font-semibold text-zc-text">Super Admin shortcuts</div>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <Button asChild variant="outline">
+                            <Link href={policiesHref}>Policies</Link>
+                          </Button>
+                          <Button asChild variant="outline">
+                            <Link href={approvalsHref}>Approvals</Link>
+                          </Button>
+                          <Button asChild variant="outline">
+                            <Link href={auditHref}>Audit Trail</Link>
+                          </Button>
+                        </div>
+                        <div className="mt-2 text-xs">Tip: Keep definitions global; use overrides only for branch deviations.</div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+
       </div>
 
       <EditBranchModal open={editOpen} branch={row} onClose={() => setEditOpen(false)} onSaved={() => refresh(false)} />

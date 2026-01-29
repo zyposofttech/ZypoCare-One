@@ -84,15 +84,15 @@ export default function Page() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Button asChild variant="primary" className="px-5">
+            <Button asChild variant="info" className="px-5">
               <Link href="/admin/facility">Facility / Hospital Profile</Link>
             </Button>
-            <Button asChild variant="outline" className="px-5">
+            <Button asChild variant="warning" className="px-5">
               <Link href="/admin/departments">Departments</Link>
             </Button>
             <Button
               asChild
-              className="px-5 bg-[rgb(var(--zc-warn))] text-black hover:brightness-105"
+              variant="success"
             >
               <Link href="/admin/staff">Hospital Staff</Link>
             </Button>
@@ -103,7 +103,7 @@ export default function Page() {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label="Facility"
-            value="ExcelCare Hosp…"
+            value="ZypoCare Hosp…"
             note="Bengaluru, Karnataka"
             icon={<IconBuilding className="h-5 w-5 text-zc-accent" />}
           />

@@ -33,11 +33,11 @@
   --zc-muted: 36 36 36;
 
   /* BRAND ACCENT */
-  /* "Enterprise Blue" (Blue-600) - Strong, confident, and accessible */
-  --zc-accent: 103 61 235;
+  /* "Lavender Indigo" (Blue-600) - Strong, confident, and accessible */
+  --zc-accent: 55 90 246;
   
   /* Lighter blue for hovers (Blue-500) */
-  --zc-accent2: 59 130 246;
+  --zc-accent2: 11 54 244;
   
   /* Soft focus ring (Blue-200) */
   --zc-ring: 191 219 254;
@@ -67,7 +67,7 @@
   --zc-muted: 232 232 237;  /* gray-400 */
 
   --zc-accent: 146 79 247;
-  --zc-accent2: 186 143 250;
+  --zc-accent2: 131 55 246;
   --zc-ring: 186 143 250;
   --zc-success: 22 163 74;    /* green-600 */
   --zc-danger: 246 55 55; /* red-400 */

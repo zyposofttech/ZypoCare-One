@@ -405,6 +405,8 @@ export class DiagnosticsPacksService {
             unit: p.unit?.trim() || null,
             precision: parseOptionalInt(p.precision),
             allowedText: p.allowedText?.trim() || null,
+            criticalLow: parseOptionalFloat((p as any).criticalLow),
+            criticalHigh: parseOptionalFloat((p as any).criticalHigh),
             sortOrder: parseOptionalInt(p.sortOrder) ?? 0,
             isActive: true,
           },
@@ -414,6 +416,8 @@ export class DiagnosticsPacksService {
             unit: p.unit?.trim() || null,
             precision: parseOptionalInt(p.precision),
             allowedText: p.allowedText?.trim() || null,
+            criticalLow: parseOptionalFloat((p as any).criticalLow),
+            criticalHigh: parseOptionalFloat((p as any).criticalHigh),
             sortOrder: parseOptionalInt(p.sortOrder) ?? 0,
             isActive: true,
           },
@@ -443,7 +447,11 @@ export class DiagnosticsPacksService {
         if (existing) {
           await tx.diagnosticReferenceRange.update({
             where: { id: existing.id },
-            data: { isActive: true, sortOrder: parseOptionalInt(r.sortOrder) ?? 0 },
+            data: {
+              isActive: true,
+              sortOrder: parseOptionalInt(r.sortOrder) ?? 0,
+              notes: (r as any).notes ? String((r as any).notes).trim() : null,
+            },
           });
         } else {
           await tx.diagnosticReferenceRange.create({
@@ -455,6 +463,7 @@ export class DiagnosticsPacksService {
               low: parseOptionalFloat(r.low),
               high: parseOptionalFloat(r.high),
               textRange: r.textRange ?? null,
+              notes: (r as any).notes ? String((r as any).notes).trim() : null,
               sortOrder: parseOptionalInt(r.sortOrder) ?? 0,
               isActive: true,
             },

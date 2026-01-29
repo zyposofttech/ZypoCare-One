@@ -15,6 +15,8 @@ const buttonVariants = cva(
           "bg-zc-accent text-white shadow-elev-1 hover:bg-zc-accent2 active:opacity-95",
         secondary:
           "bg-[rgb(var(--zc-accent)/0.1)] text-zc-white hover:bg-[rgb(var(--zc-accent)/0.05)] border border-transparent",
+        accent:
+          "bg-[rgb(var(--zc-accent)/0.12)] text-zc-accent border border-[rgb(var(--zc-accent-rgb)/0.25)] hover:bg-[rgb(var(--zc-accent)/0.18)]",
 
         // Outline: Becomes "alive" on hover by adopting the accent color for the border/text
         outline:
@@ -27,6 +29,10 @@ const buttonVariants = cva(
         
         // Success variant added exactly as requested
         success: "bg-[rgb(4,120,87)] text-white shadow-elev-1 hover:opacity-90",
+        warning: "bg-[rgb(242,65,61)] text-white shadow-elev-1 hover:opacity-90",
+        info: "bg-[rgb(159,11,244)] text-white shadow-elev-1 hover:opacity-90",
+        neutral: "bg-zc-panel text-zc-text border border-zc-border hover:bg-zc-panel/70",
+        link: "bg-transparent text-zc-accent underline-offset-4 hover:underline",
       },
       size: {
         sm: "h-9 px-3",

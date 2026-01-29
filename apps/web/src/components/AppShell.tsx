@@ -86,13 +86,18 @@ const NAV_WORKSPACES: NavNode[] = [
 
       { label: "Diagnostics Configuration", href: "/superadmin/infrastructure/diagnostics" },
       { label: "Equipment Register", href: "/superadmin/infrastructure/equipment" },
-
-      { label: "Service Items", href: "/superadmin/infrastructure/service-items" },
+      
       { label: "Charge Master", href: "/superadmin/infrastructure/charge-master" },
+      { label: "Service Items", href: "/superadmin/infrastructure/service-items" },
+       { label: "Standard Codes", href: "/superadmin/infrastructure/service-library" },
+      { label: "Service Catalogue", href: "/superadmin/infrastructure/service-catalogue" },
+      { label: "Service Packages", href: "/superadmin/infrastructure/service-packages" },
+      { label: "Clinical Presets", href: "/superadmin/infrastructure/order-sets" },
       { label: "Fix-It Queue", href: "/superadmin/infrastructure/fixit" },
+      { label: "Go-Live Validator", href: "/superadmin/infrastructure/go-live" },
 
       { label: "Bulk Import (CSV/XLS)", href: "/superadmin/infrastructure/import" },
-      { label: "Go-Live Validator", href: "/superadmin/infrastructure/go-live" },
+      
     ],
   },
   {
@@ -252,6 +257,57 @@ const NAV_GROUPS: NavGroup[] = [
   { title: "Governance & Ops", items: NAV_GOVERN },
 ];
 
+// --- Command Center Types ---
+type CommandItem = {
+  id: string;
+  label: string;
+  group: string;
+  icon: React.ComponentType<IconProps>;
+  subtitle?: string;
+  keywords?: string[];
+  href?: string;
+  onSelect?: () => void;
+};
+
+const COMMAND_ACTIONS: CommandItem[] = [
+  {
+    id: "action:create-branch",
+    label: "Create Branch",
+    group: "Actions",
+    icon: IconPlus,
+    subtitle: "Open branch create form",
+    keywords: ["branch", "create", "new"],
+    href: "/superadmin/branches?create=1",
+  },
+  {
+    id: "action:open-branches",
+    label: "Open Branches",
+    group: "Actions",
+    icon: IconBuilding,
+    subtitle: "Branch registry and setup",
+    keywords: ["branches", "registry"],
+    href: "/superadmin/branches",
+  },
+  {
+    id: "action:open-diagnostics",
+    label: "Diagnostics Configuration",
+    group: "Actions",
+    icon: IconFlask,
+    subtitle: "Packs, catalog, templates",
+    keywords: ["diagnostics", "lab", "imaging"],
+    href: "/superadmin/infrastructure/diagnostics",
+  },
+  {
+    id: "action:open-policy-presets",
+    label: "Policy Presets",
+    group: "Actions",
+    icon: IconShield,
+    subtitle: "Install governance packs",
+    keywords: ["policy", "presets", "governance"],
+    href: "/superadmin/policy/presets",
+  },
+];
+
 // --- Command Center Helpers ---
 
 // Flatten the navigation tree for searching
@@ -380,6 +436,8 @@ export function AppShell({
   // Command Center State
   const [commandOpen, setCommandOpen] = React.useState(false);
   const [commandQuery, setCommandQuery] = React.useState("");
+  const [commandIndex, setCommandIndex] = React.useState(0);
+  const [recentCommandIds, setRecentCommandIds] = React.useState<string[]>([]);
 
   // Hydrate state from local storage on mount
   React.useEffect(() => {
@@ -406,6 +464,14 @@ export function AppShell({
     return () => document.removeEventListener("keydown", down);
   }, []);
 
+  React.useEffect(() => {
+    if (commandOpen) {
+      setCommandQuery("");
+      setCommandIndex(0);
+      setRecentCommandIds(readJSON<string[]>("zc.command.recent", []));
+    }
+  }, [commandOpen]);
+
   function toggleCollapsed() {
     setCollapsed((v) => {
       const next = !v;
@@ -430,18 +496,95 @@ export function AppShell({
     });
   }
 
-  // Filter Command Center Results
+  // Command Center helpers
+  const commandNavItems = React.useMemo<CommandItem[]>(() => {
+    return ALL_NAV_ITEMS.map((item) => ({
+      id: `nav:${item.href}`,
+      label: item.label,
+      group: item.group,
+      icon: item.icon,
+      subtitle: item.parent ? `${item.parent} • ${item.group}` : item.group,
+      keywords: [item.parent, item.group, item.label].filter(Boolean) as string[],
+      href: item.href,
+    }));
+  }, []);
+
+  const commandItems = React.useMemo<CommandItem[]>(() => [...COMMAND_ACTIONS, ...commandNavItems], [commandNavItems]);
+
+  function recordRecentCommand(id: string) {
+    const next = [id, ...recentCommandIds.filter((x) => x !== id)].slice(0, 6);
+    setRecentCommandIds(next);
+    writeJSON("zc.command.recent", next);
+  }
+
+  function scoreCommand(item: CommandItem, q: string) {
+    const query = q.trim().toLowerCase();
+    if (!query) return 0;
+    const hay = `${item.label} ${item.subtitle ?? ""} ${(item.keywords || []).join(" ")}`.toLowerCase();
+    if (hay.startsWith(query)) return 120;
+    if (hay.includes(query)) return 80;
+    // fuzzy-ish: count ordered character matches
+    let score = 0;
+    let qi = 0;
+    for (let i = 0; i < hay.length && qi < query.length; i++) {
+      if (hay[i] === query[qi]) {
+        score += 2;
+        qi += 1;
+      }
+    }
+    return qi === query.length ? score : 0;
+  }
+
   const filteredCommandItems = React.useMemo(() => {
-    const q = commandQuery.trim().toLowerCase();
-    if (!q) return [];
-    
-    // Simple relevance scoring could be added here, currently just substring match
-    return ALL_NAV_ITEMS.filter(item => 
-      item.label.toLowerCase().includes(q) || 
-      (item.parent && item.parent.toLowerCase().includes(q)) ||
-      item.group.toLowerCase().includes(q)
-    ).slice(0, 10); // Limit to top 10 results
-  }, [commandQuery]);
+    const q = commandQuery.trim();
+    if (!q) return [] as CommandItem[];
+    return commandItems
+      .map((item) => ({ item, score: scoreCommand(item, q) }))
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map((x) => x.item)
+      .slice(0, 12);
+  }, [commandItems, commandQuery]);
+
+  const recentCommandItems = React.useMemo(() => {
+    if (!recentCommandIds.length) return [] as CommandItem[];
+    const map = new Map(commandItems.map((i) => [i.id, i]));
+    return recentCommandIds.map((id) => map.get(id)).filter(Boolean) as CommandItem[];
+  }, [commandItems, recentCommandIds]);
+
+  const suggestedCommandItems = React.useMemo(() => {
+    const topNavParents = commandNavItems.filter((i) => i.subtitle?.includes("Workspaces") || i.subtitle?.includes("Care Delivery")).slice(0, 6);
+    return [...COMMAND_ACTIONS, ...topNavParents].slice(0, 8);
+  }, [commandNavItems]);
+
+  const commandSections = React.useMemo(() => {
+    if (commandQuery.trim()) {
+      return [{ title: "Results", items: filteredCommandItems }];
+    }
+    const sections: Array<{ title: string; items: CommandItem[] }> = [];
+    if (recentCommandItems.length) sections.push({ title: "Recent", items: recentCommandItems });
+    sections.push({ title: "Actions", items: COMMAND_ACTIONS });
+    sections.push({ title: "Navigation", items: suggestedCommandItems });
+    return sections;
+  }, [commandQuery, filteredCommandItems, recentCommandItems, suggestedCommandItems]);
+
+  const flatCommandItems = React.useMemo(
+    () => commandSections.flatMap((s) => s.items),
+    [commandSections]
+  );
+
+  React.useEffect(() => {
+    if (!commandOpen) return;
+    setCommandIndex(0);
+  }, [commandQuery, commandOpen, flatCommandItems.length]);
+
+  function executeCommand(item: CommandItem) {
+    if (item.onSelect) item.onSelect();
+    if (item.href) router.push(item.href as any);
+    recordRecentCommand(item.id);
+    setCommandOpen(false);
+    setCommandQuery("");
+  }
 
   const visibleGroups = React.useMemo(() => {
     const q = navQuery.trim().toLowerCase();
@@ -471,66 +614,93 @@ export function AppShell({
     <div className="h-screen overflow-hidden bg-zc-bg text-zc-text">
       {/* Command Center Dialog */}
       <Dialog open={commandOpen} onOpenChange={setCommandOpen}>
-        <DialogContent className="p-0 gap-0 overflow-hidden max-w-2xl bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-2xl">
+        <DialogContent className="p-0 gap-0 overflow-hidden max-w-3xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-700/70 shadow-[0_30px_120px_-40px_rgba(15,23,42,0.8)] ring-1 ring-zinc-200/60 dark:ring-zinc-700/60">
           <DialogTitle className="sr-only">Command Center</DialogTitle>
           <div className="flex items-center border-b border-zinc-200 dark:border-zinc-800 px-4 py-1">
             <IconSearch className="mr-2 h-5 w-5 shrink-0 text-zinc-400" />
-            <input 
-              className="flex h-12 w-full bg-transparent py-3 text-base outline-none placeholder:text-zinc-400 text-zinc-900 dark:text-zinc-100" 
-              placeholder="Type a command or search..." 
+            <input
+              className="flex h-12 w-full bg-transparent py-3 text-base outline-none placeholder:text-zinc-400 text-zinc-900 dark:text-zinc-100"
+              placeholder="Type a command, page, or action..."
               value={commandQuery}
               onChange={(e) => setCommandQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (!flatCommandItems.length) return;
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  setCommandIndex((i) => (i + 1) % flatCommandItems.length);
+                } else if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  setCommandIndex((i) => (i - 1 + flatCommandItems.length) % flatCommandItems.length);
+                } else if (e.key === "Enter") {
+                  e.preventDefault();
+                  const item = flatCommandItems[commandIndex];
+                  if (item) executeCommand(item);
+                } else if (e.key === "Escape") {
+                  e.preventDefault();
+                  setCommandOpen(false);
+                }
+              }}
               autoFocus
             />
-            <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border border-zinc-200 bg-zinc-100 px-1.5 font-mono text-[10px] font-medium text-zinc-500 opacity-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
+            {/* <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border border-zinc-200 bg-zinc-100 px-1.5 font-mono text-[10px] font-medium text-zinc-500 opacity-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 mr-9">
               <span className="text-xs">ESC</span>
-            </kbd>
+            </kbd> */}
           </div>
-          <div className="max-h-[300px] overflow-y-auto p-2">
-            {!commandQuery && (
-               <div className="py-12 text-center text-sm text-zinc-500">
-                 <IconKeyboard className="mx-auto h-8 w-8 mb-3 opacity-50" />
-                 <p>Type to search across apps, pages, and commands.</p>
-               </div>
-            )}
-            
-            {commandQuery && filteredCommandItems.length === 0 && (
-               <div className="py-6 text-center text-sm text-zinc-500">
-                 No results found for "{commandQuery}"
-               </div>
-            )}
-
-            {filteredCommandItems.length > 0 && (
-              <div className="space-y-1">
-                <h4 className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Suggestions</h4>
-                {filteredCommandItems.map((item, i) => (
-                  <button
-                    key={item.href + i}
-                    onClick={() => {
-                      router.push(item.href as any);
-                      setCommandOpen(false);
-                      setCommandQuery("");
-                    }}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-left"
-                  >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
-                      <item.icon className="h-4 w-4 text-zinc-500" />
-                    </div>
-                    <div className="flex flex-col flex-1 min-w-0">
-                      <span className="font-medium truncate">{item.label}</span>
-                      <span className="text-xs text-zinc-400 truncate">
-                        {item.group} {item.parent ? ` / ${item.parent}` : ""}
-                      </span>
-                    </div>
-                    <IconChevronRight className="h-4 w-4 text-zinc-400 opacity-0 group-hover:opacity-100" />
-                  </button>
-                ))}
+          <div className="max-h-[420px] overflow-y-auto p-2">
+            {!commandQuery && commandSections.length === 0 ? (
+              <div className="py-10 text-center text-sm text-zinc-500">
+                <IconKeyboard className="mx-auto h-8 w-8 mb-3 opacity-50" />
+                <p>Start typing to search apps, pages, and actions.</p>
               </div>
-            )}
+            ) : null}
+
+            {commandQuery && filteredCommandItems.length === 0 ? (
+              <div className="py-6 text-center text-sm text-zinc-500">
+                No results found for "{commandQuery}"
+              </div>
+            ) : null}
+
+            {(() => {
+              let runningIndex = -1;
+              return commandSections.map((section) => (
+                <div key={section.title} className="space-y-1">
+                  <h4 className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                    {section.title}
+                  </h4>
+                  {section.items.map((item) => {
+                    runningIndex += 1;
+                    const active = runningIndex === commandIndex;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => executeCommand(item)}
+                        className={cn(
+                          "group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors",
+                          active
+                            ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800/60 dark:text-zinc-100"
+                            : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                        )}
+                      >
+                        <div className="flex h-8 w-8 items-center justify-center rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
+                          <item.icon className="h-4 w-4 text-zinc-500" />
+                        </div>
+                        <div className="flex flex-col flex-1 min-w-0">
+                          <span className="font-medium truncate">{item.label}</span>
+                          {item.subtitle ? (
+                            <span className="text-xs text-zinc-400 truncate">{item.subtitle}</span>
+                          ) : null}
+                        </div>
+                        <IconChevronRight className={cn("h-4 w-4 text-zinc-400", active ? "opacity-100" : "opacity-0 group-hover:opacity-100")} />
+                      </button>
+                    );
+                  })}
+                </div>
+              ));
+            })()}
           </div>
           <div className="flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 py-2.5 text-[10px] text-zinc-500">
-             <div>Use arrow keys to navigate</div>
-             <div>Zypocare OS v4.2</div>
+            <div>↑/↓ to navigate • Enter to open</div>
+            <div>Zypocare Command Center</div>
           </div>
         </DialogContent>
       </Dialog>
@@ -598,7 +768,7 @@ export function AppShell({
           {/* Sidebar Search */}
           {!collapsed ? (
             <div className="shrink-0 px-4 pb-3">
-              <div className="relative">
+              {/* <div className="relative">
                 <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zc-muted" />
                 <Input
                   value={navQuery}
@@ -610,7 +780,7 @@ export function AppShell({
                     "focus-visible:ring-2 focus-visible:ring-zc-ring"
                   )}
                 />
-              </div>
+              </div> */}
             </div>
           ) : (
             <div className="shrink-0 px-3 pb-3">
@@ -793,7 +963,7 @@ export function AppShell({
                       {user?.name ?? "Super Admin"}
                     </div>
                     <div className="mt-0.5 truncate text-xs text-zc-muted">
-                      ExcelCare Hospital • Bengaluru
+                      ZypoCare Hospital • Bengaluru
                     </div>
                   </div>
                 </>

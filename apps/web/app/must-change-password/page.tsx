@@ -245,7 +245,7 @@ export default function MustChangePasswordPage() {
                 <div className="group relative">
                   <Lock className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-zinc-400 transition group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400" />
                   <Input
-                    placeholder="••••••••"
+                    placeholder="Enter Current password"
                     type="password"
                     className="pl-9 h-11 bg-zinc-50 border-zinc-200 focus:border-indigo-500 focus:ring-indigo-500/20 dark:bg-zinc-900 dark:border-zinc-800 dark:focus:border-indigo-400"
                     value={currentPassword}
@@ -262,7 +262,7 @@ export default function MustChangePasswordPage() {
                 <div className="group relative">
                   <Lock className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-zinc-400 transition group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400" />
                   <Input
-                    placeholder="New password"
+                    placeholder="Enter New password"
                     type="password"
                     className="pl-9 h-11 bg-zinc-50 border-zinc-200 focus:border-indigo-500 focus:ring-indigo-500/20 dark:bg-zinc-900 dark:border-zinc-800 dark:focus:border-indigo-400"
                     value={newPassword}

@@ -2,7 +2,7 @@ import { Body, Controller, Post, Req } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { Permissions } from "../../auth/permissions.decorator";
 import { PERM } from "../../iam/iam.constants";
-import { UpsertServiceChargeMappingDto } from "./dto";
+import { CloseServiceChargeMappingDto, UpsertServiceChargeMappingDto } from "./dto";
 import { ServiceChargeMappingService } from "./service-charge-mapping.service";
 
 @ApiTags("infrastructure/service-mapping")
@@ -14,9 +14,9 @@ export class ServiceChargeMappingController {
     return req.principal;
   }
 
-  @Post("services/mapping")
+  @Post("services/mapping/close")
   @Permissions(PERM.INFRA_SERVICE_MAPPING_UPDATE)
-  async upsertServiceChargeMapping(@Req() req: any, @Body() dto: UpsertServiceChargeMappingDto) {
-    return this.svc.upsertServiceChargeMapping(this.principal(req), dto);
+  async closeCurrentMapping(@Req() req: any, @Body() dto: CloseServiceChargeMappingDto) {
+    return this.svc.closeCurrentMapping(this.principal(req), dto);
   }
 }

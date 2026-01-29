@@ -60,7 +60,7 @@ export class AuthController {
       update: { passwordHash: hash, mustChangePassword: false, isActive: true },
       create: {
         email,
-        name: "ExcelCare Super Admin",
+        name: "ZypoCare Super Admin",
         role: "SUPER_ADMIN",
         roleVersionId: roleVersion.id,
         passwordHash: hash,

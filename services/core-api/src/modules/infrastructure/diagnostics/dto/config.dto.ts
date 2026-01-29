@@ -44,6 +44,7 @@ export class CreateSectionDto {
   name!: string;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(0)
   @Max(9999)
@@ -65,6 +66,7 @@ export class UpdateSectionDto {
   name?: string;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(0)
   @Max(9999)
@@ -311,6 +313,20 @@ export class CreateDiagnosticItemDto {
   @IsOptional()
   @IsBoolean()
   isPanel?: boolean;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(9999)
+  sortOrder?: number;
+
+  /**
+   * Optional link to unified orderable catalog (ServiceItem)
+   */
+  @IsOptional()
+  @IsString()
+  serviceItemId?: string;
 }
 
 export class UpdateDiagnosticItemDto {
@@ -373,6 +389,20 @@ export class UpdateDiagnosticItemDto {
   isPanel?: boolean;
 
   @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(9999)
+  sortOrder?: number;
+
+  /**
+   * Optional link to unified orderable catalog (ServiceItem)
+   */
+  @IsOptional()
+  @IsString()
+  serviceItemId?: string | null;
+
+  @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 }
@@ -428,6 +458,22 @@ export class CreateParameterDto {
   @IsOptional()
   @IsString()
   allowedText?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ allowNaN: false, allowInfinity: false })
+  criticalLow?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ allowNaN: false, allowInfinity: false })
+  criticalHigh?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(9999)
+  sortOrder?: number;
 }
 
 export class UpdateParameterDto {
@@ -461,6 +507,22 @@ export class UpdateParameterDto {
   @IsOptional()
   @IsString()
   allowedText?: string | null;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ allowNaN: false, allowInfinity: false })
+  criticalLow?: number | null;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ allowNaN: false, allowInfinity: false })
+  criticalHigh?: number | null;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(9999)
+  sortOrder?: number;
 
   @IsOptional()
   @IsBoolean()
@@ -502,6 +564,12 @@ export class CreateReferenceRangeDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(9999)
+  sortOrder?: number;
 }
 
 export class UpdateReferenceRangeDto {
@@ -544,14 +612,21 @@ export class UpdateReferenceRangeDto {
   notes?: string | null;
 
   @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(9999)
+  sortOrder?: number;
+
+  @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 }
 
 // -------------------- Report Templates (Imaging/Lab) --------------------
 export class CreateTemplateDto {
+  @IsOptional()
   @IsEnum(DiagnosticTemplateKind)
-  kind!: DiagnosticTemplateKind;
+  kind?: DiagnosticTemplateKind;
 
   @IsString()
   @IsNotEmpty()

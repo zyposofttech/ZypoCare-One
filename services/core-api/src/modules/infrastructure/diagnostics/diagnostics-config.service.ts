@@ -29,6 +29,54 @@ import { DiagnosticKind, DiagnosticTemplateKind } from "./diagnostics.types";
 export class DiagnosticsConfigService {
   constructor(@Inject("PRISMA") private readonly prisma: PrismaClient) {}
 
+  private async assertServiceItemForBranch(branchId: string, serviceItemId: string) {
+    const row = await this.prisma.serviceItem.findFirst({
+      where: { id: serviceItemId, branchId, isActive: true },
+      select: { id: true },
+    });
+    if (!row) throw new BadRequestException("Invalid serviceItemId for this branch");
+  }
+
+  /**
+   * Prevent panel composition cycles:
+   * Adding edge (panelId -> itemId) is invalid if panelId is reachable from itemId.
+   */
+  private async assertNoPanelCycle(panelId: string, itemIds: string[]) {
+    if (!itemIds.length) return;
+
+    const candidates = await this.prisma.diagnosticItem.findMany({
+      where: { id: { in: itemIds } },
+      select: { id: true, isPanel: true },
+    });
+    const isPanel = new Map(candidates.map((c) => [c.id, c.isPanel] as const));
+
+    for (const startId of itemIds) {
+      if (!isPanel.get(startId)) continue; // non-panels cannot have children
+
+      const visited = new Set<string>();
+      let frontier: string[] = [startId];
+
+      while (frontier.length) {
+        const batch = frontier.filter((x) => !visited.has(x));
+        frontier = [];
+        for (const x of batch) visited.add(x);
+        if (!batch.length) break;
+
+        const edges = await this.prisma.diagnosticPanelItem.findMany({
+          where: { panelId: { in: batch }, isActive: true },
+          select: { itemId: true, item: { select: { isPanel: true } } },
+        });
+
+        for (const e of edges) {
+          if (e.itemId === panelId) {
+            throw new BadRequestException("Invalid panel composition: cycle detected (nested panel loop)");
+          }
+          if (e.item?.isPanel && !visited.has(e.itemId)) frontier.push(e.itemId);
+        }
+      }
+    }
+  }
+
   // ---------------- Sections ----------------
   async listSections(principal: Principal, q: ListSectionsQuery) {
     const branchId = resolveBranchId(principal, q.branchId);
@@ -76,6 +124,7 @@ export class DiagnosticsConfigService {
       data: {
         ...(dto.code !== undefined ? { code: assertCode(dto.code, "Section") } : {}),
         ...(dto.name !== undefined ? { name: assertName(dto.name, "Section") } : {}),
+        ...(dto.sortOrder !== undefined ? { sortOrder: dto.sortOrder } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
       },
     });
@@ -148,6 +197,7 @@ export class DiagnosticsConfigService {
         ...(dto.sectionId !== undefined ? { sectionId: dto.sectionId } : {}),
         ...(dto.code !== undefined ? { code: assertCode(dto.code, "Category") } : {}),
         ...(dto.name !== undefined ? { name: assertName(dto.name, "Category") } : {}),
+        ...(dto.sortOrder !== undefined ? { sortOrder: dto.sortOrder } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
       },
       include: { section: true },
@@ -268,6 +318,7 @@ export class DiagnosticsConfigService {
         section: true,
         category: true,
         specimen: true,
+        serviceItem: { select: { id: true, code: true, name: true, type: true, isActive: true } },
         _count: { select: { parameters: true, templates: true, panelChildren: true, panelParents: true } },
       },
     });
@@ -294,7 +345,13 @@ export class DiagnosticsConfigService {
       if (!sp) throw new BadRequestException("Invalid specimenId for this branch");
     }
 
-    return this.prisma.diagnosticItem.upsert({
+    // validate serviceItem (optional)
+    if (dto.serviceItemId) {
+      await this.assertServiceItemForBranch(branchId, dto.serviceItemId);
+    }
+
+    try {
+      return await this.prisma.diagnosticItem.upsert({
       where: { branchId_code: { branchId, code } },
       create: {
         branchId,
@@ -310,6 +367,8 @@ export class DiagnosticsConfigService {
         preparationText: dto.preparationText ?? null,
         consentRequired: dto.consentRequired ?? false,
         isPanel: dto.isPanel ?? false,
+          sortOrder: dto.sortOrder ?? 0,
+          serviceItemId: dto.serviceItemId ?? null,
         isActive: true,
       },
       update: {
@@ -324,10 +383,18 @@ export class DiagnosticsConfigService {
         preparationText: dto.preparationText ?? null,
         consentRequired: dto.consentRequired ?? false,
         isPanel: dto.isPanel ?? false,
+          sortOrder: dto.sortOrder ?? 0,
+          serviceItemId: dto.serviceItemId ?? null,
         isActive: true,
       },
       include: { section: true, category: true, specimen: true },
-    });
+      });
+    } catch (e: any) {
+      if (e?.code === "P2002" && String(e?.meta?.target ?? "").includes("serviceItemId")) {
+        throw new BadRequestException("serviceItemId is already linked to another diagnostic item");
+      }
+      throw e;
+    }
   }
 
   async updateItem(principal: Principal, id: string, dto: UpdateDiagnosticItemDto) {
@@ -352,7 +419,12 @@ export class DiagnosticsConfigService {
       if (!sp) throw new BadRequestException("Invalid specimenId for this branch");
     }
 
-    return this.prisma.diagnosticItem.update({
+    if (dto.serviceItemId !== undefined && dto.serviceItemId !== null) {
+      await this.assertServiceItemForBranch(branchId, dto.serviceItemId);
+    }
+
+    try {
+      return await this.prisma.diagnosticItem.update({
       where: { id },
       data: {
         ...(dto.code !== undefined ? { code: assertCode(dto.code, "Item") } : {}),
@@ -367,10 +439,18 @@ export class DiagnosticsConfigService {
         ...(dto.preparationText !== undefined ? { preparationText: dto.preparationText } : {}),
         ...(dto.consentRequired !== undefined ? { consentRequired: dto.consentRequired } : {}),
         ...(dto.isPanel !== undefined ? { isPanel: dto.isPanel } : {}),
+          ...(dto.sortOrder !== undefined ? { sortOrder: dto.sortOrder } : {}),
+          ...(dto.serviceItemId !== undefined ? { serviceItemId: dto.serviceItemId } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
       },
       include: { section: true, category: true, specimen: true },
-    });
+      });
+    } catch (e: any) {
+      if (e?.code === "P2002" && String(e?.meta?.target ?? "").includes("serviceItemId")) {
+        throw new BadRequestException("serviceItemId is already linked to another diagnostic item");
+      }
+      throw e;
+    }
   }
 
   async deleteItem(principal: Principal, id: string, branchId?: string) {
@@ -416,6 +496,9 @@ export class DiagnosticsConfigService {
       if (missing.length) throw new BadRequestException(`Invalid panel item ids: ${missing.join(", ")}`);
     }
 
+    // prevent A -> B -> A cycles if nested panels are used
+    await this.assertNoPanelCycle(panelId, itemIds);
+
     return this.prisma.$transaction(async (tx) => {
       await tx.diagnosticPanelItem.updateMany({ where: { panelId }, data: { isActive: false } });
 
@@ -445,8 +528,13 @@ export class DiagnosticsConfigService {
 
     return this.prisma.diagnosticParameter.findMany({
       where: { testId, ...(includeInactive ? {} : { isActive: true }) },
-      orderBy: [{ name: "asc" }],
-      include: { ranges: { where: { isActive: true }, orderBy: [{ createdAt: "asc" }] } },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      include: {
+        ranges: {
+          where: includeInactive ? {} : { isActive: true },
+          orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+        },
+      },
     });
   }
 
@@ -460,6 +548,10 @@ export class DiagnosticsConfigService {
     const code = assertCode(dto.code, "Parameter");
     const name = assertName(dto.name, "Parameter");
 
+    if (dto.dataType === "CHOICE" && !String(dto.allowedText ?? "").trim()) {
+      throw new BadRequestException("allowedText is required for CHOICE parameters");
+    }
+
     return this.prisma.diagnosticParameter.upsert({
       where: { testId_code: { testId, code } },
       create: {
@@ -470,6 +562,9 @@ export class DiagnosticsConfigService {
         unit: dto.unit ?? null,
         precision: dto.precision ?? null,
         allowedText: dto.allowedText ?? null,
+        criticalLow: dto.criticalLow ?? null,
+        criticalHigh: dto.criticalHigh ?? null,
+        sortOrder: dto.sortOrder ?? 0,
         isActive: true,
       },
       update: {
@@ -478,6 +573,9 @@ export class DiagnosticsConfigService {
         unit: dto.unit ?? null,
         precision: dto.precision ?? null,
         allowedText: dto.allowedText ?? null,
+        criticalLow: dto.criticalLow ?? null,
+        criticalHigh: dto.criticalHigh ?? null,
+        sortOrder: dto.sortOrder ?? 0,
         isActive: true,
       },
       include: { ranges: { where: { isActive: true } } },
@@ -491,6 +589,10 @@ export class DiagnosticsConfigService {
     const branchId = resolveBranchId(principal, dto.branchId ?? existing.test.branchId);
     if (existing.test.branchId !== branchId) throw new BadRequestException("Invalid branchId for this parameter");
 
+    if (dto.dataType === "CHOICE" && dto.allowedText !== undefined && !String(dto.allowedText ?? "").trim()) {
+      throw new BadRequestException("allowedText cannot be empty for CHOICE parameters");
+    }
+
     return this.prisma.diagnosticParameter.update({
       where: { id },
       data: {
@@ -500,6 +602,9 @@ export class DiagnosticsConfigService {
         ...(dto.unit !== undefined ? { unit: dto.unit } : {}),
         ...(dto.precision !== undefined ? { precision: dto.precision } : {}),
         ...(dto.allowedText !== undefined ? { allowedText: dto.allowedText } : {}),
+        ...(dto.criticalLow !== undefined ? { criticalLow: dto.criticalLow } : {}),
+        ...(dto.criticalHigh !== undefined ? { criticalHigh: dto.criticalHigh } : {}),
+        ...(dto.sortOrder !== undefined ? { sortOrder: dto.sortOrder } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
       },
       include: { ranges: { where: { isActive: true } } },
@@ -526,7 +631,7 @@ export class DiagnosticsConfigService {
 
     return this.prisma.diagnosticReferenceRange.findMany({
       where: { parameterId, ...(includeInactive ? {} : { isActive: true }) },
-      orderBy: [{ createdAt: "asc" }],
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     });
   }
 
@@ -539,15 +644,32 @@ export class DiagnosticsConfigService {
     });
     if (!p) throw new NotFoundException("Parameter not found");
 
+    const ageMinDays = dto.ageMinDays ?? null;
+    const ageMaxDays = dto.ageMaxDays ?? null;
+    if (ageMinDays !== null && ageMaxDays !== null && ageMinDays > ageMaxDays) {
+      throw new BadRequestException("ageMinDays cannot be greater than ageMaxDays");
+    }
+    const low = dto.low ?? null;
+    const high = dto.high ?? null;
+    if (low !== null && high !== null && low > high) {
+      throw new BadRequestException("low cannot be greater than high");
+    }
+    const textRange = (dto.textRange ?? "").trim() || null;
+    if (low === null && high === null && !textRange) {
+      throw new BadRequestException("At least one of low/high/textRange is required");
+    }
+
     return this.prisma.diagnosticReferenceRange.create({
       data: {
         parameterId,
-        sex: dto.sex ?? null,
-        ageMinDays: dto.ageMinDays ?? null,
-        ageMaxDays: dto.ageMaxDays ?? null,
-        low: dto.low ?? null,
-        high: dto.high ?? null,
-        textRange: dto.textRange ?? null,
+        sex: dto.sex ? String(dto.sex).trim() : null,
+        ageMinDays,
+        ageMaxDays,
+        low,
+        high,
+        textRange,
+        notes: dto.notes ? String(dto.notes).trim() : null,
+        sortOrder: dto.sortOrder ?? 0,
         isActive: true,
       },
     });
@@ -572,6 +694,8 @@ export class DiagnosticsConfigService {
         ...(dto.low !== undefined ? { low: dto.low } : {}),
         ...(dto.high !== undefined ? { high: dto.high } : {}),
         ...(dto.textRange !== undefined ? { textRange: dto.textRange } : {}),
+        ...(dto.notes !== undefined ? { notes: dto.notes } : {}),
+        ...(dto.sortOrder !== undefined ? { sortOrder: dto.sortOrder } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
       },
     });
@@ -611,14 +735,34 @@ export class DiagnosticsConfigService {
 
     const kind = dto.kind ?? (item.kind === DiagnosticKind.LAB ? DiagnosticTemplateKind.LAB_REPORT : DiagnosticTemplateKind.IMAGING_REPORT);
 
-    return this.prisma.diagnosticTemplate.create({
-      data: {
-        itemId,
-        kind,
-        name: assertName(dto.name, "Template", 200),
-        body: dto.body,
-        isActive: true,
-      },
+    const name = assertName(dto.name, "Template", 200);
+
+    // Idempotent create to avoid duplicates (itemId + kind + name)
+    return this.prisma.$transaction(async (tx) => {
+      const matches = await tx.diagnosticTemplate.findMany({
+        where: { itemId, kind, name },
+        orderBy: [{ updatedAt: "desc" }],
+        select: { id: true },
+      });
+
+      if (matches.length) {
+        const keepId = matches[0].id;
+        if (matches.length > 1) {
+          await tx.diagnosticTemplate.updateMany({
+            where: { id: { in: matches.slice(1).map((m) => m.id) } },
+            data: { isActive: false },
+          });
+        }
+
+        return tx.diagnosticTemplate.update({
+          where: { id: keepId },
+          data: { body: dto.body, isActive: true },
+        });
+      }
+
+      return tx.diagnosticTemplate.create({
+        data: { itemId, kind, name, body: dto.body, isActive: true },
+      });
     });
   }
 
@@ -629,11 +773,22 @@ export class DiagnosticsConfigService {
     const branchId = resolveBranchId(principal, dto.branchId ?? existing.item.branchId);
     if (existing.item.branchId !== branchId) throw new BadRequestException("Invalid branchId for this template");
 
+    // prevent duplicates when renaming/changing kind
+    const nextKind = dto.kind ?? existing.kind;
+    const nextName = dto.name !== undefined ? assertName(dto.name, "Template", 200) : existing.name;
+    if (nextKind !== existing.kind || nextName !== existing.name) {
+      const dup = await this.prisma.diagnosticTemplate.findFirst({
+        where: { itemId: existing.itemId, kind: nextKind, name: nextName, id: { not: existing.id } },
+        select: { id: true },
+      });
+      if (dup) throw new BadRequestException("A template with the same name and kind already exists for this item");
+    }
+
     return this.prisma.diagnosticTemplate.update({
       where: { id },
       data: {
         ...(dto.kind !== undefined ? { kind: dto.kind } : {}),
-        ...(dto.name !== undefined ? { name: assertName(dto.name, "Template", 200) } : {}),
+        ...(dto.name !== undefined ? { name: nextName } : {}),
         ...(dto.body !== undefined ? { body: dto.body } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
       },

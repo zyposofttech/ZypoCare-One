@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { AppLink as Link } from "@/components/app-link";
 import {
   AlertTriangle,
   Loader2,
@@ -30,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -42,6 +42,55 @@ import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
 
 type BranchRow = { id: string; code: string; name: string; city: string };
+function drawerClassName(extra?: string) {
+  return cn(
+    "left-auto right-0 top-0 h-screen w-[95vw] max-w-[980px] translate-x-0 translate-y-0",
+    "rounded-2xl",
+    "border border-indigo-200/50 dark:border-indigo-800/50 bg-zc-card",
+    "shadow-2xl shadow-indigo-500/10",
+    "overflow-y-auto",
+    extra,
+  );
+}
+
+
+function suiteStatusBadge(status?: OtSuiteStatus | null) {
+  const s = status || "DRAFT";
+  if (s === "ACTIVE" || s === "READY") return <Badge variant="success">{s}</Badge>;
+  if (s === "MAINTENANCE") return <Badge variant="warning">{s}</Badge>;
+  if (s === "ARCHIVED") return <Badge variant="secondary">{s}</Badge>;
+  if (s === "BOOKED" || s === "IN_USE") return <Badge variant="info">{s}</Badge>;
+  return <Badge variant="accent">{s}</Badge>;
+}
+
+function spaceTypeBadge(type: OtSpaceType) {
+  if (type === "THEATRE") return <Badge variant="info">Theatre</Badge>;
+  if (type === "RECOVERY_BAY") return <Badge variant="accent">Recovery</Badge>;
+  if (type === "SCRUB_ROOM" || type === "PREOP_HOLDING" || type === "INDUCTION_ROOM") return <Badge variant="warning">{spaceTypeLabel(type)}</Badge>;
+  if (type === "STERILE_STORE" || type === "ANESTHESIA_STORE" || type === "EQUIPMENT_STORE") return <Badge variant="neutral">{spaceTypeLabel(type)}</Badge>;
+  return <Badge variant="secondary">{spaceTypeLabel(type)}</Badge>;
+}
+
+function tablePrimaryBadge(isPrimary: boolean) {
+  return isPrimary ? <Badge variant="accent">Primary</Badge> : <Badge variant="secondary">Secondary</Badge>;
+}
+
+function equipmentCategoryBadge(category?: string | null) {
+  const c = (category || "OTHER").toUpperCase();
+  if (c.includes("IMAGING") || c.includes("ENDOSCOPY")) return <Badge variant="info">{category || "OTHER"}</Badge>;
+  if (c.includes("ANESTHESIA") || c.includes("MONITOR")) return <Badge variant="accent">{category || "OTHER"}</Badge>;
+  if (c.includes("STERIL") || c.includes("DISINFECT")) return <Badge variant="warning">{category || "OTHER"}</Badge>;
+  if (c.includes("POWER") || c.includes("GASES")) return <Badge variant="neutral">{category || "OTHER"}</Badge>;
+  return <Badge variant="secondary">{category || "OTHER"}</Badge>;
+}
+
+function equipmentLevelBadge(spaceId?: string | null) {
+  return spaceId ? <Badge variant="info">Room-linked</Badge> : <Badge variant="neutral">Suite-level</Badge>;
+}
+
+function qtyBadge(qty?: number | null) {
+  return <Badge variant="accent">Qty: {qty || 1}</Badge>;
+}
 
 type LocationTreeNode = {
   id: string;
@@ -319,6 +368,7 @@ export default function SuperAdminOtSetupPage() {
   // top-level data
   const [loading, setLoading] = React.useState(true);
   const [busy, setBusy] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState<"suites" | "checks">("suites");
 
   const [branches, setBranches] = React.useState<BranchRow[]>([]);
   const [branchId, setBranchId] = React.useState<string | undefined>(undefined);
@@ -1265,16 +1315,6 @@ export default function SuperAdminOtSetupPage() {
             </Button>
 
             <Button
-              variant="outline"
-              className="px-5 gap-2"
-              disabled={!branchId || busy}
-              onClick={() => branchId && void loadSuites(branchId, true)}
-            >
-              <RefreshCw className={cn("h-4 w-4", busy ? "animate-spin" : "")} />
-              Reload Suites
-            </Button>
-
-            <Button
               variant="primary"
               className="px-5 gap-2"
               onClick={() => void openCreateSuite()}
@@ -1292,10 +1332,33 @@ export default function SuperAdminOtSetupPage() {
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Overview</CardTitle>
             <CardDescription className="text-sm">
-              Select a branch, create OT Suites (complex), then configure Spaces (theatres/recovery), Tables and Equipment.
+              Pick a branch, search assets, and review upcoming due/expiry signals.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
+            <div className="grid gap-2">
+              <Label>Branch</Label>
+              <Select
+                value={branchId || ""}
+                onValueChange={(v) => {
+                  setBranchId(v);
+                  writeLS(LS_BRANCH_KEY, v);
+                }}
+              >
+                <SelectTrigger className="h-11 w-full rounded-xl border-zc-border bg-zc-card">
+                  <SelectValue placeholder="Select a branch..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {branches.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name} <span className="font-mono text-xs text-zc-muted">({b.code})</span>{" "}
+                      <span className="text-xs text-zc-muted">• {b.city}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="grid gap-3 md:grid-cols-3">
               <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-3 dark:border-blue-900/50 dark:bg-blue-900/10">
                 <div className="text-xs font-medium text-blue-600 dark:text-blue-400">Total Suites</div>
@@ -1330,556 +1393,577 @@ export default function SuperAdminOtSetupPage() {
           </CardContent>
         </Card>
 
-        {/* Branch + layout */}
-
-        <div className="grid gap-4 lg:grid-cols-[460px_1fr]">
-          {/* Left: branch + suites */}
-          <Card className="overflow-hidden">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <LayoutGrid className="h-5 w-5 text-zc-accent" />
-                OT Suites (OT Complex)
-              </CardTitle>
-              <CardDescription>Select branch and manage OT suites.</CardDescription>
-            </CardHeader>
-            <Separator />
-            <CardContent className="pt-6">
-              {loading ? (
-                <div className="grid gap-3">
-                  <Skeleton className="h-11 w-full rounded-xl" />
-                  <Skeleton className="h-24 w-full rounded-xl" />
-                  <Skeleton className="h-24 w-full rounded-xl" />
-                </div>
-              ) : (
-                <div className="grid gap-4">
-                  <div className="grid gap-2">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Branch</div>
-                    <Select
-                      value={branchId}
-                      onValueChange={(v) => {
-                        setBranchId(v);
-                        writeLS(LS_BRANCH_KEY, v);
-                      }}
-                    >
-                      <SelectTrigger className="h-11 rounded-xl border-zc-border bg-zc-card">
-                        <SelectValue placeholder="Select a branch…" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {branches.map((b) => (
-                          <SelectItem key={b.id} value={b.id}>
-                            {b.name} <span className="font-mono text-xs text-zc-muted">({b.code})</span>{" "}
-                            <span className="text-xs text-zc-muted">• {b.city}</span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Suites</div>
-                    <Button size="sm" className="gap-2" onClick={() => void openCreateSuite()} disabled={!branchId || busy}>
-                      <Plus className="h-4 w-4" />
-                      New Suite
-                    </Button>
-                  </div>
-
-                  {suites.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
-                      No OT suites yet. Create your first OT Suite (OT Complex) for this branch.
-                    </div>
-                  ) : (
-                    <div className="grid gap-2">
-                      {filteredSuites.map((s) => {
-                        const active = s.id === suiteId;
-                        return (
-                          <button
-                            key={s.id}
-                            className={cn(
-                              "w-full rounded-xl border p-3 text-left transition-all",
-                              active
-                                ? "border-indigo-200/70 bg-indigo-50/50 dark:border-indigo-900/40 dark:bg-indigo-900/20"
-                                : "border-zc-border bg-zc-panel/10 hover:bg-zc-panel/25"
-                            )}
-                            onClick={() => setSuiteId(s.id)}
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm font-semibold text-zc-text">{s.name}</span>
-                                  <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", suiteStatusTone(s.status))}>
-                                    {s.status || "DRAFT"}
-                                  </span>
-                                </div>
-                                <div className="mt-1 text-xs text-zc-muted">
-                                  <span className="font-mono">{s.code}</span>
-                                  {s.locationNodeId ? (
-                                    <>
-                                      <span className="mx-2 text-zc-muted/60">•</span>
-                                      <span className="truncate">
-                                        {findLocationLabel(locationLabelById, s.locationNodeId) || s.locationNodeId}
-                                      </span>
-                                    </>
-                                  ) : null}
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-1">
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    void openEditSuite(s);
-                                  }}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-red-600 hover:text-red-700"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    void archiveSuite(s.id);
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
+        {/* Main tabs */}
+        <Card>
+          <CardHeader className="py-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <CardTitle className="text-base">Manage Equipment</CardTitle>
+                <CardDescription>Assets, schedules, compliance and downtime.</CardDescription>
+              </div>
+              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+                <TabsList
+                  className={cn(
+                    "h-10 rounded-2xl border border-zc-border bg-zc-panel/20 p-1",
                   )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Right: suite details */}
-          <div className="grid gap-4">
-            {!selectedSuite ? (
-              <Card className="overflow-hidden">
-                <CardHeader>
-                  <CardTitle>Suite Details</CardTitle>
-                  <CardDescription>Select an OT Suite to manage theatres, recovery bays, tables and equipment.</CardDescription>
-                </CardHeader>
-                <Separator />
-                <CardContent className="pt-6">
-                  <div className="rounded-2xl border border-dashed border-zc-border bg-zc-panel/15 p-6 text-sm text-zc-muted">
-                    No suite selected.
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="overflow-hidden">
-                <CardHeader className="pb-0">
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="min-w-0">
-                      <CardTitle className="flex flex-wrap items-center gap-2">
-                        <span>{selectedSuite.name}</span>
-                        <Badge variant="outline" className="font-mono">
-                          {selectedSuite.code}
-                        </Badge>
-                        <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", suiteStatusTone(selectedSuite.status))}>
-                          {selectedSuite.status || "DRAFT"}
-                        </span>
-                        {readiness ? (
-                          readiness.isReady ? (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50/70 px-2 py-0.5 text-[11px] text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200">
-                              <CheckCircle2 className="h-3.5 w-3.5" />
-                              Ready for Operations
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200/70 bg-amber-50/70 px-2 py-0.5 text-[11px] text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200">
-                              <AlertTriangle className="h-3.5 w-3.5" />
-                              Not Ready
-                            </span>
-                          )
-                        ) : null}
+                >
+                  <TabsTrigger
+                    value="suites"
+                    className={cn(
+                      "rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    )}
+                  >
+                    <LayoutGrid className="mr-2 h-4 w-4" />
+                    Suites
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="checks"
+                    className={cn(
+                      "rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    )}
+                  >
+                    <ClipboardCheck className="mr-2 h-4 w-4" />
+                    Readiness / Checks
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+          </CardHeader>
+          <CardContent className="pb-6">
+            <Tabs value={activeTab}>
+              <TabsContent value="suites" className="mt-0">
+                <div className="grid gap-4">
+                  <Card className="overflow-hidden">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <LayoutGrid className="h-5 w-5 text-zc-accent" />
+                        OT Suites (OT Complex)
                       </CardTitle>
-                      <CardDescription className="mt-1">
-                        Branch:{" "}
-                        <span className="font-semibold text-zc-text">
-                          {selectedBranch ? `${selectedBranch.name} (${selectedBranch.code})` : selectedSuite.branchId}
-                        </span>
-                        {selectedSuite.locationNodeId ? (
-                          <>
-                            <span className="mx-2 text-zc-muted/60">•</span>
-                            Location: <span className="font-mono">{findLocationLabel(locationLabelById, selectedSuite.locationNodeId) || selectedSuite.locationNodeId}</span>
-                          </>
-                        ) : null}
-                      </CardDescription>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-zc-border bg-zc-panel/20 p-1">
-                        <Button
-                          variant="outline"
-                          className="px-4 gap-2 rounded-xl"
-                          onClick={() => suiteId && void loadSuiteDetails(suiteId)}
-                          disabled={busy}
-                        >
-                          <RefreshCw className={cn("h-4 w-4", busy ? "animate-spin" : "")} />
-                          Refresh
-                        </Button>
-
-                        <Button
-                          variant="outline"
-                          className="px-4 gap-2 rounded-xl border-amber-200 bg-amber-50/50 text-amber-800 hover:bg-amber-100/60 dark:border-amber-900/40 dark:bg-amber-900/15 dark:text-amber-200"
-                          onClick={() => void applyTemplateBasic()}
-                          disabled={busy}
-                        >
-                          <Settings2 className="h-4 w-4" />
-                          Apply Template
-                        </Button>
-
-
-                        <Button
-                          variant="outline"
-                          className="px-4 gap-2 rounded-xl border-amber-200 bg-amber-50/50 text-amber-800 hover:bg-amber-100/60 dark:border-amber-900/40 dark:bg-amber-900/15 dark:text-amber-200"
-                          onClick={() => void removeTemplateBasic()}
-                          disabled={busy || !suiteDetails}
-                          title="Archive spaces created by the Basic OT Template"
-                        >
-                          <ClipboardList className="h-4 w-4" />
-                          Remove Template
-                        </Button>
-
-                        <Button
-                          variant="outline"
-                          className="px-4 gap-2 rounded-xl border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.10)] text-[rgb(var(--zc-danger))] hover:bg-[rgb(var(--zc-danger-rgb)/0.15)]"
-                          onClick={() => void requestResetSuite()}
-                          disabled={busy}
-                          title="Archive all spaces and equipment under this suite"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Reset Suite
-                        </Button>
-
-                        <Button
-                          variant="secondary"
-                          className="px-4 gap-2 rounded-xl"
-                          onClick={() => void openEditSuite(selectedSuite)}
-                          disabled={busy}
-                        >
-                          <Pencil className="h-4 w-4" />
-                          Edit Suite
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="p-6">
-                  {!suiteDetails ? (
-                    <div className="grid gap-3">
-                      <Skeleton className="h-10 w-full rounded-xl" />
-                      <Skeleton className="h-44 w-full rounded-xl" />
-                    </div>
-                  ) : (
-                    <Tabs defaultValue="spaces">
-                      <TabsList className="grid w-full grid-cols-2 gap-2 rounded-2xl border border-zc-border bg-zc-panel/20 p-1 sm:grid-cols-4">
-                        <TabsTrigger
-                          value="spaces"
-                          className="rounded-xl data-[state=active]:bg-zc-card data-[state=active]:shadow-sm data-[state=active]:text-zc-accent"
-                        >
-                          Spaces
-                        </TabsTrigger>
-                        <TabsTrigger
-                          value="tables"
-                          className="rounded-xl data-[state=active]:bg-zc-card data-[state=active]:shadow-sm data-[state=active]:text-zc-accent"
-                        >
-                          Tables
-                        </TabsTrigger>
-                        <TabsTrigger
-                          value="equipment"
-                          className="rounded-xl data-[state=active]:bg-zc-card data-[state=active]:shadow-sm data-[state=active]:text-zc-accent"
-                        >
-                          Equipment
-                        </TabsTrigger>
-                        <TabsTrigger
-                          value="checks"
-                          className="rounded-xl data-[state=active]:bg-zc-card data-[state=active]:shadow-sm data-[state=active]:text-zc-accent"
-                        >
-                          Go-Live Checks
-                        </TabsTrigger>
-                      </TabsList>
-
-                      {/* Spaces */}
-                      <TabsContent value="spaces" className="mt-4">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="text-sm text-zc-muted">
-                            Create theatres, recovery bays and supporting rooms (scrub, induction, stores).
-                          </div>
-                          <Button className="gap-2" onClick={() => void openCreateSpace()} disabled={busy}>
-                            <Plus className="h-4 w-4" />
-                            Add Space
-                          </Button>
+                    <CardDescription>Manage OT suites in the selected branch.</CardDescription>
+                    </CardHeader>
+                    <Separator />
+                    <CardContent className="pt-6">
+                      {loading ? (
+                        <div className="grid gap-3">
+                          <Skeleton className="h-11 w-full rounded-xl" />
+                          <Skeleton className="h-24 w-full rounded-xl" />
+                          <Skeleton className="h-24 w-full rounded-xl" />
                         </div>
+                      ) : (
+                        <div className="grid gap-4">
+                          <div className="flex items-center justify-between">
+                            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Suites</div>
+                            <Button size="sm" className="gap-2" onClick={() => void openCreateSuite()} disabled={!branchId || busy}>
+                              <Plus className="h-4 w-4" />
+                              New Suite
+                            </Button>
+                          </div>
 
-                        <div className="mt-4 grid gap-3">
-                          {(suiteDetails.spaces || []).filter((s) => s.isActive).length === 0 ? (
+                          {suites.length === 0 ? (
                             <div className="rounded-2xl border border-dashed border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
-                              No spaces yet. Add theatres first, then recovery bays and supporting rooms.
+                              No OT suites yet. Create your first OT Suite (OT Complex) for this branch.
                             </div>
                           ) : (
-                            (suiteDetails.spaces || [])
-                              .filter((s) => s.isActive)
-                              .sort((a, b) => (a.type + a.code).localeCompare(b.type + b.code))
-                              .map((s) => (
-                                <div key={s.id} className="rounded-2xl border border-zc-border bg-zc-panel/10 p-4">
-                                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                                    <div className="min-w-0">
-                                      <div className="flex flex-wrap items-center gap-2">
-                                        <div className="text-sm font-semibold text-zc-text">
-                                          {s.name}{" "}
-                                          <span className="font-mono text-xs text-zc-muted">({s.code})</span>
-                                        </div>
-                                        <Badge variant="secondary">{spaceTypeLabel(s.type)}</Badge>
-                                        {s.type === "THEATRE" ? (
-                                          <Badge variant="outline" className="gap-1">
-                                            <Stethoscope className="h-3.5 w-3.5" />
-                                            Theatre
-                                          </Badge>
-                                        ) : null}
-                                        {s.type === "RECOVERY_BAY" ? (
-                                          <Badge variant="outline" className="gap-1">
-                                            <BedDouble className="h-3.5 w-3.5" />
-                                            Recovery
-                                          </Badge>
-                                        ) : null}
-                                      </div>
-                                      <div className="mt-1 text-xs text-zc-muted">
-                                        {s.locationNodeId ? (
-                                          <>
-                                            Location: <span className="font-mono">{findLocationLabel(locationLabelById, s.locationNodeId) || s.locationNodeId}</span>
-                                          </>
-                                        ) : (
-                                          <>No location linked</>
-                                        )}
-                                        {s.notes ? (
-                                          <>
-                                            <span className="mx-2 text-zc-muted/60">•</span>
-                                            {s.notes}
-                                          </>
-                                        ) : null}
-                                      </div>
-
-                                      {s.type === "THEATRE" ? (
-                                        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-zc-muted">
-                                          <span className="inline-flex items-center gap-1">
-                                            <CornerDownRight className="h-4 w-4" />
-                                            Tables:{" "}
-                                            <span className="font-semibold text-zc-text">
-                                              {(s.theatre?.tables || []).filter((t) => t.isActive).length}
-                                            </span>
-                                          </span>
-                                          <span className="text-zc-muted/60">•</span>
-                                          <span className="inline-flex items-center gap-1">
-                                            Primary:{" "}
-                                            <span className="font-semibold text-zc-text">
-                                              {(s.theatre?.tables || []).find((t) => t.isActive && t.isPrimary)?.code || "—"}
-                                            </span>
+                            <div className="grid gap-2">
+                              {filteredSuites.map((s) => {
+                                const active = s.id === suiteId;
+                                return (
+                                  <button
+                                    key={s.id}
+                                    className={cn(
+                                      "w-full rounded-xl border p-3 text-left transition-all",
+                                      active
+                                        ? "border-indigo-200/70 bg-indigo-50/50 dark:border-indigo-900/40 dark:bg-indigo-900/20"
+                                        : "border-zc-border bg-zc-panel/10 hover:bg-zc-panel/25"
+                                    )}
+                                    onClick={() => setSuiteId(s.id)}
+                                  >
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="min-w-0">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-sm font-semibold text-zc-text">{s.name}</span>
+                                          <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", suiteStatusTone(s.status))}>
+                                            {s.status || "DRAFT"}
                                           </span>
                                         </div>
-                                      ) : null}
-                                    </div>
+                                        <div className="mt-1 text-xs text-zc-muted">
+                                          <span className="font-mono">{s.code}</span>
+                                          {s.locationNodeId ? (
+                                            <>
+                                              <span className="mx-2 text-zc-muted/60">•</span>
+                                              <span className="truncate">
+                                                {findLocationLabel(locationLabelById, s.locationNodeId) || s.locationNodeId}
+                                              </span>
+                                            </>
+                                          ) : null}
+                                        </div>
+                                      </div>
 
-                                    <div className="flex items-center gap-2">
-                                      <Button variant="outline" size="sm" className="gap-2" onClick={() => void openEditSpace(s)} disabled={busy}>
-                                        <Pencil className="h-4 w-4" />
-                                        Edit
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="gap-2 text-red-600 hover:text-red-700"
-                                        onClick={() => void archiveSpace(s.id)}
-                                        disabled={busy}
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                        Delete
-                                      </Button>
+                                      <div className="flex items-center gap-1">
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-8 w-8"
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            void openEditSuite(s);
+                                          }}
+                                        >
+                                          <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-8 w-8 text-red-600 hover:text-red-700"
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            void archiveSuite(s.id);
+                                          }}
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
                                     </div>
-                                  </div>
-                                </div>
-                              ))
+                                  </button>
+                                );
+                              })}
+                            </div>
                           )}
                         </div>
-                      </TabsContent>
-
-                      {/* Tables */}
-                      <TabsContent value="tables" className="mt-4">
-                        <div className="text-sm text-zc-muted">
-                          Tables live inside theatres. Each theatre should have at least one active table, and exactly one primary table.
+                      )}
+                    </CardContent>
+                  </Card>
+                  {!selectedSuite ? (
+                    <Card className="overflow-hidden">
+                      <CardHeader>
+                        <CardTitle>Suite Details</CardTitle>
+                        <CardDescription>Select an OT Suite to manage theatres, recovery bays, tables and equipment.</CardDescription>
+                      </CardHeader>
+                      <Separator />
+                      <CardContent className="pt-6">
+                        <div className="rounded-2xl border border-dashed border-zc-border bg-zc-panel/15 p-6 text-sm text-zc-muted">
+                          No suite selected.
                         </div>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card className="overflow-hidden">
+                      <CardHeader className="pb-0">
+                        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                          <div className="min-w-0">
+                            <CardTitle className="flex flex-wrap items-center gap-2">
+                              <span>{selectedSuite.name}</span>
+                              <Badge variant="info" className="font-mono">
+                                {selectedSuite.code}
+                              </Badge>
+                              {suiteStatusBadge(selectedSuite.status)}
+                              {readiness ? (
+                                readiness.isReady ? (
+                                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50/70 px-2 py-0.5 text-[11px] text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200">
+                                    <CheckCircle2 className="h-3.5 w-3.5" />
+                                    Ready for Operations
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-200/70 bg-amber-50/70 px-2 py-0.5 text-[11px] text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200">
+                                    <AlertTriangle className="h-3.5 w-3.5" />
+                                    Not Ready
+                                  </span>
+                                )
+                              ) : null}
+                            </CardTitle>
+                            <CardDescription className="mt-1">
+                              Branch:{" "}
+                              <span className="font-semibold text-zc-text">
+                                {selectedBranch ? `${selectedBranch.name} (${selectedBranch.code})` : selectedSuite.branchId}
+                              </span>
+                              {selectedSuite.locationNodeId ? (
+                                <>
+                                                <span className="mx-2 text-zc-muted/60">•</span>
+                                  Location: <span className="font-mono">{findLocationLabel(locationLabelById, selectedSuite.locationNodeId) || selectedSuite.locationNodeId}</span>
+                                </>
+                              ) : null}
+                            </CardDescription>
+                          </div>
 
-                        <div className="mt-4 grid gap-4">
-                          {theatres.length === 0 ? (
-                            <div className="rounded-2xl border border-dashed border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
-                              No theatres yet. Create a space of type “Theatre” first.
+                          <div className="flex flex-wrap items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-zc-border bg-zc-panel/20 p-1">
+                              <Button
+                                variant="outline"
+                                className="px-4 gap-2 rounded-xl"
+                                onClick={() => suiteId && void loadSuiteDetails(suiteId)}
+                                disabled={busy}
+                              >
+                                <RefreshCw className={cn("h-4 w-4", busy ? "animate-spin" : "")} />
+                                Refresh
+                              </Button>
+
+                              <Button
+                                variant="outline"
+                                className="px-4 gap-2 rounded-xl border-amber-200 bg-amber-50/50 text-amber-800 hover:bg-amber-100/60 dark:border-amber-900/40 dark:bg-amber-900/15 dark:text-amber-200"
+                                onClick={() => void applyTemplateBasic()}
+                                disabled={busy}
+                              >
+                                <Settings2 className="h-4 w-4" />
+                                Apply Template
+                              </Button>
+
+                              <Button
+                                variant="outline"
+                                className="px-4 gap-2 rounded-xl border-amber-200 bg-amber-50/50 text-amber-800 hover:bg-amber-100/60 dark:border-amber-900/40 dark:bg-amber-900/15 dark:text-amber-200"
+                                onClick={() => void removeTemplateBasic()}
+                                disabled={busy || !suiteDetails}
+                                title="Archive spaces created by the Basic OT Template"
+                              >
+                                <ClipboardList className="h-4 w-4" />
+                                Remove Template
+                              </Button>
+
+                              <Button
+                                variant="outline"
+                                className="px-4 gap-2 rounded-xl border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.10)] text-[rgb(var(--zc-danger))] hover:bg-[rgb(var(--zc-danger-rgb)/0.15)]"
+                                onClick={() => void requestResetSuite()}
+                                disabled={busy}
+                                title="Archive all spaces and equipment under this suite"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                Reset Suite
+                              </Button>
+
+                              <Button
+                                variant="secondary"
+                                className="px-4 gap-2 rounded-xl"
+                                onClick={() => void openEditSuite(selectedSuite)}
+                                disabled={busy}
+                              >
+                                <Pencil className="h-4 w-4" />
+                                Edit Suite
+                              </Button>
                             </div>
-                          ) : (
-                            theatres.map((s) => {
-                              const th = s.theatre!;
-                              const tables = (th.tables || []).filter((t) => t.isActive);
-                              return (
-                                <div key={th.id} className="rounded-2xl border border-zc-border bg-zc-panel/10 p-4">
-                                  <div className="flex flex-wrap items-start justify-between gap-3">
-                                    <div className="min-w-0">
-                                      <div className="text-sm font-semibold text-zc-text">
-                                        {s.name} <span className="font-mono text-xs text-zc-muted">({s.code})</span>
-                                      </div>
-                                      <div className="mt-1 text-xs text-zc-muted">
-                                        Active tables: <span className="font-semibold text-zc-text">{tables.length}</span>
-                                      </div>
-                                    </div>
+                          </div>
+                        </div>
+                      </CardHeader>
 
-                                    <Button size="sm" className="gap-2" onClick={() => void openCreateTable(th.id)} disabled={busy}>
-                                      <Plus className="h-4 w-4" />
-                                      Add Table
-                                    </Button>
+                      <CardContent className="p-6">
+                        {!suiteDetails ? (
+                          <div className="grid gap-3">
+                            <Skeleton className="h-10 w-full rounded-xl" />
+                            <Skeleton className="h-44 w-full rounded-xl" />
+                          </div>
+                        ) : (
+                          <Tabs defaultValue="spaces">
+                            <TabsList
+                              className={cn(
+                                "grid w-full grid-cols-2 gap-2 rounded-2xl border border-zc-border bg-zc-panel/20 p-1 sm:grid-cols-3",
+                              )}
+                            >
+                              <TabsTrigger
+                                value="spaces"
+                                className={cn(
+                                  "rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm",
+                                )}
+                              >
+                                Spaces
+                              </TabsTrigger>
+                              <TabsTrigger
+                                value="tables"
+                                className={cn(
+                                  "rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm",
+                                )}
+                              >
+                                Tables
+                              </TabsTrigger>
+                              <TabsTrigger
+                                value="equipment"
+                                className={cn(
+                                  "rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm",
+                                )}
+                              >
+                                Equipment
+                              </TabsTrigger>
+                            </TabsList>
+
+                            {/* Spaces */}
+                            <TabsContent value="spaces" className="mt-4">
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <div className="text-sm text-zc-muted">
+                                  Create theatres, recovery bays and supporting rooms (scrub, induction, stores).
+                                </div>
+                                <Button className="gap-2" onClick={() => void openCreateSpace()} disabled={busy}>
+                                  <Plus className="h-4 w-4" />
+                                  Add Space
+                                </Button>
+                              </div>
+
+                              <div className="mt-4 grid gap-3">
+                                {(suiteDetails.spaces || []).filter((s) => s.isActive).length === 0 ? (
+                                  <div className="rounded-2xl border border-dashed border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
+                                    No spaces yet. Add theatres first, then recovery bays and supporting rooms.
                                   </div>
-
-                                  <Separator className="my-4" />
-
-                                  {tables.length === 0 ? (
-                                    <div className="text-sm text-zc-muted">
-                                      No active tables. Add at least one table to make this theatre schedulable.
-                                    </div>
-                                  ) : (
-                                    <div className="grid gap-2">
-                                      {tables
-                                        .slice()
-                                        .sort((a, b) => a.code.localeCompare(b.code))
-                                        .map((t) => (
-                                          <div key={t.id} className="flex flex-col gap-2 rounded-xl border border-zc-border bg-zc-panel/5 p-3 md:flex-row md:items-center md:justify-between">
-                                            <div className="min-w-0">
-                                              <div className="flex flex-wrap items-center gap-2">
-                                                <span className="font-mono text-xs text-zc-muted">{t.code}</span>
-                                                <span className="text-sm font-semibold text-zc-text">{t.name}</span>
-                                                {t.isPrimary ? (
-                                                  <Badge className="gap-1">
-                                                    <Star className="h-3.5 w-3.5" />
-                                                    Primary
-                                                  </Badge>
-                                                ) : (
-                                                  <Badge variant="secondary">Secondary</Badge>
-                                                )}
+                                ) : (
+                                  (suiteDetails.spaces || [])
+                                    .filter((s) => s.isActive)
+                                    .sort((a, b) => (a.type + a.code).localeCompare(b.type + b.code))
+                                    .map((s) => (
+                                      <div key={s.id} className="rounded-2xl border border-zc-border bg-zc-panel/10 p-4">
+                                        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                          <div className="min-w-0">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                              <div className="text-sm font-semibold text-zc-text">
+                                                {s.name}{" "}
+                                                <span className="font-mono text-xs text-zc-muted">({s.code})</span>
                                               </div>
-                                              {(t.manufacturer || t.model || t.serialNo) ? (
-                                                <div className="mt-1 text-xs text-zc-muted">
-                                                  {[t.manufacturer, t.model, t.serialNo].filter(Boolean).join(" • ")}
-                                                </div>
+                                              {spaceTypeBadge(s.type)}
+                                            </div>
+                                            <div className="mt-1 text-xs text-zc-muted">
+                                              {s.locationNodeId ? (
+                                                <>
+                                                  Location:{" "}
+                                                  <span className="font-mono">{findLocationLabel(locationLabelById, s.locationNodeId) || s.locationNodeId}</span>
+                                                </>
+                                              ) : (
+                                                <>No location linked</>
+                                              )}
+                                              {s.notes ? (
+                                                <>
+                                                  <span className="mx-2 text-zc-muted/60">•</span>
+                                                  {s.notes}
+                                                </>
                                               ) : null}
                                             </div>
 
-                                            <div className="flex items-center gap-2">
-                                              <Button variant="outline" size="sm" className="gap-2" onClick={() => void openEditTable(th.id, t)} disabled={busy}>
-                                                <Pencil className="h-4 w-4" />
-                                                Edit
-                                              </Button>
-                                              <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="gap-2 text-red-600 hover:text-red-700"
-                                                onClick={() => void archiveTable(t.id)}
-                                                disabled={busy}
-                                              >
-                                                <Trash2 className="h-4 w-4" />
-                                                Delete
-                                              </Button>
+                                            {s.type === "THEATRE" ? (
+                                              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-zc-muted">
+                                                <span className="inline-flex items-center gap-1">
+                                                  <CornerDownRight className="h-4 w-4" />
+                                                  Tables:{" "}
+                                                  <span className="font-semibold text-zc-text">
+                                                    {(s.theatre?.tables || []).filter((t) => t.isActive).length}
+                                                  </span>
+                                                </span>
+                                                <span className="text-zc-muted/60">•</span>
+                                                <span className="inline-flex items-center gap-1">
+                                                  Primary:{" "}
+                                                  <span className="font-semibold text-zc-text">
+                                                    {(s.theatre?.tables || []).find((t) => t.isActive && t.isPrimary)?.code || "-"}
+                                                  </span>
+                                                </span>
+                                              </div>
+                                            ) : null}
+                                          </div>
+
+                                          <div className="flex items-center gap-2">
+                                            <Button variant="outline" size="sm" className="gap-2" onClick={() => void openEditSpace(s)} disabled={busy}>
+                                              <Pencil className="h-4 w-4" />
+                                              Edit
+                                            </Button>
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              className="gap-2 text-red-600 hover:text-red-700"
+                                              onClick={() => void archiveSpace(s.id)}
+                                              disabled={busy}
+                                            >
+                                              <Trash2 className="h-4 w-4" />
+                                              Delete
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))
+                                )}
+                              </div>
+                            </TabsContent>
+
+                            {/* Tables */}
+                            <TabsContent value="tables" className="mt-4">
+                              <div className="text-sm text-zc-muted">
+                                Tables live inside theatres. Each theatre should have at least one active table, and exactly one primary table.
+                              </div>
+
+                              <div className="mt-4 grid gap-4">
+                                {theatres.length === 0 ? (
+                                  <div className="rounded-2xl border border-dashed border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
+                                    No theatres yet. Create a space of type "Theatre" first.
+                                  </div>
+                                ) : (
+                                  theatres.map((s) => {
+                                    const th = s.theatre!;
+                                    const tables = (th.tables || []).filter((t) => t.isActive);
+                                    return (
+                                      <div key={th.id} className="rounded-2xl border border-zc-border bg-zc-panel/10 p-4">
+                                        <div className="flex flex-wrap items-start justify-between gap-3">
+                                          <div className="min-w-0">
+                                            <div className="text-sm font-semibold text-zc-text">
+                                              {s.name}{" "}
+                                              <span className="font-mono text-xs text-zc-muted">({s.code})</span>
+                                            </div>
+                                            <div className="mt-1 text-xs text-zc-muted">
+                                              Active tables:{" "}
+                                              <span className="font-semibold text-zc-text">{tables.length}</span>
                                             </div>
                                           </div>
-                                        ))}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })
-                          )}
-                        </div>
-                      </TabsContent>
 
-                      {/* Equipment */}
-                      <TabsContent value="equipment" className="mt-4">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="text-sm text-zc-muted">
-                            Maintain OT equipment registry (suite-level or attached to a specific room).
-                          </div>
-                          <Button className="gap-2" onClick={() => void openCreateEquipment()} disabled={busy}>
-                            <Plus className="h-4 w-4" />
-                            Add Equipment
-                          </Button>
-                        </div>
+                                          <Button size="sm" className="gap-2" onClick={() => void openCreateTable(th.id)} disabled={busy}>
+                                            <Plus className="h-4 w-4" />
+                                            Add Table
+                                          </Button>
+                                        </div>
 
-                        <div className="mt-4 grid gap-2">
-                          {(suiteDetails.equipment || []).filter((e) => e.isActive).length === 0 ? (
-                            <div className="rounded-2xl border border-dashed border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
-                              No equipment added yet.
-                            </div>
-                          ) : (
-                            (suiteDetails.equipment || [])
-                              .filter((e) => e.isActive)
-                              .sort((a, b) => (a.category + a.name).localeCompare(b.category + b.name))
-                              .map((e) => (
-                                <div key={e.id} className="flex flex-col gap-2 rounded-2xl border border-zc-border bg-zc-panel/10 p-4 md:flex-row md:items-start md:justify-between">
-                                  <div className="min-w-0">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                      <Badge variant="outline">{e.category || "OTHER"}</Badge>
-                                      <div className="text-sm font-semibold text-zc-text">{e.name}</div>
-                                      <Badge variant="secondary">Qty: {e.qty || 1}</Badge>
-                                      {e.spaceId ? (
-                                        <Badge variant="outline">
-                                          Space:{" "}
-                                          {(suiteDetails.spaces || []).find((s) => s.id === e.spaceId)?.code || e.spaceId}
-                                        </Badge>
-                                      ) : (
-                                        <Badge variant="secondary">Suite-level</Badge>
-                                      )}
-                                    </div>
+                                        <Separator className="my-4" />
 
-                                    {(e.manufacturer || e.model || e.serialNo) ? (
-                                      <div className="mt-1 text-xs text-zc-muted">
-                                        {[e.manufacturer, e.model, e.serialNo].filter(Boolean).join(" • ")}
+                                        {tables.length === 0 ? (
+                                          <div className="text-sm text-zc-muted">
+                                            No active tables. Add at least one table to make this theatre schedulable.
+                                          </div>
+                                        ) : (
+                                          <div className="grid gap-2">
+                                            {tables
+                                              .slice()
+                                              .sort((a, b) => a.code.localeCompare(b.code))
+                                              .map((t) => (
+                                                <div key={t.id} className="flex flex-col gap-2 rounded-xl border border-zc-border bg-zc-panel/5 p-3 md:flex-row md:items-center md:justify-between">
+                                                  <div className="min-w-0">
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                      <span className="font-mono text-xs text-zc-muted">{t.code}</span>
+                                                      <span className="text-sm font-semibold text-zc-text">{t.name}</span>
+                                                      {tablePrimaryBadge(t.isPrimary)}
+                                                    </div>
+                                                    {(t.manufacturer || t.model || t.serialNo) ? (
+                                                      <div className="mt-1 text-xs text-zc-muted">
+                                                        {[t.manufacturer, t.model, t.serialNo].filter(Boolean).join(" • ")}
+                                                      </div>
+                                                    ) : null}
+                                                  </div>
+
+                                                  <div className="flex items-center gap-2">
+                                                    <Button variant="outline" size="sm" className="gap-2" onClick={() => void openEditTable(th.id, t)} disabled={busy}>
+                                                      <Pencil className="h-4 w-4" />
+                                                      Edit
+                                                    </Button>
+                                                    <Button
+                                                      variant="outline"
+                                                      size="sm"
+                                                      className="gap-2 text-red-600 hover:text-red-700"
+                                                      onClick={() => void archiveTable(t.id)}
+                                                      disabled={busy}
+                                                    >
+                                                      <Trash2 className="h-4 w-4" />
+                                                      Delete
+                                                    </Button>
+                                                  </div>
+                                                </div>
+                                              ))}
+                                          </div>
+                                        )}
                                       </div>
-                                    ) : null}
-                                  </div>
+                                    );
+                                  })
+                                )}
+                              </div>
+                            </TabsContent>
 
-                                  <div className="flex items-center gap-2">
-                                    <Button variant="outline" size="sm" className="gap-2" onClick={() => void openEditEquipment(e)} disabled={busy}>
-                                      <Pencil className="h-4 w-4" />
-                                      Edit
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="gap-2 text-red-600 hover:text-red-700"
-                                      onClick={() => void archiveEquipment(e.id)}
-                                      disabled={busy}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                      Delete
-                                    </Button>
-                                  </div>
+                            {/* Equipment */}
+                            <TabsContent value="equipment" className="mt-4">
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <div className="text-sm text-zc-muted">
+                                  Maintain OT equipment registry (suite-level or attached to a specific room).
                                 </div>
-                              ))
-                          )}
-                        </div>
-                      </TabsContent>
+                                <Button className="gap-2" onClick={() => void openCreateEquipment()} disabled={busy}>
+                                  <Plus className="h-4 w-4" />
+                                  Add Equipment
+                                </Button>
+                              </div>
 
-                      {/* Checks */}
-                      <TabsContent value="checks" className="mt-4">
+                              <div className="mt-4 grid gap-2">
+                                {(suiteDetails.equipment || []).filter((e) => e.isActive).length === 0 ? (
+                                  <div className="rounded-2xl border border-dashed border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
+                                    No equipment added yet.
+                                  </div>
+                                ) : (
+                                  (suiteDetails.equipment || [])
+                                    .filter((e) => e.isActive)
+                                    .sort((a, b) => (a.category + a.name).localeCompare(b.category + b.name))
+                                    .map((e) => (
+                                      <div key={e.id} className="flex flex-col gap-2 rounded-2xl border border-zc-border bg-zc-panel/10 p-4 md:flex-row md:items-start md:justify-between">
+                                        <div className="min-w-0">
+                                          <div className="flex flex-wrap items-center gap-2">
+                                            {equipmentCategoryBadge(e.category)}
+                                            <div className="text-sm font-semibold text-zc-text">{e.name}</div>
+                                            {qtyBadge(e.qty)}
+                                            {equipmentLevelBadge(e.spaceId || undefined)}
+                                          </div>
+
+                                          {(e.manufacturer || e.model || e.serialNo) ? (
+                                            <div className="mt-1 text-xs text-zc-muted">
+                                              {[e.manufacturer, e.model, e.serialNo].filter(Boolean).join(" • ")}
+                                            </div>
+                                          ) : null}
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                          <Button variant="outline" size="sm" className="gap-2" onClick={() => void openEditEquipment(e)} disabled={busy}>
+                                            <Pencil className="h-4 w-4" />
+                                            Edit
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-2 text-red-600 hover:text-red-700"
+                                            onClick={() => void archiveEquipment(e.id)}
+                                            disabled={busy}
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                            Delete
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    ))
+                                )}
+                              </div>
+                            </TabsContent>
+                          </Tabs>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="checks" className="mt-0">
+                <div className="grid gap-4">
+                  {!selectedSuite ? (
+                    <Card className="overflow-hidden">
+                      <CardHeader>
+                        <CardTitle>Readiness / Checks</CardTitle>
+                        <CardDescription>Select an OT Suite to review go-live readiness.</CardDescription>
+                      </CardHeader>
+                      <Separator />
+                      <CardContent className="pt-6">
+                        <div className="rounded-2xl border border-dashed border-zc-border bg-zc-panel/15 p-6 text-sm text-zc-muted">
+                          No suite selected.
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card className="overflow-hidden">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <ClipboardCheck className="h-5 w-5 text-zc-accent" />
+                          Readiness / Checks
+                        </CardTitle>
+                        <CardDescription>
+                          Review go-live readiness for {selectedSuite.name}.
+                        </CardDescription>
+                      </CardHeader>
+                      <Separator />
+                      <CardContent className="pt-6">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div className="text-sm text-zc-muted">
-                            Setup go-live checks for OT Suite. This will drive “Ready for Operations” later in OT module.
+                            Setup go-live checks for OT Suite. This will drive readiness in the OT module.
                           </div>
                           <Button variant="outline" className="gap-2" onClick={() => void refreshReadiness()} disabled={busy}>
                             <RefreshCw className={cn("h-4 w-4", busy ? "animate-spin" : "")} />
@@ -1933,16 +2017,15 @@ export default function SuperAdminOtSetupPage() {
                             <li>Equipment register started (recommended)</li>
                           </ul>
                         </div>
-                      </TabsContent>
-                    </Tabs>
+                      </CardContent>
+                    </Card>
                   )}
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
-
 
       {/* ---------------- Confirm Action Dialog ---------------- */}
       <Dialog
@@ -1951,10 +2034,7 @@ export default function SuperAdminOtSetupPage() {
           if (!v) closeConfirm();
         }}
       >
-        <DialogContent
-          className="w-[95vw] sm:max-w-[820px] lg:max-w-[980px] max-h-[85vh] overflow-y-auto border-indigo-200/50 dark:border-indigo-800/50 shadow-2xl shadow-indigo-500/10"
-          onInteractOutside={(e) => e.preventDefault()}
-        >
+        <DialogContent className={drawerClassName()} onInteractOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-indigo-700 dark:text-indigo-400">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
@@ -2047,10 +2127,7 @@ export default function SuperAdminOtSetupPage() {
           }
         }}
       >
-        <DialogContent
-          className="w-[95vw] sm:max-w-[820px] lg:max-w-[980px] max-h-[85vh] overflow-y-auto border-indigo-200/50 dark:border-indigo-800/50 shadow-2xl shadow-indigo-500/10"
-          onInteractOutside={(e) => e.preventDefault()}
-        >
+        <DialogContent className={drawerClassName()} onInteractOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-indigo-700 dark:text-indigo-400">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
@@ -2160,10 +2237,7 @@ export default function SuperAdminOtSetupPage() {
           else setSuiteDlgOpen(true);
         }}
       >
-        <DialogContent
-          className="w-[95vw] sm:max-w-[820px] lg:max-w-[980px] max-h-[85vh] overflow-y-auto border-indigo-200/50 dark:border-indigo-800/50 shadow-2xl shadow-indigo-500/10"
-          onInteractOutside={(e) => e.preventDefault()}
-        >
+        <DialogContent className={drawerClassName()} onInteractOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-indigo-700 dark:text-indigo-400">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
@@ -2336,7 +2410,7 @@ export default function SuperAdminOtSetupPage() {
 
       {/* ---------------- Space Dialog ---------------- */}
       <Dialog open={spaceDlgOpen} onOpenChange={setSpaceDlgOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-[650px] max-h-[85vh] overflow-y-auto border-indigo-200/50 dark:border-indigo-800/50 shadow-2xl shadow-indigo-500/10">
+        <DialogContent className={drawerClassName("max-w-[650px]")}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-indigo-700 dark:text-indigo-400">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
@@ -2426,7 +2500,7 @@ export default function SuperAdminOtSetupPage() {
 
       {/* ---------------- Table Dialog ---------------- */}
       <Dialog open={tableDlgOpen} onOpenChange={setTableDlgOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-[650px] max-h-[85vh] overflow-y-auto border-indigo-200/50 dark:border-indigo-800/50 shadow-2xl shadow-indigo-500/10">
+        <DialogContent className={drawerClassName("max-w-[650px]")}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-indigo-700 dark:text-indigo-400">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
@@ -2495,7 +2569,7 @@ export default function SuperAdminOtSetupPage() {
 
       {/* ---------------- Equipment Dialog ---------------- */}
       <Dialog open={eqDlgOpen} onOpenChange={setEqDlgOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-[650px] max-h-[85vh] overflow-y-auto border-indigo-200/50 dark:border-indigo-800/50 shadow-2xl shadow-indigo-500/10">
+        <DialogContent className={drawerClassName("max-w-[650px]")}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-indigo-700 dark:text-indigo-400">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">

@@ -64,6 +64,16 @@ function safeNum(n: any, fallback: number) {
   return Number.isFinite(x) ? x : fallback;
 }
 
+function drawerClassName(extra?: string) {
+  return cn(
+    "left-auto right-0 top-0 h-screen w-[95vw] max-w-[980px] translate-x-0 translate-y-0",
+    "rounded-2xl",
+    "border border-indigo-200/50 dark:border-indigo-800/50 bg-zc-card",
+    "shadow-2xl shadow-indigo-500/10",
+    extra,
+  );
+}
+
 /** Editors */
 function ExportReportsEditor({ value, onChange }: { value: any; onChange: (v: any) => void }) {
   return (
@@ -358,18 +368,10 @@ export function PolicyPackWizard({
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent
-        className={[
-          // Responsive sizing (prevents overflow on small screens)
-          "w-[calc(100vw-1.25rem)] sm:w-full",
-          "sm:max-w-3xl lg:max-w-5xl",
-          "max-h-[calc(100dvh-1.25rem)]",
-          "overflow-hidden p-0",
-          // Visual style
-          "rounded-2xl border border-indigo-200/50 dark:border-indigo-800/50 shadow-2xl shadow-indigo-500/10 bg-zc-card",
-        ].join(" ")}
+        className={drawerClassName("overflow-hidden p-0")}
         onInteractOutside={(e) => e.preventDefault()}
       >
-        <div className="flex max-h-[calc(100dvh-1.25rem)] flex-col">
+        <div className="flex h-full flex-col">
           {/* Header */}
           <div className="shrink-0 px-5 py-4 sm:px-6 sm:py-5">
             <div className="text-lg font-semibold text-zc-text">{pack.name}</div>

@@ -2,6 +2,7 @@
 import * as React from "react";
 import { AppLink as Link } from "@/components/app-link";
 import { AppShell } from "@/components/AppShell";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -155,6 +156,17 @@ function pillTone(label: string) {
     return "border-violet-200/70 bg-violet-50/70 text-violet-700 dark:border-violet-900/50 dark:bg-violet-950/25 dark:text-violet-200";
 
   return "border-zc-border bg-zc-panel/30 text-zc-muted";
+}
+
+function drawerClassName(extra?: string) {
+  return cn(
+    "left-auto right-0 top-0 h-screen w-[95vw] max-w-[980px] translate-x-0 translate-y-0",
+    "rounded-2xl",
+    "border border-indigo-200/50 dark:border-indigo-800/50 bg-zc-card",
+    "shadow-2xl shadow-indigo-500/10",
+    "overflow-y-auto",
+    extra,
+  );
 }
 
 function Pill({ label, value }: { label: string; value: number }) {
@@ -455,8 +467,7 @@ function BranchEditorModal({
       }}
     >
       <DialogContent
-        // ✅ CHANGED: w-[95vw] ensures mobile fit, max-h-[85vh] + overflow-y-auto handles scrolling
-        className="w-[95vw] sm:max-w-[600px] max-h-[85vh] overflow-y-auto border-indigo-200/50 dark:border-indigo-800/50 shadow-2xl shadow-indigo-500/10"
+        className={drawerClassName()}
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
@@ -483,7 +494,6 @@ function BranchEditorModal({
         ) : null}
 
         <div className="grid gap-5">
-          {/* ✅ CHANGED: grid-cols-1 for mobile (stack), sm:grid-cols-2 for desktop (side-by-side) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label>Branch Name</Label>
@@ -573,7 +583,6 @@ function BranchEditorModal({
           <div className="grid gap-4">
             <div className="text-sm font-semibold text-zc-text">Contact Details</div>
 
-            {/* ✅ CHANGED: grid-cols-1 for mobile, sm:grid-cols-2 for desktop */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Contact Number 1</Label>
@@ -625,6 +634,8 @@ function BranchEditorModal({
 export default function BranchesPage() {
   const { toast } = useToast();
   const user = useAuthStore((s) => s.user);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const isSuperAdmin = user?.role === "SUPER_ADMIN" || (user as any)?.roleCode === "SUPER_ADMIN";
 
@@ -672,6 +683,16 @@ export default function BranchesPage() {
     void refresh(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  React.useEffect(() => {
+    if (!searchParams) return;
+    if (searchParams.get("create") !== "1") return;
+    setCreateOpen(true);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("create");
+    const qs = params.toString();
+    router.replace(qs ? `/superadmin/branches?${qs}` : "/superadmin/branches");
+  }, [searchParams, router]);
 
   const totalFacilities = countSum(rows, "facilities");
   const totalDepartments = countSum(rows, "departments");
@@ -824,7 +845,7 @@ export default function BranchesPage() {
 
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
-                        <Button asChild variant="outline" className="px-3 gap-2">
+                        <Button asChild variant="info" className="px-3 gap-2">
                           <Link href={`/superadmin/branches/${b.id}`}>
                             Details <IconChevronRight className="h-4 w-4" />
                           </Link>

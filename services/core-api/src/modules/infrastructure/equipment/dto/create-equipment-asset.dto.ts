@@ -1,7 +1,13 @@
 import { IsBoolean, IsDateString, IsIn, IsInt, IsOptional, IsString, MaxLength, Min } from "class-validator";
 
+/**
+ * Equipment Register (EquipmentAsset)
+ *
+ * NOTE: Keep this DTO aligned to packages/db/prisma/schema.prisma.
+ */
 export class CreateEquipmentAssetDto {
   @IsString()
+  @MaxLength(64)
   code!: string;
 
   @IsString()
@@ -11,18 +17,23 @@ export class CreateEquipmentAssetDto {
   @IsIn(["GENERAL", "RADIOLOGY", "ULTRASOUND"])
   category!: "GENERAL" | "RADIOLOGY" | "ULTRASOUND";
 
+  @IsOptional()
   @IsString()
-  make!: string;
+  make?: string | null;
 
+  @IsOptional()
   @IsString()
-  model!: string;
+  model?: string | null;
 
+  @IsOptional()
   @IsString()
-  serial!: string;
+  serial?: string | null;
 
+  @IsOptional()
   @IsString()
-  ownerDepartmentId!: string;
+  ownerDepartmentId?: string | null;
 
+  // Location binding
   @IsOptional()
   @IsString()
   unitId?: string | null;
@@ -39,6 +50,7 @@ export class CreateEquipmentAssetDto {
   @IsIn(["OPERATIONAL", "DOWN", "MAINTENANCE", "RETIRED"])
   operationalStatus?: "OPERATIONAL" | "DOWN" | "MAINTENANCE" | "RETIRED";
 
+  // AMC/Warranty
   @IsOptional()
   @IsString()
   amcVendor?: string | null;
@@ -55,6 +67,7 @@ export class CreateEquipmentAssetDto {
   @IsDateString()
   warrantyValidTo?: string | null;
 
+  // Preventive Maintenance (PM)
   @IsOptional()
   @IsInt()
   @Min(1)
@@ -64,7 +77,7 @@ export class CreateEquipmentAssetDto {
   @IsDateString()
   nextPmDueAt?: string | null;
 
-  // Compliance
+  // Compliance (category-based)
   @IsOptional()
   @IsString()
   aerbLicenseNo?: string | null;
@@ -81,6 +94,7 @@ export class CreateEquipmentAssetDto {
   @IsDateString()
   pcpndtValidTo?: string | null;
 
+  // Scheduling gate
   @IsOptional()
   @IsBoolean()
   isSchedulable?: boolean;

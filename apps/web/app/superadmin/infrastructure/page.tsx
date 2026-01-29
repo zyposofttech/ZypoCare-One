@@ -26,6 +26,9 @@ import {
   Database,
   Hammer,
   CalendarClock,
+  Bed,
+  Stethoscope,
+  Hospital
 } from "lucide-react";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -638,8 +641,7 @@ export default function SuperAdminInfrastructureOverview() {
                 <div className="mt-1 text-3xl font-semibold tracking-tight">Infrastructure Setup</div>
 
                 <div className="mt-2 max-w-3xl text-sm leading-6 text-zc-muted">
-                  Fully live dashboard: branch-scoped infra signals load automatically. If backend Go-Live is not available yet,
-                  a fallback readiness score is computed from Locations + Branch Readiness so the UI remains operational.
+                  Score is computed from Locations + Branch Readiness and tells system status.
                 </div>
 
                 {fmtDate(generatedAt) ? (
@@ -941,7 +943,7 @@ export default function SuperAdminInfrastructureOverview() {
           <InfoTile
             label="Beds"
             tone="zinc"
-            icon={<Hammer className="h-4 w-4" />}
+            icon={<Bed className="h-4 w-4" />}
             value={<div className="text-2xl font-semibold tabular-nums">{selected ? safeNum(snap?.beds) : "—"}</div>}
           />
         </div>
@@ -975,7 +977,7 @@ export default function SuperAdminInfrastructureOverview() {
               <ModuleCard
                 title="Unit Types (Enablement)"
                 description="Unit types catalog + branch enable/disable"
-                icon={<Layers className="h-4 w-4 text-zc-accent" />}
+                icon={<Hospital className="h-4 w-4 text-zc-accent" />}
                 href={moduleHref("/superadmin/infrastructure/unit-types")}
                 tone="violet"
                 disabled={mustSelectBranch}
@@ -1026,7 +1028,7 @@ export default function SuperAdminInfrastructureOverview() {
               <ModuleCard
                 title="Resources (Beds/OT Tables/etc.)"
                 description="Beds + other resources registry"
-                icon={<Hammer className="h-4 w-4 text-zc-accent" />}
+                icon={<Bed className="h-4 w-4 text-zc-accent" />}
                 href={moduleHref("/superadmin/infrastructure/resources")}
                 tone="emerald"
                 disabled={mustSelectBranch}
@@ -1060,7 +1062,7 @@ export default function SuperAdminInfrastructureOverview() {
               <ModuleCard
                 title="Diagnostics Configuration"
                 description="Orderables, modalities, worklists"
-                icon={<Database className="h-4 w-4 text-zc-accent" />}
+                icon={<Stethoscope className="h-4 w-4 text-zc-accent" />}
                 href={moduleHref("/superadmin/infrastructure/diagnostics")}
                 tone="sky"
                 disabled={mustSelectBranch}
@@ -1072,7 +1074,7 @@ export default function SuperAdminInfrastructureOverview() {
               <ModuleCard
                 title="Equipment Register"
                 description="Assets + AMC/PM schedules"
-                icon={<ShieldCheck className="h-4 w-4 text-zc-accent" />}
+                icon={<Hammer className="h-4 w-4 text-zc-accent" />}
                 href={moduleHref("/superadmin/infrastructure/equipment")}
                 tone="violet"
                 disabled={mustSelectBranch}
@@ -1133,14 +1135,14 @@ export default function SuperAdminInfrastructureOverview() {
               />
             </div>
 
-            <div className="mt-6 rounded-2xl border border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
+            {/* <div className="mt-6 rounded-2xl border border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
               <div className="font-semibold text-zc-text">What makes this “live” now</div>
               <ul className="mt-2 list-disc pl-5 text-sm">
                 <li>All module cards are enabled after branch selection and carry the selected branchId automatically.</li>
                 <li>Go-Live score never disappears: backend signal preferred, fallback score computed if validator isn’t ready.</li>
                 <li>Partial backend failures don’t break the page (allSettled + graceful UI state).</li>
               </ul>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
       </div>

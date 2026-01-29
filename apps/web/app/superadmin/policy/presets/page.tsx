@@ -4,10 +4,11 @@ import * as React from "react";
 import { AppLink as Link } from "@/components/app-link";
 
 import { AppShell } from "@/components/AppShell";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
 
 import { cn } from "@/lib/cn";
@@ -26,7 +27,7 @@ function pillTone(label: string) {
     return "border-rose-200/70 bg-rose-50/70 text-rose-900 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-200";
   if (l.includes("operational"))
     return "border-sky-200/70 bg-sky-50/70 text-sky-800 dark:border-sky-900/50 dark:bg-sky-950/25 dark:text-sky-200";
-  return "border-zc-border bg-zc-panel/20 text-zc-muted";
+  return "border-indigo-200/70 bg-indigo-50/70 text-indigo-800 dark:border-indigo-900/40 dark:bg-indigo-950/25 dark:text-indigo-200";
 }
 
 function TagChip({
@@ -44,9 +45,8 @@ function TagChip({
       onClick={onClick}
       className={cn(
         "inline-flex items-center rounded-full border px-3 py-1 text-xs transition",
-        active
-          ? "border-[rgb(var(--zc-accent-rgb)/0.45)] bg-[rgb(var(--zc-accent-rgb)/0.10)] text-zc-text"
-          : "border-zc-border bg-zc-panel/10 text-zc-muted hover:bg-zc-panel/20"
+        pillTone(label),
+        active ? "ring-2 ring-[rgb(var(--zc-accent-rgb)/0.35)]" : "opacity-80 hover:opacity-100"
       )}
     >
       {label}
@@ -83,6 +83,8 @@ export default function SuperAdminPolicyPresetsPage() {
   const [tag, setTag] = React.useState<string>("All");
 
   const [err, setErr] = React.useState<string | null>(null);
+
+  const [activeTab, setActiveTab] = React.useState<"overview" | "catalog">("overview");
 
   const [wizardOpen, setWizardOpen] = React.useState(false);
   const [selectedPack, setSelectedPack] = React.useState<PolicyPack | null>(null);
@@ -163,12 +165,78 @@ export default function SuperAdminPolicyPresetsPage() {
           </div>
         ) : null}
 
-        {/* ✅ Stat row (more scannable than pills) */}
-        <div className="grid gap-4 md:grid-cols-3">
+        {/* Snapshot */}
+        <Card className="overflow-hidden">
+          <CardHeader className="py-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <CardTitle className="text-base">Snapshot</CardTitle>
+                <CardDescription>Pack coverage and catalog totals.</CardDescription>
+              </div>
+              <div className="text-sm text-zc-muted">{filtered.length} packs matched</div>
+            </div>
+          </CardHeader>
+          <Separator />
+          <CardContent className="pb-6 pt-6">
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-xl border border-emerald-200/60 bg-emerald-50/50 p-4 text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-200">
+                <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Packs</div>
+                <div className="mt-1 text-2xl font-semibold tabular-nums">{totalPacks}</div>
+                <div className="mt-1 text-sm opacity-80">Curated baseline bundles</div>
+              </div>
+              <div className="rounded-xl border border-sky-200/60 bg-sky-50/50 p-4 text-sky-800 dark:border-sky-900/40 dark:bg-sky-950/20 dark:text-sky-200">
+                <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Policies</div>
+                <div className="mt-1 text-2xl font-semibold tabular-nums">{totalPoliciesInCatalog}</div>
+                <div className="mt-1 text-sm opacity-80">Templates in catalog</div>
+              </div>
+              <div className="rounded-xl border border-indigo-200/60 bg-indigo-50/50 p-4 text-indigo-800 dark:border-indigo-900/40 dark:bg-indigo-950/20 dark:text-indigo-200">
+                <div className="text-xs font-semibold uppercase tracking-wide opacity-70">Showing</div>
+                <div className="mt-1 text-2xl font-semibold tabular-nums">{filtered.length}</div>
+                <div className="mt-1 text-sm opacity-80">Matches search/filters</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        {/* Tabs */}
+        <Card>
+          <CardHeader className="py-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <CardTitle className="text-base">Policy Presets</CardTitle>
+                <CardDescription>Overview and catalog browsing.</CardDescription>
+              </div>
+
+              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+                <TabsList className="h-10 rounded-2xl border border-zc-border bg-zc-panel/20 p-1">
+                  <TabsTrigger
+                    value="overview"
+                    className="rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm"
+                  >
+                    <IconShield className="mr-2 h-4 w-4" />
+                    Overview
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="catalog"
+                    className="rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm"
+                  >
+                    <IconSearch className="mr-2 h-4 w-4" />
+                    Catalog
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+          </CardHeader>
+
+          <CardContent className="pb-6">
+            <Tabs value={activeTab}>
+              <TabsContent value="overview" className="mt-0">
+                <div className="grid gap-4">
+
+        {/* <div className="grid gap-4 md:grid-cols-3">
           <StatCard label="Packs" value={totalPacks} sub="Curated baseline bundles" />
           <StatCard label="Policies in Catalog" value={totalPoliciesInCatalog} sub="Templates included across packs" />
           <StatCard label="Showing" value={filtered.length} sub="Matches your search / filters" />
-        </div>
+        </div> */}
 
         {/* ✅ Recommended spotlight (user-friendly entry point) */}
         {recommended ? (
@@ -222,7 +290,11 @@ export default function SuperAdminPolicyPresetsPage() {
           </Card>
         ) : null}
 
-        {/* ✅ Catalog */}
+        </div>
+              </TabsContent>
+
+              <TabsContent value="catalog" className="mt-0">
+
         <Card className="p-0">
           <CardContent className="p-6">
             <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -384,6 +456,10 @@ export default function SuperAdminPolicyPresetsPage() {
                 </div>
               ) : null}
             </div>
+          </CardContent>
+        </Card>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
 

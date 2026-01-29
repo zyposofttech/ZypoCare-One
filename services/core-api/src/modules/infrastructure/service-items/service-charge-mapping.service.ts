@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import type { Principal } from "../../auth/access-policy.service";
 import { InfraContextService } from "../shared/infra-context.service";
-import type { UpsertServiceChargeMappingDto } from "./dto";
+import type { CloseServiceChargeMappingDto, UpsertServiceChargeMappingDto } from "./dto";
 
 @Injectable()
 export class ServiceChargeMappingService {
@@ -75,5 +75,44 @@ export class ServiceChargeMappingService {
     });
 
     return created;
+  }
+  async closeCurrentMapping(principal: Principal, dto: CloseServiceChargeMappingDto) {
+    const svc = await this.ctx.prisma.serviceItem.findUnique({
+      where: { id: dto.serviceItemId },
+      select: { id: true, branchId: true },
+    });
+    if (!svc) throw new BadRequestException("Invalid serviceItemId");
+
+    const branchId = this.ctx.resolveBranchId(principal, svc.branchId);
+
+    const active = await this.ctx.prisma.serviceChargeMapping.findFirst({
+      where: { branchId, serviceItemId: dto.serviceItemId, effectiveTo: null },
+      orderBy: [{ effectiveFrom: "desc" }],
+      select: { id: true, effectiveFrom: true },
+    });
+
+    if (!active) throw new BadRequestException("No active mapping to close");
+
+    const effectiveTo = new Date(dto.effectiveTo);
+    if (Number.isNaN(effectiveTo.getTime())) throw new BadRequestException("Invalid effectiveTo");
+    if (effectiveTo < active.effectiveFrom) {
+      throw new BadRequestException("effectiveTo cannot be before effectiveFrom");
+    }
+
+    const updated = await this.ctx.prisma.serviceChargeMapping.update({
+      where: { id: active.id },
+      data: { effectiveTo },
+    });
+
+    await this.ctx.audit.log({
+      branchId,
+      actorUserId: principal.userId,
+      action: "INFRA_SERVICE_MAPPING_UPDATE",
+      entity: "ServiceChargeMapping",
+      entityId: updated.id,
+      meta: dto,
+    });
+
+    return updated;
   }
 }
