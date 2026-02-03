@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { AppShell } from "@/components/AppShell";
+import { RequirePerm } from "@/components/RequirePerm";
 import { AppLink as Link } from "@/components/app-link";
 
 import { Button } from "@/components/ui/button";
@@ -601,6 +602,7 @@ setQ("");
 
   return (
     <AppShell title="Infrastructure  -  Service Mapping">
+      <RequirePerm perm="INFRA_SERVICE_READ">
       <div className="grid gap-6">
         {/* Header */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -1038,7 +1040,8 @@ setQ("");
           await loadCurrentMappings(branchId);
         }}
       />
-    </AppShell>
+          </RequirePerm>
+</AppShell>
   );
 }
 

@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { apiFetch } from "@/lib/api";
+import { cn } from "@/lib/cn";
 import {
   Users,
   Shield,
@@ -75,6 +76,17 @@ function fmtTs(ts: string) {
   }
 }
 
+function ErrorBanner({ message }: { message: string }) {
+  return (
+    <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
+      <span className="mt-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full border border-[rgb(var(--zc-danger-rgb)/0.5)] text-[10px] font-bold">
+        !
+      </span>
+      <div className="min-w-0">{message}</div>
+    </div>
+  );
+}
+
 export default function Page() {
   const [tab, setTab] = React.useState<"users" | "roles" | "permissions">("users");
 
@@ -108,6 +120,8 @@ export default function Page() {
   const [qUsers, setQUsers] = React.useState("");
   const [qRoles, setQRoles] = React.useState("");
   const [qPerms, setQPerms] = React.useState("");
+  const [permPage, setPermPage] = React.useState(1);
+  const permPageSize = 10;
 
   const loadCounts = React.useCallback(async () => {
     setCounts((c) => ({ ...c, loading: true, error: null }));
@@ -201,103 +215,142 @@ export default function Page() {
     return rows.filter((r) => `${r.roleName} ${r.roleCode} ${r.scope}`.toLowerCase().includes(needle));
   }, [roles.rows, qRoles]);
 
+  
   const permsFiltered = React.useMemo(() => {
     const needle = qPerms.trim().toLowerCase();
-    const rows = perms.rows.slice(0, 80);
+    const rows = perms.rows.slice(0, 200);
     if (!needle) return rows;
     return rows.filter((p) =>
       `${p.code} ${p.name} ${p.category || ""} ${p.description || ""}`.toLowerCase().includes(needle)
     );
   }, [perms.rows, qPerms]);
 
-  const activeTrigger =
-    "data-[state=active]:bg-zc-panel data-[state=active]:text-zc-text data-[state=active]:shadow-elev-1 " +
-    "data-[state=active]:ring-1 data-[state=active]:ring-zc-border data-[state=active]:border data-[state=active]:border-zc-border";
+  const permTotalPages = React.useMemo(
+    () => Math.max(1, Math.ceil(permsFiltered.length / permPageSize)),
+    [permsFiltered.length]
+  );
+
+  const permPageRows = React.useMemo(() => {
+    const start = (permPage - 1) * permPageSize;
+    return permsFiltered.slice(start, start + permPageSize);
+  }, [permsFiltered, permPage]);
+
+  React.useEffect(() => {
+    setPermPage(1);
+  }, [qPerms]);
+
+  React.useEffect(() => {
+    if (permPage > permTotalPages) setPermPage(permTotalPages);
+  }, [permPage, permTotalPages]);
+
 
   return (
     <AppShell title="Users & Access">
-      <div className="space-y-6">
-        {/* Hero */}
-        <div className="relative overflow-hidden rounded-2xl border border-zc-border bg-zc-card">
-          <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-zc-accent/15 blur-3xl" />
-          <div className="absolute -right-24 -bottom-24 h-72 w-72 rounded-full bg-zc-ok/10 blur-3xl" />
-
-          <div className="relative p-6 sm:p-7">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="max-w-2xl">
-                <div className="flex items-center gap-2">
-                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-zc-border bg-zc-panel">
-                    <Lock className="h-5 w-5 text-zc-accent" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-2xl font-semibold tracking-tight">Access Control</h1>
-                    <Badge variant="accent" className="hidden sm:inline-flex">
-                      Policy-driven
-                    </Badge>
-                  </div>
-                </div>
-
-                <p className="mt-2 text-sm text-zc-muted">
-                  Manage users, roles, and permission grants with audit-ready governance. Keep access minimal, traceable, and branch-safe.
-                </p>
+      <div className="grid gap-6">
+        {/* Header */}
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-zc-border bg-zc-panel/30">
+              <Lock className="h-5 w-5 text-zc-accent" />
+            </span>
+            <div className="min-w-0">
+              <div className="text-3xl font-semibold tracking-tight">Users & Access</div>
+              <div className="mt-1 text-sm text-zc-muted">
+                Manage users, roles, and permission grants with audit-ready governance.
               </div>
-
-              <div className="flex items-center gap-2">
-                <Button variant="outline" onClick={loadCounts} disabled={counts.loading}>
-                  <RefreshCw className={counts.loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-                  Refresh summary
-                </Button>
-
-                <Button asChild>
-                  <Link href="/access/audit">
-                    View audit
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-
-            {counts.error ? (
-              <div className="mt-4 rounded-xl border border-zc-danger/25 bg-zc-danger/10 px-4 py-3 text-sm text-zc-danger">
-                {counts.error}
-              </div>
-            ) : null}
-
-            <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              <Kpi icon={<Users className="h-4 w-4" />} label="Users" value={counts.users} loading={counts.loading} hint="Provision accounts & assign roles" />
-              <Kpi icon={<Shield className="h-4 w-4" />} label="Roles" value={counts.roles} loading={counts.loading} hint="Templates that group permissions" />
-              <Kpi icon={<Key className="h-4 w-4" />} label="Permissions" value={counts.permissions} loading={counts.loading} hint="Fine-grained capability nodes" />
             </div>
           </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" className="px-5 gap-2" onClick={loadCounts} disabled={counts.loading}>
+              <RefreshCw className={counts.loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+              Refresh summary
+            </Button>
+            <Button asChild className="px-5 gap-2">
+              <Link href="/access/audit">
+                View audit
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
         </div>
+
+        {/* Overview */}
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base">Overview</CardTitle>
+            <CardDescription className="text-sm">
+              Snapshot of the access catalog. Use the tabs below for previews or open the full pages.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="grid gap-4">
+            <div className="grid gap-3 md:grid-cols-3">
+              <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-3 dark:border-blue-900/50 dark:bg-blue-900/10">
+                <div className="text-xs font-medium text-blue-600 dark:text-blue-400">Users</div>
+                <div className="mt-1 text-lg font-bold text-blue-700 dark:text-blue-300">
+                  {counts.loading ? "—" : counts.users ?? "—"}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 dark:border-emerald-900/50 dark:bg-emerald-900/10">
+                <div className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Roles</div>
+                <div className="mt-1 text-lg font-bold text-emerald-700 dark:text-emerald-300">
+                  {counts.loading ? "—" : counts.roles ?? "—"}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-sky-200 bg-sky-50/50 p-3 dark:border-sky-900/50 dark:bg-sky-900/10">
+                <div className="text-xs font-medium text-sky-600 dark:text-sky-400">Permissions</div>
+                <div className="mt-1 text-lg font-bold text-sky-700 dark:text-sky-300">
+                  {counts.loading ? "—" : counts.permissions ?? "—"}
+                </div>
+              </div>
+            </div>
+
+            {counts.error ? <ErrorBanner message={counts.error} /> : null}
+          </CardContent>
+        </Card>
 
         {/* Tabs */}
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="w-full space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <TabsList className="h-auto w-full rounded-2xl border border-zc-border bg-zc-card p-1 sm:w-[560px]">
+            <TabsList
+              className={cn(
+                "h-10 w-full rounded-2xl border border-zc-border bg-zc-panel/20 p-1 sm:w-[560px]",
+              )}
+            >
               <TabsTrigger
                 value="users"
-                className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 ${activeTrigger}`}
+                className={cn(
+                  "flex flex-1 items-center justify-center gap-2 rounded-xl px-3",
+                  "data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm",
+                )}
               >
                 <Users className="h-4 w-4" />
                 Users
               </TabsTrigger>
               <TabsTrigger
                 value="roles"
-                className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 ${activeTrigger}`}
+                className={cn(
+                  "flex flex-1 items-center justify-center gap-2 rounded-xl px-3",
+                  "data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm",
+                )}
               >
                 <Shield className="h-4 w-4" />
                 Roles
               </TabsTrigger>
               <TabsTrigger
                 value="permissions"
-                className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 ${activeTrigger}`}
+                className={cn(
+                  "flex flex-1 items-center justify-center gap-2 rounded-xl px-3",
+                  "data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm",
+                )}
               >
                 <Key className="h-4 w-4" />
                 Permissions
               </TabsTrigger>
             </TabsList>
-           
           </div>
 
           {/* USERS TAB CONTENT */}
@@ -382,6 +435,7 @@ export default function Page() {
                       </TableBody>
                     </Table>
                   </div>
+
                 </CardContent>
               </Card>
 
@@ -423,6 +477,7 @@ export default function Page() {
                       </li>
                     </ul>
                   </div>
+
                 </CardContent>
               </Card>
             </div>
@@ -501,6 +556,40 @@ export default function Page() {
                       </TableBody>
                     </Table>
                   </div>
+
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="text-xs text-zc-muted">
+                      Showing{" "}
+                      <span className="font-semibold tabular-nums text-zc-text">
+                        {permsFiltered.length === 0 ? 0 : (permPage - 1) * permPageSize + 1}
+                      </span>{" "}
+                      -{" "}
+                      <span className="font-semibold tabular-nums text-zc-text">
+                        {Math.min(permPage * permPageSize, permsFiltered.length)}
+                      </span>{" "}
+                      of <span className="font-semibold tabular-nums text-zc-text">{permsFiltered.length}</span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-1">
+                      <Button
+                        variant="outline"
+                        className="h-8 px-2 text-xs"
+                        onClick={() => setPermPage((p) => Math.max(1, p - 1))}
+                        disabled={permPage <= 1}
+                      >
+                        Prev
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="h-8 px-2 text-xs"
+                        onClick={() => setPermPage((p) => Math.min(permTotalPages, p + 1))}
+                        disabled={permPage >= permTotalPages}
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+
                 </CardContent>
               </Card>
 
@@ -534,6 +623,7 @@ export default function Page() {
                       <Badge variant="secondary">Scoped</Badge>
                     </div>
                   </div>
+
                 </CardContent>
               </Card>
             </div>
@@ -588,8 +678,8 @@ export default function Page() {
                               Loading permissions…
                             </TableCell>
                           </TableRow>
-                        ) : permsFiltered.length ? (
-                          permsFiltered.map((p) => (
+                        ) : permPageRows.length ? (
+                          permPageRows.map((p) => (
                             <TableRow key={p.code}>
                               <TableCell className="font-mono text-xs">{p.code}</TableCell>
                               <TableCell className="text-sm">
@@ -609,6 +699,7 @@ export default function Page() {
                       </TableBody>
                     </Table>
                   </div>
+
                 </CardContent>
               </Card>
 
@@ -649,6 +740,7 @@ export default function Page() {
                     Tip: permissions should be <span className="font-medium text-zc-text">engineering-owned</span>, roles should be{" "}
                     <span className="font-medium text-zc-text">ops-owned</span>.
                   </div>
+
                 </CardContent>
               </Card>
             </div>

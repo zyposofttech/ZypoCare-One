@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
+import { RequirePerm } from "@/components/RequirePerm";
 import { AppLink as Link } from "@/components/app-link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -127,6 +128,7 @@ export default function ServicePackageDetailPage() {
 
   return (
     <AppShell title="Infrastructure • Service Packages • Details">
+      <RequirePerm perm="INFRA_SERVICE_PACKAGE_READ">
       <div className="grid gap-6">
         <div className="flex flex-wrap items-center gap-3">
           <Button variant="outline" size="sm" className="gap-2" onClick={() => router.push("/infrastructure/service-packages")}>
@@ -277,6 +279,7 @@ export default function ServicePackageDetailPage() {
           </Card>
         ) : null}
       </div>
-    </AppShell>
+          </RequirePerm>
+</AppShell>
   );
 }

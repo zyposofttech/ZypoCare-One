@@ -14,6 +14,11 @@ services:
     image: redis:7-alpine
     container_name: zypocare-redis
     ports: ["6379:6379"]
+    healthcheck:
+     test: ["CMD", "redis-cli", "ping"]
+     interval: 5s
+     timeout: 3s
+     retries: 20
 
   nats:
     image: nats:2.10-alpine

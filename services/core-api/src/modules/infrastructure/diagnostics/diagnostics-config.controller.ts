@@ -10,6 +10,7 @@ import {
   Req,
 } from "@nestjs/common";
 
+import { AccessPolicyService } from "../../auth/access-policy.service";
 import { Permissions } from "../../auth/permissions.decorator";
 import { PERM } from "../../iam/iam.constants";
 
@@ -41,10 +42,18 @@ import { ApiTags } from "@nestjs/swagger";
 @ApiTags("infrastructure/diagnostics")
 @Controller("infrastructure/diagnostics")
 export class DiagnosticsConfigController {
-  constructor(private readonly svc: DiagnosticsConfigService) {}
+  constructor(
+    private readonly svc: DiagnosticsConfigService,
+    private readonly access: AccessPolicyService,
+  ) {}
 
   private principalFrom(req: any): Principal {
     return (req?.principal ?? {}) as Principal;
+  }
+
+  private branchIdFrom(principal: Principal, branchId: string | null | undefined) {
+    // Branch principals are hard-scoped (client branchId is ignored)
+    return this.access.resolveBranchId(principal as any, branchId, { require: true }) as string;
   }
 
   // ---------------------- Sections ----------------------
@@ -151,26 +160,34 @@ export class DiagnosticsConfigController {
   @Get("items/:id/panel-items")
   @Permissions(PERM.INFRA_DIAGNOSTICS_READ)
   getPanelItems(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string) {
-    return this.svc.getPanelItems(this.principalFrom(req), id, branchId);
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.getPanelItems(p, id, b);
   }
 
   @Put("items/:id/panel-items")
   @Permissions(PERM.INFRA_DIAGNOSTICS_UPDATE)
   replacePanelItems(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string, @Body() dto: ReplacePanelItemsDto) {
-    return this.svc.replacePanelItems(this.principalFrom(req), id, branchId, dto);
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.replacePanelItems(p, id, b, dto);
   }
 
   // ---------------------- Parameters (Lab) ----------------------
   @Get("items/:id/parameters")
   @Permissions(PERM.INFRA_DIAGNOSTICS_READ)
   listParameters(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string, @Query("includeInactive") includeInactive?: string) {
-    return this.svc.listParameters(this.principalFrom(req), id, branchId, includeInactive === "true");
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.listParameters(p, id, b, includeInactive === "true");
   }
 
   @Post("items/:id/parameters")
   @Permissions(PERM.INFRA_DIAGNOSTICS_CREATE)
   createParameter(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string, @Body() dto: CreateParameterDto) {
-    return this.svc.createParameter(this.principalFrom(req), id, dto, branchId);
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.createParameter(p, id, dto, b);
   }
 
   @Put("parameters/:id")
@@ -182,20 +199,26 @@ export class DiagnosticsConfigController {
   @Delete("parameters/:id")
   @Permissions(PERM.INFRA_DIAGNOSTICS_DELETE)
   deleteParameter(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string) {
-    return this.svc.deleteParameter(this.principalFrom(req), id, branchId);
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.deleteParameter(p, id, b);
   }
 
   // ---------------------- Reference ranges ----------------------
   @Get("parameters/:id/ranges")
   @Permissions(PERM.INFRA_DIAGNOSTICS_READ)
   listRanges(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string, @Query("includeInactive") includeInactive?: string) {
-    return this.svc.listRanges(this.principalFrom(req), id, branchId, includeInactive === "true");
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.listRanges(p, id, b, includeInactive === "true");
   }
 
   @Post("parameters/:id/ranges")
   @Permissions(PERM.INFRA_DIAGNOSTICS_CREATE)
   createRange(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string, @Body() dto: CreateReferenceRangeDto) {
-    return this.svc.createRange(this.principalFrom(req), id, dto, branchId);
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.createRange(p, id, dto, b);
   }
 
   @Put("ranges/:id")
@@ -207,20 +230,26 @@ export class DiagnosticsConfigController {
   @Delete("ranges/:id")
   @Permissions(PERM.INFRA_DIAGNOSTICS_DELETE)
   deleteRange(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string) {
-    return this.svc.deleteRange(this.principalFrom(req), id, branchId);
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.deleteRange(p, id, b);
   }
 
   // ---------------------- Templates (Imaging) ----------------------
   @Get("items/:id/templates")
   @Permissions(PERM.INFRA_DIAGNOSTICS_READ)
   listTemplates(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string, @Query("includeInactive") includeInactive?: string) {
-    return this.svc.listTemplates(this.principalFrom(req), id, branchId, includeInactive === "true");
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.listTemplates(p, id, b, includeInactive === "true");
   }
 
   @Post("items/:id/templates")
   @Permissions(PERM.INFRA_DIAGNOSTICS_CREATE)
   createTemplate(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string, @Body() dto: CreateTemplateDto) {
-    return this.svc.createTemplate(this.principalFrom(req), id, dto, branchId);
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.createTemplate(p, id, dto, b);
   }
 
   @Put("templates/:id")

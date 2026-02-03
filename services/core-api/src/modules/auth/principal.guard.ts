@@ -4,8 +4,12 @@ import { IS_PUBLIC_KEY } from "./public.decorator";
 import { AccessPolicyService } from "./access-policy.service";
 
 /**
- * Loads the local DB User as "principal" using the authenticated token's email claim.
- * Requires JwtAuthGuard to have already set req.user.
+ * Loads the local DB User as "principal".
+ *
+ * Enterprise behavior:
+ *  - Prefer token.sub (userId) for lookup
+ *  - Enforce authzVersion invalidation (handled by IamPrincipalService)
+ *  - Fallback to email claim if sub is missing (compat)
  */
 @Injectable()
 export class PrincipalGuard implements CanActivate {
@@ -22,15 +26,23 @@ export class PrincipalGuard implements CanActivate {
     const req = ctx.switchToHttp().getRequest();
     const tokenUser = req.user || {};
 
-    const email =
-      tokenUser.email ||
-      tokenUser.preferred_username ||
-      tokenUser.upn ||
-      tokenUser.unique_name;
+    const userId = tokenUser.sub || tokenUser.id || tokenUser.userId;
 
-    if (!email) throw new UnauthorizedException("Token missing email claim");
+    let principal = null;
 
-    const principal = await this.access.loadPrincipalByEmail(String(email));
+    if (userId) {
+      principal = await this.access.loadPrincipalByUserId(String(userId), tokenUser.authzVersion);
+    } else {
+      const email =
+        tokenUser.email ||
+        tokenUser.preferred_username ||
+        tokenUser.upn ||
+        tokenUser.unique_name;
+
+      if (!email) throw new UnauthorizedException("Token missing user identifier");
+      principal = await this.access.loadPrincipalByEmail(String(email));
+    }
+
     if (!principal) throw new UnauthorizedException("No local user mapped for this identity");
 
     req.principal = principal;

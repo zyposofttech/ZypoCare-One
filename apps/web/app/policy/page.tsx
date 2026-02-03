@@ -4,6 +4,7 @@ import * as React from "react";
 import { AppLink as Link } from "@/components/app-link";
 
 import { AppShell } from "@/components/AppShell";
+import { RequirePerm } from "@/components/RequirePerm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -46,6 +47,7 @@ export default function SuperAdminPolicyLandingPage() {
 
   return (
     <AppShell title="Policy Governance">
+      <RequirePerm perm="GOV_POLICY_READ">
       <div className="grid gap-6">
         {/* ✅ MATCHED HEADER (like attached page.tsx) */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -144,7 +146,8 @@ export default function SuperAdminPolicyLandingPage() {
           </CardContent>
         </Card>
       </div>
-    </AppShell>
+          </RequirePerm>
+</AppShell>
   );
 }
 

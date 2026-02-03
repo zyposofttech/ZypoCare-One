@@ -25,6 +25,7 @@ import {
 import { IconPlus, IconSearch } from "@/components/icons";
 
 import { AppShell } from "@/components/AppShell";
+import { RequirePerm } from "@/components/RequirePerm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -1284,6 +1285,7 @@ if (showToast) toast({ title: "Refreshed", description: "Loaded branch list.", d
 
   return (
     <AppShell title="OT Setup">
+      <RequirePerm perm="ot.suite.read">
       <div className="grid gap-6">
         {/* Header */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -2688,6 +2690,7 @@ if (showToast) toast({ title: "Refreshed", description: "Loaded branch list.", d
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AppShell>
+          </RequirePerm>
+</AppShell>
   );
 }

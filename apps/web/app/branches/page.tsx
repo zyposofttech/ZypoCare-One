@@ -13,7 +13,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
-import { useAuthStore } from "@/lib/auth/store";
+import { useAuthStore, hasPerm } from "@/lib/auth/store";
 
 import { IconBuilding, IconChevronRight, IconPlus, IconSearch } from "@/components/icons";
 import { AlertTriangle, Building2, Loader2, Pencil, RefreshCw, Trash2, Wand2 } from "lucide-react";
@@ -240,11 +240,15 @@ function DeleteConfirmModal({
   branch,
   onClose,
   onDeleted,
+  canDelete,
+  deniedMessage,
 }: {
   open: boolean;
   branch: BranchRow | null;
   onClose: () => void;
   onDeleted: () => Promise<void> | void;
+  canDelete: boolean;
+  deniedMessage: string;
 }) {
   const { toast } = useToast();
   const [busy, setBusy] = React.useState(false);
@@ -259,6 +263,7 @@ function DeleteConfirmModal({
 
   async function onConfirm() {
     if (!branch?.id) return;
+    if (!canDelete) return setErr(deniedMessage);
     setErr(null);
     setBusy(true);
     try {
@@ -317,8 +322,7 @@ function DeleteConfirmModal({
         <Button variant="outline" onClick={onClose} disabled={busy}>
           Cancel
         </Button>
-        <Button variant="destructive" onClick={onConfirm} disabled={busy || deps > 0}>
-          {deps > 0 ? "Cannot Delete (Has Setup Data)" : busy ? "Deleting…" : "Hard Delete"}
+        <Button variant="destructive" onClick={onConfirm} disabled={busy || deps > 0 || !canDelete} title={!canDelete ? deniedMessage : undefined}>
         </Button>
       </div>
     </ModalShell>
@@ -331,12 +335,16 @@ function ToggleActiveConfirmDialog({
   action,
   onClose,
   onChanged,
+  canUpdate,
+  deniedMessage,
 }: {
   open: boolean;
   branch: BranchRow | null;
   action: "deactivate" | "reactivate";
   onClose: () => void;
   onChanged: () => Promise<void> | void;
+  canUpdate: boolean;
+  deniedMessage: string;
 }) {
   const { toast } = useToast();
   const [busy, setBusy] = React.useState(false);
@@ -356,6 +364,7 @@ function ToggleActiveConfirmDialog({
     : "This will retire the branch (soft toggle). No data is deleted, and you can reactivate later.";
 
   async function onConfirm() {
+    if (!canUpdate) return setErr(deniedMessage);
     if (!branch?.id) return;
     setErr(null);
     setBusy(true);
@@ -379,7 +388,7 @@ function ToggleActiveConfirmDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => (!v ? onClose() : null)}>
-      <DialogContent className={drawerClassName("max-w-2xl")}> 
+      <DialogContent className={drawerClassName("max-w-2xl")}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
@@ -425,12 +434,16 @@ function BranchEditorModal({
   initial,
   onClose,
   onSaved,
+  canSubmit,
+  deniedMessage,
 }: {
   mode: "create" | "edit";
   open: boolean;
   initial?: BranchRow | null;
   onClose: () => void;
   onSaved: () => Promise<void> | void;
+  canSubmit: boolean;
+  deniedMessage: string;
 }) {
   const { toast } = useToast();
   const [busy, setBusy] = React.useState(false);
@@ -476,7 +489,7 @@ function BranchEditorModal({
 
   async function onSubmit() {
     setErr(null);
-
+    if (!canSubmit) return setErr(deniedMessage);
     if (mode === "create") {
       const ce = validateCode(form.code);
       if (ce) return setErr(ce);
@@ -544,7 +557,7 @@ function BranchEditorModal({
       onClose();
 
       // refresh list after close
-      void Promise.resolve(onSaved()).catch(() => {});
+      void Promise.resolve(onSaved()).catch(() => { });
     } catch (e: any) {
       setErr(e?.message || "Save failed");
       toast({ variant: "destructive", title: "Save failed", description: e?.message || "Save failed" });
@@ -721,7 +734,14 @@ function BranchEditorModal({
               Cancel
             </Button>
 
-            <Button variant="primary" onClick={() => void onSubmit()} disabled={busy} className="gap-2">
+            <Button
+              variant="primary"
+              onClick={() => void onSubmit()}
+              disabled={busy || !canSubmit}
+              title={!canSubmit ? deniedMessage : undefined}
+              className="gap-2"
+            >
+
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               {mode === "create" ? "Create Branch" : "Save Changes"}
             </Button>
@@ -737,13 +757,11 @@ export default function BranchesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const isSuperAdmin =
-    user?.role === "SUPER_ADMIN" ||
-    (user as any)?.roleCode === "SUPER_ADMIN" ||
-    (Array.isArray((user as any)?.roles) && (user as any).roles.includes("SUPER_ADMIN"));
+  const canRead = hasPerm(user, "BRANCH_READ");
+  const canCreate = hasPerm(user, "BRANCH_CREATE");
+  const canUpdate = hasPerm(user, "BRANCH_UPDATE");
+  const canDelete = hasPerm(user, "BRANCH_DELETE");
 
-  // Corporate / Global admins can manage branch registry (create/edit/deactivate)
-  const isGlobalAdmin = (user as any)?.roleScope === "GLOBAL" || isSuperAdmin;
 
   const [q, setQ] = React.useState("");
   const [loading, setLoading] = React.useState(false);
@@ -795,12 +813,14 @@ export default function BranchesPage() {
   React.useEffect(() => {
     if (!searchParams) return;
     if (searchParams.get("create") !== "1") return;
+    if (!canCreate) return;
     setCreateOpen(true);
+
     const params = new URLSearchParams(searchParams.toString());
     params.delete("create");
     const qs = params.toString();
     router.replace(qs ? `/branches?${qs}` : "/branches");
-  }, [searchParams, router]);
+  }, [searchParams, router, canCreate]);
 
   const totalFacilities = countSum(rows, "facilities");
   const totalDepartments = countSum(rows, "departments");
@@ -833,12 +853,13 @@ export default function BranchesPage() {
               Refresh
             </Button>
 
-            {isGlobalAdmin ? (
+            {canCreate ? (
               <Button variant="primary" className="px-5 gap-2" onClick={() => setCreateOpen(true)}>
                 <IconPlus className="h-4 w-4" />
                 Create Branch
               </Button>
             ) : null}
+
           </div>
         </div>
 
@@ -976,7 +997,7 @@ export default function BranchesPage() {
                           </Link>
                         </Button>
 
-                        {isGlobalAdmin ? (
+                        {canUpdate ? (
                           <>
                             <Button
                               variant="info"
@@ -1002,7 +1023,7 @@ export default function BranchesPage() {
                               {b.isActive !== false ? "Deactivate" : "Reactivate"}
                             </Button>
 
-                            {isSuperAdmin && b.isActive === false ? (
+                            {canDelete && b.isActive === false ? (
                               <Button
                                 variant="destructive"
                                 className="px-3 gap-2"
@@ -1017,6 +1038,7 @@ export default function BranchesPage() {
                             ) : null}
                           </>
                         ) : null}
+
                       </div>
                     </td>
                   </tr>
@@ -1039,16 +1061,45 @@ export default function BranchesPage() {
         </div>
       </div>
 
-      <BranchEditorModal mode="create" open={createOpen} initial={null} onClose={() => setCreateOpen(false)} onSaved={() => refresh(false)} />
-      <BranchEditorModal mode="edit" open={editOpen} initial={selected} onClose={() => setEditOpen(false)} onSaved={() => refresh(false)} />
-      <ToggleActiveConfirmDialog
-        open={toggleOpen}
-        branch={selected}
-        action={toggleAction}
-        onClose={() => setToggleOpen(false)}
-        onChanged={() => refresh(false)}
-      />
-      <DeleteConfirmModal open={deleteOpen} branch={selected} onClose={() => setDeleteOpen(false)} onDeleted={() => refresh(false)} />
+      <BranchEditorModal
+  mode="create"
+  open={createOpen}
+  initial={null}
+  onClose={() => setCreateOpen(false)}
+  onSaved={() => refresh(false)}
+  canSubmit={canCreate}
+  deniedMessage="Missing permission: BRANCH_CREATE"
+/>
+
+<BranchEditorModal
+  mode="edit"
+  open={editOpen}
+  initial={selected}
+  onClose={() => setEditOpen(false)}
+  onSaved={() => refresh(false)}
+  canSubmit={canUpdate}
+  deniedMessage="Missing permission: BRANCH_UPDATE"
+/>
+
+<ToggleActiveConfirmDialog
+  open={toggleOpen}
+  branch={selected}
+  action={toggleAction}
+  onClose={() => setToggleOpen(false)}
+  onChanged={() => refresh(false)}
+  canUpdate={canUpdate}
+  deniedMessage="Missing permission: BRANCH_UPDATE"
+/>
+
+<DeleteConfirmModal
+  open={deleteOpen}
+  branch={selected}
+  onClose={() => setDeleteOpen(false)}
+  onDeleted={() => refresh(false)}
+  canDelete={canDelete}
+  deniedMessage="Missing permission: BRANCH_DELETE"
+/>
+
     </AppShell>
   );
 }

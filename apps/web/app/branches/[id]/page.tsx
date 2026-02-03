@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiFetch } from "@/lib/api";
-import { useAuthStore } from "@/lib/auth/store";
+import { useAuthStore, hasPerm, hasAnyPerm } from "@/lib/auth/store";
 import { cn } from "@/lib/cn";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -341,11 +341,15 @@ function EditBranchModal({
   branch,
   onClose,
   onSaved,
+  canSubmit,
+  deniedMessage,
 }: {
   open: boolean;
   branch: BranchRow | null;
   onClose: () => void;
   onSaved: () => Promise<void> | void;
+  canSubmit: boolean;
+  deniedMessage: string;
 }) {
   const { toast } = useToast();
 
@@ -383,6 +387,7 @@ function EditBranchModal({
 
   async function onSubmit() {
     if (!branch?.id) return;
+    if (!canSubmit) return setErr(deniedMessage);
     setErr(null);
 
     if (!form.name.trim()) return setErr("Branch name is required");
@@ -537,7 +542,7 @@ function EditBranchModal({
           <Button variant="outline" onClick={onClose} disabled={busy}>
             Cancel
           </Button>
-          <Button onClick={onSubmit} disabled={busy}>
+          <Button onClick={onSubmit} disabled={busy || !canSubmit} title={!canSubmit ? deniedMessage : undefined}>
             {busy ? "Saving..." : "Save"}
           </Button>
         </DialogFooter>
@@ -551,11 +556,15 @@ function DeleteConfirmModal({
   branch,
   onClose,
   onDeleted,
+  canDelete,
+  deniedMessage,
 }: {
   open: boolean;
   branch: BranchRow | null;
   onClose: () => void;
   onDeleted: () => Promise<void> | void;
+  canDelete: boolean;
+  deniedMessage: string;
 }) {
   const { toast } = useToast();
 
@@ -574,6 +583,7 @@ function DeleteConfirmModal({
 
   async function onConfirm() {
     if (!branch?.id) return;
+    if (!canDelete) return setErr(deniedMessage);
     setErr(null);
     setBusy(true);
     try {
@@ -638,7 +648,12 @@ function DeleteConfirmModal({
         <Button variant="outline" onClick={onClose} disabled={busy}>
           Cancel
         </Button>
-        <Button variant="destructive" onClick={onConfirm} disabled={busy || deps > 0}>
+        <Button
+          variant="destructive"
+          onClick={onConfirm}
+          disabled={busy || deps > 0 || !canDelete}
+          title={!canDelete ? deniedMessage : undefined}
+        >
           {deps > 0 ? "Cannot Delete (Has Setup)" : busy ? "Deleting…" : "Hard Delete"}
         </Button>
       </div>
@@ -652,12 +667,16 @@ function ToggleActiveConfirmDialog({
   action,
   onClose,
   onChanged,
+  canUpdate,
+  deniedMessage,
 }: {
   open: boolean;
   branch: BranchRow | null;
   action: "deactivate" | "reactivate";
   onClose: () => void;
   onChanged: () => Promise<void> | void;
+  canUpdate: boolean;
+  deniedMessage: string;
 }) {
   const { toast } = useToast();
   const [busy, setBusy] = React.useState(false);
@@ -678,6 +697,7 @@ function ToggleActiveConfirmDialog({
 
   async function onConfirm() {
     if (!branch?.id) return;
+    if (!canUpdate) return setErr(deniedMessage);
     setErr(null);
     setBusy(true);
     try {
@@ -731,7 +751,12 @@ function ToggleActiveConfirmDialog({
           <Button variant="outline" onClick={onClose} disabled={busy}>
             Cancel
           </Button>
-          <Button variant={nextActive ? "success" : "secondary"} onClick={onConfirm} disabled={busy}>
+          <Button
+            variant={nextActive ? "success" : "secondary"}
+            onClick={onConfirm}
+            disabled={busy || !canUpdate}
+            title={!canUpdate ? deniedMessage : undefined}
+          >
             {busy ? "Updating…" : nextActive ? "Reactivate" : "Deactivate"}
           </Button>
         </DialogFooter>
@@ -746,17 +771,38 @@ export default function BranchDetailPage() {
   const { toast } = useToast();
 
   const user = useAuthStore((s) => s.user);
-  const isSuperAdmin =
-    user?.role === "SUPER_ADMIN" ||
-    (user as any)?.roleCode === "SUPER_ADMIN" ||
-    (Array.isArray((user as any)?.roles) && (user as any).roles.includes("SUPER_ADMIN"));
+  const permsLoaded = Array.isArray(user?.permissions);
 
-  // Corporate / Global admins can manage branch registry (edit + deactivate/reactivate)
-  const isGlobalAdmin = (user as any)?.roleScope === "GLOBAL" || isSuperAdmin;
+  const canRead = hasPerm(user, "BRANCH_READ");
+  const canUpdate = hasPerm(user, "BRANCH_UPDATE");
+  const canDelete = hasPerm(user, "BRANCH_DELETE");
+
+  // Facility/Department/Specialty setup permissions (used for the Setup tab + shortcuts)
+  const canFacilitySetup = hasAnyPerm(user, [
+    "FACILITY_CATALOG_READ",
+    "FACILITY_CATALOG_CREATE",
+    "BRANCH_FACILITY_READ",
+    "BRANCH_FACILITY_UPDATE",
+    "DEPARTMENT_READ",
+    "DEPARTMENT_CREATE",
+    "DEPARTMENT_UPDATE",
+    "SPECIALTY_READ",
+    "SPECIALTY_CREATE",
+    "SPECIALTY_UPDATE",
+    "DEPARTMENT_SPECIALTY_READ",
+    "DEPARTMENT_SPECIALTY_UPDATE",
+  ]);
 
   const router = useRouter();
   const params = useParams();
   const id = typeof params?.id === "string" ? params.id : Array.isArray(params?.id) ? params.id[0] : "";
+
+  React.useEffect(() => {
+    if (!permsLoaded) return;
+    if (!canRead) {
+      router.replace("/welcome");
+    }
+  }, [permsLoaded, canRead, router]);
 
   const [row, setRow] = React.useState<BranchRow | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -768,6 +814,10 @@ export default function BranchDetailPage() {
   const [toggleAction, setToggleAction] = React.useState<"deactivate" | "reactivate">("deactivate");
   const [activeTab, setActiveTab] = React.useState<"overview" | "setup">("overview");
 
+  React.useEffect(() => {
+    if (!canFacilitySetup && activeTab === "setup") setActiveTab("overview");
+  }, [canFacilitySetup, activeTab]);
+
   const facilitySetupHref = `/infrastructure/facilities/`;
   const policyOverridesHref = `/admin/policy-overrides?branchId=${encodeURIComponent(id)}`;
   const policiesHref = `/policy/policies`;
@@ -775,7 +825,7 @@ export default function BranchDetailPage() {
   const auditHref = `/policy/audit`;
 
   async function refresh(showToast = false) {
-    if (!id) return;
+    if (!id || !canRead) return;
     setErr(null);
     setLoading(true);
     try {
@@ -800,9 +850,10 @@ export default function BranchDetailPage() {
   }
 
   React.useEffect(() => {
+    if (!canRead) return;
     void refresh(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, canRead]);
 
   const facilities = countOf(row, "facilities");
   const departments = countOf(row, "departments");
@@ -894,6 +945,12 @@ export default function BranchDetailPage() {
                 <div className="min-w-0">{err}</div>
               </div>
             ) : null}
+
+            {permsLoaded && !canRead ? (
+              <div className="mt-4 rounded-xl border border-amber-200/70 bg-amber-50/60 px-3 py-2 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200">
+                You don’t have permission to view branch details. Request <span className="font-semibold">BRANCH_READ</span>.
+              </div>
+            ) : null}
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -902,7 +959,7 @@ export default function BranchDetailPage() {
               Refresh
             </Button>
 
-            {isGlobalAdmin ? (
+            {canFacilitySetup ? (
               <Button asChild className="gap-2">
                 <Link href={facilitySetupHref}>
                   <Wand2 className="h-4 w-4" />
@@ -911,7 +968,7 @@ export default function BranchDetailPage() {
               </Button>
             ) : null}
 
-            {isGlobalAdmin && !loading && row ? (
+            {canUpdate && !loading && row ? (
               <>
                 <Button variant="secondary" className="gap-2" onClick={() => setEditOpen(true)}>
                   <Pencil className="h-4 w-4" />
@@ -929,7 +986,7 @@ export default function BranchDetailPage() {
                   {row.isActive !== false ? "Deactivate" : "Reactivate"}
                 </Button>
 
-                {isSuperAdmin && row.isActive === false ? (
+                {canDelete && row.isActive === false ? (
                   <Button variant="destructive" className="gap-2" onClick={() => setDeleteOpen(true)}>
                     <Trash2 className="h-4 w-4" />
                     Hard Delete
@@ -1022,13 +1079,15 @@ export default function BranchDetailPage() {
                     <ClipboardList className="mr-2 h-4 w-4" />
                     Overview
                   </TabsTrigger>
-                  <TabsTrigger
-                    value="setup"
-                    className="rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm"
-                  >
-                    <Wand2 className="mr-2 h-4 w-4" />
-                    Setup
-                  </TabsTrigger>
+                  {canFacilitySetup ? (
+                    <TabsTrigger
+                      value="setup"
+                      className="rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm"
+                    >
+                      <Wand2 className="mr-2 h-4 w-4" />
+                      Setup
+                    </TabsTrigger>
+                  ) : null}
                 </TabsList>
               </Tabs>
             </div>
@@ -1129,6 +1188,11 @@ export default function BranchDetailPage() {
               </TabsContent>
 
               <TabsContent value="setup" className="mt-0">
+                {!canFacilitySetup ? (
+                  <div className="rounded-2xl border border-amber-200/70 bg-amber-50/60 px-3 py-2 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200">
+                    You don’t have permission to manage branch setup. Request <span className="font-semibold">FACILITY/DEPARTMENT/SPECIALTY</span> permissions.
+                  </div>
+                ) : (
                 <div className="grid gap-4 lg:grid-cols-3">
                   <Card className="overflow-hidden lg:col-span-2">
                     <CardHeader>
@@ -1215,6 +1279,7 @@ export default function BranchDetailPage() {
                     </CardContent>
                   </Card>
                 </div>
+                )}
               </TabsContent>
             </Tabs>
           </CardContent>
@@ -1222,7 +1287,14 @@ export default function BranchDetailPage() {
 
       </div>
 
-      <EditBranchModal open={editOpen} branch={row} onClose={() => setEditOpen(false)} onSaved={() => refresh(false)} />
+      <EditBranchModal
+        open={editOpen}
+        branch={row}
+        onClose={() => setEditOpen(false)}
+        onSaved={() => refresh(false)}
+        canSubmit={canUpdate}
+        deniedMessage="Missing permission: BRANCH_UPDATE"
+      />
 
       <ToggleActiveConfirmDialog
         open={toggleOpen}
@@ -1230,6 +1302,8 @@ export default function BranchDetailPage() {
         action={toggleAction}
         onClose={() => setToggleOpen(false)}
         onChanged={() => refresh(false)}
+        canUpdate={canUpdate}
+        deniedMessage="Missing permission: BRANCH_UPDATE"
       />
 
       <DeleteConfirmModal
@@ -1239,6 +1313,8 @@ export default function BranchDetailPage() {
         onDeleted={async () => {
           router.replace("/branches");
         }}
+        canDelete={canDelete}
+        deniedMessage="Missing permission: BRANCH_DELETE"
       />
     </AppShell>
   );

@@ -8,12 +8,14 @@ import {
 import { Reflector } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
 import { IS_PUBLIC_KEY } from "./public.decorator";
+import { RedisService } from "./redis.service";
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly reflector: Reflector
+    private readonly reflector: Reflector,
+    private readonly redis: RedisService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -29,6 +31,17 @@ export class JwtAuthGuard implements CanActivate {
 
     try {
       const payload = await this.jwtService.verifyAsync(token);
+
+      // Optional hard token revocation via Redis blacklist (jti)
+      // Enabled only when AUTH_JTI_ENFORCE=true AND Redis is configured.
+      if (process.env.AUTH_JTI_ENFORCE === "true" && this.redis.isEnabled()) {
+        const jti = String(payload?.jti || "").trim();
+        if (jti) {
+          const revoked = await this.redis.isJtiRevoked(jti);
+          if (revoked) throw new UnauthorizedException("Session revoked");
+        }
+      }
+
       request.user = payload;
 
       // ✅ Enforce mustChangePassword, but allow minimal endpoints needed

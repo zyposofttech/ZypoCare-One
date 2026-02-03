@@ -6,12 +6,20 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { useAuthStore } from "@/lib/auth/store";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { BrandLogo } from "@/components/BrandLogo";
 import { BranchSelector } from "@/components/BranchSelector";
 import { initActiveBranchSync } from "@/lib/branch/active-branch";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"; // Added Dialog imports
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
 import { ToastHost } from "@/components/ToastHost";
 import {
   IconBed,
@@ -35,8 +43,47 @@ import {
   IconShield,
   IconStethoscope,
   IconUsers,
+  IconRefresh,
   type IconProps,
 } from "@/components/icons";
+import { notify } from "@/lib/notify";
+import { useActiveBranchStore } from "@/lib/branch/active-branch";
+
+function IconRefreshLocal(props: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M20 11a8 8 0 1 0 2 5" />
+      <path d="M20 4v7h-7" />
+    </svg>
+  );
+}
+
+function IconBellLocal(props: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  );
+}
 
 // --- Types & Data ---
 
@@ -69,6 +116,24 @@ type NavGroup = {
   title: string;
   items: NavNode[];
 };
+
+type GlobalRefreshOptions = { hard?: boolean };
+type GlobalRefreshFn = (opts?: GlobalRefreshOptions) => void;
+
+const GlobalRefreshContext = React.createContext<GlobalRefreshFn | null>(null);
+
+/**
+ * Allows any child component to trigger an app-wide refresh.
+ * If used outside AppShell, it falls back to a hard reload.
+ */
+export function useGlobalRefresh(): GlobalRefreshFn {
+  return (
+    React.useContext(GlobalRefreshContext) ??
+    (() => {
+      if (typeof window !== "undefined") window.location.reload();
+    })
+  );
+}
 
 function resolveRoleScope(user: any): "GLOBAL" | "BRANCH" | null {
   if (!user) return null;
@@ -142,7 +207,6 @@ const NAV_WORKSPACES: NavNode[] = [
     children: [
       // { label: "Overview", href: "/dashboard/global" },
       { label: "Branches", href: "/branches" },
-      { label: "Users", href: "/users" },
       { label: "Policy Governance", href: "/policy" },
       { label: "Policy Presets", href: "/policy/presets" },
       { label: "Policies", href: "/policy/policies" },
@@ -347,7 +411,7 @@ const NAV_GOVERN: NavNode[] = [
     children: [
       { label: "Permissions", href: "/access/permissions" },
       { label: "Roles", href: "/access/roles" },
-      { label: "App Users", href: "/users" },
+      { label: "App Users", href: "/access/users" },
       { label: "Audit Trails", href: "/access/audit" },
     ],
   },
@@ -404,16 +468,80 @@ type NavCtx = {
 };
 
 /**
+ * Route → permission prefix rules.
+ * Used for:
+ * - Sidebar visibility
+ * - Command Center filtering
+ * - Lightweight client-side guard (defense in depth; backend is still the authority)
+ *
+ * IMPORTANT: Prefix lists should be broad enough to avoid accidental lockouts,
+ * but strict enough that "unknown routes" under a module root don't default-allow.
+ */
+const ROUTE_RULES: Array<{ root: string; anyPrefixes: string[] }> = [
+  // Governance / admin surfaces
+  { root: "/access", anyPrefixes: ["IAM_", "ACCESS_"] },
+  { root: "/policy", anyPrefixes: ["POLICY_", "GOV_", "AUDIT_", "IAM_"] },
+  { root: "/branches", anyPrefixes: ["ORG_", "BRANCH_", "IAM_"] },
+  // { root: "/users", anyPrefixes: ["IAM_USER_", "IAM_", "ORG_"] },
+  { root: "/dashboard/global", anyPrefixes: ["ORG_", "BRANCH_", "IAM_", "REPORT_", "ANALYTICS_", "DASHBOARD_"] },
+  {
+    root: "/infrastructure",
+    anyPrefixes: [
+      "INFRA_",
+      "SERVICE_",
+      "CATALOG_",
+      "ORDERSET_",
+      "TARIFF_",
+      "CHARGE_",
+      "TAX_",
+      "BILLING_SETUP_",
+      "BILLING_",
+    ],
+  },
+
+  // Care delivery modules (broad now; tighten later as you add explicit perms)
+  { root: "/frontoffice", anyPrefixes: ["FO_", "FRONT_OFFICE_", "REG_", "QMS_", "ACCESS_", "IAM_"] },
+  { root: "/clinical", anyPrefixes: ["CLIN_", "EMR_", "OPD_", "IPD_", "ADT_", "ORDER_", "RX_", "PRESC_", "ACCESS_", "IAM_"] },
+  { root: "/nursing", anyPrefixes: ["NURS_", "WARD_", "IPD_", "ACCESS_", "IAM_"] },
+  { root: "/diagnostics", anyPrefixes: ["DIAG_", "LAB_", "IMAGING_", "ACCESS_", "IAM_"] },
+  { root: "/pharmacy", anyPrefixes: ["PHARM_", "INVENTORY_", "STOCK_", "PURCHASE_", "ACCESS_", "IAM_"] },
+  { root: "/billing", anyPrefixes: ["BILLING_", "FIN_", "TPA_", "ACCESS_", "IAM_"] },
+
+  // Ops / compliance / AI
+  { root: "/ops", anyPrefixes: ["OPS_", "FACILITY_", "MAINT_", "IT_", "HOUSEKEEP_", "ACCESS_", "IAM_"] },
+  { root: "/compliance", anyPrefixes: ["COMPLIANCE_", "CONSENT_", "DPDP_", "AUDIT_", "GOV_", "ACCESS_", "IAM_"] },
+  { root: "/statutory", anyPrefixes: ["STATUTORY_", "REPORT_", "REG_", "ACCESS_", "IAM_"] },
+  { root: "/ai", anyPrefixes: ["AI_", "ACCESS_", "IAM_"] },
+];
+
+// Order rules by specificity so "/dashboard/global" matches before "/dashboard"
+const ROUTE_RULES_SORTED = [...ROUTE_RULES].sort((a, b) => b.root.length - a.root.length);
+
+function matchRouteRule(href: string) {
+  return ROUTE_RULES_SORTED.find((r) => href === r.root || href.startsWith(`${r.root}/`)) ?? null;
+}
+
+// Module roots we consider "RBAC-controlled". Unknown paths under these should not default-allow once perms are loaded.
+const KNOWN_MODULE_ROOTS = ROUTE_RULES.map((r) => r.root);
+
+function isUnderKnownModuleRoot(href: string) {
+  return KNOWN_MODULE_ROOTS.some((root) => href === root || href.startsWith(`${root}/`));
+}
+
+/**
  * Central policy for which routes appear in the sidebar / command center.
  * IMPORTANT: This does not replace backend authorization.
  *
  * Strategy:
  * - Scope gates are always applied (GLOBAL/BRANCH workspace split).
  * - If permissions are not yet loaded, we allow links by scope (prevents blank nav on first paint).
- * - Once permissions are loaded, admin surfaces become permission-driven.
+ * - Once permissions are loaded, module roots become permission-driven and "unknown routes" under them do not default-allow.
  */
 function allowHrefByPerm(href: string, ctx: NavCtx) {
   const { scope, perms } = ctx;
+
+  // Always allow core landing pages
+  if (href === "/welcome" || href === "/dashboard") return true;
 
   // Scope gates (GLOBAL-only areas)
   if (
@@ -433,47 +561,20 @@ function allowHrefByPerm(href: string, ctx: NavCtx) {
   // If permissions are not loaded yet, do not over-restrict UI (scope gates already applied).
   if (!perms) return true;
 
-  // Strong gates for sensitive / admin areas
-  if (href.startsWith("/access")) {
-    return hasAnyPrefix(perms, ["IAM_", "ACCESS_"]);
-  }
+  const rule = matchRouteRule(href);
+  if (rule) return hasAnyPrefix(perms, rule.anyPrefixes);
 
-  if (href.startsWith("/policy")) {
-    return hasAnyPrefix(perms, ["POLICY_", "GOV_", "AUDIT_"]) || hasAnyPrefix(perms, ["IAM_"]);
-  }
+  // If we are under any known module root but have no explicit rule (should not happen), deny by default.
+  if (isUnderKnownModuleRoot(href)) return false;
 
-  if (href.startsWith("/branches")) {
-    return hasAnyPrefix(perms, ["ORG_", "BRANCH_", "IAM_"]);
-  }
-
-  if (href.startsWith("/users")) {
-    return hasAnyPrefix(perms, ["IAM_USER_", "IAM_", "ORG_"]);
-  }
-
-  if (href.startsWith("/dashboard/global")) {
-    return hasAnyPrefix(perms, ["ORG_", "BRANCH_", "IAM_", "REPORT_", "ANALYTICS_", "DASHBOARD_"]);
-  }
-
-  if (href.startsWith("/infrastructure")) {
-    return hasAnyPrefix(perms, [
-      "INFRA_",
-      "SERVICE_",
-      "CATALOG_",
-      "ORDERSET_",
-      "TARIFF_",
-      "CHARGE_",
-      "TAX_",
-      "BILLING_SETUP_",
-      "BILLING_",
-    ]);
-  }
-
+  // Non-module pages default-allow (backend will still guard sensitive actions)
   return true;
 }
 
+
 function rewriteHref(label: string, href: string, _ctx: { scope: "GLOBAL" | "BRANCH" }) {
   // Fix “App Users” link so GLOBAL users land on the corporate user screen
-  if (label === "App Users") return "/users";
+  if (label === "App Users") return "/access/users";
   return href;
 }
 
@@ -707,6 +808,7 @@ export function AppShell({
   const router = useRouter();
 
   const user = useAuthStore((s) => s.user);
+  const authzReady = Array.isArray((user as any)?.permissions);
   const logout = useAuthStore((s) => s.logout);
   const handleLogout = React.useCallback(async () => {
     try {
@@ -719,8 +821,110 @@ export function AppShell({
     }
   }, [logout, router]);
 
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const globalRefresh = React.useCallback(
+    (opts?: GlobalRefreshOptions) => {
+      if (opts?.hard) {
+        if (typeof window !== "undefined") window.location.reload();
+        return;
+      }
+
+      setRefreshing(true);
+      try {
+        router.refresh();
+      } finally {
+        if (typeof window !== "undefined") {
+          window.setTimeout(() => setRefreshing(false), 500);
+        } else {
+          setRefreshing(false);
+        }
+      }
+    },
+    [router]
+  );
+
   const scope = resolveRoleScope(user);
   const isGlobalScope = scope === "GLOBAL";
+
+  const activeBranchId = useActiveBranchStore((s) => s.activeBranchId);
+
+  // Header branch selector visibility (keep earlier rule)
+  const userPermsForHeader = getUserPerms(user);
+  const canShowBranchSelector =
+    authzReady && isGlobalScope && (!userPermsForHeader || hasAnyPrefix(userPermsForHeader, ["BRANCH_", "ORG_"]));
+
+  // Branch-required UX (central)
+  const [branchGateOpen, setBranchGateOpen] = React.useState(false);
+  const [branchGateNext, setBranchGateNext] = React.useState<string | null>(null);
+  const branchGateNotifiedRef = React.useRef(false);
+
+  const requiresBranchForPath = React.useMemo(() => {
+    if (!isGlobalScope) return false;
+    if (!pathname) return false;
+
+    // Pages that never require an active branch
+    const noBranch = [
+      "/welcome",
+      "/dashboard",
+      "/dashboard/global",
+      "/branches",
+      "/policy",
+      "/access",
+      "/profile",
+      "/settings",
+    ];
+    if (noBranch.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return false;
+
+    // Everything below is branch-contextual (safe default)
+    const branchScopedRoots = [
+      "/infrastructure",
+      "/frontoffice",
+      "/clinical",
+      "/nursing",
+      "/diagnostics",
+      "/pharmacy",
+      "/billing",
+      "/ops",
+      "/compliance",
+      "/statutory",
+      "/ai",
+    ];
+    return branchScopedRoots.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  }, [isGlobalScope, pathname]);
+
+  React.useEffect(() => {
+    if (!isGlobalScope) return;
+    if (!authzReady) return;
+
+    if (requiresBranchForPath && !activeBranchId) {
+      // Save where user wanted to go, then move them to welcome.
+      setBranchGateNext((prev) => prev ?? pathname);
+
+      if (!branchGateNotifiedRef.current) {
+        branchGateNotifiedRef.current = true;
+        notify.warning("Active branch required", "Select a branch to continue.");
+      }
+
+      setBranchGateOpen(true);
+
+      if (pathname !== "/welcome") {
+        router.replace("/welcome");
+      }
+      return;
+    }
+
+    // If branch selected, close gate and resume navigation once.
+    if (activeBranchId && branchGateOpen) {
+      setBranchGateOpen(false);
+      branchGateNotifiedRef.current = false;
+
+      if (branchGateNext && branchGateNext !== "/welcome" && branchGateNext !== pathname) {
+        router.replace(branchGateNext);
+      }
+      setBranchGateNext(null);
+    }
+  }, [isGlobalScope, requiresBranchForPath, activeBranchId, branchGateOpen, branchGateNext, pathname, router]);
 
   React.useEffect(() => {
     initActiveBranchSync();
@@ -734,6 +938,7 @@ export function AppShell({
   // Guard: keep users inside their workspace (defense-in-depth; proxy/middleware should also enforce this)
   React.useEffect(() => {
     if (!scope || !pathname) return;
+    if (!authzReady) return;
 
     const perms = getUserPerms(user);
     const navCtx: NavCtx = { scope: inferScopeFromUser(user), perms };
@@ -988,469 +1193,491 @@ export function AppShell({
   const rowHover = "hover:bg-[rgb(var(--zc-hover-rgb)/0.06)]";
   const rowActive = "bg-[rgb(var(--zc-hover-rgb)/0.10)]";
 
-  return (
-    <div className="h-screen overflow-hidden bg-zc-bg text-zc-text">
-      {/* Command Center Dialog */}
-      <Dialog open={commandOpen} onOpenChange={setCommandOpen}>
-        <DialogContent className="p-0 gap-0 overflow-hidden max-w-3xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-700/70 shadow-[0_30px_120px_-40px_rgba(15,23,42,0.8)] ring-1 ring-zinc-200/60 dark:ring-zinc-700/60">
-          <DialogTitle className="sr-only">Command Center</DialogTitle>
-          <div className="flex items-center border-b border-zinc-200 dark:border-zinc-800 px-4 py-1">
-            <IconSearch className="mr-2 h-5 w-5 shrink-0 text-zinc-400" />
-            <input
-              className="flex h-12 w-full bg-transparent py-3 text-base outline-none placeholder:text-zinc-400 text-zinc-900 dark:text-zinc-100"
-              placeholder="Type a command, page, or action..."
-              value={commandQuery}
-              onChange={(e) => setCommandQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (!flatCommandItems.length) return;
-                if (e.key === "ArrowDown") {
-                  e.preventDefault();
-                  setCommandIndex((i) => (i + 1) % flatCommandItems.length);
-                } else if (e.key === "ArrowUp") {
-                  e.preventDefault();
-                  setCommandIndex((i) => (i - 1 + flatCommandItems.length) % flatCommandItems.length);
-                } else if (e.key === "Enter") {
-                  e.preventDefault();
-                  const item = flatCommandItems[commandIndex];
-                  if (item) executeCommand(item);
-                } else if (e.key === "Escape") {
-                  e.preventDefault();
-                  setCommandOpen(false);
-                }
-              }}
-              autoFocus
-            />
-            {/* <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border border-zinc-200 bg-zinc-100 px-1.5 font-mono text-[10px] font-medium text-zinc-500 opacity-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 mr-9">
-              <span className="text-xs">ESC</span>
-            </kbd> */}
-          </div>
-          <div className="max-h-[420px] overflow-y-auto p-2">
-            {!commandQuery && commandSections.length === 0 ? (
-              <div className="py-10 text-center text-sm text-zinc-500">
-                <IconKeyboard className="mx-auto h-8 w-8 mb-3 opacity-50" />
-                <p>Start typing to search apps, pages, and actions.</p>
-              </div>
-            ) : null}
-
-            {commandQuery && filteredCommandItems.length === 0 ? (
-              <div className="py-6 text-center text-sm text-zinc-500">
-                No results found for "{commandQuery}"
-              </div>
-            ) : null}
-
-            {(() => {
-              let runningIndex = -1;
-              return commandSections.map((section) => (
-                <div key={section.title} className="space-y-1">
-                  <h4 className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-                    {section.title}
-                  </h4>
-                  {section.items.map((item) => {
-                    runningIndex += 1;
-                    const active = runningIndex === commandIndex;
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => executeCommand(item)}
-                        className={cn(
-                          "group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors",
-                          active
-                            ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800/60 dark:text-zinc-100"
-                            : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                        )}
-                      >
-                        <div className="flex h-8 w-8 items-center justify-center rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
-                          <item.icon className="h-4 w-4 text-zinc-500" />
-                        </div>
-                        <div className="flex flex-col flex-1 min-w-0">
-                          <span className="font-medium truncate">{item.label}</span>
-                          {item.subtitle ? (
-                            <span className="text-xs text-zinc-400 truncate">{item.subtitle}</span>
-                          ) : null}
-                        </div>
-                        <IconChevronRight className={cn("h-4 w-4 text-zinc-400", active ? "opacity-100" : "opacity-0 group-hover:opacity-100")} />
-                      </button>
-                    );
-                  })}
-                </div>
-              ));
-            })()}
-          </div>
-          <div className="flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 py-2.5 text-[10px] text-zinc-500">
-            <div>↑/↓ to navigate • Enter to open</div>
-            <div>Zypocare Command Center</div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <div className="flex h-screen min-w-0">
-        {/* Sidebar */}
-        <aside
-          className={cn(
-            "hidden lg:flex h-screen flex-col",
-            sidebarW,
-            "shrink-0 border-r border-zc-border bg-zc-panel transition-[width] duration-300 ease-in-out", // Added smooth width transition
-            "overflow-x-hidden"
-          )}
-        >
-          {/* Top Header (Unified) */}
-          <div className={cn("shrink-0 relative", collapsed ? "p-3" : "p-4")}>
-            <div
+  if (!authzReady) {
+    const pulse = "animate-pulse bg-[rgb(var(--zc-hover-rgb)/0.10)]";
+    return (
+      <GlobalRefreshContext.Provider value={globalRefresh}>
+        <div className="h-screen overflow-hidden bg-zc-bg text-zc-text">
+          <div className="flex h-full">
+            <aside
               className={cn(
-                "flex items-center",
-                collapsed ? "flex-col justify-center gap-4" : "justify-between"
+                "shrink-0 border-r border-zc-border bg-white/60 dark:bg-zinc-950/30",
+                sidebarW
               )}
             >
-              {/* Brand Section */}
-              <div
-                className={cn(
-                  "flex items-center gap-3 overflow-hidden transition-all duration-300",
-                  collapsed ? "justify-center" : ""
-                )}
-              >
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-zc-border bg-zc-card">
-                  <IconZypoCare className="h-5 w-5 text-zc-accent" />
-                </div>
-
-                <div
-                  className={cn(
-                    "flex min-w-0 flex-col transition-all duration-300",
-                    collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-                  )}
-                >
-                  <div className="truncate text-sm font-semibold tracking-tight">ZypoCare ONE</div>
-                  <div className="mt-0.5 truncate text-xs text-zc-muted">
-                    {user ? roleLabel(user) : "SUPER ADMIN"}
-                  </div>
-                </div>
+              <div className="h-14 px-4 flex items-center gap-3 border-b border-zc-border">
+                <div className={cn("h-7 w-7 rounded-md", pulse)} />
+                {!collapsed ? <div className={cn("h-4 w-28 rounded", pulse)} /> : null}
               </div>
-
-              {/* Toggle Button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn("h-8 w-8 text-muted-foreground", collapsed ? "" : "shrink-0")}
-                onClick={toggleCollapsed}
-                aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-                title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              >
-                {collapsed ? (
-                  <IconPanelRight className="h-4 w-4" />
-                ) : (
-                  <IconPanelLeft className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </div>
-
-          {/* Sidebar Search */}
-          {!collapsed ? (
-            <div className="shrink-0 px-4 pb-3">
-              {/* <div className="relative">
-                <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zc-muted" />
-                <Input
-                  value={navQuery}
-                  onChange={(e) => setNavQuery(e.target.value)}
-                  placeholder="Search modules"
-                  className={cn(
-                    "h-10 pl-10 rounded-lg",
-                    "bg-zc-card border-zc-border",
-                    "focus-visible:ring-2 focus-visible:ring-zc-ring"
-                  )}
-                />
-              </div> */}
-            </div>
-          ) : (
-            <div className="shrink-0 px-3 pb-3">
-              <Separator className="bg-zc-border" />
-            </div>
-          )}
-
-          {/* Navigation Items */}
-          <nav
-            className={cn(
-              "flex-1 min-h-0 overflow-y-auto overflow-x-hidden",
-              collapsed ? "px-2 pb-4" : "px-3 pb-4",
-              "zc-scroll-no-track"
-            )}
-          >
-            <div className={cn("grid", collapsed ? "gap-4" : "gap-6")}>
-              {visibleGroups.map((group) => {
-                const groupOpen = navQuery.trim() ? true : (groupOpenMap[group.title] ?? true);
-
-                return (
-                  <div key={group.title} className="grid gap-2">
-                    {!collapsed && (
-                      <button
-                        type="button"
-                        onClick={() => toggleGroup(group.title)}
-                        className={cn(
-                          "flex items-center gap-2 rounded-md px-2 py-1.5",
-                          "text-[11px] font-semibold uppercase tracking-wide text-zc-muted",
-                          "hover:text-zc-text",
-                          rowHover,
-                          "transition"
-                        )}
-                      >
-                        {groupOpen ? (
-                          <IconChevronDown className="h-3.5 w-3.5" />
-                        ) : (
-                          <IconChevronRight className="h-3.5 w-3.5" />
-                        )}
-                        <span className="truncate">{group.title}</span>
-                      </button>
-                    )}
-
-                    <div
-                      className={cn(
-                        "grid gap-1",
-                        !collapsed && !groupOpen ? "hidden" : "block"
-                      )}
-                    >
-                      {group.items.map((node) => {
-                        const Icon = node.icon;
-                        const active = isNavNodeActive(pathname, node);
-                        const hasActiveChild = flattenChildLinks(node.children).some(({ link }) =>
-                          isActivePath(pathname, link.href)
-                        );
-                        const open = !collapsed && (openMap[node.href] ?? true);
-
-                        const linkBase = cn(
-                          "group flex min-w-0 items-center gap-3 rounded-lg",
-                          collapsed ? "px-0 py-2 justify-center" : "px-3 py-2",
-                          "text-sm font-medium transition-colors duration-200", // Smooth hover/active transition
-                          rowHover
-                        );
-
-                        return (
-                          <div key={node.href} className="min-w-0">
-                            <div className="relative">
-                              <Link
-                                href={node.href as any}
-                                title={collapsed ? node.label : undefined}
-                                className={cn(linkBase, active ? rowActive : "")}
-                                aria-current={active ? "page" : undefined}
-                              >
-                                <Icon
-                                  className={cn(
-                                    "h-4 w-4 shrink-0 transition-colors",
-                                    active
-                                      ? "text-zc-accent"
-                                      : "text-zc-muted group-hover:text-zc-text"
-                                  )}
-                                />
-
-                                {!collapsed && (
-                                  <span
-                                    className={cn(
-                                      "min-w-0 flex-1 truncate transition-colors",
-                                      active ? "text-zc-text" : "text-zc-text/90"
-                                    )}
-                                  >
-                                    {node.label}
-                                  </span>
-                                )}
-
-                                {!collapsed && <NavBadge badge={node.badge} />}
-                              </Link>
-
-                              {!collapsed && node.children?.length ? (
-                                <button
-                                  type="button"
-                                  className={cn(
-                                    "absolute right-2 top-1/2 -translate-y-1/2",
-                                    "grid h-7 w-7 place-items-center rounded-md",
-                                    "text-zc-muted",
-                                    rowHover,
-                                    "transition-colors"
-                                  )}
-                                  aria-label={open ? "Collapse section" : "Expand section"}
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    toggleOpen(node.href);
-                                  }}
-                                >
-                                  {open ? (
-                                    <IconChevronDown className="h-4 w-4" />
-                                  ) : (
-                                    <IconChevronRight className="h-4 w-4" />
-                                  )}
-                                </button>
-                              ) : null}
-                            </div>
-
-                            {!collapsed && node.children?.length && open ? (
-                              <div className="mt-1 grid gap-2 pl-9 animate-in slide-in-from-top-1 duration-200">
-                                {node.children.map((c) => {
-                                  if (isChildGroup(c)) {
-                                    return (
-                                      <div key={`group-${c.label}`} className="grid gap-1">
-                                        <div className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wide text-zc-muted">
-                                          {c.label}
-                                        </div>
-                                        {c.children.map((child) => {
-                                          const childActive =
-                                            child.href === node.href ? pathname === child.href : isActivePath(pathname, child.href);
-                                          return (
-                                            <Link
-                                              key={child.href}
-                                              href={child.href as any}
-                                              className={cn(
-                                                "group flex items-center gap-2 rounded-md px-3 py-2 text-xs transition-colors",
-                                                childActive ? rowActive : "",
-                                                rowHover
-                                              )}
-                                              aria-current={childActive ? "page" : undefined}
-                                            >
-                                              <span
-                                                className={cn(
-                                                  "h-1.5 w-1.5 rounded-full transition-colors",
-                                                  childActive ? "bg-zc-accent" : "bg-zc-border"
-                                                )}
-                                              />
-                                              <span
-                                                className={cn(
-                                                  "min-w-0 flex-1 truncate transition-colors",
-                                                  childActive
-                                                    ? "text-zc-text"
-                                                    : "text-zc-muted group-hover:text-zc-text"
-                                                )}
-                                              >
-                                                {child.label}
-                                              </span>
-                                              <NavBadge badge={child.badge} />
-                                            </Link>
-                                          );
-                                        })}
-                                      </div>
-                                    );
-                                  }
-
-                                  const childActive = c.href === node.href ? pathname === c.href : isActivePath(pathname, c.href);
-                                  return (
-                                    <Link
-                                      key={c.href}
-                                      href={c.href as any}
-                                      className={cn(
-                                        "group flex items-center gap-2 rounded-md px-3 py-2 text-xs transition-colors",
-                                        childActive ? rowActive : "",
-                                        rowHover
-                                      )}
-                                      aria-current={childActive ? "page" : undefined}
-                                    >
-                                      <span
-                                        className={cn(
-                                          "h-1.5 w-1.5 rounded-full transition-colors",
-                                          childActive ? "bg-zc-accent" : "bg-zc-border"
-                                        )}
-                                      />
-                                      <span
-                                        className={cn(
-                                          "min-w-0 flex-1 truncate transition-colors",
-                                          childActive ? "text-zc-text" : "text-zc-muted group-hover:text-zc-text"
-                                        )}
-                                      >
-                                        {c.label}
-                                      </span>
-                                      <NavBadge badge={c.badge} />
-                                    </Link>
-                                  );
-                                })}
-                              </div>
-                            ) : null}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </nav>
-
-          {/* Bottom Footer */}
-          <div className={cn("shrink-0 border-t border-zc-border", collapsed ? "p-3" : "p-4")}>
-            <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-3")}>
-              {!collapsed ? (
-                <>
-                  <div className="grid h-9 w-9 place-items-center rounded-full bg-zc-card border border-zc-border text-xs font-semibold">
-                    {(user?.name || "ZypoCare")
-                      .split(" ")
-                      .slice(0, 2)
-                      .map((p) => p[0])
-                      .join("")
-                      .toUpperCase()}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold">
-                      {user?.name ?? "Super Admin"}
-                    </div>
-                    <div className="mt-0.5 truncate text-xs text-zc-muted">
-                      ZypoCare Hospital • Bengaluru
-                    </div>
-                  </div>
-                </>
-              ) : null}
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleLogout}
-                aria-label="Logout"
-                title="Logout"
-                className="rounded-full"
-              >
-                <IconLogout className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </aside>
-
-        {/* Main Content Area */}
-        <div className="min-w-0 flex-1 flex h-screen flex-col bg-zc-bg">
-          <header className="shrink-0 sticky top-0 z-40 border-b border-zc-border bg-zc-panel/95 backdrop-blur supports-[backdrop-filter]:bg-zc-panel/75">
-
-            <div className="flex flex-nowrap items-center gap-3 px-4 py-3 md:px-6">
-
-              <div className="min-w-0">
-                <div className="truncate text-sm font-semibold tracking-tight">{title}</div>
-                {user ? (
-                  <div className="mt-0.5 truncate text-xs text-zc-muted">
-                    {user.name} • {roleLabel(user)}
-                  </div>
-                ) : null}
-              </div>
-
-              <div className="hidden min-w-0 flex-1 px-3 md:flex">
-                <div className="relative w-full max-w-[720px]">
-                  <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zc-muted" />
-                  {/* Updated Header Input to trigger Command Center */}
-                  <Input
-                    onClick={() => setCommandOpen(true)} // Open Command on click
-                    readOnly // Prevent typing directly, use modal instead
-                    placeholder="Search… (Ctrl/Cmd + K)"
+              <div className="p-3 space-y-2">
+                {Array.from({ length: 10 }).map((_, i) => (
+                  <div
+                    key={i}
                     className={cn(
-                      "h-10 pl-10 rounded-lg cursor-pointer",
-                      "bg-zc-card border-zc-border",
-                      "focus-visible:ring-2 focus-visible:ring-zc-ring hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                      "h-9 rounded-md",
+                      pulse,
+                      collapsed ? "mx-auto w-10" : "w-full"
                     )}
                   />
-                </div>
+                ))}
               </div>
+            </aside>
 
-              <div className="ml-auto flex items-center gap-2">
-                {isGlobalScope ? <BranchSelector className="hidden lg:flex" /> : null}
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => setCommandOpen(true)} // Updated Button to Open Command
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition"
+            <div className="flex-1 flex flex-col">
+              <header className="h-14 border-b border-zc-border flex items-center justify-between px-4">
+                <div className="flex items-center gap-3">
+                  <div className={cn("h-8 w-8 rounded-md", pulse)} />
+                  <div className={cn("h-4 w-56 rounded", pulse)} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={cn("h-8 w-28 rounded-md", pulse)} />
+                  <div className={cn("h-8 w-8 rounded-md", pulse)} />
+                </div>
+              </header>
+
+              <main className="flex-1 overflow-auto p-6">
+                <div className="max-w-5xl space-y-4">
+                  <div className={cn("h-8 w-64 rounded", pulse)} />
+                  <div className={cn("h-4 w-96 rounded", pulse)} />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={cn(
+                          "h-28 rounded-xl border border-zc-border bg-white/50 dark:bg-zinc-950/20",
+                          "animate-pulse"
+                        )}
+                      />
+                    ))}
+                  </div>
+                  <div className="pt-4 text-xs text-zc-muted">
+                    Loading access rights…
+                  </div>
+                </div>
+              </main>
+            </div>
+          </div>
+        </div>
+      </GlobalRefreshContext.Provider>
+    );
+  }
+
+  return (
+    <GlobalRefreshContext.Provider value={globalRefresh}>
+      <div className="h-screen overflow-hidden bg-zc-bg text-zc-text">
+        {/* Command Center Dialog */}
+        <Dialog open={commandOpen} onOpenChange={setCommandOpen}>
+          <DialogContent className="p-0 gap-0 overflow-hidden max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl sm:rounded-xl [&>button]:hidden">
+            <DialogTitle className="sr-only">Command Center</DialogTitle>
+            <div className="flex items-center h-14 border-b border-zinc-200 dark:border-zinc-800 px-4">
+              <IconSearch className="mr-3 h-5 w-5 shrink-0 text-zinc-400" />
+              <input
+                className="flex h-full w-full bg-transparent py-3 text-sm outline-none placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-0"
+                placeholder="Type a command, page, or action..."
+                value={commandQuery}
+                onChange={(e) => setCommandQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (!flatCommandItems.length) return;
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setCommandIndex((i) => (i + 1) % flatCommandItems.length);
+                  } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setCommandIndex((i) => (i - 1 + flatCommandItems.length) % flatCommandItems.length);
+                  } else if (e.key === "Enter") {
+                    e.preventDefault();
+                    const item = flatCommandItems[commandIndex];
+                    if (item) executeCommand(item);
+                  } else if (e.key === "Escape") {
+                    e.preventDefault();
+                    setCommandOpen(false);
+                  }
+                }}
+                autoFocus
+                autoComplete="off"
+              />
+            </div>
+            <div className="max-h-[420px] overflow-y-auto p-2">
+              {!commandQuery && commandSections.length === 0 ? (
+                <div className="py-10 text-center text-sm text-zinc-500">
+                  <IconKeyboard className="mx-auto h-8 w-8 mb-3 opacity-50" />
+                  <p>Start typing to search apps, pages, and actions.</p>
+                </div>
+              ) : null}
+
+              {commandQuery && filteredCommandItems.length === 0 ? (
+                <div className="py-6 text-center text-sm text-zinc-500">
+                  No results found for "{commandQuery}"
+                </div>
+              ) : null}
+
+              {(() => {
+                let runningIndex = -1;
+                return commandSections.map((section) => (
+                  <div key={section.title} className="space-y-1">
+                    <h4 className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                      {section.title}
+                    </h4>
+                    {section.items.map((item) => {
+                      runningIndex += 1;
+                      const active = runningIndex === commandIndex;
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => executeCommand(item)}
+                          className={cn(
+                            "group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors",
+                            active
+                              ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800/60 dark:text-zinc-100"
+                              : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                          )}
+                        >
+                          <div className="flex h-8 w-8 items-center justify-center rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
+                            <item.icon className="h-4 w-4 text-zinc-500" />
+                          </div>
+                          <div className="flex flex-col flex-1 min-w-0">
+                            <span className="font-medium truncate">{item.label}</span>
+                            {item.subtitle ? (
+                              <span className="text-xs text-zinc-400 truncate">{item.subtitle}</span>
+                            ) : null}
+                          </div>
+                          <IconChevronRight className={cn("h-4 w-4 text-zinc-400", active ? "opacity-100" : "opacity-0 group-hover:opacity-100")} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                ));
+              })()}
+            </div>
+            <div className="flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 py-2.5 text-[10px] text-zinc-500">
+              <div>↑/↓ to navigate • Enter to open</div>
+              <div>Zypocare Command Center</div>
+            </div>
+          </DialogContent>
+        </Dialog>
+        {/* Branch Required Dialog */}
+        <Dialog open={branchGateOpen} onOpenChange={setBranchGateOpen}>
+          <DialogContent className="max-w-md bg-zc-card border border-zc-border shadow-xl sm:rounded-xl">
+            <DialogTitle className="text-base font-semibold text-zc-text">Select Active Branch</DialogTitle>
+
+            <div className="mt-1 text-sm text-zc-muted">
+              This page needs a branch context. Choose an active branch to continue.
+            </div>
+
+            <div className="mt-4">
+              {/* Always show selector here (even if header hides it) */}
+              <BranchSelector className="w-full" />
+            </div>
+
+            <div className="mt-5 flex items-center justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => router.push("/branches")}
+              >
+                Manage Branches
+              </Button>
+
+              <Button
+                variant="primary"
+                onClick={() => setBranchGateOpen(false)}
+                disabled={!activeBranchId}
+              >
+                Continue
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <div className="flex h-screen min-w-0">
+          {/* Sidebar */}
+          <aside
+            className={cn(
+              "hidden lg:flex h-screen flex-col",
+              sidebarW,
+              "shrink-0 border-r border-zc-border bg-zc-panel transition-[width] duration-300 ease-in-out", // Added smooth width transition
+              "overflow-x-hidden"
+            )}
+          >
+            {/* Top Header (Unified) */}
+            <div className={cn("shrink-0 relative", collapsed ? "p-3" : "p-4")}>
+              <div
+                className={cn(
+                  "flex items-center",
+                  collapsed ? "flex-col justify-center gap-4" : "justify-between"
+                )}
+              >
+                {/* Brand Section */}
+                <div
+                  className={cn(
+                    "flex items-center gap-3 overflow-hidden transition-all duration-300",
+                    collapsed ? "justify-center" : ""
+                  )}
                 >
-                  <IconKeyboard className="h-4 w-4" />
-                  Command Center
+                  {collapsed ? (
+                    <BrandLogo className="h-8 w-[64px]" />
+                  ) : (
+                    <div className="flex min-w-0 flex-col">
+                      <BrandLogo className="h-8 w-[170px]" />
+                      {/* <div className="mt-1 truncate text-xs text-zc-muted">
+                        {user ? roleLabel(user) : "SUPER ADMIN"}
+                      </div> */}
+                    </div>
+                  )}
+                </div>
+
+                {/* Toggle Button */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn("h-8 w-8 text-muted-foreground", collapsed ? "" : "shrink-0")}
+                  onClick={toggleCollapsed}
+                  aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                  title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                >
+                  {collapsed ? (
+                    <IconPanelRight className="h-4 w-4" />
+                  ) : (
+                    <IconPanelLeft className="h-4 w-4" />
+                  )}
                 </Button>
-                <ThemeToggle />
+              </div>
+            </div>
+
+            {/* Sidebar Search */}
+            {!collapsed ? (
+              <div className="shrink-0 px-4 pb-3">
+                {/* Sidebar search removed as per new clean look, kept minimal */}
+              </div>
+            ) : (
+              <div className="shrink-0 px-3 pb-3">
+                <Separator className="bg-zc-border" />
+              </div>
+            )}
+
+            {/* Navigation Items */}
+            <nav
+              className={cn(
+                "flex-1 min-h-0 overflow-y-auto overflow-x-hidden",
+                collapsed ? "px-2 pb-4" : "px-3 pb-4",
+                "zc-scroll-no-track"
+              )}
+            >
+              <div className={cn("grid", collapsed ? "gap-4" : "gap-6")}>
+                {visibleGroups.map((group) => {
+                  const groupOpen = navQuery.trim() ? true : (groupOpenMap[group.title] ?? true);
+
+                  return (
+                    <div key={group.title} className="grid gap-2">
+                      {!collapsed && (
+                        <button
+                          type="button"
+                          onClick={() => toggleGroup(group.title)}
+                          className={cn(
+                            "flex items-center gap-2 rounded-md px-2 py-1.5",
+                            "text-[11px] font-semibold uppercase tracking-wide text-zc-muted",
+                            "hover:text-zc-text",
+                            rowHover,
+                            "transition"
+                          )}
+                        >
+                          {groupOpen ? (
+                            <IconChevronDown className="h-3.5 w-3.5" />
+                          ) : (
+                            <IconChevronRight className="h-3.5 w-3.5" />
+                          )}
+                          <span className="truncate">{group.title}</span>
+                        </button>
+                      )}
+
+                      <div
+                        className={cn(
+                          "grid gap-1",
+                          !collapsed && !groupOpen ? "hidden" : "block"
+                        )}
+                      >
+                        {group.items.map((node) => {
+                          const Icon = node.icon;
+                          const active = isNavNodeActive(pathname, node);
+                          const open = !collapsed && (openMap[node.href] ?? true);
+
+                          const linkBase = cn(
+                            "group flex min-w-0 items-center gap-3 rounded-lg",
+                            collapsed ? "px-0 py-2 justify-center" : "px-3 py-2",
+                            "text-sm font-medium transition-colors duration-200",
+                            rowHover
+                          );
+
+                          return (
+                            <div key={node.href} className="min-w-0">
+                              <div className="relative">
+                                <Link
+                                  href={node.href as any}
+                                  title={collapsed ? node.label : undefined}
+                                  className={cn(linkBase, active ? rowActive : "")}
+                                  aria-current={active ? "page" : undefined}
+                                >
+                                  <Icon
+                                    className={cn(
+                                      "h-4 w-4 shrink-0 transition-colors",
+                                      active
+                                        ? "text-zc-accent"
+                                        : "text-zc-muted group-hover:text-zc-text"
+                                    )}
+                                  />
+
+                                  {!collapsed && (
+                                    <span
+                                      className={cn(
+                                        "min-w-0 flex-1 truncate transition-colors",
+                                        active ? "text-zc-text" : "text-zc-text/90"
+                                      )}
+                                    >
+                                      {node.label}
+                                    </span>
+                                  )}
+
+                                  {!collapsed && <NavBadge badge={node.badge} />}
+                                </Link>
+
+                                {!collapsed && node.children?.length ? (
+                                  <button
+                                    type="button"
+                                    className={cn(
+                                      "absolute right-2 top-1/2 -translate-y-1/2",
+                                      "grid h-7 w-7 place-items-center rounded-md",
+                                      "text-zc-muted",
+                                      rowHover,
+                                      "transition-colors"
+                                    )}
+                                    aria-label={open ? "Collapse section" : "Expand section"}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      toggleOpen(node.href);
+                                    }}
+                                  >
+                                    {open ? (
+                                      <IconChevronDown className="h-4 w-4" />
+                                    ) : (
+                                      <IconChevronRight className="h-4 w-4" />
+                                    )}
+                                  </button>
+                                ) : null}
+                              </div>
+
+                              {!collapsed && node.children?.length && open ? (
+                                <div className="mt-1 grid gap-2 pl-9 animate-in slide-in-from-top-1 duration-200">
+                                  {node.children.map((c) => {
+                                    if (isChildGroup(c)) {
+                                      return (
+                                        <div key={`group-${c.label}`} className="grid gap-1">
+                                          <div className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wide text-zc-muted">
+                                            {c.label}
+                                          </div>
+                                          {c.children.map((child) => {
+                                            const childActive =
+                                              child.href === node.href ? pathname === child.href : isActivePath(pathname, child.href);
+                                            return (
+                                              <Link
+                                                key={child.href}
+                                                href={child.href as any}
+                                                className={cn(
+                                                  "group flex items-center gap-2 rounded-md px-3 py-2 text-xs transition-colors",
+                                                  childActive ? rowActive : "",
+                                                  rowHover
+                                                )}
+                                                aria-current={childActive ? "page" : undefined}
+                                              >
+                                                <span
+                                                  className={cn(
+                                                    "h-1.5 w-1.5 rounded-full transition-colors",
+                                                    childActive ? "bg-zc-accent" : "bg-zc-border"
+                                                  )}
+                                                />
+                                                <span
+                                                  className={cn(
+                                                    "min-w-0 flex-1 truncate transition-colors",
+                                                    childActive
+                                                      ? "text-zc-text"
+                                                      : "text-zc-muted group-hover:text-zc-text"
+                                                  )}
+                                                >
+                                                  {child.label}
+                                                </span>
+                                                <NavBadge badge={child.badge} />
+                                              </Link>
+                                            );
+                                          })}
+                                        </div>
+                                      );
+                                    }
+
+                                    const childActive = c.href === node.href ? pathname === c.href : isActivePath(pathname, c.href);
+                                    return (
+                                      <Link
+                                        key={c.href}
+                                        href={c.href as any}
+                                        className={cn(
+                                          "group flex items-center gap-2 rounded-md px-3 py-2 text-xs transition-colors",
+                                          childActive ? rowActive : "",
+                                          rowHover
+                                        )}
+                                        aria-current={childActive ? "page" : undefined}
+                                      >
+                                        <span
+                                          className={cn(
+                                            "h-1.5 w-1.5 rounded-full transition-colors",
+                                            childActive ? "bg-zc-accent" : "bg-zc-border"
+                                          )}
+                                        />
+                                        <span
+                                          className={cn(
+                                            "min-w-0 flex-1 truncate transition-colors",
+                                            childActive ? "text-zc-text" : "text-zc-muted group-hover:text-zc-text"
+                                          )}
+                                        >
+                                          {c.label}
+                                        </span>
+                                        <NavBadge badge={c.badge} />
+                                      </Link>
+                                    );
+                                  })}
+                                </div>
+                              ) : null}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </nav>
+
+            {/* Bottom Footer */}
+            <div className={cn("shrink-0 border-t border-zc-border", collapsed ? "p-3" : "p-4")}>
+              <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-3")}>
+                {!collapsed ? (
+                  <>
+                    <div className="grid h-9 w-9 place-items-center rounded-full bg-zc-card border border-zc-border text-xs font-semibold">
+                      {(user?.name || "ZypoCare")
+                        .split(" ")
+                        .slice(0, 2)
+                        .map((p) => p[0])
+                        .join("")
+                        .toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold">
+                        {user?.name ?? "Super Admin"}
+                      </div>
+                      <div className="mt-0.5 truncate text-xs text-zc-muted">
+                        ZypoCare Hospital • Bengaluru
+                      </div>
+                    </div>
+                  </>
+                ) : null}
+
                 <Button
                   variant="ghost"
                   size="icon"
@@ -1463,14 +1690,154 @@ export function AppShell({
                 </Button>
               </div>
             </div>
-          </header>
+          </aside>
 
-          <main className="min-w-0 flex-1 min-h-0 overflow-y-auto p-4 md:p-6 zc-scroll-no-track">
-            <div className="w-full">{children}</div>
-          </main>
+          {/* Main Content Area */}
+          <div className="min-w-0 flex-1 flex h-screen flex-col bg-zc-bg">
+            {/* UPDATED HEADER TO MATCH EXACT DESIGN
+            - Flex Between
+            - Title on left
+            - Action Cluster on right
+          */}
+            <header className="shrink-0 sticky top-0 z-40 flex h-16 items-center justify-between border-b border-zc-border bg-zc-panel/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-zc-panel/75">
+
+              {/* Left: Title */}
+              <div className="flex items-center">
+                <h1 className="text-xl font-normal tracking-tight text-zc-text">{title}</h1>
+              </div>
+
+              {/* Right: Actions */}
+              <div className="flex items-center gap-3 md:gap-4">
+
+                {/* Branch Selector (styled like the US badge in reference) */}
+                {canShowBranchSelector && (
+                  <div className="hidden md:block">
+                    <BranchSelector />
+                  </div>
+                )}
+
+
+                {/* Theme Toggle */}
+                <ThemeToggle />
+
+                {/* Separator */}
+                <div className="hidden h-5 w-px bg-zinc-200 dark:bg-zinc-800 md:block" />
+
+                {/* Icons Cluster */}
+                <div className="flex items-center gap-1 md:gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setCommandOpen(true)}
+                    className="text-zc-muted hover:text-zc-text"
+                  >
+                    <IconSearch className="h-5 w-5" />
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => globalRefresh()}
+                    disabled={refreshing}
+                    aria-label="Refresh"
+                    title="Refresh"
+                    className="text-zc-muted hover:text-zc-text"
+                  >
+                    <IconRefresh className={cn("h-5 w-5", refreshing && "animate-spin")} />
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="relative text-zc-muted hover:text-zc-text"
+                  >
+                    <IconBellLocal className="h-5 w-5" />
+                    <span className="absolute right-2 top-2 flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                    </span>
+                  </Button>
+                </div>
+
+                {/* Separator */}
+                <div className="hidden h-5 w-px bg-zinc-200 dark:bg-zinc-800 md:block" />
+
+                {/* User Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex items-center gap-3 pl-1 hover:opacity-80 transition-opacity"
+                      aria-label="User menu"
+                    >
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 ring-2 ring-white dark:ring-zinc-900 border border-transparent">
+                        <span className="text-xs font-semibold">
+                          {(user?.name || "ZC").slice(0, 2).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="hidden items-center gap-2 text-sm font-medium text-zc-text md:flex">
+                        <span>{user?.name || "User"}</span>
+                        <IconChevronDown className="h-4 w-4 text-zc-muted" />
+                      </div>
+                    </button>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel className="px-2.5 py-2">
+                      <div className="text-sm font-semibold text-zc-text truncate">
+                        {user?.name || "User"}
+                      </div>
+                      <div className="text-xs text-zc-muted truncate">
+                        {roleLabel(user)}
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuItem
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        router.push("/profile");
+                      }}
+                    >
+                      <IconUsers className="h-4 w-4" />
+                      Profile
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        router.push("/settings");
+                      }}
+                    >
+                      <IconKeyboard className="h-4 w-4" />
+                      Settings
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuItem
+                      className="text-red-600 focus:text-red-600"
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        handleLogout();
+                      }}
+                    >
+                      <IconLogout className="h-4 w-4" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+              </div>
+            </header>
+
+            <main className="min-w-0 flex-1 min-h-0 overflow-y-auto p-4 md:p-6 zc-scroll-no-track">
+              <div className="w-full">{children}</div>
+            </main>
+          </div>
         </div>
+        <ToastHost />
       </div>
-      <ToastHost />
-    </div>
+    </GlobalRefreshContext.Provider>
   );
 }

@@ -10,8 +10,10 @@ import { AuthService } from "./auth.service";
 import { JwtAuthGuard } from "./auth.guard";
 import { RolesGuard } from "./roles.guard";
 
-import { AccessPolicyService } from "./access-policy.service";
 import { IamPrincipalService } from "./iam-principal.service";
+import { RedisService } from "./redis.service";
+
+import { AccessPolicyService } from "./access-policy.service";
 import { PrincipalGuard } from "./principal.guard";
 import { PermissionsGuard } from "./permissions.guard";
 
@@ -40,6 +42,9 @@ function readJwtExpiresIn(): number | string | undefined {
   providers: [
     AuthService,
 
+    // Optional Redis cache (shared principal cache when scaled horizontally)
+    RedisService,
+
     IamPrincipalService,
 
     AccessPolicyService,
@@ -53,6 +58,6 @@ function readJwtExpiresIn(): number | string | undefined {
     { provide: APP_GUARD, useClass: PermissionsGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
-  exports: [AuthService, IamPrincipalService, AccessPolicyService, PrincipalGuard, PermissionsGuard],
+  exports: [AuthService, RedisService, IamPrincipalService, AccessPolicyService, PrincipalGuard, PermissionsGuard],
 })
 export class AuthModule {}

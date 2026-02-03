@@ -19,15 +19,15 @@ function getScope(req: NextRequest): "GLOBAL" | "BRANCH" | null {
   return null;
 }
 
-function getRoleCode(req: NextRequest) {
-  return (req.cookies.get("zypocare_role")?.value || "").trim().toUpperCase();
-}
-
 function homeForScope(scope: "GLOBAL" | "BRANCH" | null) {
   // "superadmin" workspace has been removed. Use dashboard routes.
   if (scope === "BRANCH") return "/dashboard";
   if (scope === "GLOBAL") return "/dashboard/global";
   return "/"; // unknown scope
+}
+
+function isMustChangePasswordPath(pathname: string) {
+  return pathname === "/must-change-password" || pathname.startsWith("/must-change-password/");
 }
 
 export function proxy(req: NextRequest) {
@@ -41,6 +41,13 @@ export function proxy(req: NextRequest) {
 
   const authed = req.cookies.get("zypocare_auth")?.value === "1";
   const scope = getScope(req);
+  const isMcp = isMustChangePasswordPath(pathname);
+
+  // Optional: "force must-change-password" flag (safe if not used)
+  // Set either cookie to "1" at login time when user must update password.
+  const mustChangeFlag =
+    req.cookies.get("zypocare_mcp")?.value === "1" ||
+    req.cookies.get("zypocare_must_change")?.value === "1";
 
   // If user is already authed and hits /login, send them to their home
   if (pathname.startsWith("/login")) {
@@ -53,9 +60,13 @@ export function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Must-change-password should be reachable (the page itself handles redirects)
-  if (pathname.startsWith("/must-change-password")) {
-    return NextResponse.next();
+  // ✅ Option C: must-change-password is NOT public.
+  // If user hits it without auth, force login (preserve next)
+  if (!authed && isMcp) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/login";
+    url.searchParams.set("next", `${pathname}${search || ""}`);
+    return NextResponse.redirect(url);
   }
 
   // Not authed -> force login with next (include querystring)
@@ -64,6 +75,20 @@ export function proxy(req: NextRequest) {
     url.pathname = "/login";
     url.searchParams.set("next", `${pathname}${search || ""}`);
     return NextResponse.redirect(url);
+  }
+
+  // ✅ Optional: enforce must-change-password flow for authenticated users
+  // If the flag is set, keep the user on /must-change-password until cleared.
+  if (authed && mustChangeFlag && !isMcp) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/must-change-password";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+
+  // Authenticated users can reach must-change-password page
+  if (authed && isMcp) {
+    return NextResponse.next();
   }
 
   // -------------------------
@@ -100,45 +125,7 @@ export function proxy(req: NextRequest) {
   }
 
   // -------------------------
-  // Role-based route enforcement (defense-in-depth)
-  // -------------------------
-
-  // /access/* is restricted to SUPER_ADMIN within the GLOBAL scope
-  if (pathname.startsWith("/access") && scope === "GLOBAL") {
-    const roleCode = getRoleCode(req);
-    if (roleCode !== "SUPER_ADMIN") {
-      const url = req.nextUrl.clone();
-      url.pathname = "/dashboard/global";
-      url.search = "";
-      return NextResponse.redirect(url);
-    }
-  }
-
-  // Policy governance is SUPER_ADMIN only
-  if (pathname.startsWith("/policy") && scope === "GLOBAL") {
-    const roleCode = getRoleCode(req);
-    if (roleCode !== "SUPER_ADMIN") {
-      const url = req.nextUrl.clone();
-      url.pathname = "/dashboard/global";
-      url.search = "";
-      return NextResponse.redirect(url);
-    }
-  }
-
-  // Infrastructure setup: SUPER_ADMIN + CORPORATE_ADMIN (+ optionally GLOBAL_ADMIN)
-  if (pathname.startsWith("/infrastructure") && scope === "GLOBAL") {
-    const roleCode = getRoleCode(req);
-    const ok = roleCode === "SUPER_ADMIN" || roleCode === "CORPORATE_ADMIN" || roleCode === "GLOBAL_ADMIN";
-    if (!ok) {
-      const url = req.nextUrl.clone();
-      url.pathname = "/dashboard/global";
-      url.search = "";
-      return NextResponse.redirect(url);
-    }
-  }
-
-  // -------------------------
-  // Role-scope route enforcement (when cookie is present)
+  // Role-scope UX routing (NOT security)
   // -------------------------
 
   // Branch-scoped users must not enter Central Console routes
@@ -150,8 +137,13 @@ export function proxy(req: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    // Branch users must not enter GLOBAL-only areas.
-    if (pathname.startsWith("/access") || pathname.startsWith("/policy") || pathname.startsWith("/dashboard/global") || pathname.startsWith("/branches")) {
+    // Keep branch users in branch workspace UX.
+    if (
+      pathname.startsWith("/access") ||
+      pathname.startsWith("/policy") ||
+      pathname.startsWith("/dashboard/global") ||
+      pathname.startsWith("/branches")
+    ) {
       const url = req.nextUrl.clone();
       url.pathname = "/dashboard";
       url.search = "";
@@ -180,5 +172,5 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

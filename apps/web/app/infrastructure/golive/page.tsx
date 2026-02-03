@@ -4,6 +4,7 @@ import * as React from "react";
 import { AppLink as Link } from "@/components/app-link";
 
 import { AppShell } from "@/components/AppShell";
+import { RequirePerm } from "@/components/RequirePerm";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -388,6 +389,7 @@ setSelected(null);
 
   return (
     <AppShell title="Infrastructure • GoLive">
+      <RequirePerm perm="INFRA_GOLIVE_READ">
       <div className="grid gap-6">
         {/* Header */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -826,6 +828,7 @@ setSelected(null);
           </div>
         </DialogContent>
       </Dialog>
-    </AppShell>
+          </RequirePerm>
+</AppShell>
   );
 }

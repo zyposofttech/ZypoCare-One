@@ -35,10 +35,13 @@ export type AuthUser = {
 
   branchId?: string | null;
   branchName?: string | null;
+
+  // ✅ enterprise: for corporate/global principals that can operate across multiple branches
+  allowedBranchIds?: string[] | null;
+
   mustChangePassword?: boolean;
   isActive?: boolean;
 };
-
 
 export function getRoleCode(user: AuthUser | null | undefined): string {
   return String(user?.roleCode ?? user?.role ?? "").trim().toUpperCase();
@@ -66,19 +69,64 @@ export function getPermissions(user: AuthUser | null | undefined): string[] {
   return Array.isArray(user?.permissions) ? user!.permissions! : [];
 }
 
+/**
+ * ✅ Enterprise helper: supports exact permissions and simple wildcard patterns.
+ * Example:
+ *  - hasPerm(user, "IAM_ROLE_READ")
+ *  - hasPerm(user, "INFRA_*_READ")
+ */
+function matchPerm(pattern: string, granted: string): boolean {
+  if (!pattern) return false;
+  if (pattern === granted) return true;
+
+  // Wildcard support: "*" matches any substring
+  if (pattern.includes("*")) {
+    const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
+    const re = new RegExp(`^${escaped}$`);
+    return re.test(granted);
+  }
+
+  return false;
+}
+
 export function hasPerm(user: AuthUser | null | undefined, perm: string): boolean {
   if (!perm) return false;
-  return getPermissions(user).includes(perm);
+  const perms = getPermissions(user);
+  if (!perms.length) return false;
+
+  // Fast path for exact matches
+  if (!perm.includes("*")) return perms.includes(perm);
+
+  // Pattern match path
+  return perms.some((g) => matchPerm(perm, g));
 }
 
 export function hasAnyPerm(user: AuthUser | null | undefined, perms: string[]): boolean {
   const p = getPermissions(user);
-  return perms.some((x) => p.includes(x));
+  if (!p.length) return false;
+  return perms.some((x) => (x.includes("*") ? p.some((g) => matchPerm(x, g)) : p.includes(x)));
 }
 
 export function hasAllPerms(user: AuthUser | null | undefined, perms: string[]): boolean {
   const p = getPermissions(user);
-  return perms.every((x) => p.includes(x));
+  if (!p.length) return false;
+  return perms.every((x) => (x.includes("*") ? p.some((g) => matchPerm(x, g)) : p.includes(x)));
+}
+
+/**
+ * ✅ Standard primitive to use everywhere in UI.
+ * This is how we stop RBAC logic from being re-implemented in every page.
+ */
+export function usePermissions() {
+  const user = useAuthStore((s) => s.user);
+  const perms = getPermissions(user);
+  return {
+    user,
+    perms,
+    can: (code: string) => hasPerm(user, code),
+    canAny: (codes: string[]) => hasAnyPerm(user, codes),
+    canAll: (codes: string[]) => hasAllPerms(user, codes),
+  };
 }
 
 const REMEMBER_DEVICE_KEY = "zypocare-remember-device";

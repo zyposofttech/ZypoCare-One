@@ -1,24 +1,33 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { Roles } from "../auth/roles.decorator";
+import { Permissions } from "../auth/permissions.decorator";
 import type { Principal } from "../auth/access-policy.service";
+import { PERM } from "../iam/iam.constants";
 import { BillingService } from "./billing.service";
-import { ActivateTariffPlanDto, CreateTariffPlanDto, UpdateTariffPlanDto, UpsertTariffRateDto, UpdateTariffRateDto, CreateTaxCodeDto, UpdateTaxCodeDto,SetDefaultTariffPlanDto  } from "./dto";
-
+import {
+  ActivateTariffPlanDto,
+  CreateTariffPlanDto,
+  UpdateTariffPlanDto,
+  UpsertTariffRateDto,
+  UpdateTariffRateDto,
+  CreateTaxCodeDto,
+  UpdateTaxCodeDto,
+  SetDefaultTariffPlanDto,
+} from "./dto";
 
 @ApiTags("billing")
 @Controller("billing")
-@Roles("SUPER_ADMIN", "BRANCH_ADMIN", "BILLING")
 export class BillingController {
-  constructor(private readonly svc: BillingService) { }
+  constructor(private readonly svc: BillingService) {}
 
   private principal(req: any): Principal {
     return req.principal;
   }
 
-  // -------- Tariff Plans
+  // ---------------- Tariff Plans ----------------
 
   @Get("tariff-plans")
+  @Permissions(PERM.INFRA_TARIFF_PLAN_READ)
   listPlans(
     @Req() req: any,
     @Query("branchId") branchId?: string,
@@ -41,36 +50,45 @@ export class BillingController {
   }
 
   @Get("tariff-plans/:id")
+  @Permissions(PERM.INFRA_TARIFF_PLAN_READ)
   getPlan(@Req() req: any, @Param("id") id: string) {
     return this.svc.getTariffPlan(this.principal(req), id);
   }
 
   @Post("tariff-plans")
+  @Permissions(PERM.INFRA_TARIFF_PLAN_CREATE)
   createPlan(@Req() req: any, @Body() dto: CreateTariffPlanDto) {
     return this.svc.createTariffPlan(this.principal(req), dto);
   }
 
   @Patch("tariff-plans/:id")
+  @Permissions(PERM.INFRA_TARIFF_PLAN_UPDATE)
   updatePlan(@Req() req: any, @Param("id") id: string, @Body() dto: UpdateTariffPlanDto) {
     return this.svc.updateTariffPlan(this.principal(req), id, dto);
   }
 
   @Post("tariff-plans/:id/activate")
+  @Permissions(PERM.INFRA_TARIFF_PLAN_UPDATE)
   activate(@Req() req: any, @Param("id") id: string, @Body() dto: ActivateTariffPlanDto) {
     return this.svc.activateTariffPlan(this.principal(req), id, dto);
   }
 
   @Post("tariff-plans/:id/retire")
+  @Permissions(PERM.INFRA_TARIFF_PLAN_UPDATE)
   retire(@Req() req: any, @Param("id") id: string) {
     return this.svc.retireTariffPlan(this.principal(req), id);
   }
-   @Post("tariff-plans/:id/default")
+
+  @Post("tariff-plans/:id/default")
+  @Permissions(PERM.INFRA_TARIFF_PLAN_UPDATE)
   setDefaultPlan(@Req() req: any, @Param("id") id: string, @Body() dto: SetDefaultTariffPlanDto) {
     return this.svc.setTariffPlanDefault(this.principal(req), id, dto);
   }
-  // -------- Tariff Rates
+
+  // ---------------- Tariff Rates ----------------
 
   @Get("tariff-plans/:tariffPlanId/rates")
+  @Permissions(PERM.INFRA_TARIFF_RATE_READ)
   listRates(
     @Req() req: any,
     @Param("tariffPlanId") tariffPlanId: string,
@@ -84,11 +102,13 @@ export class BillingController {
   }
 
   @Post("tariff-plans/:tariffPlanId/rates")
+  @Permissions(PERM.INFRA_TARIFF_RATE_UPDATE)
   upsertRate(@Req() req: any, @Param("tariffPlanId") tariffPlanId: string, @Body() dto: UpsertTariffRateDto) {
     return this.svc.upsertTariffRate(this.principal(req), dto, tariffPlanId);
   }
 
   @Post("tariff-plans/:tariffPlanId/rates/close")
+  @Permissions(PERM.INFRA_TARIFF_RATE_UPDATE)
   closeCurrentRate(
     @Req() req: any,
     @Param("tariffPlanId") tariffPlanId: string,
@@ -97,7 +117,9 @@ export class BillingController {
   ) {
     return this.svc.closeCurrentTariffRate(this.principal(req), tariffPlanId, chargeMasterItemId, effectiveTo);
   }
+
   @Get("tariff-rates")
+  @Permissions(PERM.INFRA_TARIFF_RATE_READ)
   listRatesDirect(
     @Req() req: any,
     @Query("tariffPlanId") tariffPlanId: string,
@@ -113,46 +135,53 @@ export class BillingController {
   }
 
   @Post("tariff-rates")
+  @Permissions(PERM.INFRA_TARIFF_RATE_UPDATE)
   upsertRateDirect(@Req() req: any, @Body() dto: UpsertTariffRateDto) {
     return this.svc.upsertTariffRate(this.principal(req), dto, dto.tariffPlanId);
   }
 
   @Patch("tariff-rates/:id")
+  @Permissions(PERM.INFRA_TARIFF_RATE_UPDATE)
   updateRateById(@Req() req: any, @Param("id") id: string, @Body() dto: UpdateTariffRateDto) {
     return this.svc.updateTariffRateById(this.principal(req), id, dto);
   }
 
   @Post("tariff-rates/:id/close")
-  closeRateById(
-    @Req() req: any,
-    @Param("id") id: string,
-    @Query("effectiveTo") effectiveTo: string,
-  ) {
+  @Permissions(PERM.INFRA_TARIFF_RATE_UPDATE)
+  closeRateById(@Req() req: any, @Param("id") id: string, @Query("effectiveTo") effectiveTo: string) {
     return this.svc.closeTariffRateById(this.principal(req), id, effectiveTo);
   }
 
   @Delete("tariff-rates/:id")
+  @Permissions(PERM.INFRA_TARIFF_RATE_UPDATE)
   deactivateRateById(@Req() req: any, @Param("id") id: string) {
     return this.svc.deactivateTariffRateById(this.principal(req), id);
   }
-  // -------- Legacy aliases (keeps your UI from breaking if it used older endpoints)
+
+  // -------- Legacy aliases (keeps older UI endpoints working)
+
   @Get("tariffs")
+  @Permissions(PERM.INFRA_TARIFF_PLAN_READ)
   listPlansAlias(@Req() req: any, @Query("branchId") branchId?: string) {
     return this.svc.listTariffPlans(this.principal(req), { branchId: branchId ?? null });
   }
 
   @Post("tariffs")
+  @Permissions(PERM.INFRA_TARIFF_PLAN_CREATE)
   createPlanAlias(@Req() req: any, @Body() dto: CreateTariffPlanDto) {
     return this.svc.createTariffPlan(this.principal(req), dto);
   }
 
   @Post("tariffs/rates")
+  @Permissions(PERM.INFRA_TARIFF_RATE_UPDATE)
   upsertRateAlias(@Req() req: any, @Body() dto: UpsertTariffRateDto) {
     return this.svc.upsertTariffRate(this.principal(req), dto);
   }
-  // -------- Tax Codes (Option-B)
+
+  // ---------------- Tax Codes ----------------
 
   @Get("tax-codes")
+  @Permissions(PERM.INFRA_TAX_CODE_READ)
   listTaxCodes(
     @Req() req: any,
     @Query("branchId") branchId?: string,
@@ -169,24 +198,21 @@ export class BillingController {
   }
 
   @Post("tax-codes")
-  createTaxCode(
-    @Req() req: any,
-    @Body() dto: CreateTaxCodeDto,
-    @Query("branchId") branchId?: string,
-  ) {
+  @Permissions(PERM.INFRA_TAX_CODE_CREATE)
+  createTaxCode(@Req() req: any, @Body() dto: CreateTaxCodeDto, @Query("branchId") branchId?: string) {
     // UI sometimes sends branchId in body; allow both
     return this.svc.createTaxCode(this.principal(req), dto, branchId ?? null);
   }
 
-
   @Patch("tax-codes/:id")
+  @Permissions(PERM.INFRA_TAX_CODE_UPDATE)
   updateTaxCode(@Req() req: any, @Param("id") id: string, @Body() dto: UpdateTaxCodeDto) {
     return this.svc.updateTaxCode(this.principal(req), id, dto);
   }
 
   @Delete("tax-codes/:id")
+  @Permissions(PERM.INFRA_TAX_CODE_UPDATE)
   deactivateTaxCode(@Req() req: any, @Param("id") id: string) {
     return this.svc.deactivateTaxCode(this.principal(req), id);
   }
-
 }

@@ -4,6 +4,7 @@ import * as React from "react";
 import { AppLink as Link } from "@/components/app-link";
 
 import { AppShell } from "@/components/AppShell";
+import { RequirePerm } from "@/components/RequirePerm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -796,6 +797,7 @@ setQ("");
   }
   return (
     <AppShell title="Infrastructure • Tariff Plans">
+      <RequirePerm perm="INFRA_TARIFF_PLAN_READ">
       <div className="grid gap-6">
         {/* Header */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -1278,7 +1280,8 @@ setQ("");
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AppShell>
+          </RequirePerm>
+</AppShell>
   );
 }
 

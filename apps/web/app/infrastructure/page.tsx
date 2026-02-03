@@ -4,6 +4,7 @@ import * as React from "react";
 import { AppLink as Link } from "@/components/app-link";
 
 import { AppShell } from "@/components/AppShell";
+import { RequirePerm, RequireAnyPerm } from "@/components/RequirePerm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -612,6 +613,17 @@ export default function SuperAdminInfrastructureOverview() {
 
   return (
     <AppShell title="Infrastructure Setup">
+      <RequireAnyPerm
+        perms={[
+          "INFRA_LOCATION_READ",
+          "INFRA_UNIT_READ",
+          "INFRA_ROOM_READ",
+          "INFRA_RESOURCE_READ",
+          "INFRA_EQUIPMENT_READ",
+          "INFRA_SERVICE_READ",
+          "INFRA_GOLIVE_READ",
+        ]}
+      >
       <div className="grid gap-6">
         {/* Header */}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -1135,6 +1147,7 @@ export default function SuperAdminInfrastructureOverview() {
           </CardContent>
         </Card>
       </div>
-    </AppShell>
+          </RequireAnyPerm>
+</AppShell>
   );
 }

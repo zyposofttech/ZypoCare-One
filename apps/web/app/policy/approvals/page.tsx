@@ -7,11 +7,13 @@ import { AppLink as Link } from "@/components/app-link";
 import { AlertTriangle, CheckCircle2, RefreshCw, XCircle } from "lucide-react";
 
 import { AppShell } from "@/components/AppShell";
+import { RequirePerm } from "@/components/RequirePerm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
@@ -95,6 +97,7 @@ export default function SuperAdminPolicyApprovalsPage() {
 
   const [actionRow, setActionRow] = React.useState<ApprovalRow | null>(null);
   const [actionMode, setActionMode] = React.useState<"approve" | "reject" | null>(null);
+  const branchSelectValue = branchId || "__ALL__";
 
   async function refresh() {
     setErr(null);
@@ -143,6 +146,7 @@ export default function SuperAdminPolicyApprovalsPage() {
 
   return (
     <AppShell title="Policy Governance">
+      <RequirePerm perm="GOV_POLICY_APPROVE">
       <div className="grid gap-6">
         {/* Header */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -205,18 +209,22 @@ export default function SuperAdminPolicyApprovalsPage() {
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <Label className="text-sm text-zc-muted">Branch</Label>
-                <select
-                  value={branchId}
-                  onChange={(e) => setBranchId(e.target.value)}
-                  className="h-10 rounded-lg border border-zc-border bg-zc-card px-3 text-sm text-zc-text"
+                <Select
+                  value={branchSelectValue}
+                  onValueChange={(value) => setBranchId(value === "__ALL__" ? "" : value)}
                 >
-                  <option value="">All branches</option>
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name} ({b.code})
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="h-10 w-full min-w-[220px] rounded-xl border-zc-border bg-zc-card text-sm">
+                    <SelectValue placeholder="All branches" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[320px] overflow-y-auto">
+                    <SelectItem value="__ALL__">All branches</SelectItem>
+                    {branches.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.name} ({b.code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -343,7 +351,8 @@ export default function SuperAdminPolicyApprovalsPage() {
           />
         ) : null}
       </div>
-    </AppShell>
+          </RequirePerm>
+</AppShell>
   );
 }
 

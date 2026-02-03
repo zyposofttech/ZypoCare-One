@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import { AppShell } from "@/components/AppShell";
+import { RequirePerm } from "@/components/RequirePerm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -469,6 +470,7 @@ export default function DiagnosticsConfigPage() {
 
   return (
     <AppShell title="Diagnostics Configuration">
+      <RequirePerm perm="INFRA_DIAGNOSTICS_READ">
       <div className="grid gap-6">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-center gap-3">
@@ -632,7 +634,8 @@ export default function DiagnosticsConfigPage() {
         </Card>
 
       </div>
-    </AppShell>
+          </RequirePerm>
+</AppShell>
   );
 }
 

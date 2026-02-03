@@ -9,6 +9,8 @@ import { JwtService } from "@nestjs/jwt";
 import type { PrismaClient } from "@zypocare/db";
 import { AuditService } from "../audit/audit.service";
 import { hashPassword, validatePassword, verifyPassword } from "../iam/password.util";
+import { randomUUID } from "crypto";
+import { RedisService } from "./redis.service";
 
 function lowerEmail(e: string) {
   return (e || "").trim().toLowerCase();
@@ -26,6 +28,7 @@ type AuthUserPayload = {
   branchId: string | null;
   mustChangePassword: boolean;
   isActive: boolean;
+  authzVersion: number;
 };
 
 @Injectable()
@@ -33,7 +36,8 @@ export class AuthService {
   constructor(
     @Inject("PRISMA") private readonly prisma: PrismaClient,
     private readonly jwtService: JwtService,
-    private readonly audit: AuditService
+    private readonly audit: AuditService,
+    private readonly redis: RedisService
   ) {}
 
   private toAuthUser(u: any): AuthUserPayload {
@@ -49,12 +53,15 @@ export class AuthService {
       branchId: u.branchId ?? null,
       mustChangePassword: !!u.mustChangePassword,
       isActive: !!u.isActive,
+      authzVersion: Number(u?.authzVersion ?? 1),
     };
   }
 
   private signToken(user: AuthUserPayload) {
+    const jti = randomUUID();
     return this.jwtService.sign({
       sub: user.id,
+      jti,
       email: user.email,
       role: user.role,
       roleCode: user.roleCode,
@@ -64,7 +71,26 @@ export class AuthService {
       },
       branchId: user.branchId,
       mustChangePassword: user.mustChangePassword,
+      authzVersion: user.authzVersion,
     });
+  }
+
+  /**
+   * Optional: hard token revocation using Redis (jti blacklist).
+   * Enabled only when AUTH_JTI_ENFORCE=true and Redis is configured.
+   */
+  async revokeJti(jtiRaw: string, expUnixSeconds?: number) {
+    if (process.env.AUTH_JTI_ENFORCE !== "true") return;
+    if (!this.redis.isEnabled()) return;
+    const jti = String(jtiRaw || "").trim();
+    if (!jti) return;
+
+    // Determine remaining TTL based on token exp; fallback to 1 day
+    const nowSec = Math.floor(Date.now() / 1000);
+    const exp = Number(expUnixSeconds || 0);
+    const ttl = exp > nowSec ? exp - nowSec : 24 * 60 * 60;
+
+    await this.redis.revokeJti(jti, ttl);
   }
 
   async validateUser(emailRaw: string, pass: string): Promise<AuthUserPayload | null> {
@@ -122,6 +148,8 @@ export class AuthService {
       data: {
         passwordHash: hashPassword(newPassword),
         mustChangePassword: false,
+        // Security-sensitive change: bump authzVersion so cached principals/sessions can be invalidated.
+        authzVersion: { increment: 1 },
       },
       include: { roleVersion: { include: { roleTemplate: true } } },
     });

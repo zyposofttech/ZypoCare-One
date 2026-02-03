@@ -1,5 +1,8 @@
 import { Module } from "@nestjs/common";
 
+// ✅ Needed because DiagnosticsConfigController injects AccessPolicyService
+import { AuthModule } from "../../auth/auth.module";
+
 import { DiagnosticsConfigController } from "./diagnostics-config.controller";
 import { DiagnosticsConfigService } from "./diagnostics-config.service";
 
@@ -21,6 +24,7 @@ import { DiagnosticsPacksService } from "./diagnostics-packs.service";
  * No operational workflow, and no charge master mapping (charges are handled in Charge Master module).
  */
 @Module({
+  imports: [AuthModule],
   controllers: [
     DiagnosticsConfigController,
     DiagnosticsFacilitiesController,

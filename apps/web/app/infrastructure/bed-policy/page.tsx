@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import { AppShell } from "@/components/AppShell";
+import { RequirePerm } from "@/components/RequirePerm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -209,6 +210,7 @@ export default function SuperAdminBedPolicyPage() {
 
   return (
     <AppShell title="Bed Policy">
+      <RequirePerm perm="INFRA_GOLIVE_READ">
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -316,6 +318,7 @@ export default function SuperAdminBedPolicyPage() {
           </CardContent>
         </Card>
       </div>
-    </AppShell>
+          </RequirePerm>
+</AppShell>
   );
 }

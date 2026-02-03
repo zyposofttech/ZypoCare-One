@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/lib/auth/store";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { BrandLogo } from "@/components/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -218,7 +219,7 @@ export default function LoginPage() {
               localStorage.removeItem(REMEMBER_DEVICE_KEY);
               localStorage.removeItem("zypocare-auth");
             }
-          } catch {}
+          } catch { }
           login(loggedInUser, accessToken ?? null);
         }
       } finally {
@@ -236,13 +237,9 @@ export default function LoginPage() {
       <div className="relative hidden w-2/3 flex-col justify-between border-r border-zinc-200 bg-zinc-50 p-16 text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white lg:flex">
         <BrandPattern />
         <div className="relative z-10 flex items-center justify-between">
-          <div className="flex items-center gap-3 font-bold tracking-tight">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 dark:bg-indigo-500 dark:shadow-indigo-500/30">
-              <Command className="h-6 w-6" />
-            </div>
-            <div className="text-xl">
-              ZypoCare<span className="font-normal text-zinc-500 dark:text-zinc-400"> ONE</span>
-            </div>
+          <div className="flex items-center gap-3">
+            <BrandLogo className="h-10 w-[200px]" />
+            <span className="sr-only">ZypoCare ONE</span>
           </div>
           <StatusBadge />
         </div>
@@ -261,15 +258,15 @@ export default function LoginPage() {
           </p>
 
           <div className="mt-8 flex gap-4">
-                      <div className="flex items-center gap-3 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-600 shadow-sm dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-300">
-                        <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                        HIPAA Compliant
-                      </div>
-                      <div className="flex items-center gap-3 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-600 shadow-sm dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-300">
-                        <Lock className="h-4 w-4 text-emerald-500" />
-                        End-to-End Encrypted
-                      </div>
-                    </div>
+            <div className="flex items-center gap-3 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-600 shadow-sm dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-300">
+              <ShieldCheck className="h-4 w-4 text-emerald-500" />
+              HIPAA Compliant
+            </div>
+            <div className="flex items-center gap-3 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-600 shadow-sm dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-300">
+              <Lock className="h-4 w-4 text-emerald-500" />
+              End-to-End Encrypted
+            </div>
+          </div>
         </div>
 
         <div className="relative z-10 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
@@ -285,15 +282,13 @@ export default function LoginPage() {
       {/* Right Panel */}
       <div className="flex w-full flex-col justify-between p-8 lg:w-1/3 lg:p-12">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 font-semibold lg:hidden">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white">
-              <Command className="h-5 w-5" />
-            </div>
-            <div>
-              ZypoCare <span className="font-normal text-zinc-500 dark:text-zinc-400">ONE</span>
-            </div>
+          <div className="flex items-center gap-3 lg:hidden">
+            <BrandLogo className="h-8 w-[170px]" />
+            <span className="sr-only">ZypoCare ONE</span>
           </div>
-          <ThemeToggle />
+          <div className="absolute right-6 top-6">
+            <ThemeToggle />
+          </div>
         </div>
 
         <div className="mx-auto w-full max-w-sm">

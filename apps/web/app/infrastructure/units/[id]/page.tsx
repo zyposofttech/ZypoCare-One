@@ -5,6 +5,7 @@ import { AppLink as Link } from "@/components/app-link";
 import { useParams, useRouter } from "next/navigation";
 
 import { AppShell } from "@/components/AppShell";
+import { RequirePerm } from "@/components/RequirePerm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -1103,6 +1104,7 @@ export default function UnitDetailPage() {
 
   return (
     <AppShell title="Unit Dashboard">
+      <RequirePerm perm="INFRA_UNIT_READ">
       <div className="grid gap-6">
         {/* Header (same pattern as attached page.tsx) */}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -1757,6 +1759,7 @@ export default function UnitDetailPage() {
         onClose={() => setResDeleteOpen(false)}
         onDeleted={() => refresh(false)}
       />
-    </AppShell>
+          </RequirePerm>
+</AppShell>
   );
 }

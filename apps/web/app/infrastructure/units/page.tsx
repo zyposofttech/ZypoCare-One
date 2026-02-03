@@ -4,8 +4,10 @@ import * as React from "react";
 import { AppLink as Link } from "@/components/app-link";
 
 import { AppShell } from "@/components/AppShell";
+import { NoAccess } from "@/components/NoAccess";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -29,7 +31,7 @@ function drawerClassName(extra?: string) {
     extra,
   );
 }
-import { useAuthStore } from "@/lib/auth/store";
+import { usePermissions } from "@/lib/auth/store";
 
 import { IconBuilding, IconChevronRight, IconPlus, IconSearch } from "@/components/icons";
 import { AlertTriangle, Building2, Loader2, Pencil, RefreshCw, Settings2, Trash2, Wand2 } from "lucide-react";
@@ -547,9 +549,14 @@ export default function UnitsPage() {
   const isGlobalScope = branchCtx.scope === "GLOBAL";
   const effectiveBranchId = branchCtx.branchId ?? activeBranchId ?? "";
 
-  const user = useAuthStore((s) => s.user);
+  const { user, can } = usePermissions();
 
-  const isSuperAdmin = user?.role === "SUPER_ADMIN" || (user as any)?.roleCode === "SUPER_ADMIN";
+  const canRead = can("INFRA_UNIT_READ");
+  const canCreate = can("INFRA_UNIT_CREATE");
+  const canUpdate = can("INFRA_UNIT_UPDATE");
+  const canDelete = can("INFRA_UNIT_DELETE");
+  const canBranchRead = can("BRANCH_READ");
+  const permsLoaded = !!user && Array.isArray((user as any).permissions);
 
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
@@ -598,17 +605,26 @@ export default function UnitsPage() {
   const selectContentMaxW = "max-w-[min(560px,calc(100vw-2rem))]";
 
   async function loadBranches(): Promise<string | undefined> {
+    // ✅ Only GLOBAL scope users with BRANCH_READ can list/switch branches
+    if (!isGlobalScope || !canBranchRead) {
+      const bid = effectiveBranchId || "";
+      setBranches([]);
+      const next = bid ? bid : undefined;
+      setBranchId(next);
+      return next;
+    }
+
     const data = await apiFetch<BranchRow[]>("/api/branches");
     const list = data ?? [];
     setBranches(list);
 
-    const stored = (effectiveBranchId || null);
+    const stored = effectiveBranchId || null;
     const first = list?.[0]?.id;
     const next = (stored && list.some((b) => b.id === stored) ? stored : undefined) || first || undefined;
 
     setBranchId(next);
     if (next) if (isGlobalScope) setActiveBranchId(next || null);
-return next;
+    return next;
   }
 
   async function loadUnitTypesCatalog() {
@@ -632,6 +648,17 @@ return next;
   }
 
   async function refresh(showToast = false) {
+    // ✅ Don’t call backend if user can’t read
+    if (!canRead) {
+      setRows([]);
+      setDepartments([]);
+      setUnitTypesCatalog([]);
+      setEnabledUnitTypeIds(new Set());
+      setErr(null);
+      setLoading(false);
+      return;
+    }
+
     setErr(null);
     setLoading(true);
     try {
@@ -654,7 +681,7 @@ return next;
   React.useEffect(() => {
     void refresh(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [canRead]);
 
   async function onBranchChange(nextId: string) {
     setBranchId(nextId);
@@ -681,7 +708,28 @@ return next;
 
   return (
     <AppShell title="Infrastructure • Units">
-      <div className="grid gap-6">
+      {!permsLoaded ? (
+        <div className="grid gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Loading…</CardTitle>
+              <CardDescription>Preparing your access controls and data.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-64 w-full" />
+            </CardContent>
+          </Card>
+        </div>
+      ) : !canRead ? (
+        <NoAccess
+          perm="INFRA_UNIT_READ"
+          title="Units"
+          description="You don’t have access to view or manage Units."
+        />
+      ) : (
+        <>
+          <div className="grid gap-6">
         {/* Header (same pattern as Branch page) */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-center gap-3">
@@ -702,7 +750,7 @@ return next;
               Refresh
             </Button>
 
-            {isSuperAdmin ? (
+            {canCreate ? (
               <Button variant="primary" className="px-5 gap-2" onClick={() => setCreateOpen(true)} disabled={!branchId}>
                 <IconPlus className="h-4 w-4" />
                 Create Unit
@@ -716,7 +764,7 @@ return next;
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Overview</CardTitle>
             <CardDescription className="text-sm">
-              Pick a branch, filter units, and open details. Super Admin can create/edit/delete.
+              Pick a branch, filter units, and open details. Actions are permission-controlled.
             </CardDescription>
           </CardHeader>
 
@@ -907,32 +955,32 @@ return next;
                           </Link>
                         </Button>
 
-                        {isSuperAdmin ? (
-                          <>
-                            <Button
-                              variant="secondary"
-                              className="px-3 gap-2"
-                              onClick={() => {
-                                setSelected(u);
-                                setEditOpen(true);
-                              }}
-                            >
-                              <Pencil className="h-4 w-4" />
-                              Edit
-                            </Button>
+                        {canUpdate ? (
+                          <Button
+                            variant="secondary"
+                            className="px-3 gap-2"
+                            onClick={() => {
+                              setSelected(u);
+                              setEditOpen(true);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                            Edit
+                          </Button>
+                        ) : null}
 
-                            <Button
-                              variant="destructive"
-                              className="px-3 gap-2"
-                              onClick={() => {
-                                setSelected(u);
-                                setDeleteOpen(true);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              Delete
-                            </Button>
-                          </>
+                        {canDelete ? (
+                          <Button
+                            variant="destructive"
+                            className="px-3 gap-2"
+                            onClick={() => {
+                              setSelected(u);
+                              setDeleteOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Delete
+                          </Button>
                         ) : null}
                       </div>
                     </td>
@@ -985,6 +1033,8 @@ return next;
         onClose={() => setDeleteOpen(false)}
         onDeleted={() => refresh(false)}
       />
+        </>
+      )}
     </AppShell>
   );
 }

@@ -52,8 +52,9 @@ export async function GET(req: NextRequest) {
         else res.cookies.delete("zypocare_role");
       }
     } else {
-      // If unauthorized, drop cookies (avoid infinite redirect loops)
-      if (upstream.status === 401 || upstream.status === 403) {
+      // ✅ Only drop cookies on 401 (unauthenticated).
+      // 403 is a valid "forbidden" state and must NOT destroy session cookies.
+      if (upstream.status === 401) {
         res.cookies.delete("zypocare_auth");
         res.cookies.delete("zypocare_scope");
         res.cookies.delete("zypocare_role");

@@ -42,6 +42,17 @@ export class AuthController {
     );
   }
 
+  // ✅ Optional: server-side logout (hard token revoke via jti blacklist)
+  // Works only when AUTH_JTI_ENFORCE=true and Redis is configured.
+  @HttpCode(HttpStatus.OK)
+  @Post("logout")
+  async logout(@Req() req: any) {
+    const jti = req.user?.jti;
+    const exp = req.user?.exp;
+    await this.authService.revokeJti(String(jti || ""), typeof exp === "number" ? exp : undefined);
+    return { ok: true };
+  }
+
   // -------------------------------
   // Force seed helpers (dev only)
   // -------------------------------

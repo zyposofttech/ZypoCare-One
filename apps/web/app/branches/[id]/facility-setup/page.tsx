@@ -5,6 +5,7 @@ import { AppLink as Link } from "@/components/app-link";
 import { useParams } from "next/navigation";
 
 import { AppShell } from "@/components/AppShell";
+import { RequirePerm } from "@/components/RequirePerm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -684,6 +685,7 @@ export default function BranchFacilitySetupWizardPage() {
 
   return (
     <AppShell title="Facility Setup Wizard">
+      <RequirePerm perm="BRANCH_FACILITY_READ">
       <div className="grid gap-6">
         {/* Header */}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -1601,6 +1603,7 @@ export default function BranchFacilitySetupWizardPage() {
           </div>
         </ModalShell>
       ) : null}
-    </AppShell>
+          </RequirePerm>
+</AppShell>
   );
 }

@@ -45,17 +45,41 @@ export class IamSeedService implements OnModuleInit {
     }
 
     const roleTemplates = [
-      { code: ROLE.SUPER_ADMIN, name: "Super Admin", scope: "GLOBAL" as const, desc: "Global system administrator" },
-      { code: ROLE.CORPORATE_ADMIN, name: "Corporate Admin", scope: "GLOBAL" as const, desc: "Enterprise owner (multi-branch ops; no RBAC/governance design by default)" },
-      { code: ROLE.BRANCH_ADMIN, name: "Branch Admin", scope: "BRANCH" as const, desc: "Branch configuration and user onboarding" },
-      { code: ROLE.IT_ADMIN, name: "IT Admin", scope: "BRANCH" as const, desc: "Branch IT operations (user resets/activation)" },
+      {
+        code: ROLE.SUPER_ADMIN,
+        name: "Super Admin",
+        scope: "GLOBAL" as const,
+        desc: "Global system administrator",
+        isSystem: true,
+      },
+      {
+        code: ROLE.CORPORATE_ADMIN,
+        name: "Corporate Admin",
+        scope: "GLOBAL" as const,
+        desc: "Enterprise owner (multi-branch ops; no RBAC/governance design by default)",
+        isSystem: true,
+      },
+      {
+        code: ROLE.BRANCH_ADMIN,
+        name: "Branch Admin",
+        scope: "BRANCH" as const,
+        desc: "Branch configuration and user onboarding",
+        isSystem: true,
+      },
+      {
+        code: ROLE.IT_ADMIN,
+        name: "IT Admin",
+        scope: "BRANCH" as const,
+        desc: "Branch IT operations (user resets/activation)",
+        isSystem: true,
+      },
     ];
 
     for (const r of roleTemplates) {
       const tpl = await this.prisma.roleTemplate.upsert({
         where: { code: r.code },
-        update: { name: r.name, scope: r.scope, description: r.desc },
-        create: { code: r.code, name: r.name, scope: r.scope, description: r.desc },
+        update: { name: r.name, scope: r.scope, description: r.desc, isSystem: r.isSystem ?? false },
+        create: { code: r.code, name: r.name, scope: r.scope, description: r.desc, isSystem: r.isSystem ?? false },
       });
 
       const existingV1 = await this.prisma.roleTemplateVersion.findFirst({
@@ -75,12 +99,12 @@ export class IamSeedService implements OnModuleInit {
           : r.code === ROLE.CORPORATE_ADMIN
             ? [
               // Enterprise ops (multi-branch) + Infrastructure Setup Studio
-              // PERM.BRANCH_READ,
+              PERM.BRANCH_READ,
               // PERM.BRANCH_CREATE,
               // PERM.BRANCH_UPDATE,
               // PERM.BRANCH_DELETE,
 
-              // PERM.IAM_USER_READ,
+              PERM.IAM_USER_READ,
               // PERM.IAM_USER_CREATE,
               // PERM.IAM_USER_UPDATE,
               // PERM.IAM_USER_RESET_PASSWORD,
@@ -225,7 +249,7 @@ export class IamSeedService implements OnModuleInit {
             role: ROLE.SUPER_ADMIN,
             roleVersionId: superV1.id,
             passwordHash: hash,
-            mustChangePassword: true,
+            mustChangePassword: false,
             isActive: true,
           },
         });
@@ -236,7 +260,7 @@ export class IamSeedService implements OnModuleInit {
             role: ROLE.SUPER_ADMIN,
             roleVersionId: superV1.id,
             passwordHash: existing.passwordHash ?? hash,
-            mustChangePassword: true,
+            mustChangePassword: false,
             isActive: true,
           },
         });

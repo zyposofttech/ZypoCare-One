@@ -246,7 +246,25 @@ export function IconMenu(props: IconProps) {
     </Svg>
   );
 }
+export function IconBell(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </Svg>
+  );
+}
 
+export function IconRefresh(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M21 2v6h-6" />
+      <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+      <path d="M3 22v-6h6" />
+      <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+    </Svg>
+  );
+}
 export function IconLogout(props: IconProps) {
   return (
     <Svg {...props}>

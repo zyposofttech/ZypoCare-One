@@ -376,6 +376,10 @@ model User {
 
   isActive Boolean @default(true)
 
+  /// Authorization version. Increment whenever role/branch/status changes so
+  /// cached principals (and sessions) can be invalidated deterministically.
+  authzVersion Int @default(1)
+
   passwordHash       String?
   mustChangePassword Boolean @default(false)
 

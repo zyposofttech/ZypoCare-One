@@ -76,13 +76,364 @@ async function getLoadingStore() {
 type ApiFetchOptions = RequestInit & {
   showLoader?: boolean; // default true
   loaderMessage?: string; // overrides default label
-  /** If true, do NOT auto logout on 401/403 */
+  /** If true, do NOT auto logout on 401 */
   noAutoLogout?: boolean;
+  /**
+   * Branch injection behavior for GLOBAL-scope principals.
+   * - auto (default): inject/require activeBranchId only for known branch-scoped APIs
+   * - require: always require an active branch for GLOBAL scope
+   * - none: never inject/require branch in this call
+   */
+  branch?: "auto" | "require" | "none";
+  /** Optional explicit branch override (rare; mostly for special flows/tests). */
+  branchId?: string | null;
 };
 
+/* ------------------------- Frontend permission gate ------------------------- */
+
+type ApiPermRule = {
+  re: RegExp;
+  read?: string;
+  create?: string;
+  update?: string;
+  delete?: string;
+  custom?: (path: string, method: string) => string | null;
+};
+
+function pickPermByMethod(rule: ApiPermRule, path: string, method: string): string | null {
+  if (rule.custom) return rule.custom(path, method);
+  const isRead = ["GET", "HEAD", "OPTIONS"].includes(method);
+  if (isRead) return rule.read ?? null;
+  if (method === "POST") return rule.create ?? rule.update ?? null;
+  if (method === "PUT" || method === "PATCH") return rule.update ?? null;
+  if (method === "DELETE") return rule.delete ?? rule.update ?? null;
+  return rule.update ?? null;
+}
+
+const API_PERM_RULES: ApiPermRule[] = [
+  // Branch registry
+  { re: /^\/api\/branches(\/|$)/, read: "BRANCH_READ", create: "BRANCH_CREATE", update: "BRANCH_UPDATE", delete: "BRANCH_DELETE" },
+  // Branch → Facilities mapping
+  {
+    re: /^\/api\/branches\/[^/]+\/facilities(\/|$)/,
+    custom: (_p, method) => {
+      const m = (method || "GET").toUpperCase();
+      if (["GET", "HEAD", "OPTIONS"].includes(m)) return "BRANCH_FACILITY_READ";
+      return "BRANCH_FACILITY_UPDATE";
+    },
+  },
+
+  // Departments / Specialties
+  { re: /^\/api\/departments(\/|$)/, read: "DEPARTMENT_READ", create: "DEPARTMENT_CREATE", update: "DEPARTMENT_UPDATE", delete: "DEPARTMENT_UPDATE" },
+  { re: /^\/api\/specialties(\/|$)/, read: "SPECIALTY_READ", create: "SPECIALTY_CREATE", update: "SPECIALTY_UPDATE", delete: "SPECIALTY_UPDATE" },
+  // Facility master catalog (only CREATE exists today → use for write actions)
+  {
+    re: /^\/api\/facilities\/master(\/|$)/,
+    custom: (_p, method) => {
+      const m = (method || "GET").toUpperCase();
+      if (["GET", "HEAD", "OPTIONS"].includes(m)) return "FACILITY_CATALOG_READ";
+      return "FACILITY_CATALOG_CREATE";
+    },
+  },
+
+  // Infrastructure: Unit Types / Units / Rooms / Resources / Locations
+  {
+    re: /^\/api\/infrastructure\/unit-types\/catalog(\/|$)/,
+    custom: (_p, method) => {
+      const m = (method || "GET").toUpperCase();
+      if (["GET", "HEAD", "OPTIONS"].includes(m)) return "INFRA_UNITTYPE_READ";
+      // Only UPDATE exists in catalog today
+      return "INFRA_UNITTYPE_UPDATE";
+    },
+  },
+  { re: /^\/api\/infrastructure\/units(\/|$)/, read: "INFRA_UNIT_READ", create: "INFRA_UNIT_CREATE", update: "INFRA_UNIT_UPDATE", delete: "INFRA_UNIT_DELETE" },
+  { re: /^\/api\/infrastructure\/rooms(\/|$)/, read: "INFRA_ROOM_READ", create: "INFRA_ROOM_CREATE", update: "INFRA_ROOM_UPDATE", delete: "INFRA_ROOM_UPDATE" },
+  { re: /^\/api\/infrastructure\/resources(\/|$)/, read: "INFRA_RESOURCE_READ", create: "INFRA_RESOURCE_CREATE", update: "INFRA_RESOURCE_UPDATE", delete: "INFRA_RESOURCE_UPDATE" },
+  { re: /^\/api\/infrastructure\/locations(\/|$)/, read: "INFRA_LOCATION_READ", create: "INFRA_LOCATION_CREATE", update: "INFRA_LOCATION_UPDATE", delete: "INFRA_LOCATION_UPDATE" },
+
+  // Branch infra-config (used by Bed Policy / Go-Live config editor)
+  {
+    re: /^\/api\/infrastructure\/branches\/[^/]+\/infra-config(\/|$)/,
+    custom: (_p, method) => {
+      const m = (method || "GET").toUpperCase();
+      if (["GET", "HEAD", "OPTIONS"].includes(m)) return "INFRA_GOLIVE_READ";
+      return "INFRA_GOLIVE_RUN";
+    },
+  },
+
+  // Service configuration
+  { re: /^\/api\/infrastructure\/(services|service-items)(\/|$)/, read: "INFRA_SERVICE_READ", create: "INFRA_SERVICE_CREATE", update: "INFRA_SERVICE_UPDATE", delete: "INFRA_SERVICE_UPDATE" },
+  { re: /^\/api\/infrastructure\/service-library(\/|$)/, read: "INFRA_CODE_SET_READ", create: "INFRA_CODE_SET_CREATE", update: "INFRA_CODE_SET_UPDATE", delete: "INFRA_CODE_SET_UPDATE" },
+  { re: /^\/api\/infrastructure\/service-catalogues(\/|$)/, read: "INFRA_SERVICE_CATALOGUE_READ", create: "INFRA_SERVICE_CATALOGUE_CREATE", update: "INFRA_SERVICE_CATALOGUE_UPDATE", delete: "INFRA_SERVICE_CATALOGUE_UPDATE" },
+  { re: /^\/api\/infrastructure\/service-packages(\/|$)/, read: "INFRA_SERVICE_PACKAGE_READ", create: "INFRA_SERVICE_PACKAGE_CREATE", update: "INFRA_SERVICE_PACKAGE_UPDATE", delete: "INFRA_SERVICE_PACKAGE_UPDATE" },
+  { re: /^\/api\/infrastructure\/order-sets(\/|$)/, read: "INFRA_ORDER_SET_READ", create: "INFRA_ORDER_SET_CREATE", update: "INFRA_ORDER_SET_UPDATE", delete: "INFRA_ORDER_SET_UPDATE" },
+
+  // Service → Charge mapping
+  {
+    re: /^\/api\/infrastructure\/service-charge-mappings(\/|$)/,
+    custom: (_p, method) => {
+      const m = (method || "GET").toUpperCase();
+      if (["GET", "HEAD", "OPTIONS"].includes(m)) return "INFRA_SERVICE_READ";
+      return "INFRA_SERVICE_MAPPING_UPDATE";
+    },
+  },
+  {
+    re: /^\/api\/infrastructure\/services\/mapping(\/|$)/,
+    custom: (_p, method) => {
+      const m = (method || "GET").toUpperCase();
+      if (["GET", "HEAD", "OPTIONS"].includes(m)) return "INFRA_SERVICE_READ";
+      return "INFRA_SERVICE_MAPPING_UPDATE";
+    },
+  },
+
+  // Billing configuration
+  { re: /^\/api\/infrastructure\/charge-master(\/|$)/, read: "INFRA_CHARGE_MASTER_READ", create: "INFRA_CHARGE_MASTER_CREATE", update: "INFRA_CHARGE_MASTER_UPDATE", delete: "INFRA_CHARGE_MASTER_UPDATE" },
+  { re: /^\/api\/infrastructure\/tax-codes(\/|$)/, read: "INFRA_TAX_CODE_READ", create: "INFRA_TAX_CODE_CREATE", update: "INFRA_TAX_CODE_UPDATE", delete: "INFRA_TAX_CODE_UPDATE" },
+  { re: /^\/api\/infrastructure\/tariff-plans(\/|$)/, read: "INFRA_TARIFF_PLAN_READ", create: "INFRA_TARIFF_PLAN_CREATE", update: "INFRA_TARIFF_PLAN_UPDATE", delete: "INFRA_TARIFF_PLAN_UPDATE" },
+
+  // Diagnostics
+  { re: /^\/api\/infrastructure\/diagnostics(\/|$)/, read: "INFRA_DIAGNOSTICS_READ", create: "INFRA_DIAGNOSTICS_CREATE", update: "INFRA_DIAGNOSTICS_UPDATE", delete: "INFRA_DIAGNOSTICS_DELETE" },
+
+  // Service availability
+  { re: /^\/api\/infrastructure\/service-availability(\/|$)/, read: "INFRA_SERVICE_AVAILABILITY_READ", create: "INFRA_SERVICE_AVAILABILITY_UPDATE", update: "INFRA_SERVICE_AVAILABILITY_UPDATE", delete: "INFRA_SERVICE_AVAILABILITY_UPDATE" },
+
+  // Fixit / Go-live
+  { re: /^\/api\/infrastructure\/fixit(\/|$)/, read: "INFRA_FIXIT_READ", create: "INFRA_FIXIT_UPDATE", update: "INFRA_FIXIT_UPDATE", delete: "INFRA_FIXIT_UPDATE" },
+  {
+    re: /^\/api\/infrastructure\/branch\/go-live(\/|$)/,
+    custom: (_p, method) => {
+      const m = (method || "GET").toUpperCase();
+      if (["GET", "HEAD", "OPTIONS"].includes(m)) return "INFRA_GOLIVE_READ";
+      return "INFRA_GOLIVE_RUN";
+    },
+  },
+
+  // OT
+  {
+    re: /^\/api\/infrastructure\/ot(\/|$)/,
+    custom: (_p, method) => {
+      const m = (method || "GET").toUpperCase();
+      if (["GET", "HEAD", "OPTIONS"].includes(m)) return "ot.suite.read";
+      if (m === "POST") return "ot.suite.create";
+      if (m === "DELETE") return "ot.suite.delete";
+      return "ot.suite.update";
+    },
+  },
+
+  // Governance / Policy
+  { re: /^\/api\/governance\/audit(\/|$)/, read: "GOV_POLICY_AUDIT_READ" },
+  { re: /^\/api\/governance\/approvals(\/|$)/, read: "GOV_POLICY_APPROVE" },
+  {
+    re: /^\/api\/governance\/policy-versions(\/|$)/,
+    custom: (p, method) => {
+      const m = (method || "GET").toUpperCase();
+      if (["GET", "HEAD", "OPTIONS"].includes(m)) return "GOV_POLICY_READ";
+      if (p.endsWith("/approve") || p.endsWith("/reject")) return "GOV_POLICY_APPROVE";
+      // PATCH draft / submit draft
+      return "GOV_POLICY_SUBMIT";
+    },
+  },
+  {
+    re: /^\/api\/governance\/policies(\/|$)/,
+    custom: (p, method) => {
+      const m = (method || "GET").toUpperCase();
+      if (["GET", "HEAD", "OPTIONS"].includes(m)) return "GOV_POLICY_READ";
+      // POST /policies/:code/drafts
+      if (p.endsWith("/drafts")) return "GOV_POLICY_GLOBAL_DRAFT";
+      return "GOV_POLICY_SUBMIT";
+    },
+  },
+  {
+    re: /^\/api\/governance\/branch-policies(\/|$)/,
+    custom: (p, method) => {
+      const m = (method || "GET").toUpperCase();
+      if (["GET", "HEAD", "OPTIONS"].includes(m)) return "GOV_POLICY_READ";
+      if (p.endsWith("/override-drafts")) return "GOV_POLICY_BRANCH_OVERRIDE_DRAFT";
+      return "GOV_POLICY_SUBMIT";
+    },
+  },
+  { re: /^\/api\/governance\/(summary|branches|effective-policies)(\/|$)/, read: "GOV_POLICY_READ" },
+];
+
+function requiredPermForApi(url: string, method: string): string | null {
+  const u = normalizeApiUrl(url);
+  const path = u.split("?")[0] || "";
+  if (!path.startsWith("/api/")) return null;
+
+  // never gate auth / iam bootstrap
+  if (path.startsWith("/api/auth")) return null;
+  if (path.startsWith("/api/iam")) return null;
+
+  const m = (method || "GET").toUpperCase();
+  for (const rule of API_PERM_RULES) {
+    if (rule.re.test(path)) return pickPermByMethod(rule, path, m);
+  }
+  return null;
+}
+
+async function assertApiPermission(url: string, method: string) {
+  if (typeof window === "undefined") return;
+
+  const required = requiredPermForApi(url, method);
+  if (!required) return;
+
+  try {
+    const auth = await import("@/lib/auth/store");
+    const state: any = auth.useAuthStore.getState();
+
+    // if store isn't hydrated yet, skip the gate (bootstrap phase)
+    if (!state?._hasHydrated) return;
+    if (!state?.user) return;
+
+    if (!auth.hasPerm(state.user, required)) {
+      throw new ApiError("Forbidden", {
+        status: 403,
+        data: { code: "FORBIDDEN", requiredPerm: required },
+        url: normalizeApiUrl(url),
+        method: method || "GET",
+      });
+    }
+  } catch (e) {
+    if (e instanceof ApiError) throw e;
+    // if anything unexpected happens, do not block the request
+    return;
+  }
+}
+
+/* ------------------------- Active Branch utilities ------------------------- */
+
+type BranchSelectorRow = { id: string; isActive?: boolean };
+
+let ensureBranchPromise: Promise<string | null> | null = null;
+
+function getRoleScopeCookie(): "GLOBAL" | "BRANCH" | null {
+  const v = String(getCookie("zypocare_scope") || "")
+    .trim()
+    .toUpperCase();
+  if (v === "GLOBAL" || v === "BRANCH") return v as any;
+  return null;
+}
+
+function hasBranchIdInUrl(u: string): boolean {
+  try {
+    const urlObj = new URL(u, typeof window !== "undefined" ? window.location.origin : "http://localhost");
+    return Boolean(urlObj.searchParams.get("branchId"));
+  } catch {
+    return /[?&]branchId=/.test(u);
+  }
+}
+
+function withBranchIdQuery(u: string, branchId: string): string {
+  if (!branchId) return u;
+  try {
+    const isAbs = isAbsoluteUrl(u);
+    const urlObj = new URL(u, typeof window !== "undefined" ? window.location.origin : "http://localhost");
+    if (!urlObj.searchParams.get("branchId")) urlObj.searchParams.set("branchId", branchId);
+    const out = urlObj.pathname + urlObj.search + urlObj.hash;
+    return isAbs ? urlObj.toString() : out;
+  } catch {
+    // Fallback (should be rare)
+    return u.includes("?") ? `${u}&branchId=${encodeURIComponent(branchId)}` : `${u}?branchId=${encodeURIComponent(branchId)}`;
+  }
+}
+
+function isBranchScopedApi(u: string): boolean {
+  // Only for our normalized /api/* paths
+  if (!u.startsWith("/api/")) return false;
+
+  // Always exclude global/auth/iam endpoints
+  if (u.startsWith("/api/auth")) return false;
+  if (u.startsWith("/api/iam")) return false;
+  if (u.startsWith("/api/branches")) return false; // branch list/selector itself
+
+  // Known branch-scoped prefixes
+  const path = u.split("?")[0] || u;
+  const prefixes = [
+    "/api/infrastructure/",
+    "/api/billing/",
+    "/api/inventory/",
+    "/api/pharmacy/",
+    "/api/ot/",
+    // Common infra entities exposed at root
+    "/api/departments",
+    "/api/facilities",
+    "/api/specialties",
+  ];
+
+  return prefixes.some((p) => path === p || path.startsWith(p));
+}
+
+async function getActiveBranchIdFromStore(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+  try {
+    const mod = await import("@/lib/branch/active-branch");
+    return mod.useActiveBranchStore.getState().activeBranchId;
+  } catch {
+    return null;
+  }
+}
+
+async function setActiveBranchIdInStore(branchId: string | null) {
+  if (typeof window === "undefined") return;
+  try {
+    const mod = await import("@/lib/branch/active-branch");
+    mod.useActiveBranchStore.getState().setActiveBranchId(branchId);
+  } catch {
+    // ignore
+  }
+}
+
 /**
- * NO refresh tokens in backend:
- * Any 401/403 should trigger hard logout to avoid "cookie says logged-in but token expired".
+ * Ensures a usable activeBranchId for GLOBAL scope. If none is selected yet,
+ * it will attempt to pick the first enabled branch from the selector API.
+ */
+async function ensureActiveBranchId(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+
+  if (ensureBranchPromise) return ensureBranchPromise;
+
+  ensureBranchPromise = (async () => {
+    const existing = await getActiveBranchIdFromStore();
+    if (existing) return existing;
+
+    // Try to auto-select a default branch (best UX): first active branch or first branch.
+    try {
+      const token = getAccessToken();
+      const res = await fetch("/api/branches?mode=selector&onlyActive=true", {
+        method: "GET",
+        credentials: "include",
+        headers: token ? { Authorization: `Bearer ${token}`, Accept: "application/json" } : { Accept: "application/json" },
+      });
+
+      if (res.status === 401) {
+        // Keep behavior consistent with apiFetch
+        void hardLogoutIfBrowser();
+        return null;
+      }
+
+      if (!res.ok) return null;
+      const data = (await res.json()) as BranchSelectorRow[];
+      const next = data?.find((b) => b.isActive) ?? data?.[0];
+      if (!next?.id) return null;
+
+      await setActiveBranchIdInStore(next.id);
+      return next.id;
+    } catch {
+      return null;
+    }
+  })();
+
+  try {
+    return await ensureBranchPromise;
+  } finally {
+    ensureBranchPromise = null;
+  }
+}
+
+/**
+ * No refresh tokens in backend:
+ * Any 401 should trigger hard logout to avoid "cookie says logged-in but token expired".
+ * 403 is a normal authorization outcome and must NOT log the user out.
  */
 let isLoggingOut = false;
 async function hardLogoutIfBrowser() {
@@ -116,7 +467,14 @@ async function hardLogoutIfBrowser() {
 }
 
 export async function apiFetch<T>(url: string, init: ApiFetchOptions = {}): Promise<T> {
-  const { showLoader = true, loaderMessage, noAutoLogout = false, ...fetchInit } = init;
+  const {
+    showLoader = true,
+    loaderMessage,
+    noAutoLogout = false,
+    branch = "auto",
+    branchId: branchOverride = null,
+    ...fetchInit
+  } = init;
 
   const normalizedUrl = normalizeApiUrl(url);
 
@@ -124,11 +482,70 @@ export async function apiFetch<T>(url: string, init: ApiFetchOptions = {}): Prom
   const headers = new Headers(fetchInit.headers || {});
   headers.set("Accept", "application/json");
 
+  let finalUrl = normalizedUrl;
+  let finalBody = fetchInit.body;
+
   // Attach token for protected APIs
   const token = getAccessToken();
   if (token && !headers.has("Authorization")) {
     headers.set("Authorization", `Bearer ${token}`);
   }
+
+  // ✅ Enterprise: ensure GLOBAL scope calls to branch-scoped APIs have an active branch.
+  // This prevents blank screens and noisy 4xx errors when a global user opens a branch module
+  // before selecting a branch.
+  if (typeof window !== "undefined" && branch !== "none") {
+    const scope = getRoleScopeCookie();
+    const needsBranch = branch === "require" || (branch === "auto" && isBranchScopedApi(finalUrl));
+
+    if (needsBranch && scope === "GLOBAL") {
+      const activeBranchId = branchOverride ?? (await ensureActiveBranchId());
+
+      if (!activeBranchId) {
+        throw new ApiError("Active branch is required. Please select a branch first.", {
+          status: 409,
+          data: { code: "BRANCH_REQUIRED" } as any,
+          url: finalUrl,
+          method,
+        });
+      }
+
+      // If the caller already passes branchId (query), do not override.
+      if (!hasBranchIdInUrl(finalUrl)) {
+        finalUrl = withBranchIdQuery(finalUrl, activeBranchId);
+      }
+
+      // Observability only (backend may ignore). Helps debugging headers in logs.
+      if (!headers.has("X-Active-Branch-Id")) headers.set("X-Active-Branch-Id", activeBranchId);
+
+      // If JSON body already has branchId (but empty), fill it.
+      if (finalBody && typeof finalBody === "string") {
+        const trimmed = finalBody.trim();
+        const looksJson = trimmed.startsWith("{") || (headers.get("Content-Type") || "").includes("application/json");
+        if (looksJson) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+              const hasKey = Object.prototype.hasOwnProperty.call(parsed, "branchId");
+              if (hasKey) {
+                if (!parsed.branchId) parsed.branchId = activeBranchId;
+              } else if (needsBranch) {
+                // Safe for branch-scoped write APIs
+                parsed.branchId = activeBranchId;
+              }
+              finalBody = JSON.stringify(parsed);
+            }
+          } catch {
+            // ignore body injection failures
+          }
+        }
+      }
+    }
+  }
+
+  // ✅ Frontend permission firewall (prevents UI from executing actions the principal cannot perform)
+  // Note: backend still enforces permissions; this is an extra UX + safety layer.
+  await assertApiPermission(finalUrl, method);
 
   const isRead = ["GET", "HEAD", "OPTIONS"].includes(method);
   const label = loaderMessage ?? (isRead ? "Loading…" : "Saving changes…");
@@ -136,7 +553,7 @@ export async function apiFetch<T>(url: string, init: ApiFetchOptions = {}): Prom
   const loadingId = zcLoading.start({
     kind: "api",
     method,
-    url: normalizedUrl,
+    url: finalUrl,
     label,
   });
 
@@ -151,8 +568,9 @@ export async function apiFetch<T>(url: string, init: ApiFetchOptions = {}): Prom
       if (csrf && !headers.has("X-CSRF-Token")) headers.set("X-CSRF-Token", csrf);
     }
 
-    const res = await fetch(normalizedUrl, {
+    const res = await fetch(finalUrl, {
       ...fetchInit,
+      body: finalBody as any,
       method,
       headers,
       credentials: "include",
@@ -162,8 +580,8 @@ export async function apiFetch<T>(url: string, init: ApiFetchOptions = {}): Prom
     const data: any = ct.includes("application/json") ? await res.json() : await res.text();
 
     if (!res.ok) {
-      // ✅ no refresh → hard logout on 401/403 unless caller opts out
-      if (!noAutoLogout && (res.status === 401 || res.status === 403)) {
+      // ✅ no refresh → hard logout only on 401 unless caller opts out
+      if (!noAutoLogout && res.status === 401) {
         void hardLogoutIfBrowser();
       }
 
@@ -176,7 +594,7 @@ export async function apiFetch<T>(url: string, init: ApiFetchOptions = {}): Prom
       throw new ApiError(msg, {
         status: res.status,
         data,
-        url: normalizedUrl,
+        url: finalUrl,
         method,
       });
     }
@@ -185,7 +603,7 @@ export async function apiFetch<T>(url: string, init: ApiFetchOptions = {}): Prom
   } catch (e: any) {
     if (e instanceof ApiError) throw e;
     const msg = e?.message ? String(e.message) : "Network error";
-    throw new ApiError(msg, { status: 0, data: undefined, url: normalizedUrl, method });
+    throw new ApiError(msg, { status: 0, data: undefined, url: finalUrl, method });
   } finally {
     zcLoading.end(loadingId);
     if (showLoader && store?.stopLoading) store.stopLoading();
@@ -260,8 +678,7 @@ export async function syncPrincipalToAuthStore(): Promise<Principal | null> {
 
     return principal;
   } catch {
-    // auto-logout is handled by apiFetch on 401/403
+    // auto-logout is handled by apiFetch on 401
     return null;
   }
 }
-

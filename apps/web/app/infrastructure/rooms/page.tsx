@@ -5,6 +5,7 @@ import { AppLink as Link } from "@/components/app-link";
 import { useSearchParams } from "next/navigation";
 
 import { AppShell } from "@/components/AppShell";
+import { RequirePerm } from "@/components/RequirePerm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -243,6 +244,7 @@ export default function SuperAdminRoomsPage() {
 
   return (
     <AppShell title="Infrastructure • Rooms / Bays">
+      <RequirePerm perm="INFRA_ROOM_READ">
       <div className="grid gap-6">
         {/* Header */}
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -489,6 +491,7 @@ setUnitId(undefined);
           </CardContent>
         </Card>
       </div>
-    </AppShell>
+          </RequirePerm>
+</AppShell>
   );
 }

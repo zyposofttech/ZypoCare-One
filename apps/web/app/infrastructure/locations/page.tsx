@@ -4,6 +4,7 @@ import * as React from "react";
 import { AppLink as Link } from "@/components/app-link";
 
 import { AppShell } from "@/components/AppShell";
+import { RequirePerm } from "@/components/RequirePerm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -755,6 +756,7 @@ export default function SuperAdminInfrastructureLocations() {
 
   return (
     <AppShell title="Locations">
+      <RequirePerm perm="INFRA_LOCATION_READ">
       <div className="grid gap-6">
         {/* Header (matches Branch Details visual language) */}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -1345,7 +1347,8 @@ export default function SuperAdminInfrastructureLocations() {
         />
       ) : null}
       </div>
-    </AppShell>
+          </RequirePerm>
+</AppShell>
   );
 }
 

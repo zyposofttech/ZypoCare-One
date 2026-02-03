@@ -10,7 +10,7 @@ import type { PrismaClient } from "@zypocare/db";
 import { AuditService } from "../audit/audit.service";
 import type { Principal } from "../auth/access-policy.service";
 import { resolveBranchId } from "../../common/branch-scope.util";
-import { ROLE } from "./iam.constants";
+import { PERM, ROLE } from "./iam.constants";
 import {
   CreatePermissionDto,
   CreateRoleDto,
@@ -39,6 +39,55 @@ export class IamService {
     // Keep dot-form codes case-sensitive. For underscore codes, normalize to uppercase.
     if (!raw) throw new BadRequestException("Invalid permission code");
     return raw.includes(".") ? raw : raw.toUpperCase();
+  }
+
+  private isSuperAdmin(principal: Principal) {
+    return principal.roleCode === ROLE.SUPER_ADMIN;
+  }
+
+  private canManagePermissionCatalog(principal: Principal) {
+    return this.isSuperAdmin(principal) || (principal.permissions ?? []).includes(PERM.IAM_PERMISSION_MANAGE);
+  }
+
+  private normalizePermissionCodes(codes: string[] | null | undefined): string[] {
+    const arr = Array.isArray(codes) ? codes : [];
+    const out: string[] = [];
+    const seen = new Set<string>();
+    for (const raw of arr) {
+      const code = this.normalizePermissionCode(String(raw ?? ""));
+      if (!seen.has(code)) {
+        seen.add(code);
+        out.push(code);
+      }
+    }
+    return out;
+  }
+
+  /**
+   * Enterprise guardrail: prevents privilege escalation by ensuring the actor cannot
+   * create/update/assign a role containing permissions they themselves do not possess.
+   */
+  private assertCanGrantPermissions(principal: Principal, permissionCodes: string[]) {
+    if (this.isSuperAdmin(principal)) return;
+    const actorPerms = new Set(principal.permissions ?? []);
+    const missing: string[] = [];
+    for (const code of permissionCodes) {
+      if (!actorPerms.has(code)) missing.push(code);
+      if (missing.length >= 10) break;
+    }
+    if (missing.length) {
+      throw new ForbiddenException(
+        `Cannot grant permissions you do not have. Missing: ${missing.join(", ")}`,
+      );
+    }
+  }
+
+  private assertNoSelfAuthzChange(principal: Principal, targetUserId: string, dto: UpdateUserDto) {
+    if (principal.userId !== targetUserId) return;
+    // Prevent self privilege escalation / accidental lockout via admin APIs.
+    if (dto.roleCode !== undefined || dto.branchId !== undefined || dto.isActive !== undefined) {
+      throw new ForbiddenException("You cannot change your own role, branch, or active status");
+    }
   }
 
   private ensureBranchScope(principal: Principal, branchId: string | null | undefined) {
@@ -148,9 +197,13 @@ export class IamService {
     const roleCode = (dto.roleCode || "").trim().toUpperCase();
     const roleV = await this.prisma.roleTemplateVersion.findFirst({
       where: { status: "ACTIVE", roleTemplate: { code: roleCode } },
-      include: { roleTemplate: true },
+      include: { roleTemplate: true, permissions: { include: { permission: true } } },
     });
     if (!roleV) throw new BadRequestException(`Active role not found: ${roleCode}`);
+
+    // Privilege escalation guard: non-super admins can only assign roles whose permissions are a subset of their own.
+    const rolePermCodes = (roleV as any).permissions?.map((p: any) => p.permission?.code).filter(Boolean) ?? [];
+    this.assertCanGrantPermissions(principal, rolePermCodes);
 
     // Branch isolation: branch-scoped principals may only create users in their own branch
     const branchId = dto.branchId ?? principal.branchId ?? null;
@@ -188,7 +241,19 @@ export class IamService {
         action: "IAM_USER_CREATED",
         entity: "User",
         entityId: user.id,
-        meta: { email, roleCode, roleVersionId: roleV.id, branchId },
+        meta: {
+          after: {
+            id: user.id,
+            email,
+            name: user.name,
+            roleCode,
+            roleVersionId: roleV.id,
+            branchId,
+            staffId: user.staffId ?? null,
+            isActive: user.isActive,
+          },
+          rolePermCount: rolePermCodes.length,
+        },
       });
 
       const returnTemp =
@@ -207,6 +272,8 @@ export class IamService {
   }
 
   async updateUser(principal: Principal, id: string, dto: UpdateUserDto) {
+    this.assertNoSelfAuthzChange(principal, id, dto);
+
     const existing = await this.prisma.user.findUnique({
       where: { id },
       include: { roleVersion: { include: { roleTemplate: true } } },
@@ -222,12 +289,14 @@ export class IamService {
 
     let newRoleVersionId: string | undefined;
     let newRoleCode: string | undefined;
+    let newRolePermCodes: string[] | null = null;
+    let newRoleScope: "GLOBAL" | "BRANCH" | null = null;
 
     if (dto.roleCode) {
       const roleCode = dto.roleCode.trim().toUpperCase();
       const roleV = await this.prisma.roleTemplateVersion.findFirst({
         where: { status: "ACTIVE", roleTemplate: { code: roleCode } },
-        include: { roleTemplate: true },
+        include: { roleTemplate: true, permissions: { include: { permission: true } } },
       });
       if (!roleV) throw new BadRequestException(`Active role not found: ${roleCode}`);
 
@@ -237,23 +306,77 @@ export class IamService {
 
       newRoleVersionId = roleV.id;
       newRoleCode = roleCode;
+      newRoleScope = roleV.roleTemplate.scope as any;
+
+      newRolePermCodes = (roleV as any).permissions?.map((p: any) => p.permission?.code).filter(Boolean) ?? [];
+      this.assertCanGrantPermissions(principal, newRolePermCodes  ?? []);
     }
 
     const branchId = dto.branchId === undefined ? existing.branchId : dto.branchId;
+
+    // Enforce: BRANCH-scoped roles must always have a branchId
+    const effectiveRoleScope =
+      (dto.roleCode ? newRoleScope : ((existing as any).roleVersion?.roleTemplate?.scope as any)) as
+        | "GLOBAL"
+        | "BRANCH"
+        | null;
+    if (effectiveRoleScope === "BRANCH" && !branchId) {
+      throw new BadRequestException("branchId is required for BRANCH role users");
+    }
+
     // if moving branches, enforce branch scope rules
     this.ensureBranchScope(principal, branchId ?? null);
 
-    const updated = await this.prisma.user.update({
-      where: { id },
-      data: {
-        name: dto.name ?? undefined,
-        isActive: dto.isActive ?? undefined,
-        staffId: dto.staffId === undefined ? undefined : dto.staffId,
-        branchId: dto.branchId === undefined ? undefined : dto.branchId,
-        roleVersionId: newRoleVersionId ?? undefined,
-        role: newRoleCode ?? undefined,
-      },
-    });
+    // RBAC cache/session invalidation:
+    // bump authzVersion only when authorization-relevant fields change.
+    const nextRoleVersionId = newRoleVersionId ?? existing.roleVersionId ?? null;
+    const nextBranchId = dto.branchId === undefined ? (existing.branchId ?? null) : (dto.branchId ?? null);
+    const nextIsActive = dto.isActive === undefined ? existing.isActive : dto.isActive;
+    const shouldBumpAuthzVersion =
+      (nextRoleVersionId ?? null) !== (existing.roleVersionId ?? null) ||
+      nextBranchId !== (existing.branchId ?? null) ||
+      nextIsActive !== existing.isActive;
+
+    const data: any = {
+      name: dto.name ?? undefined,
+      isActive: dto.isActive ?? undefined,
+      staffId: dto.staffId === undefined ? undefined : dto.staffId,
+      branchId: dto.branchId === undefined ? undefined : dto.branchId,
+      roleVersionId: newRoleVersionId ?? undefined,
+      role: newRoleCode ?? undefined,
+    };
+
+    if (shouldBumpAuthzVersion) {
+      data.authzVersion = { increment: 1 };
+    }
+
+    const updated = await this.prisma.user.update({ where: { id }, data });
+
+    const beforeRoleCode = (existing as any).roleVersion?.roleTemplate?.code ?? (existing as any).role ?? null;
+    const afterRoleCode = newRoleCode ?? beforeRoleCode;
+
+    const before = {
+      id: existing.id,
+      email: existing.email,
+      name: existing.name,
+      roleCode: beforeRoleCode,
+      roleVersionId: existing.roleVersionId ?? null,
+      branchId: existing.branchId ?? null,
+      staffId: existing.staffId ?? null,
+      isActive: existing.isActive,
+      authzVersion: existing.authzVersion,
+    };
+    const after = {
+      id: updated.id,
+      email: updated.email,
+      name: updated.name,
+      roleCode: afterRoleCode,
+      roleVersionId: updated.roleVersionId ?? null,
+      branchId: updated.branchId ?? null,
+      staffId: updated.staffId ?? null,
+      isActive: updated.isActive,
+      authzVersion: updated.authzVersion,
+    };
 
     await this.audit.log({
       branchId: (updated.branchId ?? principal.branchId ?? null) as any,
@@ -261,7 +384,13 @@ export class IamService {
       action: "IAM_USER_UPDATED",
       entity: "User",
       entityId: updated.id,
-      meta: { changes: dto },
+      meta: {
+        before,
+        after,
+        changes: dto,
+        authzVersionBumped: shouldBumpAuthzVersion,
+        reason: dto.reason ?? undefined,
+      },
     });
 
     if (dto.roleCode) {
@@ -279,6 +408,10 @@ export class IamService {
   }
 
   async resetPassword(principal: Principal, id: string) {
+    if (principal.userId === id) {
+      throw new ForbiddenException("Use the change-password flow to update your own password");
+    }
+
     const existing = await this.prisma.user.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException("User not found");
 
@@ -293,7 +426,12 @@ export class IamService {
 
     await this.prisma.user.update({
       where: { id },
-      data: { passwordHash, mustChangePassword: true },
+      data: {
+        passwordHash,
+        mustChangePassword: true,
+        // Security-sensitive change: bump authzVersion so cached principals/sessions can be invalidated.
+        authzVersion: { increment: 1 },
+      },
     });
 
     await this.audit.log({
@@ -302,7 +440,11 @@ export class IamService {
       action: "IAM_USER_PASSWORD_RESET",
       entity: "User",
       entityId: id,
-      meta: { email: existing.email },
+      meta: {
+        email: existing.email,
+        before: { mustChangePassword: existing.mustChangePassword, authzVersion: existing.authzVersion },
+        after: { mustChangePassword: true, authzVersionBumped: true },
+      },
     });
     
     const returnTemp =
@@ -311,15 +453,34 @@ export class IamService {
     return { ok: true, tempPassword: returnTemp ? tempPassword : undefined };
   }
   async listPermissions(principal: Principal) {
-    // Fetches all available permissions from the database
-    // "permission" model is implied by your listRoles relation
+    // Permissions are code-defined and synced to DB. For robustness,
+    // allow privileged users to auto-sync before listing.
+    if (this.canManagePermissionCatalog(principal) && process.env.RBAC_AUTO_SYNC_ON_LIST !== "false") {
+      await this.rbacSync.syncPermissions();
+    }
+
     return this.prisma.permission.findMany({
       orderBy: { code: "asc" },
     });
   }
 
   async syncPermissionCatalog(principal: Principal) {
-    return this.rbacSync.syncPermissions();
+    if (!this.canManagePermissionCatalog(principal)) {
+      throw new ForbiddenException("Missing permission: IAM_PERMISSION_MANAGE");
+    }
+
+    const result = await this.rbacSync.syncPermissions();
+
+    await this.audit.log({
+      actorUserId: principal.userId,
+      action: "IAM_PERMISSION_CATALOG_SYNC",
+      entity: "Permission",
+      entityId: null,
+      meta: { result },
+      branchId: principal.branchId ?? null,
+    });
+
+    return result;
   }
 
   async updatePermissionMetadata(principal: Principal, codeRaw: string, dto: UpdatePermissionDto) {
@@ -344,7 +505,21 @@ export class IamService {
       action: "IAM_PERMISSION_METADATA_UPDATED",
       entity: "Permission",
       entityId: updated.id,
-      meta: { code: updated.code, updated: Object.keys(data) },
+      meta: {
+        code: updated.code,
+        updatedFields: Object.keys(data),
+        before: {
+          name: existing.name,
+          category: existing.category,
+          description: existing.description ?? null,
+        },
+        after: {
+          name: updated.name,
+          category: updated.category,
+          description: updated.description ?? null,
+        },
+        reason: dto.reason ?? undefined,
+      },
       branchId: principal.branchId ?? null,
     });
 
@@ -475,11 +650,27 @@ export class IamService {
     if (existing) throw new ConflictException(`Role code ${code} already exists`);
 
     // 3. Resolve Permission IDs from Codes
-    const perms = await this.prisma.permission.findMany({
-      where: { code: { in: dto.permissions } },
+    const requestedCodes = this.normalizePermissionCodes(dto.permissions);
+    this.assertCanGrantPermissions(principal, requestedCodes);
+
+    let perms = await this.prisma.permission.findMany({
+      where: { code: { in: requestedCodes } },
     });
-    if (perms.length !== dto.permissions.length) {
-      throw new BadRequestException("One or more invalid permission codes");
+
+    if (perms.length !== requestedCodes.length) {
+      // If new permissions were added in code but DB is not synced yet, auto-sync for privileged users.
+      if (this.canManagePermissionCatalog(principal)) {
+        await this.rbacSync.syncPermissions();
+        perms = await this.prisma.permission.findMany({ where: { code: { in: requestedCodes } } });
+      }
+    }
+
+    if (perms.length !== requestedCodes.length) {
+      const found = new Set(perms.map((p) => p.code));
+      const missing = requestedCodes.filter((c) => !found.has(c)).slice(0, 20);
+      throw new BadRequestException(
+        `One or more invalid permission codes. Missing: ${missing.join(", ")}${missing.length >= 20 ? " ..." : ""}`,
+      );
     }
 
     // 4. Transaction: Create Template + Version 1 + Links
@@ -503,14 +694,23 @@ export class IamService {
         },
       });
 
-      await this.audit.log({
+      await this.audit.log(
+        {
         actorUserId: principal.userId,
         action: "IAM_ROLE_CREATED",
         entity: "RoleTemplate",
         entityId: template.id,
-        meta: { code, version: 1, scope },
+        meta: {
+          code,
+          version: 1,
+          scope,
+          permissions: requestedCodes,
+          reason: (dto as any).reason ?? undefined,
+        },
         branchId: principal.branchId ?? null,
-      });
+        },
+        tx,
+      );
 
       return { roleCode: template.code };
     });
@@ -530,21 +730,65 @@ export class IamService {
 
     if (!current) throw new NotFoundException("Role not found or no active version");
 
+    // ------------------------------
+    // System role protection
+    // ------------------------------
+    // Prevent accidental edits of built-in roles (SUPER_ADMIN / CORPORATE_ADMIN / BRANCH_ADMIN / IT_ADMIN).
+    // You can explicitly allow edits in a non-prod environment by setting:
+    //   IAM_ALLOW_SYSTEM_ROLE_EDIT=true
+    const systemCodes = new Set<string>([
+      ROLE.SUPER_ADMIN,
+      (ROLE as any).CORPORATE_ADMIN ?? "CORPORATE_ADMIN",
+      (ROLE as any).BRANCH_ADMIN ?? "BRANCH_ADMIN",
+      (ROLE as any).IT_ADMIN ?? "IT_ADMIN",
+    ]);
+
+    const isSystemRole = Boolean((current as any).roleTemplate?.isSystem) || systemCodes.has(roleCode);
+    if (isSystemRole) {
+      if (principal.roleCode !== ROLE.SUPER_ADMIN) {
+        throw new ForbiddenException("System roles can only be modified by SUPER_ADMIN");
+      }
+      const allow = process.env.IAM_ALLOW_SYSTEM_ROLE_EDIT === "true";
+      if (!allow) {
+        throw new ForbiddenException(
+          "System role editing is disabled. Set IAM_ALLOW_SYSTEM_ROLE_EDIT=true to enable explicitly.",
+        );
+      }
+    }
+
     // BRANCH principals must not manage GLOBAL templates (no behavior change for GLOBAL principals)
     this.assertRoleTemplateScopeManageable(principal, current.roleTemplate.scope as any);
 
     // Prepare permission IDs:
     // - if permissions provided: validate codes and use them
     // - else: carry forward current active permission set (prevents accidental wipe)
+    const beforePermCodes =
+      (current as any).permissions?.map((p: any) => p.permission?.code).filter(Boolean) ?? [];
+
     let permIds: string[] = [];
+    let afterPermCodes: string[] = beforePermCodes;
     if (dto.permissions) {
-      const perms = await this.prisma.permission.findMany({
-        where: { code: { in: dto.permissions } },
+      const requestedCodes = this.normalizePermissionCodes(dto.permissions);
+      this.assertCanGrantPermissions(principal, requestedCodes);
+
+      let perms = await this.prisma.permission.findMany({
+        where: { code: { in: requestedCodes } },
       });
-      if (perms.length !== dto.permissions.length) {
-        throw new BadRequestException("One or more invalid permission codes");
+      if (perms.length !== requestedCodes.length) {
+        if (this.canManagePermissionCatalog(principal)) {
+          await this.rbacSync.syncPermissions();
+          perms = await this.prisma.permission.findMany({ where: { code: { in: requestedCodes } } });
+        }
+      }
+      if (perms.length !== requestedCodes.length) {
+        const found = new Set(perms.map((p) => p.code));
+        const missing = requestedCodes.filter((c) => !found.has(c)).slice(0, 20);
+        throw new BadRequestException(
+          `One or more invalid permission codes. Missing: ${missing.join(", ")}${missing.length >= 20 ? " ..." : ""}`,
+        );
       }
       permIds = perms.map((p) => p.id);
+      afterPermCodes = requestedCodes;
     } else {
       permIds =
         (current as any).permissions?.map((p: any) => p.permissionId ?? p.permission?.id).filter(Boolean) ?? [];
@@ -569,6 +813,18 @@ export class IamService {
         },
       });
 
+      // Re-point all users currently assigned to the retired version to the new ACTIVE version.
+      // This ensures permission updates take effect immediately without manual user reassignment.
+      const usersReassigned = await tx.user.updateMany({
+        where: { roleVersionId: current.id },
+        data: {
+          roleVersionId: newVersion.id,
+          role: roleCode,
+          // Bump authzVersion so cached principals / sessions can be invalidated.
+          authzVersion: { increment: 1 },
+        },
+      });
+
       // Update template name if requested
       if (dto.roleName && dto.roleName !== current.roleTemplate.name) {
         await tx.roleTemplate.update({
@@ -577,14 +833,31 @@ export class IamService {
         });
       }
 
-      await this.audit.log({
+      await this.audit.log(
+        {
         actorUserId: principal.userId,
         action: "IAM_ROLE_UPDATED",
         entity: "RoleTemplate",
         entityId: current.roleTemplateId,
-        meta: { code: roleCode, oldVersion: current.version, newVersion: newVersion.version },
+        meta: {
+          code: roleCode,
+          oldVersion: current.version,
+          newVersion: newVersion.version,
+          before: {
+            roleName: current.roleTemplate.name,
+            permissions: beforePermCodes,
+          },
+          after: {
+            roleName: dto.roleName ?? current.roleTemplate.name,
+            permissions: afterPermCodes,
+          },
+          usersReassigned: usersReassigned.count,
+          reason: (dto as any).reason ?? undefined,
+        },
         branchId: principal.branchId ?? null,
-      });
+        },
+        tx,
+      );
     });
 
     return { ok: true };
@@ -622,7 +895,7 @@ export class IamService {
       action: "IAM_PERMISSION_CREATED",
       entity: "Permission",
       entityId: perm.id,
-      meta: { code: perm.code, category: perm.category },
+      meta: { code: perm.code, category: perm.category, reason: (dto as any).reason ?? undefined },
       branchId: principal.branchId ?? null,
     });
 

@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/lib/auth/store";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { BrandLogo } from "@/components/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -260,13 +261,9 @@ export default function MustChangePasswordPage() {
         <BrandPattern />
 
         <div className="relative z-10 flex items-center justify-between">
-          <div className="flex items-center gap-3 font-bold tracking-tight">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 dark:bg-indigo-500 dark:shadow-indigo-500/30">
-              <Command className="h-6 w-6" />
-            </div>
-            <div className="text-xl">
-              ZypoCare<span className="font-normal text-zinc-500 dark:text-zinc-400">OS</span>
-            </div>
+          <div className="flex items-center gap-3">
+            <BrandLogo className="h-10 w-[200px]" />
+            <span className="sr-only">ZypoCare One</span>
           </div>
           <StatusBadge />
         </div>
@@ -310,6 +307,10 @@ export default function MustChangePasswordPage() {
         </div>
 
         <div className="w-full max-w-[360px] space-y-8">
+          <div className="flex justify-center lg:hidden">
+            <BrandLogo className="h-8 w-[170px]" />
+            <span className="sr-only">ZypoCare One</span>
+          </div>
           <div className="space-y-1.5 text-center lg:text-left">
             <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
               Update Password

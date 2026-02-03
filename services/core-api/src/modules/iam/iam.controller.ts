@@ -34,17 +34,39 @@ export class IamController {
     return p;
   }
 
+  // ---------------- Principal ----------------
+
   @Get("me")
   async me(@Req() req: any) {
     // No permission required: returns only caller's principal.
     return { principal: this.principal(req) };
   }
 
+  // ---------------- Roles ----------------
+
   @Get("roles")
   @Permissions(PERM.IAM_ROLE_READ)
   async roles(@Req() req: any) {
     return this.iam.listRoles(this.principal(req));
   }
+
+  @Post("roles")
+  @Permissions(PERM.IAM_ROLE_CREATE)
+  async createRole(@Body() dto: CreateRoleDto, @Req() req: any) {
+    return this.iam.createRole(this.principal(req), dto);
+  }
+
+  @Patch("roles/:code")
+  @Permissions(PERM.IAM_ROLE_UPDATE)
+  async updateRole(
+    @Param("code") code: string,
+    @Body() dto: UpdateRoleDto,
+    @Req() req: any,
+  ) {
+    return this.iam.updateRole(this.principal(req), code, dto);
+  }
+
+  // ---------------- Permission Catalog ----------------
 
   @Get("permissions")
   @Permissions(PERM.IAM_PERMISSION_READ)
@@ -68,17 +90,29 @@ export class IamController {
     return this.iam.updatePermissionMetadata(this.principal(req), code, dto);
   }
 
-  // NOTE: you didn’t guard branches earlier; keeping same behavior.
-  // If you have a perm like PERM.IAM_BRANCH_READ, add @RequirePerms(...) here.
+  // Optional: ad-hoc permission creation (controlled by env in service)
+  @Post("permissions")
+  @Permissions(PERM.IAM_PERMISSION_MANAGE)
+  async createPermission(@Body() dto: CreatePermissionDto, @Req() req: any) {
+    return this.iam.createPermission(this.principal(req), dto);
+  }
+
+  // ---------------- Branch lookup (used by BranchSelector / admin workflows) ----------------
+  // Enterprise rule: fetching branch registry must be permission-gated.
+
   @Get("branches")
+  @Permissions(PERM.BRANCH_READ)
   async branches(@Req() req: any) {
     return this.iam.listBranches(this.principal(req));
   }
 
   @Get("branches/:id")
+  @Permissions(PERM.BRANCH_READ)
   async branch(@Param("id") id: string, @Req() req: any) {
     return this.iam.getBranch(this.principal(req), id);
   }
+
+  // ---------------- Users ----------------
 
   @Get("users")
   @Permissions(PERM.IAM_USER_READ)
@@ -114,6 +148,8 @@ export class IamController {
     return this.iam.resetPassword(this.principal(req), id);
   }
 
+  // ---------------- Audit ----------------
+
   @Get("audit")
   @Permissions(PERM.IAM_AUDIT_READ)
   async audit(
@@ -125,31 +161,14 @@ export class IamController {
     @Query("take") take: string | undefined,
     @Req() req: any,
   ) {
+    const nTake = take ? Number(take) : undefined;
     return this.iam.listAudit(this.principal(req), {
       entity,
       entityId,
       actorUserId,
       action,
       branchId,
-      take: take ? Number(take) : undefined,
+      take: nTake && Number.isFinite(nTake) ? nTake : undefined,
     });
-  }
-
-  @Post("roles")
-  @Permissions(PERM.IAM_ROLE_CREATE)
-  async createRole(@Body() dto: CreateRoleDto, @Req() req: any) {
-    return this.iam.createRole(this.principal(req), dto);
-  }
-
-  @Patch("roles/:code")
-  @Permissions(PERM.IAM_ROLE_UPDATE)
-  async updateRole(@Param("code") code: string, @Body() dto: UpdateRoleDto, @Req() req: any) {
-    return this.iam.updateRole(this.principal(req), code, dto);
-  }
-
-  @Post("permissions")
-  @Permissions(PERM.IAM_PERMISSION_MANAGE)
-  async createPermission(@Body() dto: CreatePermissionDto, @Req() req: any) {
-    return this.iam.createPermission(this.principal(req), dto);
   }
 }

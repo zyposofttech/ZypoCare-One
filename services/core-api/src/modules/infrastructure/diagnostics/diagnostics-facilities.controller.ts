@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
+import { AccessPolicyService } from "../../auth/access-policy.service";
 import { Permissions } from "../../auth/permissions.decorator";
 import { PERM } from "../../iam/iam.constants";
 import { DiagnosticsFacilitiesService } from "./diagnostics-facilities.service";
@@ -16,10 +17,17 @@ import type { Principal } from "./diagnostics.principal";
 @ApiTags("infrastructure/diagnostics")
 @Controller("infrastructure/diagnostics")
 export class DiagnosticsFacilitiesController {
-  constructor(private readonly svc: DiagnosticsFacilitiesService) {}
+  constructor(
+    private readonly svc: DiagnosticsFacilitiesService,
+    private readonly access: AccessPolicyService,
+  ) {}
 
   private principalFrom(req: any): Principal {
     return (req?.principal ?? {}) as Principal;
+  }
+
+  private branchIdFrom(principal: Principal, branchId: string | null | undefined) {
+    return this.access.resolveBranchId(principal as any, branchId, { require: true }) as string;
   }
 
   // -------- Service Points (Diagnostic Units) --------
@@ -38,7 +46,9 @@ export class DiagnosticsFacilitiesController {
   @Get("service-points/:id")
   @Permissions(PERM.INFRA_DIAGNOSTICS_READ)
   getServicePoint(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string) {
-    return this.svc.getServicePoint(this.principalFrom(req), { id, branchId });
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.getServicePoint(p, { id, branchId: b });
   }
 
   @Put("service-points/:id")
@@ -50,63 +60,83 @@ export class DiagnosticsFacilitiesController {
   @Delete("service-points/:id")
   @Permissions(PERM.INFRA_DIAGNOSTICS_DELETE)
   deleteServicePoint(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string) {
-    return this.svc.deleteServicePoint(this.principalFrom(req), { id, branchId });
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.deleteServicePoint(p, { id, branchId: b });
   }
 
   // -------- Rooms --------
   @Get("service-points/:id/rooms")
   @Permissions(PERM.INFRA_DIAGNOSTICS_READ)
   listRooms(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string) {
-    return this.svc.listRooms(this.principalFrom(req), { servicePointId: id, branchId });
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.listRooms(p, { servicePointId: id, branchId: b });
   }
 
   @Post("service-points/:id/rooms")
   @Permissions(PERM.INFRA_DIAGNOSTICS_UPDATE)
   addRoom(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string, @Body() dto: AddRoomToServicePointDto) {
-    return this.svc.addRoom(this.principalFrom(req), { servicePointId: id, branchId }, dto);
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.addRoom(p, { servicePointId: id, branchId: b }, dto);
   }
 
   @Delete("service-points/:id/rooms/:linkId")
   @Permissions(PERM.INFRA_DIAGNOSTICS_UPDATE)
   removeRoom(@Req() req: any, @Param("id") id: string, @Param("linkId") linkId: string, @Query("branchId") branchId: string) {
-    return this.svc.removeRoom(this.principalFrom(req), { servicePointId: id, linkId, branchId });
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.removeRoom(p, { servicePointId: id, linkId, branchId: b });
   }
 
   // -------- Resources --------
   @Get("service-points/:id/resources")
   @Permissions(PERM.INFRA_DIAGNOSTICS_READ)
   listResources(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string) {
-    return this.svc.listResources(this.principalFrom(req), { servicePointId: id, branchId });
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.listResources(p, { servicePointId: id, branchId: b });
   }
 
   @Post("service-points/:id/resources")
   @Permissions(PERM.INFRA_DIAGNOSTICS_UPDATE)
   addResource(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string, @Body() dto: AddResourceToServicePointDto) {
-    return this.svc.addResource(this.principalFrom(req), { servicePointId: id, branchId }, dto);
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.addResource(p, { servicePointId: id, branchId: b }, dto);
   }
 
   @Delete("service-points/:id/resources/:linkId")
   @Permissions(PERM.INFRA_DIAGNOSTICS_UPDATE)
   removeResource(@Req() req: any, @Param("id") id: string, @Param("linkId") linkId: string, @Query("branchId") branchId: string) {
-    return this.svc.removeResource(this.principalFrom(req), { servicePointId: id, linkId, branchId });
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.removeResource(p, { servicePointId: id, linkId, branchId: b });
   }
 
   // -------- Equipment --------
   @Get("service-points/:id/equipment")
   @Permissions(PERM.INFRA_DIAGNOSTICS_READ)
   listEquipment(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string) {
-    return this.svc.listEquipment(this.principalFrom(req), { servicePointId: id, branchId });
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.listEquipment(p, { servicePointId: id, branchId: b });
   }
 
   @Post("service-points/:id/equipment")
   @Permissions(PERM.INFRA_DIAGNOSTICS_UPDATE)
   addEquipment(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string, @Body() dto: AddEquipmentToServicePointDto) {
-    return this.svc.addEquipment(this.principalFrom(req), { servicePointId: id, branchId }, dto);
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.addEquipment(p, { servicePointId: id, branchId: b }, dto);
   }
 
   @Delete("service-points/:id/equipment/:linkId")
   @Permissions(PERM.INFRA_DIAGNOSTICS_UPDATE)
   removeEquipment(@Req() req: any, @Param("id") id: string, @Param("linkId") linkId: string, @Query("branchId") branchId: string) {
-    return this.svc.removeEquipment(this.principalFrom(req), { servicePointId: id, linkId, branchId });
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.removeEquipment(p, { servicePointId: id, linkId, branchId: b });
   }
 }

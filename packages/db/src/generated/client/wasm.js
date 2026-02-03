@@ -224,6 +224,7 @@ exports.Prisma.UserScalarFieldEnum = {
   branchId: 'branchId',
   staffId: 'staffId',
   isActive: 'isActive',
+  authzVersion: 'authzVersion',
   passwordHash: 'passwordHash',
   mustChangePassword: 'mustChangePassword',
   passwordResetToken: 'passwordResetToken',

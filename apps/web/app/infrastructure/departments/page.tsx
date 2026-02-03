@@ -4,6 +4,7 @@ import * as React from "react";
 import { useSearchParams } from "next/navigation";
 import { AppLink as Link } from "@/components/app-link";
 import { AppShell } from "@/components/AppShell";
+import { RequirePerm } from "@/components/RequirePerm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -375,6 +376,7 @@ setFacilityId("");
 
   return (
     <AppShell title="Infrastructure - Departments">
+      <RequirePerm perm="DEPARTMENT_READ">
       <div className="grid gap-6">
         {/* Header */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -836,6 +838,7 @@ setFacilityId("");
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AppShell>
+          </RequirePerm>
+</AppShell>
   );
 }

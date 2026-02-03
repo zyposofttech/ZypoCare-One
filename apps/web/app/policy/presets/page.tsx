@@ -4,6 +4,7 @@ import * as React from "react";
 import { AppLink as Link } from "@/components/app-link";
 
 import { AppShell } from "@/components/AppShell";
+import { RequirePerm } from "@/components/RequirePerm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -127,6 +128,7 @@ export default function SuperAdminPolicyPresetsPage() {
 
   return (
     <AppShell title="Policy Presets">
+      <RequirePerm perm="GOV_POLICY_READ">
       <div className="grid gap-6">
         {/* ✅ Standard App header layout */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -475,6 +477,7 @@ export default function SuperAdminPolicyPresetsPage() {
           }}
         />
       </div>
-    </AppShell>
+          </RequirePerm>
+</AppShell>
   );
 }

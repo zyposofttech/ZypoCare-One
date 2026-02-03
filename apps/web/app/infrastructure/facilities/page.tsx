@@ -26,6 +26,9 @@ import{
   RefreshCw,
   Search,
   Save,
+  Shield,
+  Stethoscope,
+  Wrench,
 } from "lucide-react";
 
 /* ----------------------------- Types ----------------------------- */
@@ -483,25 +486,28 @@ void refresh();
                   <TabsTrigger
                     value="CLINICAL"
                     className={cn(
-                      "rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm",
+                      "flex items-center gap-2 rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm",
                     )}
                   >
+                    <Stethoscope className="h-4 w-4" />
                     CLINICAL
                   </TabsTrigger>
                   <TabsTrigger
                     value="SERVICE"
                     className={cn(
-                      "rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm",
+                      "flex items-center gap-2 rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm",
                     )}
                   >
+                    <Wrench className="h-4 w-4" />
                     SERVICE
                   </TabsTrigger>
                   <TabsTrigger
                     value="SUPPORT"
                     className={cn(
-                      "rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm",
+                      "flex items-center gap-2 rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm",
                     )}
                   >
+                    <Shield className="h-4 w-4" />
                     SUPPORT
                   </TabsTrigger>
                 </TabsList>

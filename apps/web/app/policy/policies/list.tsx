@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
@@ -125,6 +126,7 @@ export default function PoliciesList() {
   const [err, setErr] = React.useState<string | null>(null);
 
   const [createOpen, setCreateOpen] = React.useState(false);
+  const branchSelectValue = branchId || "__GLOBAL__";
 
   async function loadBranches() {
     // Resilient: prefer governance endpoint, but fall back to core branches (older stacks)
@@ -269,18 +271,22 @@ export default function PoliciesList() {
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <Label className="text-sm text-zc-muted">Branch preview</Label>
-                <select
-                  value={branchId}
-                  onChange={(e) => setBranchId(e.target.value)}
-                  className="h-10 rounded-lg border border-zc-border bg-zc-card px-3 text-sm text-zc-text"
+                <Select
+                  value={branchSelectValue}
+                  onValueChange={(value) => setBranchId(value === "__GLOBAL__" ? "" : value)}
                 >
-                  <option value="">Global baseline (no overrides)</option>
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name} ({b.code})
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="h-10 w-full min-w-[260px] rounded-xl border-zc-border bg-zc-card text-sm">
+                    <SelectValue placeholder="Select branch..." />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[320px] overflow-y-auto">
+                    <SelectItem value="__GLOBAL__">Global baseline (no overrides)</SelectItem>
+                    {branches.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.name} ({b.code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

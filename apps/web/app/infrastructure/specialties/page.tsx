@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
+import { RequirePerm } from "@/components/RequirePerm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -423,6 +424,7 @@ void refreshAll();
 
   return (
     <AppShell title="Infrastructure - Specialties">
+      <RequirePerm perm="SPECIALTY_READ">
       <div className="grid gap-6">
         {/* Header */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -928,6 +930,7 @@ void refreshAll();
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AppShell>
+          </RequirePerm>
+</AppShell>
   );
 }
