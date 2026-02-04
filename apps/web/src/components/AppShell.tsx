@@ -1462,7 +1462,7 @@ export function AppShell({
                 "zc-scroll-no-track"
               )}
             >
-              <div className={cn("grid", collapsed ? "gap-4" : "gap-6")}>
+              <div className={cn("grid", collapsed ? "gap-7" : "gap-6")}>
                 {visibleGroups.map((group) => {
                   const groupOpen = navQuery.trim() ? true : (groupOpenMap[group.title] ?? true);
 
@@ -1491,7 +1491,8 @@ export function AppShell({
 
                       <div
                         className={cn(
-                          "grid gap-1",
+                          "grid",
+                          collapsed ? "gap-3" : "gap-1",
                           !collapsed && !groupOpen ? "hidden" : "block"
                         )}
                       >
@@ -1502,7 +1503,7 @@ export function AppShell({
 
                           const linkBase = cn(
                             "group flex min-w-0 items-center gap-3 rounded-lg",
-                            collapsed ? "px-0 py-2 justify-center" : "px-3 py-2",
+                            collapsed ? "px-0 py-3 justify-center" : "px-3 py-2",
                             "text-sm font-medium transition-colors duration-200",
                             rowHover
                           );
@@ -1518,7 +1519,7 @@ export function AppShell({
                                 >
                                   <Icon
                                     className={cn(
-                                      "h-4 w-4 shrink-0 transition-colors",
+                                      collapsed ? "h-6 w-6 shrink-0 transition-colors" : "h-4 w-4 shrink-0 transition-colors",
                                       active
                                         ? "text-zc-accent"
                                         : "text-zc-muted group-hover:text-zc-text"

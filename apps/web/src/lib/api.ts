@@ -83,8 +83,9 @@ type ApiFetchOptions = RequestInit & {
    * - auto (default): inject/require activeBranchId only for known branch-scoped APIs
    * - require: always require an active branch for GLOBAL scope
    * - none: never inject/require branch in this call
+   * - report: alias of none (use for cross-branch reports/search)
    */
-  branch?: "auto" | "require" | "none";
+  branch?: "auto" | "require" | "none" | "report";
   /** Optional explicit branch override (rare; mostly for special flows/tests). */
   branchId?: string | null;
 };
@@ -338,23 +339,24 @@ function withBranchIdQuery(u: string, branchId: string): string {
 }
 
 function isBranchScopedApi(u: string): boolean {
-  // Only for our normalized /api/* paths
   if (!u.startsWith("/api/")) return false;
 
-  // Always exclude global/auth/iam endpoints
-  if (u.startsWith("/api/auth")) return false;
-  if (u.startsWith("/api/iam")) return false;
-  if (u.startsWith("/api/branches")) return false; // branch list/selector itself
-
-  // Known branch-scoped prefixes
   const path = u.split("?")[0] || u;
+
+  // Always exclude global/auth/iam endpoints
+  if (path.startsWith("/api/auth")) return false;
+  if (path.startsWith("/api/iam")) return false;
+  if (path.startsWith("/api/branches")) return false;
+
+  // ✅ Reports should NOT force activeBranchId
+  if (path.startsWith("/api/reports")) return false;
+
   const prefixes = [
     "/api/infrastructure/",
     "/api/billing/",
     "/api/inventory/",
     "/api/pharmacy/",
     "/api/ot/",
-    // Common infra entities exposed at root
     "/api/departments",
     "/api/facilities",
     "/api/specialties",
@@ -362,6 +364,7 @@ function isBranchScopedApi(u: string): boolean {
 
   return prefixes.some((p) => path === p || path.startsWith(p));
 }
+
 
 async function getActiveBranchIdFromStore(): Promise<string | null> {
   if (typeof window === "undefined") return null;
@@ -494,9 +497,15 @@ export async function apiFetch<T>(url: string, init: ApiFetchOptions = {}): Prom
   // ✅ Enterprise: ensure GLOBAL scope calls to branch-scoped APIs have an active branch.
   // This prevents blank screens and noisy 4xx errors when a global user opens a branch module
   // before selecting a branch.
-  if (typeof window !== "undefined" && branch !== "none") {
+  //
+  // NOTE: if the caller already provides branchId in the URL (including branchId=ALL),
+  // we do not force an activeBranchId.
+  if (typeof window !== "undefined" && branch !== "none" && branch !== "report") {
     const scope = getRoleScopeCookie();
-    const needsBranch = branch === "require" || (branch === "auto" && isBranchScopedApi(finalUrl));
+    const isScopedApi = isBranchScopedApi(finalUrl);
+    const hasBranch = hasBranchIdInUrl(finalUrl);
+
+    const needsBranch = branch === "require" || (branch === "auto" && isScopedApi && !hasBranch);
 
     if (needsBranch && scope === "GLOBAL") {
       const activeBranchId = branchOverride ?? (await ensureActiveBranchId());
@@ -511,7 +520,7 @@ export async function apiFetch<T>(url: string, init: ApiFetchOptions = {}): Prom
       }
 
       // If the caller already passes branchId (query), do not override.
-      if (!hasBranchIdInUrl(finalUrl)) {
+      if (!hasBranch) {
         finalUrl = withBranchIdQuery(finalUrl, activeBranchId);
       }
 

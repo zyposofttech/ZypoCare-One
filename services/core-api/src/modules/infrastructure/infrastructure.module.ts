@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { AuthModule } from "../auth/auth.module";
+import { IamModule } from "../iam/iam.module";
 import { InfrastructureSeedService } from "./infrastructure.seed";
 
 import { InfraSharedModule } from "./shared/infra-shared.module";
@@ -57,10 +58,14 @@ import { ServiceAvailabilityService } from "./service-availability/service-avail
 import { TariffPlansController } from "./tariff-plans/tariff-plans.controller";
 import { TariffPlansService } from "./tariff-plans/tariff-plans.service";
 
+import { StaffController } from "./staff/staff.controller";
+import { StaffService } from "./staff/staff.service";
+
 
 @Module({
   imports: [
     AuthModule,
+    IamModule,
     InfraSharedModule,
     DiagnosticsModule,
     ServiceItemsModule,
@@ -84,7 +89,8 @@ import { TariffPlansService } from "./tariff-plans/tariff-plans.service";
     GoLiveController,
     TaxCodesController,
     ServiceAvailabilityController,
-    TariffPlansController
+    TariffPlansController,
+    StaffController
   ],
   providers: [
     LocationService,
@@ -102,7 +108,8 @@ import { TariffPlansService } from "./tariff-plans/tariff-plans.service";
     InfrastructureSeedService,
     TaxCodesService,
     ServiceAvailabilityService,
-    TariffPlansService
+    TariffPlansService,
+    StaffService
   ],
 })
 export class InfrastructureModule {}

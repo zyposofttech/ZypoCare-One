@@ -153,11 +153,26 @@ export class IamPrincipalService {
 
     const uniquePerms = Array.from(new Set(perms || []));
 
+    // Multi-branch branchIds derived from active UserRoleBinding rows (if present)
+    const now = new Date();
+    const rawBindings = (u as any).roleBindings ?? [];
+    const activeBindings = Array.isArray(rawBindings)
+      ? rawBindings.filter((b: any) =>
+          !!b.branchId &&
+          (!b.effectiveFrom || new Date(b.effectiveFrom).getTime() <= now.getTime()) &&
+          (!b.effectiveTo || new Date(b.effectiveTo).getTime() >= now.getTime()),
+        )
+      : [];
+    const branchIds = Array.from(new Set(activeBindings.map((b: any) => b.branchId)));
+    const primaryBinding = activeBindings.find((b: any) => b.isPrimary) ?? activeBindings[0] ?? null;
+    const effectiveBranchId = primaryBinding?.branchId ?? (u.branchId ?? null);
+
     return {
       userId: fullUser.id,
       email: fullUser.email,
       name: fullUser.name,
-      branchId: fullUser.branchId ?? null,
+      branchId: effectiveBranchId,
+      branchIds: branchIds.length ? branchIds : undefined,
       roleCode,
       roleScope,
       roleVersionId,
@@ -225,6 +240,12 @@ export class IamPrincipalService {
             permissions: { include: { permission: true } },
           },
         },
+        roleBindings: {
+          where: {
+            scope: "BRANCH",
+          },
+          select: { branchId: true, isPrimary: true, effectiveFrom: true, effectiveTo: true },
+        },
       },
     });
 
@@ -259,6 +280,12 @@ export class IamPrincipalService {
             roleTemplate: true,
             permissions: { include: { permission: true } },
           },
+        },
+        roleBindings: {
+          where: {
+            scope: "BRANCH",
+          },
+          select: { branchId: true, isPrimary: true, effectiveFrom: true, effectiveTo: true },
         },
       },
     });
@@ -325,11 +352,26 @@ export class IamPrincipalService {
 
     const uniquePerms = Array.from(new Set(perms || []));
 
+    // Multi-branch branchIds derived from active UserRoleBinding rows (if present)
+    const now = new Date();
+    const rawBindings = (u as any).roleBindings ?? [];
+    const activeBindings = Array.isArray(rawBindings)
+      ? rawBindings.filter((b: any) =>
+          !!b.branchId &&
+          (!b.effectiveFrom || new Date(b.effectiveFrom).getTime() <= now.getTime()) &&
+          (!b.effectiveTo || new Date(b.effectiveTo).getTime() >= now.getTime()),
+        )
+      : [];
+    const branchIds = Array.from(new Set(activeBindings.map((b: any) => b.branchId)));
+    const primaryBinding = activeBindings.find((b: any) => b.isPrimary) ?? activeBindings[0] ?? null;
+    const effectiveBranchId = primaryBinding?.branchId ?? (u.branchId ?? null);
+
     return {
       userId: u.id,
       email: u.email,
       name: u.name,
-      branchId: u.branchId ?? null,
+      branchId: effectiveBranchId,
+      branchIds: branchIds.length ? branchIds : undefined,
       roleCode,
       roleScope,
       roleVersionId,

@@ -178,18 +178,31 @@ export class FacilitySetupService {
     this.prisma.department.count({ where: { branchId, isActive: true } }),
     this.prisma.specialty.count({ where: { branchId, isActive: true } }),
 
-    // Staff has NO "role" field in your schema; heuristic via designation
-    this.prisma.staff.count({
-      where: {
-        branchId,
-        isActive: true,
-        OR: [
-          { designation: { contains: "doctor", mode: "insensitive" } },
-          { designation: { contains: "consultant", mode: "insensitive" } },
-          { designation: { contains: "surgeon", mode: "insensitive" } },
-        ],
-      },
-    }),
+    // Staff is enterprise-wide; branch placement lives in StaffAssignment.
+    // Heuristic doctor count: ACTIVE assignments in branch with doctor-like designation.
+    (async () => {
+      const now = new Date();
+      const rows = await this.prisma.staffAssignment.groupBy({
+        by: ["staffId"],
+        where: {
+          branchId,
+          status: "ACTIVE",
+          staff: { status: "ACTIVE" },
+          AND: [
+            { effectiveFrom: { lte: now } },
+            { OR: [{ effectiveTo: null }, { effectiveTo: { gte: now } }] },
+            {
+              OR: [
+                { designation: { contains: "doctor", mode: "insensitive" } },
+                { designation: { contains: "consultant", mode: "insensitive" } },
+                { designation: { contains: "surgeon", mode: "insensitive" } },
+              ],
+            },
+          ],
+        },
+      });
+      return rows.length;
+    })(),
 
     // OT readiness: either explicit OT rooms under an OT unit, OR OT tables as resources
     this.prisma.unitRoom.count({
@@ -259,15 +272,32 @@ export class FacilitySetupService {
       orderBy: [{ facility: { sortOrder: "asc" } }, { name: "asc" }],
       include: {
         facility: true,
-        headStaff: { select: { id: true, name: true, designation: true } },
+        headStaff: { select: { id: true, fullName: true, designationPrimary: true } },
         doctorAssignments: {
           include: {
             staff: {
               select: {
                 id: true,
-                name: true,
-                designation: true,
-                specialty: { select: { id: true, code: true, name: true } },
+                fullName: true,
+                designationPrimary: true,
+                assignments: {
+                  where: {
+                    branchId: dept.branchId,
+                    status: "ACTIVE",
+                    AND: [
+                      { effectiveFrom: { lte: new Date() } },
+                      { OR: [{ effectiveTo: null }, { effectiveTo: { gte: new Date() } }] },
+                    ],
+                  },
+                  orderBy: [{ isPrimary: "desc" }, { effectiveFrom: "desc" }],
+                  take: 1,
+                  select: {
+                    id: true,
+                    designation: true,
+                    branchEmpCode: true,
+                    specialty: { select: { id: true, code: true, name: true } },
+                  },
+                },
               },
             },
           },
@@ -386,13 +416,23 @@ export class FacilitySetupService {
       throw new BadRequestException("headStaffId must be included in doctorIds");
     }
 
-    // Validate staff IDs belong to this branch
+    // Validate doctorIds belong to this branch (via ACTIVE StaffAssignment)
     if (doctorIds.length) {
-      const staff = await this.prisma.staff.findMany({
-        where: { id: { in: doctorIds }, branchId, isActive: true },
-        select: { id: true },
+      const now = new Date();
+      const rows = await this.prisma.staffAssignment.groupBy({
+        by: ["staffId"],
+        where: {
+          branchId,
+          status: "ACTIVE",
+          staffId: { in: doctorIds },
+          staff: { status: "ACTIVE" },
+          AND: [
+            { effectiveFrom: { lte: now } },
+            { OR: [{ effectiveTo: null }, { effectiveTo: { gte: now } }] },
+          ],
+        },
       });
-      const ok = new Set(staff.map((s) => s.id));
+      const ok = new Set(rows.map((r) => r.staffId));
       const bad = doctorIds.filter((id) => !ok.has(id));
       if (bad.length) throw new BadRequestException(`Invalid doctorIds for this branch: ${bad.join(", ")}`);
     }
@@ -459,15 +499,32 @@ export class FacilitySetupService {
       where: { id: departmentId },
       include: {
         facility: true,
-        headStaff: { select: { id: true, name: true, designation: true } },
+        headStaff: { select: { id: true, fullName: true, designationPrimary: true } },
         doctorAssignments: {
           include: {
             staff: {
               select: {
                 id: true,
-                name: true,
-                designation: true,
-                specialty: { select: { id: true, code: true, name: true } },
+                fullName: true,
+                designationPrimary: true,
+                assignments: {
+                  where: {
+                    branchId: dept.branchId,
+                    status: "ACTIVE",
+                    AND: [
+                      { effectiveFrom: { lte: new Date() } },
+                      { OR: [{ effectiveTo: null }, { effectiveTo: { gte: new Date() } }] },
+                    ],
+                  },
+                  orderBy: [{ isPrimary: "desc" }, { effectiveFrom: "desc" }],
+                  take: 1,
+                  select: {
+                    id: true,
+                    designation: true,
+                    branchEmpCode: true,
+                    specialty: { select: { id: true, code: true, name: true } },
+                  },
+                },
               },
             },
           },
@@ -498,7 +555,7 @@ export class FacilitySetupService {
 
   if (hard) {
     // Strict “unused” checks for hard delete
-    const staffCount = await this.prisma.staff.count({ where: { departmentId } });
+    const staffCount = await this.prisma.staffAssignment.count({ where: { departmentId, status: "ACTIVE" } });
     const unitsCount = await this.prisma.unit.count({ where: { departmentId } });
     const doctorAssignCount = await this.prisma.departmentDoctor.count({ where: { departmentId } });
     const mapCount = await this.prisma.departmentSpecialty.count({ where: { departmentId } });
@@ -563,7 +620,7 @@ async deactivateSpecialty(
   const hard = !!opts.hard;
 
   if (hard) {
-    const staffCount = await this.prisma.staff.count({ where: { specialtyId } });
+    const staffCount = await this.prisma.staffAssignment.count({ where: { specialtyId, status: "ACTIVE" } });
     const mapCount = await this.prisma.departmentSpecialty.count({ where: { specialtyId } });
 
     const blockers = [
@@ -868,41 +925,57 @@ async deactivateSpecialty(
 
   async listDoctors(principal: Principal, q: { branchId?: string; q?: string }) {
     const branchId = this.resolveBranchId(principal, q.branchId ?? null);
+    const now = new Date();
 
+    // Query via StaffAssignment (branch placement), then project to staff.
     const where: any = {
       branchId,
-      isActive: true,
-      OR: [
-        { specialtyId: { not: null } },
-        { designation: { contains: "doctor", mode: "insensitive" } },
-        { designation: { contains: "consultant", mode: "insensitive" } },
-        { designation: { contains: "surgeon", mode: "insensitive" } },
+      status: "ACTIVE",
+      staff: { status: "ACTIVE" },
+      AND: [
+        { effectiveFrom: { lte: now } },
+        { OR: [{ effectiveTo: null }, { effectiveTo: { gte: now } }] },
+        {
+          OR: [
+            { specialtyId: { not: null } },
+            { designation: { contains: "doctor", mode: "insensitive" } },
+            { designation: { contains: "consultant", mode: "insensitive" } },
+            { designation: { contains: "surgeon", mode: "insensitive" } },
+          ],
+        },
       ],
     };
 
     if (q.q) {
-      where.AND = [
-        {
-          OR: [
-            { name: { contains: q.q, mode: "insensitive" } },
-            { empCode: { contains: q.q, mode: "insensitive" } },
-            { designation: { contains: q.q, mode: "insensitive" } },
-          ],
-        },
-      ];
+      where.AND.push({
+        OR: [
+          { staff: { fullName: { contains: q.q, mode: "insensitive" } } },
+          { branchEmpCode: { contains: q.q, mode: "insensitive" } },
+          { designation: { contains: q.q, mode: "insensitive" } },
+        ],
+      });
     }
 
-    return this.prisma.staff.findMany({
+    const rows = await this.prisma.staffAssignment.findMany({
       where,
-      orderBy: [{ name: "asc" }],
+      orderBy: [{ staff: { fullName: "asc" } }],
       select: {
-        id: true,
-        empCode: true,
-        name: true,
+        staffId: true,
+        branchEmpCode: true,
         designation: true,
         specialty: { select: { id: true, code: true, name: true } },
+        staff: { select: { fullName: true } },
       },
       take: 200,
     });
+
+    // Normalize to the legacy shape expected by the UI.
+    return rows.map((r) => ({
+      id: r.staffId,
+      empCode: r.branchEmpCode ?? null,
+      name: r.staff.fullName,
+      designation: r.designation ?? null,
+      specialty: r.specialty ?? null,
+    }));
   }
 }

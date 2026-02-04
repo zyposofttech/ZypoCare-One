@@ -43,6 +43,17 @@ export class StatutoryController {
     const p = this.principal(req);
     const scopedBranchId = resolveBranchId(p, branchId ?? null, { requiredForGlobal: false });
 
+    if (p.roleScope === "GLOBAL" && !scopedBranchId) {
+      await this.audit.log({
+        branchId: null,
+        actorUserId: actorUserIdFromReq(req),
+        action: "STATUTORY_CASE_READ_ALL_BRANCHES",
+        entity: "StatutoryCase",
+        entityId: null,
+        meta: { requestedBranchId: branchId ?? null, program: program ?? null },
+      });
+    }
+
     return this.prisma.statutoryCase.findMany({
       where: {
         ...(program ? { program } : {}),

@@ -132,21 +132,24 @@ model Branch {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  departments    Department[]
-  users          User[]
-  patients       Patient[]
-  wards          Ward[]
-  tariffPlans    TariffPlan[]
+  departments      Department[]
+  users            User[]
+  patients         Patient[]
+  wards            Ward[]
+  tariffPlans      TariffPlan[]
   // Advanced billing setup (branch-scoped)
-  taxCodes       TaxCode[]
-  payers         Payer[]
-  payerContracts PayerContract[]
-  assets         Asset[]
-  Specialty      Specialty[]
-  Staff          Staff[]
-  Encounter      Encounter[]
-  Bed            Bed[]
-  Admission      Admission[]
+  taxCodes         TaxCode[]
+  payers           Payer[]
+  payerContracts   PayerContract[]
+  assets           Asset[]
+  Specialty        Specialty[]
+  // Home branch pointer for staff (optional); working branches are via StaffAssignment
+  Staff            Staff[]           @relation("StaffHomeBranch")
+  staffAssignments StaffAssignment[]
+  userRoleBindings UserRoleBinding[]
+  Encounter        Encounter[]
+  Bed              Bed[]
+  Admission        Admission[]
 
   // Facilities enabled for this branch (multi-select from FacilityCatalog)
   branchFacilities BranchFacility[]
@@ -213,6 +216,9 @@ model FacilityCatalog {
   // Departments created under this facility
   departments Department[]
 
+  // Staff postings to this facility (optional; most assignments use departmentId)
+  staffAssignments StaffAssignment[]
+
   @@index([category, isActive, sortOrder])
 }
 
@@ -249,11 +255,16 @@ model Department {
   headStaffId String?
   headStaff   Staff?  @relation("DepartmentHead", fields: [headStaffId], references: [id], onDelete: SetNull)
 
+  // Preferred: head of department as an assignment (supports multi-branch staff)
+  headAssignmentId String?
+  headAssignment   StaffAssignment? @relation("DepartmentHeadAssignment", fields: [headAssignmentId], references: [id], onDelete: SetNull)
+
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  staff Staff[] @relation("DepartmentStaff")
+  // Staff in this department is represented via StaffAssignment
+  staffAssignments StaffAssignment[]
 
   doctorAssignments DepartmentDoctor[]
 
@@ -321,7 +332,8 @@ model Specialty {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  staff Staff[]
+  // Staff mapped to this specialty per branch via StaffAssignment
+  assignments StaffAssignment[]
 
   // ✅ Many-to-many link to departments
   departmentLinks DepartmentSpecialty[]
@@ -329,34 +341,292 @@ model Specialty {
   @@unique([branchId, code])
 }
 
-model Staff {
-  id           String      @id @default(cuid())
-  branchId     String
-  branch       Branch      @relation(fields: [branchId], references: [id])
+// ---------------------------------------------------------------------------
+// Staff Directory (Enterprise) + Multi-Branch Assignments + Access Bindings
+// ---------------------------------------------------------------------------
+
+enum StaffCategory {
+  MEDICAL
+  NON_MEDICAL
+}
+
+enum StaffStatus {
+  ACTIVE
+  SUSPENDED
+  OFFBOARDED
+}
+
+enum StaffEngagementType {
+  EMPLOYEE
+  CONSULTANT
+  VISITING_CONSULTANT
+  LOCUM
+  CONTRACTOR
+  VENDOR_STAFF
+  INTERN
+  TRAINEE
+}
+
+enum StaffAssignmentType {
+  PERMANENT
+  TEMPORARY
+  ROTATION
+  VISITING
+  LOCUM
+  CONTRACTOR
+  TRAINEE
+  SHARED_SERVICE
+}
+
+enum StaffAssignmentStatus {
+  ACTIVE
+  ENDED
+  SUSPENDED
+}
+
+enum StaffCredentialType {
+  MEDICAL_REGISTRATION
+  NURSING_REGISTRATION
+  PHARMACY_REGISTRATION
+  TECHNICIAN_LICENSE
+  OTHER
+}
+
+enum StaffCredentialVerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum StaffIdentifierType {
+  AADHAAR
+  PAN
+  PASSPORT
+  VOTER_ID
+  DRIVING_LICENSE
+  OTHER
+}
+
+enum UserSource {
+  STAFF
+  ADMIN
+  SYSTEM
+  INTEGRATION
+}
+
+model StaffAssignment {
+  id String @id @default(cuid())
+
+  staffId String
+  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  // Optional organizational placement
+  facilityId String?
+  facility   FacilityCatalog? @relation(fields: [facilityId], references: [id], onDelete: SetNull)
+
   departmentId String?
-  department   Department? @relation("DepartmentStaff", fields: [departmentId], references: [id])
-  specialtyId  String?
-  specialty    Specialty?  @relation(fields: [specialtyId], references: [id])
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
 
-  empCode           String
-  name              String
-  designation       String
-  phone             String?
-  email             String?
-  isActive          Boolean            @default(true)
-  // Doctor assignment to departments (many-to-many)
-  doctorAssignments DepartmentDoctor[]
+  // If this assignment is the Head of Department, Department.headAssignment can reference it
+  headedDepartments Department[] @relation("DepartmentHeadAssignment")
 
-  // Departments where this staff is Head of Department
-  headedDepartments Department[] @relation("DepartmentHead")
+  specialtyId String?
+  specialty   Specialty? @relation(fields: [specialtyId], references: [id], onDelete: SetNull)
+
+  designation   String? @db.VarChar(120)
+  branchEmpCode String? @db.VarChar(48)
+
+  assignmentType StaffAssignmentType   @default(PERMANENT)
+  status         StaffAssignmentStatus @default(ACTIVE)
+
+  isPrimary Boolean @default(false)
+
+  effectiveFrom DateTime  @default(now())
+  effectiveTo   DateTime?
+
+  createdByUserId String?
+  createdByUser   User?   @relation("StaffAssignmentCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user                     User?
+  // Bindings that anchor a user's access to this specific assignment
+  roleBindings UserRoleBinding[]
+
+  @@unique([staffId, branchId, departmentId, effectiveFrom])
+  @@index([branchId, status])
+  @@index([staffId, status])
+  @@index([departmentId])
+  @@index([specialtyId])
+  @@index([effectiveFrom, effectiveTo])
+}
+
+model StaffCredential {
+  id String @id @default(cuid())
+
+  staffId String
+  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  type               StaffCredentialType
+  issuingAuthority   String?             @db.VarChar(160)
+  registrationNumber String              @db.VarChar(80)
+
+  validFrom DateTime?
+  validTo   DateTime?
+
+  verificationStatus StaffCredentialVerificationStatus @default(UNVERIFIED)
+
+  verifiedAt       DateTime?
+  verifiedByUserId String?
+  verifiedByUser   User?     @relation("StaffCredentialVerifiedBy", fields: [verifiedByUserId], references: [id], onDelete: SetNull)
+
+  documentUrl      String?
+  documentMime     String?
+  documentSize     Int?
+  documentChecksum String?
+
+  notes String?
+  meta  Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([type, registrationNumber])
+  @@index([staffId, type])
+  @@index([staffId, validTo])
+  @@index([verificationStatus, validTo])
+}
+
+model StaffIdentifier {
+  id String @id @default(cuid())
+
+  staffId String
+  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  type      StaffIdentifierType
+  // Store only a one-way hash to reduce exposure (hashing done in app service)
+  valueHash String              @db.VarChar(128)
+  last4     String?             @db.VarChar(8)
+
+  issuedBy String? @db.VarChar(80)
+  meta     Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([type, valueHash])
+  @@index([staffId, type])
+}
+
+model StaffMergeLog {
+  id String @id @default(cuid())
+
+  fromStaffId String
+  fromStaff   Staff  @relation("StaffMergeFrom", fields: [fromStaffId], references: [id], onDelete: Restrict)
+
+  intoStaffId String
+  intoStaff   Staff  @relation("StaffMergeInto", fields: [intoStaffId], references: [id], onDelete: Restrict)
+
+  reason String?
+  meta   Json?
+
+  mergedAt DateTime @default(now())
+
+  mergedByUserId String?
+  mergedByUser   User?   @relation("StaffMergedBy", fields: [mergedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([intoStaffId, mergedAt])
+  @@index([fromStaffId])
+}
+
+model UserRoleBinding {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  roleVersionId String
+  roleVersion   RoleTemplateVersion @relation(fields: [roleVersionId], references: [id], onDelete: Cascade)
+
+  // Scope context: for BRANCH scope, branchId should be set.
+  scope    RoleScope @default(BRANCH)
+  branchId String?
+  branch   Branch?   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  // Optional anchor to a specific staff assignment (best for multi-branch rotating staff)
+  staffAssignmentId String?
+  staffAssignment   StaffAssignment? @relation(fields: [staffAssignmentId], references: [id], onDelete: SetNull)
+
+  isPrimary Boolean @default(false)
+
+  effectiveFrom DateTime  @default(now())
+  effectiveTo   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, roleVersionId, branchId, effectiveFrom])
+  @@index([userId, branchId])
+  @@index([roleVersionId])
+  @@index([staffAssignmentId])
+  @@index([userId, effectiveFrom, effectiveTo])
+}
+
+model Staff {
+  id String @id @default(cuid())
+
+  // Enterprise-wide staff directory (single source of truth)
+  staffNo     String? @unique @db.VarChar(32) // optional human-friendly code e.g. STF-000123
+  fullName    String  @db.VarChar(160)
+  displayName String? @db.VarChar(160)
+
+  category       StaffCategory       @default(MEDICAL)
+  engagementType StaffEngagementType @default(EMPLOYEE)
+  status         StaffStatus         @default(ACTIVE)
+
+  // Contact (store minimal; keep sensitive IDs hashed in StaffIdentifier)
+  phone String? @db.VarChar(20)
+  email String? @db.VarChar(120)
+
+  // Home branch (optional). Actual working branches are represented by StaffAssignment.
+  homeBranchId String?
+  homeBranch   Branch? @relation("StaffHomeBranch", fields: [homeBranchId], references: [id], onDelete: SetNull)
+
+  // Optional: ABDM Healthcare Professional Registry ID (if hospital uses ABDM ecosystem)
+  hprId String? @db.VarChar(64)
+
+  designationPrimary String? @db.VarChar(120) // coarse/legacy display; prefer assignment.designation
+  notes              String?
+  meta               Json? // tags, additional HR fields, etc.
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  assignments StaffAssignment[]
+  credentials StaffCredential[]
+  identifiers StaffIdentifier[]
+
+  // Back-compat relations (existing modules)
+  doctorAssignments        DepartmentDoctor[]
+  headedDepartments        Department[]               @relation("DepartmentHead")
   EquipmentMaintenanceTask EquipmentMaintenanceTask[]
 
-  @@unique([branchId, empCode])
+  // Login account (optional; created via Staff onboarding)
+  user User?
+
+  // Merge history
+  mergedFrom StaffMergeLog[] @relation("StaffMergeFrom")
+  mergedInto StaffMergeLog[] @relation("StaffMergeInto")
+
+  @@index([category, status])
+  @@index([fullName])
+  @@index([phone])
+  @@index([email])
 }
 
 model User {
@@ -366,6 +636,9 @@ model User {
 
   // Keep a simple role string for UI/back-compat (your code references this)
   role String @default("BRANCH_ADMIN")
+
+  // Where this account originated from. STAFF users are created/managed via Infrastructure → Staff.
+  source UserSource @default(ADMIN)
 
   phone    String?
   branchId String?
@@ -387,6 +660,9 @@ model User {
   passwordResetExpires DateTime?
   roleVersionId        String?
   roleVersion          RoleTemplateVersion? @relation("UserRoleVersion", fields: [roleVersionId], references: [id])
+
+  // Preferred multi-role / multi-branch bindings (supports staff rotation across branches)
+  roleBindings UserRoleBinding[]
 
   createdRoleVersions RoleTemplateVersion[] @relation("RoleVersionCreatedBy")
   auditEventsAsActor  AuditEvent[]          @relation("AuditActor")
@@ -456,6 +732,11 @@ model User {
   governedChangeRequestsSubmitted GovernedChangeRequest[] @relation("GovernedChangeSubmittedBy")
   governedChangeRequestsApproved  GovernedChangeRequest[] @relation("GovernedChangeApprovedBy")
   governedChangeRequestsRejected  GovernedChangeRequest[] @relation("GovernedChangeRejectedBy")
+
+  // Staff module relations
+  createdStaffAssignments  StaffAssignment[] @relation("StaffAssignmentCreatedBy")
+  verifiedStaffCredentials StaffCredential[] @relation("StaffCredentialVerifiedBy")
+  staffMerges              StaffMergeLog[]   @relation("StaffMergedBy")
 }
 
 model Patient {
@@ -930,6 +1211,9 @@ model RoleTemplateVersion {
 
   // NAME THIS RELATION TOO (users assigned to this role version)
   users User[] @relation("UserRoleVersion")
+
+  // Preferred: explicit bindings (supports multi-branch / multi-role per user)
+  roleBindings UserRoleBinding[]
 
   @@unique([roleTemplateId, version])
 }

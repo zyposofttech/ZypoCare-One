@@ -48,11 +48,19 @@ export function resolveBranchId(
   const requiredForGlobal = opts?.requiredForGlobal ?? false;
 
   if (principal.roleScope === "BRANCH") {
-    if (!principal.branchId) throw new ForbiddenException("Branch-scoped principal missing branchId");
-    if (requestedBranchId && requestedBranchId !== principal.branchId) {
+    const allowed = Array.isArray((principal as any).branchIds) && (principal as any).branchIds.length
+      ? (principal as any).branchIds
+      : (principal.branchId ? [principal.branchId] : []);
+
+    if (!allowed.length) throw new ForbiddenException("Branch-scoped principal missing branchId");
+
+    // If caller requested a branchId, it must be one of the allowed branches.
+    if (requestedBranchId && !allowed.includes(requestedBranchId)) {
       throw new ForbiddenException("Cannot access another branch");
     }
-    return principal.branchId;
+
+    // Default when not explicitly requested: use principal.branchId if set, else first allowed.
+    return requestedBranchId ?? principal.branchId ?? allowed[0];
   }
 
   // GLOBAL

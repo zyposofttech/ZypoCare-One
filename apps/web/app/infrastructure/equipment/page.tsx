@@ -67,7 +67,7 @@ type DiagnosticCategoryRow = { id: string; branchId: string; sectionId: string; 
 type LocationType = "CAMPUS" | "BUILDING" | "FLOOR" | "ZONE";
 type LocationNode = {
   id: string;
-  branchId: string;
+  branchId: string | null;
   type: LocationType;
   parentId?: string | null;
   code: string;
@@ -137,7 +137,7 @@ type EquipmentListResponse =
   | { page: number; pageSize: number; total: number; rows: EquipmentAssetRow[] };
 
 type EquipmentSummaryResponse = {
-  branchId: string;
+  branchId: string | null;
   byStatus: Array<{ operationalStatus: EquipmentOperationalStatus; _count: { _all: number } }>;
   byCategory: Array<{ category: EquipmentCategory; _count: { _all: number } }>;
   openDowntimeCount: number;
@@ -150,13 +150,13 @@ type EquipmentSummaryResponse = {
 };
 
 type AlertsResponse = {
-  branchId: string;
+  branchId: string | null;
   withinDays: number;
   pmDue: EquipmentAssetRow[];
   amcExpiring: EquipmentAssetRow[];
   warrantyExpiring: EquipmentAssetRow[];
   complianceExpiring: EquipmentAssetRow[];
-  openDowntime: Array<DowntimeTicketRow & { asset?: { id: string; code: string; name: string; category: EquipmentCategory } }>;
+  openDowntime: Array<DowntimeTicketRow & { asset?: { id: string; code: string; name: string; category: EquipmentCategory; branchId: string } }>;
 };
 
 /* -------------------------------------------------------------------------- */
