@@ -28,15 +28,43 @@ export const RX_LOCATION_CODE_ANY = /^[A-Z0-9][A-Z0-9-]{0,48}$/;    // raw input
 
 export type LocationKind = "CAMPUS" | "BUILDING" | "FLOOR" | "ZONE";
 export const RESOURCE_TYPES = [
-  "BED",
-  "BAY",
-  "CHAIR",
-  "OT_TABLE",
-  "PROCEDURE_TABLE",
-  "DIALYSIS_STATION",
-  "RECOVERY_BAY",
-  "EXAM_SLOT",
-  "INCUBATOR",
+  // Bed resources
+  'GENERAL_BED',
+  'ICU_BED',
+  'NICU_INCUBATOR',
+  'CRIB',
+  'TROLLEY',
+  'STRETCHER',
+  'WHEELCHAIR_POSITION',
+
+  // Procedure resources
+  'OT_TABLE',
+  'DIALYSIS_STATION',
+  'CHEMOTHERAPY_CHAIR',
+  'PROCEDURE_CHAIR',
+  'PROCEDURE_TABLE',
+  'RECOVERY_BAY',
+  'DENTAL_CHAIR',
+  'EXAMINATION_TABLE',
+
+  // Diagnostic resources
+  'XRAY_MACHINE_SLOT',
+  'CT_SCANNER_SLOT',
+  'MRI_SCANNER_SLOT',
+  'USG_MACHINE_SLOT',
+  'ECG_MACHINE_SLOT',
+  'ECHO_MACHINE_SLOT',
+  'SAMPLE_COLLECTION_COUNTER',
+
+  // Consultation
+  'CONSULTATION_SLOT',
+  'EXAM_SLOT',
+
+  // Legacy (keep for backward compatibility)
+  'BED',
+  'BAY',
+  'CHAIR',
+  'INCUBATOR',
 ] as const;
 
 export type ResourceType = (typeof RESOURCE_TYPES)[number];
@@ -128,16 +156,43 @@ export function assertRoomCode(_unitCodeRaw: string, roomCodeRaw: string) {
 
 
 export const RESOURCE_PREFIX: Record<ResourceType, string> = {
+  // Bed resources
+  GENERAL_BED: 'B',
+  ICU_BED: 'ICU',
+  NICU_INCUBATOR: 'NICU',
+  CRIB: 'CR',
+  TROLLEY: 'TR',
+  STRETCHER: 'ST',
+  WHEELCHAIR_POSITION: 'WC',
 
-  BED: "B",
-  BAY: "BAY",
-  CHAIR: "CH",
-  OT_TABLE: "OT",
-  PROCEDURE_TABLE: "PR",
-  DIALYSIS_STATION: "DS",
-  RECOVERY_BAY: "RB",
-  EXAM_SLOT: "EX",
-  INCUBATOR: "IN",
+  // Procedure resources
+  OT_TABLE: 'OT',
+  DIALYSIS_STATION: 'DS',
+  CHEMOTHERAPY_CHAIR: 'CH',
+  PROCEDURE_CHAIR: 'PC',
+  PROCEDURE_TABLE: 'PR',
+  RECOVERY_BAY: 'RB',
+  DENTAL_CHAIR: 'DC',
+  EXAMINATION_TABLE: 'ET',
+
+  // Diagnostic resources
+  XRAY_MACHINE_SLOT: 'XR',
+  CT_SCANNER_SLOT: 'CT',
+  MRI_SCANNER_SLOT: 'MRI',
+  USG_MACHINE_SLOT: 'US',
+  ECG_MACHINE_SLOT: 'ECG',
+  ECHO_MACHINE_SLOT: 'ECH',
+  SAMPLE_COLLECTION_COUNTER: 'SC',
+
+  // Consultation
+  CONSULTATION_SLOT: 'CS',
+  EXAM_SLOT: 'EX',
+
+  // Legacy
+  BED: 'B',
+  BAY: 'BAY',
+  CHAIR: 'CH',
+  INCUBATOR: 'IN',
 };
 
 type AssertResourceArgs = {

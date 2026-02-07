@@ -49,6 +49,13 @@ export class IamService {
     return this.isSuperAdmin(principal) || (principal.permissions ?? []).includes(PERM.IAM_PERMISSION_MANAGE);
   }
 
+  private assertPerm(principal: Principal, permission: string) {
+    if (this.isSuperAdmin(principal)) return;
+    if (!(principal.permissions ?? []).includes(permission)) {
+      throw new ForbiddenException(`Missing permission: ${permission}`);
+    }
+  }
+
   private normalizePermissionCodes(codes: string[] | null | undefined): string[] {
     const arr = Array.isArray(codes) ? codes : [];
     const out: string[] = [];
@@ -138,56 +145,46 @@ export class IamService {
     }));
   }
 
-  async listUsers(principal: Principal, q?: string, branchId?: string) {
-    const query = (q || "").trim();
+   async listUsers(principal: Principal, q?: string, branchId?: string, includeStaff = false) {
+    this.assertPerm(principal, PERM.IAM_USER_READ);
+
     const where: any = {};
-    if (query) {
+
+    if (!includeStaff) {
+      where.source = { not: "STAFF" as any };
+    }
+
+    if (principal.roleScope === "BRANCH") {
+      where.branchId = principal.branchId;
+    } else if (branchId) {
+      where.branchId = branchId;
+    }
+
+    if (q) {
       where.OR = [
-        { email: { contains: query, mode: "insensitive" } },
-        { name: { contains: query, mode: "insensitive" } },
+        { email: { contains: q, mode: "insensitive" } },
+        { name: { contains: q, mode: "insensitive" } },
       ];
     }
-    if (principal.roleScope === "BRANCH") {
-      // Preserve legacy behavior: missing branchId -> empty result, not an exception.
-      if (!principal.branchId) {
-        where.branchId = "__none__";
-      } else {
-        // Optional filter for BRANCH scope: must match principal.branchId
-        if (branchId) {
-          // Use shared helper where safe (principal.branchId exists)
-          resolveBranchId(principal, branchId);
-        }
-        where.branchId = principal.branchId;
-      }
-    } else {
-      // GLOBAL scope: optional branchId filter
-      const resolved = resolveBranchId(principal, branchId ?? null);
-      if (resolved) where.branchId = resolved;
-    }
 
-    const rows = await this.prisma.user.findMany({
+    return this.prisma.user.findMany({
       where,
-      include: {
-        branch: true,
-        roleVersion: { include: { roleTemplate: true } },
-      },
       orderBy: [{ createdAt: "desc" }],
-      take: 200,
+      take: 100,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        branchId: true,
+        isActive: true,
+        source: true,
+        staffId: true,
+        createdAt: true,
+      } as any,
     });
-
-    return rows.map((u: any) => ({
-      id: u.id,
-      email: u.email,
-      name: u.name,
-      roleCode: u.roleVersion?.roleTemplate?.code ?? u.role,
-      branchId: u.branchId ?? null,
-      branchName: u.branch?.name ?? null,
-      isActive: u.isActive,
-      mustChangePassword: u.mustChangePassword,
-      createdAt: u.createdAt,
-      updatedAt: u.updatedAt,
-    }));
   }
+
 
   async createUser(principal: Principal, dto: CreateUserDto) {
     const email = lowerEmail(dto.email);
@@ -902,4 +899,3 @@ export class IamService {
     return perm;
   }
 }
-

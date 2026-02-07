@@ -108,6 +108,116 @@ function normalizeGstNumber(input: string) {
   return gst;
 }
 
+
+const RE_PHONE = /^[0-9+][0-9()\-\s]{6,19}$/;
+
+function requiredTrim(v: any, label: string) {
+  const s = String(v ?? "").trim();
+  if (!s) throw new BadRequestException(`${label} is required`);
+  return s;
+}
+
+function normalizePanNumber(input: string) {
+  const pan = String(input || "").trim().toUpperCase();
+  if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan)) {
+    throw new BadRequestException("Invalid PAN. Example: ABCDE1234F");
+  }
+  return pan;
+}
+
+function normalizePinCode(input: string) {
+  const pin = String(input || "").trim();
+  if (!/^\d{6}$/.test(pin)) {
+    throw new BadRequestException("Invalid PIN code. Example: 560100");
+  }
+  return pin;
+}
+
+function normalizeEmailRequired(input: string) {
+  const email = String(input || "").trim().toLowerCase();
+  if (!email) throw new BadRequestException("contactEmail is required");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new BadRequestException("Invalid contactEmail");
+  }
+  return email;
+}
+
+function normalizePhoneRequired(input: string, label: string) {
+  const phone = String(input || "").trim();
+  if (!phone) throw new BadRequestException(`${label} is required`);
+  if (!RE_PHONE.test(phone)) throw new BadRequestException(`Invalid ${label}`);
+  return phone;
+}
+
+function parseDateOptional(input: any, label: string) {
+  if (input === undefined) return undefined;
+  if (input === null) return null;
+  const s = String(input).trim();
+  if (!s) return null;
+  const t = Date.parse(s);
+  if (!Number.isFinite(t)) throw new BadRequestException(`Invalid ${label}`);
+  return new Date(t);
+}
+
+function normalizeMonth(input: any, fallback: number) {
+  if (input === undefined || input === null) return fallback;
+  const n = Number(input);
+  if (!Number.isInteger(n) || n < 1 || n > 12) {
+    throw new BadRequestException("fiscalYearStartMonth must be an integer between 1 and 12");
+  }
+  return n;
+}
+
+function cleanStringArray(input: any, opts?: { upper?: boolean }) {
+  if (input === undefined) return undefined;
+  if (input === null) return null;
+  if (!Array.isArray(input)) throw new BadRequestException("Expected an array of strings");
+  const upper = Boolean(opts?.upper);
+  const out = input
+    .map((x) => String(x ?? "").trim())
+    .filter(Boolean)
+    .map((x) => (upper ? x.toUpperCase() : x));
+  return out.length ? out : null;
+}
+
+function cleanWorkingHours(input: any) {
+  const s = cleanOptional(input);
+  if (s === undefined) return undefined;
+  if (s === null) return null;
+  return { text: s };
+}
+
+function cleanSocialLinks(input: {
+  facebook?: any;
+  instagram?: any;
+  linkedin?: any;
+  x?: any;
+  youtube?: any;
+}) {
+  const out: Record<string, string> = {};
+  const f = cleanOptional(input.facebook);
+  const i = cleanOptional(input.instagram);
+  const l = cleanOptional(input.linkedin);
+  const x = cleanOptional(input.x);
+  const y = cleanOptional(input.youtube);
+
+  if (f) out.facebook = f;
+  if (i) out.instagram = i;
+  if (l) out.linkedin = l;
+  if (x) out.x = x;
+  if (y) out.youtube = y;
+
+  return Object.keys(out).length ? out : null;
+}
+
+// IMPORTANT: Prisma Json? fields don't accept JS `null`. Use Prisma.DbNull for DB NULL.
+function jsonDbNull<T>(v: T | null | undefined) {
+  if (v === undefined) return undefined;
+  if (v === null) return Prisma.DbNull;
+  return v as any;
+}
+
+
 function countMapFromGroupBy(rows: Array<{ branchId: string; _count: { _all: number } }>): Record<string, number> {
   const map: Record<string, number> = {};
   for (const r of rows) map[r.branchId] = r._count?._all ?? 0;
@@ -172,7 +282,7 @@ export class BranchService {
             departments: true,
             patients: true,
             branchFacilities: true,
-            Specialty: true,
+            specialties: true,
 
             // Setup Studio infra totals
             locationNodes: true,
@@ -249,7 +359,7 @@ export class BranchService {
             departments: true,
             patients: true,
             branchFacilities: true,
-            Specialty: true,
+            specialties: true,
 
             // Setup Studio infra totals
             locationNodes: true,
@@ -292,26 +402,99 @@ export class BranchService {
       code: string;
       name: string;
       city: string;
-      gstNumber: string;
-      address?: string;
-      contactPhone1?: string;
+
+      legalEntityName: string;
+      address: string;
+      pinCode: string;
+      state?: string;
+      country?: string;
+
+      contactPhone1: string;
       contactPhone2?: string;
-      contactEmail?: string;
+      contactEmail: string;
+
+      gstNumber: string;
+      panNumber: string;
+      clinicalEstRegNumber: string;
+      rohiniId?: string;
+      hfrId?: string;
+
+      logoUrl?: string;
+      website?: string;
+
+      facebook?: string;
+      instagram?: string;
+      linkedin?: string;
+      x?: string;
+      youtube?: string;
+
+      accreditations?: string[];
+      bedCount?: number;
+      establishedDate?: string;
+
+      defaultCurrency?: string;
+      timezone?: string;
+      fiscalYearStartMonth?: number;
+      workingHoursText?: string;
+      emergency24x7?: boolean;
+      multiLanguageSupport?: boolean;
+      supportedLanguages?: string[];
     },
     actorUserId?: string | null,
   ) {
     const code = normalizeBranchCode(input.code);
-    const name = String(input.name || "").trim();
-    const city = String(input.city || "").trim();
-    const gstNumber = normalizeGstNumber(input.gstNumber);
+    const name = requiredTrim(input.name, "name");
+    const city = requiredTrim(input.city, "city");
 
-    if (!name) throw new BadRequestException("name is required");
-    if (!city) throw new BadRequestException("city is required");
+    const legalEntityName = requiredTrim(input.legalEntityName, "legalEntityName");
+    const address = requiredTrim(input.address, "address");
+    const pinCode = normalizePinCode(input.pinCode);
 
-    const address = cleanOptional(input.address);
-    const contactPhone1 = cleanOptional(input.contactPhone1);
+    const state = cleanOptional(input.state);
+    const country = cleanOptional(input.country);
+
+    const contactPhone1 = normalizePhoneRequired(input.contactPhone1, "contactPhone1");
     const contactPhone2 = cleanOptional(input.contactPhone2);
-    const contactEmail = cleanOptional(input.contactEmail);
+    const contactEmail = normalizeEmailRequired(input.contactEmail);
+
+    const gstNumber = normalizeGstNumber(input.gstNumber);
+    const panNumber = normalizePanNumber(input.panNumber);
+    const clinicalEstRegNumber = requiredTrim(input.clinicalEstRegNumber, "clinicalEstRegNumber");
+    const rohiniId = cleanOptional(input.rohiniId);
+    const hfrId = cleanOptional(input.hfrId); // ABDM auto-populated later
+
+    const logoUrl = cleanOptional(input.logoUrl);
+    const website = cleanOptional(input.website);
+
+    const socialLinks = cleanSocialLinks({
+      facebook: input.facebook,
+      instagram: input.instagram,
+      linkedin: input.linkedin,
+      x: input.x,
+      youtube: input.youtube,
+    });
+
+    const accreditations = cleanStringArray(input.accreditations, { upper: true });
+    const supportedLanguages = cleanStringArray(input.supportedLanguages);
+
+    const bedCount =
+      input.bedCount === undefined || input.bedCount === null
+        ? undefined
+        : (() => {
+            const n = Number(input.bedCount);
+            if (!Number.isFinite(n) || n < 0) throw new BadRequestException("bedCount must be a non-negative number");
+            return Math.trunc(n);
+          })();
+
+    const establishedDate = parseDateOptional(input.establishedDate, "establishedDate");
+
+    const defaultCurrency = (cleanOptional(input.defaultCurrency) ?? "INR").toUpperCase();
+    const timezone = cleanOptional(input.timezone) ?? "Asia/Kolkata";
+    const fiscalYearStartMonth = normalizeMonth(input.fiscalYearStartMonth, 4);
+    const workingHours = cleanWorkingHours(input.workingHoursText);
+
+    const emergency24x7 = input.emergency24x7 === undefined ? true : Boolean(input.emergency24x7);
+    const multiLanguageSupport = input.multiLanguageSupport === undefined ? false : Boolean(input.multiLanguageSupport);
 
     try {
       const created = await this.prisma.branch.create({
@@ -319,11 +502,40 @@ export class BranchService {
           code,
           name,
           city,
-          gstNumber,
-          address: address ?? null,
-          contactPhone1: contactPhone1 ?? null,
+
+          legalEntityName,
+          address,
+          pinCode,
+          state: state ?? null,
+          country: country ?? null,
+
+          contactPhone1,
           contactPhone2: contactPhone2 ?? null,
-          contactEmail: contactEmail ?? null,
+          contactEmail,
+
+          gstNumber,
+          panNumber,
+          clinicalEstRegNumber,
+          rohiniId: rohiniId ?? null,
+          hfrId: hfrId ?? null,
+
+          logoUrl: logoUrl ?? null,
+          website: website ?? null,
+
+          // Json? fields: use Prisma.DbNull instead of JS null
+          socialLinks: jsonDbNull(socialLinks),
+          accreditations: jsonDbNull(accreditations),
+          workingHours: jsonDbNull(workingHours),
+          supportedLanguages: jsonDbNull(supportedLanguages),
+
+          bedCount: bedCount ?? undefined,
+          establishedDate: establishedDate ?? null,
+
+          defaultCurrency,
+          timezone,
+          fiscalYearStartMonth,
+          emergency24x7,
+          multiLanguageSupport,
         },
       });
 
@@ -337,11 +549,10 @@ export class BranchService {
           code: created.code,
           name: created.name,
           city: created.city,
+          legalEntityName: created.legalEntityName,
           gstNumber: created.gstNumber,
-          address: created.address,
-          contactPhone1: created.contactPhone1,
-          contactPhone2: created.contactPhone2,
-          contactEmail: created.contactEmail,
+          panNumber: created.panNumber,
+          clinicalEstRegNumber: created.clinicalEstRegNumber,
         },
       });
 
@@ -359,11 +570,43 @@ export class BranchService {
     input: {
       name?: string;
       city?: string;
-      gstNumber?: string;
+
+      legalEntityName?: string;
       address?: string;
+      pinCode?: string;
+      state?: string;
+      country?: string;
+
       contactPhone1?: string;
       contactPhone2?: string;
       contactEmail?: string;
+
+      gstNumber?: string;
+      panNumber?: string;
+      clinicalEstRegNumber?: string;
+      rohiniId?: string;
+      hfrId?: string;
+
+      logoUrl?: string;
+      website?: string;
+
+      facebook?: string;
+      instagram?: string;
+      linkedin?: string;
+      x?: string;
+      youtube?: string;
+
+      accreditations?: string[];
+      bedCount?: number;
+      establishedDate?: string;
+
+      defaultCurrency?: string;
+      timezone?: string;
+      fiscalYearStartMonth?: number;
+      workingHoursText?: string;
+      emergency24x7?: boolean;
+      multiLanguageSupport?: boolean;
+      supportedLanguages?: string[];
     },
     actorUserId?: string | null,
   ) {
@@ -384,14 +627,115 @@ export class BranchService {
       patch.city = v;
     }
 
-    if (typeof input.gstNumber === "string") {
-      patch.gstNumber = normalizeGstNumber(input.gstNumber);
+    if (typeof input.legalEntityName === "string") {
+      const v = input.legalEntityName.trim();
+      if (!v) throw new BadRequestException("legalEntityName cannot be empty");
+      patch.legalEntityName = v;
     }
 
-    if (input.address !== undefined) patch.address = cleanOptional(input.address) ?? null;
-    if (input.contactPhone1 !== undefined) patch.contactPhone1 = cleanOptional(input.contactPhone1) ?? null;
+    if (typeof input.address === "string") {
+      const v = input.address.trim();
+      if (!v) throw new BadRequestException("address cannot be empty");
+      patch.address = v;
+    }
+
+    if (typeof input.pinCode === "string") patch.pinCode = normalizePinCode(input.pinCode);
+    if (input.state !== undefined) patch.state = cleanOptional(input.state) ?? null;
+    if (input.country !== undefined) patch.country = cleanOptional(input.country) ?? null;
+
+    if (typeof input.contactPhone1 === "string") {
+      patch.contactPhone1 = normalizePhoneRequired(input.contactPhone1, "contactPhone1");
+    }
     if (input.contactPhone2 !== undefined) patch.contactPhone2 = cleanOptional(input.contactPhone2) ?? null;
-    if (input.contactEmail !== undefined) patch.contactEmail = cleanOptional(input.contactEmail) ?? null;
+    if (typeof input.contactEmail === "string") patch.contactEmail = normalizeEmailRequired(input.contactEmail);
+
+    if (typeof input.gstNumber === "string") patch.gstNumber = normalizeGstNumber(input.gstNumber);
+    if (typeof input.panNumber === "string") patch.panNumber = normalizePanNumber(input.panNumber);
+
+    if (typeof input.clinicalEstRegNumber === "string") {
+      const v = input.clinicalEstRegNumber.trim();
+      if (!v) throw new BadRequestException("clinicalEstRegNumber cannot be empty");
+      patch.clinicalEstRegNumber = v;
+    }
+
+    if (input.rohiniId !== undefined) patch.rohiniId = cleanOptional(input.rohiniId) ?? null;
+    if (input.hfrId !== undefined) patch.hfrId = cleanOptional(input.hfrId) ?? null;
+
+    if (input.logoUrl !== undefined) patch.logoUrl = cleanOptional(input.logoUrl) ?? null;
+    if (input.website !== undefined) patch.website = cleanOptional(input.website) ?? null;
+
+    // Social links: if any social field is provided, merge into existing.socialLinks
+    const socialTouched =
+      input.facebook !== undefined ||
+      input.instagram !== undefined ||
+      input.linkedin !== undefined ||
+      input.x !== undefined ||
+      input.youtube !== undefined;
+
+    if (socialTouched) {
+      const base =
+        (existing as any).socialLinks && typeof (existing as any).socialLinks === "object" ? (existing as any).socialLinks : {};
+      const merged: Record<string, string> = { ...base };
+
+      const apply = (key: string, val: any) => {
+        if (val === undefined) return;
+        const s = cleanOptional(val);
+        if (!s) delete (merged as any)[key];
+        else (merged as any)[key] = s;
+      };
+
+      apply("facebook", input.facebook);
+      apply("instagram", input.instagram);
+      apply("linkedin", input.linkedin);
+      apply("x", input.x);
+      apply("youtube", input.youtube);
+
+      patch.socialLinks = Object.keys(merged).length ? merged : Prisma.DbNull;
+    }
+
+    if (input.accreditations !== undefined) {
+      const acc = cleanStringArray(input.accreditations, { upper: true });
+      patch.accreditations = acc ? acc : Prisma.DbNull;
+    }
+
+    if (input.bedCount !== undefined) {
+      if (input.bedCount === null) patch.bedCount = null;
+      else {
+        const n = Number(input.bedCount);
+        if (!Number.isFinite(n) || n < 0) throw new BadRequestException("bedCount must be a non-negative number");
+        patch.bedCount = Math.trunc(n);
+      }
+    }
+
+    if (input.establishedDate !== undefined) patch.establishedDate = parseDateOptional(input.establishedDate, "establishedDate") ?? null;
+
+    // Settings
+    if (input.defaultCurrency !== undefined) {
+      const v = cleanOptional(input.defaultCurrency);
+      if (!v) throw new BadRequestException("defaultCurrency cannot be empty");
+      patch.defaultCurrency = v.toUpperCase();
+    }
+
+    if (input.timezone !== undefined) {
+      const v = cleanOptional(input.timezone);
+      if (!v) throw new BadRequestException("timezone cannot be empty");
+      patch.timezone = v;
+    }
+
+    if (input.fiscalYearStartMonth !== undefined) patch.fiscalYearStartMonth = normalizeMonth(input.fiscalYearStartMonth, existing.fiscalYearStartMonth ?? 4);
+
+    if (input.workingHoursText !== undefined) {
+      const wh = cleanWorkingHours(input.workingHoursText);
+      patch.workingHours = wh ? wh : Prisma.DbNull;
+    }
+
+    if (input.emergency24x7 !== undefined) patch.emergency24x7 = Boolean(input.emergency24x7);
+    if (input.multiLanguageSupport !== undefined) patch.multiLanguageSupport = Boolean(input.multiLanguageSupport);
+
+    if (input.supportedLanguages !== undefined) {
+      const langs = cleanStringArray(input.supportedLanguages);
+      patch.supportedLanguages = langs ? langs : Prisma.DbNull;
+    }
 
     if (!Object.keys(patch).length) throw new BadRequestException("No changes");
 
@@ -409,10 +753,7 @@ export class BranchService {
     return updated;
   }
 
-  /**
-   * Soft toggle (preferred over delete): deactivate/reactivate branch.
-   * - Deactivate keeps all data but makes the branch unavailable for new operations.
-   */
+
   async setActive(id: string, isActive: boolean, actorUserId?: string | null) {
     const existing = await this.prisma.branch.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException("Branch not found");
@@ -451,8 +792,8 @@ export class BranchService {
             departments: true,
             patients: true,
             branchFacilities: true,
-            Specialty: true,
-            Staff: true,
+            specialties: true,
+            //staff: true,
             Encounter: true,
             Admission: true,
             tariffPlans: true,

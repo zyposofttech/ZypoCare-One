@@ -55,20 +55,27 @@ export class SchedulingService {
     // 2) Pre-check blockers/warnings (defaults should be strict at scheduling time)
     await this.enforcePrechecksStrict(branchId, dto);
 
-    // 3) Validate resource belongs to SAME branch + SAME unit, is active and schedulable
+    // 3) Validate resource belongs to SAME branch + SAME unit, is active, schedulable, and AVAILABLE
     const res = await this.ctx.prisma.unitResource.findFirst({
       where: {
         id: dto.resourceId,
         branchId,
         unitId: dto.unitId,
-        isActive: true,
-        isSchedulable: true,
       },
-      select: { id: true },
+      select: { id: true, isActive: true, isSchedulable: true, state: true },
     });
     if (!res) {
+      throw new BadRequestException("Invalid resourceId (must belong to the selected unit in this branch)");
+    }
+    if (!res.isActive || !res.isSchedulable) {
       throw new BadRequestException(
-        "Invalid resourceId (must be schedulable, active, and belong to the selected unit)",
+        "Invalid resourceId (must be schedulable and active and belong to the selected unit)",
+      );
+    }
+    const state = String(res.state ?? "").toUpperCase();
+    if (state !== "AVAILABLE") {
+      throw new BadRequestException(
+        `Cannot schedule: resource state is '${state || "UNKNOWN"}'. Resource must be AVAILABLE.`,
       );
     }
 

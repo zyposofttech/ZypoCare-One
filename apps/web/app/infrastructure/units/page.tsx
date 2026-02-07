@@ -1,50 +1,58 @@
 "use client";
 
 import * as React from "react";
-import { AppLink as Link } from "@/components/app-link";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { AppShell } from "@/components/AppShell";
-import { NoAccess } from "@/components/NoAccess";
+import { RequirePerm } from "@/components/RequirePerm";
+
+import { IconBuilding, IconChevronRight } from "@/components/icons";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LocationNodePicker } from "@/components/infrastructure/LocationNodePicker";
-
-import { apiFetch } from "@/lib/api";
+import { apiFetch, ApiError } from "@/lib/api";
 import { cn } from "@/lib/cn";
-
-function drawerClassName(extra?: string) {
-  return cn(
-    "left-auto right-0 top-0 h-screen w-[95vw] max-w-[980px] translate-x-0 translate-y-0",
-    "rounded-2xl",
-    "border border-indigo-200/50 dark:border-indigo-800/50 bg-zc-card",
-    "shadow-2xl shadow-indigo-500/10",
-    "overflow-y-auto",
-    extra,
-  );
-}
-import { usePermissions } from "@/lib/auth/store";
-
-import { IconBuilding, IconChevronRight, IconPlus, IconSearch } from "@/components/icons";
-import { AlertTriangle, Building2, Loader2, Pencil, RefreshCw, Settings2, Trash2, Wand2 } from "lucide-react";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
-import { useActiveBranchStore } from "@/lib/branch/active-branch";
 
-/* --------------------------------- Types --------------------------------- */
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Filter,
+  Loader2,
+  Plus,
+  RefreshCw,
+  Search,
+  Settings2,
+  ToggleLeft,
+  ToggleRight,
+  Wrench,
+} from "lucide-react";
 
-type BranchRow = { id: string; code: string; name: string; city: string };
+/* ---------------------------------- Types --------------------------------- */
+
+type BranchRow = { id: string; code: string; name: string; city: string; isActive?: boolean };
 
 type DepartmentRow = { id: string; code: string; name: string };
 
-type UnitTypeCatalogRow = { id: string; code: string; name: string; usesRoomsDefault?: boolean };
+type UnitTypeCatalogRow = {
+  id: string;
+  code: string;
+  name: string;
+  usesRoomsDefault?: boolean | null;
+  schedulableByDefault?: boolean | null;
+  bedBasedDefault?: boolean | null;
+};
 
 type BranchUnitTypeRow =
   | string
@@ -53,7 +61,20 @@ type BranchUnitTypeRow =
       isEnabled: boolean;
     };
 
-type LocationNodeLite = { id: string; name: string; code?: string; type?: string };
+type LocationTreeNode = {
+  id: string;
+  type: string; // CAMPUS/BUILDING/FLOOR/ZONE/AREA
+  code?: string | null;
+  name?: string | null;
+  buildings?: LocationTreeNode[];
+  floors?: LocationTreeNode[];
+  zones?: LocationTreeNode[];
+  areas?: LocationTreeNode[];
+};
+
+type LocationTree = { campuses: LocationTreeNode[] };
+
+type LocationOption = { id: string; type: string; label: string };
 
 type UnitRow = {
   id: string;
@@ -67,35 +88,39 @@ type UnitRow = {
   usesRooms: boolean;
   isActive: boolean;
 
+  // Onboarding/capacity metadata (optional)
+  totalRoomCount?: number | null;
+  totalBedCapacity?: number | null;
+  roomsCount?: number | null;
+  commissioningDate?: string | null;
+  floorNumber?: number | null;
+  wingZone?: string | null;
+  inchargeStaffId?: string | null;
+  nursingStation?: string | null;
+
+  createdAt?: string;
+  updatedAt?: string;
+
   department?: DepartmentRow | null;
   unitType?: { id: string; code: string; name: string } | null;
-  locationNode?: LocationNodeLite | null;
+
+  locationNode?: null | {
+    id: string;
+    kind?: string | null;
+    revisions?: Array<{
+      code?: string | null;
+      name?: string | null;
+      isActive?: boolean | null;
+    }>;
+  };
 };
 
-type UnitForm = {
-  departmentId: string;
-  unitTypeId: string;
-  locationNodeId: string;
-
-  code: string;
-  name: string;
-
-  usesRooms: boolean;
-  isActive: boolean;
-};
-
-/* --------------------------------- Utils --------------------------------- */
+/* ---------------------------------- Utils --------------------------------- */
 
 function normalizeCode(input: string) {
   return String(input || "").trim().toUpperCase();
 }
 
-/**
- * Acceptance: TH01, OT-1, LAB1
- * - Uppercase normalized
- * - 2–32 chars
- * - Letters/numbers/hyphen only
- */
 function validateUnitCode(code: string): string | null {
   const v = normalizeCode(code);
   if (!v) return "Unit code is required";
@@ -105,8 +130,14 @@ function validateUnitCode(code: string): string | null {
   return null;
 }
 
-function safeBool(v: any) {
-  return v === true;
+function fmtDateTime(v?: string | null) {
+  if (!v) return "—";
+  try {
+    const d = new Date(v);
+    return d.toLocaleString();
+  } catch {
+    return "—";
+  }
 }
 
 function normalizeEnabledIds(rows: BranchUnitTypeRow[]): string[] {
@@ -117,924 +148,1248 @@ function normalizeEnabledIds(rows: BranchUnitTypeRow[]): string[] {
     .map((r) => String(r.unitTypeId));
 }
 
-function branchOneLineLabel(b: BranchRow) {
-  return `${b.name} (${b.code}) • ${b.city}`;
+function drawerClassName(extra?: string) {
+  return cn(
+    "left-auto right-0 top-0 h-screen w-[95vw] max-w-[980px] translate-x-0 translate-y-0",
+    "rounded-2xl",
+    "border border-indigo-200/50 dark:border-indigo-800/50 bg-zc-card",
+    "shadow-2xl shadow-indigo-500/10",
+    "overflow-y-auto",
+    extra,
+  );
 }
 
-/* ------------------------------ Modal: Editor ------------------------------ */
-
-function UnitEditorModal({
-  mode,
-  open,
-  branchId,
-  departments,
-  enabledUnitTypes,
-  initial,
+function ModalHeader({
+  title,
+  description,
   onClose,
-  onSaved,
 }: {
-  mode: "create" | "edit";
-  open: boolean;
-  branchId: string | undefined;
-
-  departments: DepartmentRow[];
-  enabledUnitTypes: UnitTypeCatalogRow[];
-
-  initial?: UnitRow | null;
+  title: string;
+  description?: string;
   onClose: () => void;
-  onSaved: () => Promise<void> | void;
 }) {
-  const { toast } = useToast();
+  // onClose is kept for API compatibility with existing call sites.
+  // DialogContent already renders its own close button.
+  void onClose;
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-3 text-indigo-700 dark:text-indigo-400">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
+            <Wrench className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+          </div>
+          {title}
+        </DialogTitle>
+        {description ? <DialogDescription>{description}</DialogDescription> : null}
+      </DialogHeader>
 
-  const [busy, setBusy] = React.useState(false);
-  const [err, setErr] = React.useState<string | null>(null);
+      <Separator className="my-4" />
+    </>
+  );
+}
 
-  const [form, setForm] = React.useState<UnitForm>({
-    departmentId: initial?.departmentId ?? "",
-    unitTypeId: initial?.unitTypeId ?? "",
-    locationNodeId: (initial?.locationNodeId ?? "") || "",
-    code: initial?.code ?? "",
-    name: initial?.name ?? "",
-    usesRooms: initial?.usesRooms ?? true,
-    isActive: initial?.isActive ?? true,
-  });
+function buildLocationOptions(tree: LocationTree | null): LocationOption[] {
+  if (!tree?.campuses?.length) return [];
+  const out: LocationOption[] = [];
 
-  React.useEffect(() => {
-    if (!open) return;
-    setErr(null);
-    setBusy(false);
-    setForm({
-      departmentId: initial?.departmentId ?? "",
-      unitTypeId: initial?.unitTypeId ?? "",
-      locationNodeId: (initial?.locationNodeId ?? "") || "",
-      code: initial?.code ?? "",
-      name: initial?.name ?? "",
-      usesRooms: initial?.usesRooms ?? true,
-      isActive: initial?.isActive ?? true,
-    });
-  }, [open, initial]);
+  for (const campus of tree.campuses) {
+    const buildings = campus.buildings ?? [];
+    for (const building of buildings) {
+      const buildingName = building?.name ?? "Building";
+      const floors = building.floors ?? [];
+      for (const floor of floors) {
+        const floorName = floor?.name ?? "Floor";
+        const floorCode = floor?.code ? ` (${floor.code})` : "";
+        // FLOOR option
+        if (String(floor.type).toUpperCase() === "FLOOR") {
+          out.push({
+            id: floor.id,
+            type: "FLOOR",
+            label: `${buildingName} — ${floorName}${floorCode}`,
+          });
+        }
 
-  const selectTriggerCls = "h-11 w-full min-w-0 overflow-hidden rounded-xl border-zc-border bg-zc-card";
-  const selectContentMaxW = "max-w-[min(560px,calc(100vw-2rem))]";
+        const zones = floor.zones ?? [];
+        for (const zone of zones) {
+          const zoneName = zone?.name ?? "Zone";
+          const zoneCode = zone?.code ? ` (${zone.code})` : "";
+          if (String(zone.type).toUpperCase() === "ZONE") {
+            out.push({
+              id: zone.id,
+              type: "ZONE",
+              label: `${buildingName} — ${floorName} — ${zoneName}${zoneCode}`,
+            });
+          }
 
-  async function onSubmit() {
-    setErr(null);
-
-    if (!branchId) return setErr("Branch is required");
-    if (!form.departmentId) return setErr("Department is required");
-    if (!form.unitTypeId) return setErr("Unit Type is required");
-    if (!form.locationNodeId) return setErr("Location is required");
-    if (!form.name.trim()) return setErr("Unit name is required");
-
-    if (mode === "create") {
-      const ce = validateUnitCode(form.code);
-      if (ce) return setErr(ce);
-    }
-
-    setBusy(true);
-    try {
-      if (mode === "create") {
-        await apiFetch(`/api/infrastructure/units?branchId=${encodeURIComponent(branchId)}`, {
-          method: "POST",
-          body: JSON.stringify({
-            departmentId: form.departmentId,
-            unitTypeId: form.unitTypeId,
-            locationNodeId: String(form.locationNodeId),
-            code: normalizeCode(form.code),
-            name: form.name.trim(),
-            usesRooms: safeBool(form.usesRooms),
-            isActive: safeBool(form.isActive),
-          }),
-        });
-      } else {
-        if (!initial?.id) throw new Error("Missing unit id");
-        await apiFetch(`/api/infrastructure/units/${encodeURIComponent(initial.id)}`, {
-          method: "PATCH",
-          body: JSON.stringify({
-            departmentId: form.departmentId,
-            unitTypeId: form.unitTypeId,
-            locationNodeId: String(form.locationNodeId),
-            name: form.name.trim(),
-            usesRooms: safeBool(form.usesRooms),
-            isActive: safeBool(form.isActive),
-          }),
-        });
+          const areas = zone.areas ?? [];
+          for (const area of areas) {
+            const areaName = area?.name ?? "Area";
+            const areaCode = area?.code ? ` (${area.code})` : "";
+            if (String(area.type).toUpperCase() === "AREA") {
+              out.push({
+                id: area.id,
+                type: "AREA",
+                label: `${buildingName} — ${floorName} — ${zoneName} — ${areaName}${areaCode}`,
+              });
+            }
+          }
+        }
       }
 
-      await onSaved();
+      // Some trees might put zones directly under building
+      const zones = building.zones ?? [];
+      for (const zone of zones) {
+        const zoneName = zone?.name ?? "Zone";
+        const zoneCode = zone?.code ? ` (${zone.code})` : "";
+        if (String(zone.type).toUpperCase() === "ZONE") {
+          out.push({
+            id: zone.id,
+            type: "ZONE",
+            label: `${buildingName} — ${zoneName}${zoneCode}`,
+          });
+        }
 
-      toast({
-        title: mode === "create" ? "Unit Created" : "Unit Updated",
-        description: `Successfully ${mode === "create" ? "created" : "updated"} unit "${form.name}".`,
-        variant: "success" as any,
-      });
-
-      onClose();
-    } catch (e: any) {
-      const msg = e?.message || "Save failed";
-      setErr(msg);
-      toast({ variant: "destructive", title: "Save failed", description: msg });
-    } finally {
-      setBusy(false);
+        const areas = zone.areas ?? [];
+        for (const area of areas) {
+          const areaName = area?.name ?? "Area";
+          const areaCode = area?.code ? ` (${area.code})` : "";
+          if (String(area.type).toUpperCase() === "AREA") {
+            out.push({
+              id: area.id,
+              type: "AREA",
+              label: `${buildingName} — ${zoneName} — ${areaName}${areaCode}`,
+            });
+          }
+        }
+      }
     }
   }
 
-  const unitTypeHint = React.useMemo(() => {
-    const ut = enabledUnitTypes.find((x) => x.id === form.unitTypeId);
-    return ut?.usesRoomsDefault;
-  }, [enabledUnitTypes, form.unitTypeId]);
-
-  return (
-    <Dialog
-      open={open}
-      onOpenChange={(v) => {
-        if (!v) {
-          setErr(null);
-          onClose();
-        }
-      }}
-    >
-      <DialogContent className={drawerClassName("max-w-[820px]")} onInteractOutside={(e) => e.preventDefault()}>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3 text-indigo-700 dark:text-indigo-400">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
-              <Building2 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-            </div>
-            {mode === "create" ? "Create Unit" : "Edit Unit"}
-          </DialogTitle>
-          <DialogDescription>
-            {mode === "create"
-              ? "Create a Unit/Ward for the selected branch. Then configure Rooms/Bays, Resources and OT assets inside the Unit."
-              : "Update Unit configuration and operational flags."}
-          </DialogDescription>
-        </DialogHeader>
-
-        <Separator className="my-4" />
-
-        {err ? (
-          <div className="mb-3 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
-            <AlertTriangle className="mt-0.5 h-4 w-4" />
-            <div className="min-w-0">{err}</div>
-          </div>
-        ) : null}
-
-        <div className="grid gap-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="grid gap-2 min-w-0">
-              <Label>Department</Label>
-              <Select value={form.departmentId} onValueChange={(v) => setForm((s) => ({ ...s, departmentId: v }))}>
-                <SelectTrigger className={selectTriggerCls}>
-                  <SelectValue placeholder="Select department…" />
-                </SelectTrigger>
-                <SelectContent align="start" className={selectContentMaxW}>
-                  {departments.map((d) => (
-                    <SelectItem key={d.id} value={d.id}>
-                      <span className="block max-w-full truncate" title={`${d.name} (${d.code})`}>
-                        {d.name} <span className="font-mono text-xs text-zc-muted">({d.code})</span>
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-2 min-w-0">
-              <div className="flex items-center justify-between">
-                <Label>Unit Type</Label>
-                {mode === "create" && unitTypeHint != null ? (
-                  <span className="flex items-center gap-1 text-[10px] text-indigo-600 dark:text-indigo-400">
-                    <Wand2 className="h-3 w-3" /> Default Uses Rooms: {unitTypeHint ? "On" : "Off"}
-                  </span>
-                ) : null}
-              </div>
-
-              <Select
-                value={form.unitTypeId}
-                onValueChange={(v) => {
-                  setForm((s) => ({ ...s, unitTypeId: v }));
-                  const ut = enabledUnitTypes.find((x) => x.id === v);
-                  if (ut?.usesRoomsDefault != null) setForm((s) => ({ ...s, usesRooms: !!ut.usesRoomsDefault }));
-                }}
-              >
-                <SelectTrigger className={selectTriggerCls}>
-                  <SelectValue placeholder="Select unit type…" />
-                </SelectTrigger>
-                <SelectContent
-                  position="popper"
-                  align="start"
-                  side="bottom"
-                  sideOffset={8}
-                  className={cn(selectContentMaxW, "max-h-[320px] overflow-y-auto overflow-x-hidden")}
-                >
-                  {enabledUnitTypes.map((ut) => (
-                    <SelectItem key={ut.id} value={ut.id}>
-                      <span className="block max-w-full truncate" title={`${ut.name} (${ut.code})`}>
-                        {ut.name} <span className="font-mono text-xs text-zc-muted">({ut.code})</span>
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {enabledUnitTypes.length === 0 ? (
-                <div className="text-xs text-amber-700 dark:text-amber-200">
-                  No Unit Types enabled for this branch. Enable Unit Types first.
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="grid gap-2 min-w-0">
-            <Label>Location (Zone / Floor)</Label>
-            <LocationNodePicker
-              branchId={branchId}
-              value={form.locationNodeId || undefined}
-              onValueChange={(v) => setForm((s) => ({ ...s, locationNodeId: v || "" }))}
-              placeholder="Select Zone (recommended) or Floor…"
-            />
-            <p className="text-[11px] text-zc-muted">We recommend Zone-level tagging for accurate resource mapping and reporting.</p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label>Unit Code</Label>
-              <Input
-                value={form.code}
-                disabled={mode === "edit"}
-                onChange={(e) => setForm((s) => ({ ...s, code: e.target.value.toUpperCase() }))}
-                placeholder="e.g. OT-1, TH01, LAB1"
-                className={cn(
-                  "font-mono bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800 focus-visible:ring-indigo-500",
-                  mode === "edit" && "opacity-80",
-                )}
-              />
-              
-            </div>
-
-            <div className="grid gap-2">
-              <Label>Unit Name</Label>
-              <Input
-                value={form.name}
-                onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
-                placeholder="e.g. Operation Theatre Suite"
-              />
-            </div>
-          </div>
-<p className="text-[11px] text-zc-muted">Code should be stable. Editing is disabled after creation.</p>
-          <Separator className="my-1" />
-
-          <div className="grid gap-3">
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zc-border bg-zc-panel/20 p-3">
-              <div className="min-w-0">
-                <div className="text-sm font-semibold text-zc-text">Uses Rooms / Bays</div>
-                <div className="text-xs text-zc-muted">
-                  If off: open-bay unit. Rooms are disabled and resources are created directly under Unit.
-                </div>
-              </div>
-              <Switch checked={!!form.usesRooms} onCheckedChange={(v) => setForm((s) => ({ ...s, usesRooms: !!v }))} />
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zc-border bg-zc-panel/20 p-3">
-              <div className="min-w-0">
-                <div className="text-sm font-semibold text-zc-text">Active</div>
-                <div className="text-xs text-zc-muted">Inactive units should not be used for operations.</div>
-              </div>
-              <Switch checked={!!form.isActive} onCheckedChange={(v) => setForm((s) => ({ ...s, isActive: !!v }))} />
-            </div>
-          </div>
-        </div>
-
-        <DialogFooter>
-          <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
-            <Button variant="outline" onClick={onClose} disabled={busy}>
-              Cancel
-            </Button>
-
-            <Button
-              variant="primary"
-              onClick={() => void onSubmit()}
-              disabled={busy || (mode === "create" && enabledUnitTypes.length === 0)}
-              className="gap-2"
-            >
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              {mode === "create" ? "Create Unit" : "Save Changes"}
-            </Button>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
+  out.sort((a, b) => a.label.localeCompare(b.label));
+  return out;
 }
 
-/* ------------------------------ Modal: Delete ------------------------------ */
-
-function DeleteUnitModal({
-  open,
-  unit,
-  onClose,
-  onDeleted,
-}: {
-  open: boolean;
-  unit: UnitRow | null;
-  onClose: () => void;
-  onDeleted: () => Promise<void> | void;
-}) {
-  const { toast } = useToast();
-  const [busy, setBusy] = React.useState(false);
-  const [err, setErr] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    if (open) {
-      setErr(null);
-      setBusy(false);
-    }
-  }, [open]);
-
-  async function onConfirm() {
-    if (!unit?.id) return;
-    setErr(null);
-    setBusy(true);
-    try {
-      await apiFetch(`/api/infrastructure/units/${encodeURIComponent(unit.id)}`, { method: "DELETE" });
-      await onDeleted();
-      toast({
-        title: "Unit Deleted",
-        description: `Successfully deleted unit "${unit.name}"`,
-        variant: "success" as any,
-      });
-      onClose();
-    } catch (e: any) {
-      const msg = e?.message || "Delete failed";
-      setErr(msg);
-      toast({ variant: "destructive", title: "Delete failed", description: msg });
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <Dialog
-      open={open}
-      onOpenChange={(v) => {
-        if (!v) onClose();
-      }}
-    >
-      <DialogContent className="w-[95vw] sm:max-w-[560px] max-h-[85vh] overflow-y-auto" onInteractOutside={(e) => e.preventDefault()}>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3 text-indigo-700 dark:text-indigo-400">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
-              <Trash2 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-            </div>
-            Delete Unit
-          </DialogTitle>
-          <DialogDescription>Deletion may be blocked if the Unit has Rooms/Bays, Resources, or OT assets configured.</DialogDescription>
-        </DialogHeader>
-
-        <Separator className="my-4" />
-
-        {err ? (
-          <div className="mb-3 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
-            <AlertTriangle className="mt-0.5 h-4 w-4" />
-            <div className="min-w-0">{err}</div>
-          </div>
-        ) : null}
-
-        <div className="rounded-xl border border-zc-border bg-zc-panel/20 p-4">
-          <div className="text-sm font-semibold text-zc-text">
-            {unit?.name}{" "}
-            <span className="font-mono text-xs text-zc-muted">
-              ({unit?.code})
-            </span>
-          </div>
-
-          <div className="mt-2 text-xs text-zc-muted">
-            Department: <span className="text-zc-text">{unit?.department?.name || "—"}</span>
-          </div>
-          <div className="mt-1 text-xs text-zc-muted">
-            Unit Type: <span className="text-zc-text">{unit?.unitType?.name || "—"}</span>
-          </div>
-
-          <div className="mt-4 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-warn-rgb)/0.35)] bg-[rgb(var(--zc-warn-rgb)/0.12)] px-3 py-2 text-sm text-zc-text">
-            <AlertTriangle className="mt-0.5 h-4 w-4 text-[rgb(var(--zc-warn))]" />
-            <div className="min-w-0">
-              If this Unit is already used in operations, prefer retiring (deactivate) instead of deleting.
-            </div>
-          </div>
-        </div>
-
-        <DialogFooter>
-          <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
-            <Button variant="outline" onClick={onClose} disabled={busy}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={() => void onConfirm()} disabled={busy}>
-              {busy ? "Deleting…" : "Delete"}
-            </Button>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
+function unitLocationLabel(u: UnitRow) {
+  const r0 = u.locationNode?.revisions?.[0];
+  const name = r0?.name ?? null;
+  const code = r0?.code ?? null;
+  const label = [name, code ? `(${code})` : ""].filter(Boolean).join(" ").trim();
+  return label || (u.locationNodeId ? `#${u.locationNodeId.slice(0, 8)}…` : "—");
 }
 
 /* ---------------------------------- Page ---------------------------------- */
 
 export default function UnitsPage() {
+  const router = useRouter();
   const { toast } = useToast();
-  // ✅ Unified branch context
-  const branchCtx = useBranchContext();
-  const activeBranchId = useActiveBranchStore((s) => s.activeBranchId);
-  const setActiveBranchId = useActiveBranchStore((s) => s.setActiveBranchId);
 
-  const isGlobalScope = branchCtx.scope === "GLOBAL";
-  const effectiveBranchId = branchCtx.branchId ?? activeBranchId ?? "";
+  const { branchId, scope, isReady, reason } = useBranchContext();
 
-  const { user, can } = usePermissions();
-
-  const canRead = can("INFRA_UNIT_READ");
-  const canCreate = can("INFRA_UNIT_CREATE");
-  const canUpdate = can("INFRA_UNIT_UPDATE");
-  const canDelete = can("INFRA_UNIT_DELETE");
-  const canBranchRead = can("BRANCH_READ");
-  const permsLoaded = !!user && Array.isArray((user as any).permissions);
+  const [branch, setBranch] = React.useState<BranchRow | null>(null);
 
   const [loading, setLoading] = React.useState(false);
+  const [busy, setBusy] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
-
-  const [branches, setBranches] = React.useState<BranchRow[]>([]);
-  const [branchId, setBranchId] = React.useState<string | undefined>(undefined);
-
-  const [departments, setDepartments] = React.useState<DepartmentRow[]>([]);
-  const [unitTypesCatalog, setUnitTypesCatalog] = React.useState<UnitTypeCatalogRow[]>([]);
-  const [enabledUnitTypeIds, setEnabledUnitTypeIds] = React.useState<Set<string>>(new Set());
 
   const [rows, setRows] = React.useState<UnitRow[]>([]);
 
-  // Filters (client-side like Branch page)
+  // Meta
+  const [departments, setDepartments] = React.useState<DepartmentRow[]>([]);
+  const [unitTypesCatalog, setUnitTypesCatalog] = React.useState<UnitTypeCatalogRow[]>([]);
+  const [enabledUnitTypeIds, setEnabledUnitTypeIds] = React.useState<Set<string>>(new Set());
+  const [locationsTree, setLocationsTree] = React.useState<LocationTree | null>(null);
+
+  // Filters (match Departments page UX)
   const [q, setQ] = React.useState("");
-  const [filterDept, setFilterDept] = React.useState<string | undefined>(undefined);
-  const [filterUT, setFilterUT] = React.useState<string | undefined>(undefined);
-  const [filterLoc, setFilterLoc] = React.useState<string | undefined>(undefined);
+  const [includeInactive, setIncludeInactive] = React.useState(false);
+  const [filterDept, setFilterDept] = React.useState<string>("ALL");
+  const [filterUnitType, setFilterUnitType] = React.useState<string>("ALL");
+  const [filterLocation, setFilterLocation] = React.useState<string>("ALL");
 
-  // Modals
-  const [createOpen, setCreateOpen] = React.useState(false);
-  const [editOpen, setEditOpen] = React.useState(false);
-  const [deleteOpen, setDeleteOpen] = React.useState(false);
-  const [selected, setSelected] = React.useState<UnitRow | null>(null);
+  // Editor
+  const [open, setOpen] = React.useState(false);
+  const [editing, setEditing] = React.useState<UnitRow | null>(null);
+  const [modalErr, setModalErr] = React.useState<string | null>(null);
+  const [deactivateOpen, setDeactivateOpen] = React.useState(false);
+  const [deactivateTarget, setDeactivateTarget] = React.useState<UnitRow | null>(null);
+  const [deactivateReason, setDeactivateReason] = React.useState("");
+  const [deactivateErr, setDeactivateErr] = React.useState<string | null>(null);
 
-  const enabledUnitTypes = React.useMemo(() => unitTypesCatalog.filter((ut) => enabledUnitTypeIds.has(ut.id)), [unitTypesCatalog, enabledUnitTypeIds]);
+  const [formDeptId, setFormDeptId] = React.useState("");
+  const [formUnitTypeId, setFormUnitTypeId] = React.useState("");
+  const [formLocationId, setFormLocationId] = React.useState("");
+  const [formCode, setFormCode] = React.useState("");
+  const [formName, setFormName] = React.useState("");
 
-  const filtered = React.useMemo(() => {
+  const [formTotalRoomCount, setFormTotalRoomCount] = React.useState("");
+  const [formTotalBedCapacity, setFormTotalBedCapacity] = React.useState("");
+  const [formCommissioningDate, setFormCommissioningDate] = React.useState("");
+  const [formFloorNumber, setFormFloorNumber] = React.useState("");
+  const [formWingZone, setFormWingZone] = React.useState("");
+  const [formInchargeStaffId, setFormInchargeStaffId] = React.useState("");
+  const [formNursingStation, setFormNursingStation] = React.useState("");
+
+
+  const enabledUnitTypes = React.useMemo(
+    () => unitTypesCatalog.filter((ut) => enabledUnitTypeIds.has(ut.id)),
+    [unitTypesCatalog, enabledUnitTypeIds],
+  );
+
+  const locationOptions = React.useMemo(() => buildLocationOptions(locationsTree), [locationsTree]);
+
+  const activeCount = rows.filter((r) => r.isActive).length;
+  const inactiveCount = rows.filter((r) => !r.isActive).length;
+  const usesRoomsCount = rows.filter((r) => r.usesRooms).length;
+
+  const filteredRows = React.useMemo(() => {
     const s = q.trim().toLowerCase();
-    return (rows ?? []).filter((u) => {
-      if (filterDept && u.departmentId !== filterDept) return false;
-      if (filterUT && u.unitTypeId !== filterUT) return false;
-      if (filterLoc && String(u.locationNodeId || "") !== String(filterLoc)) return false;
+    return rows.filter((u) => {
+      if (!includeInactive && !u.isActive) return false;
+      if (filterDept !== "ALL" && u.departmentId !== filterDept) return false;
+      if (filterUnitType !== "ALL" && u.unitTypeId !== filterUnitType) return false;
+      if (filterLocation !== "ALL" && String(u.locationNodeId || "") !== String(filterLocation)) return false;
 
       if (!s) return true;
       const hay = `${u.code} ${u.name} ${u.department?.name ?? ""} ${u.unitType?.name ?? ""}`.toLowerCase();
       return hay.includes(s);
     });
-  }, [rows, q, filterDept, filterUT, filterLoc]);
+  }, [rows, q, includeInactive, filterDept, filterUnitType, filterLocation]);
 
-  const totalUnits = rows.length;
-  const activeUnits = rows.filter((u) => u.isActive).length;
-  const roomsUnits = rows.filter((u) => u.usesRooms).length;
-
-  const selectTriggerCls = "h-11 w-full min-w-0 overflow-hidden rounded-xl border-zc-border bg-zc-card";
-  const selectContentMaxW = "max-w-[min(560px,calc(100vw-2rem))]";
-
-  async function loadBranches(): Promise<string | undefined> {
-    // ✅ Only GLOBAL scope users with BRANCH_READ can list/switch branches
-    if (!isGlobalScope || !canBranchRead) {
-      const bid = effectiveBranchId || "";
-      setBranches([]);
-      const next = bid ? bid : undefined;
-      setBranchId(next);
-      return next;
+  async function loadBranch(bid: string) {
+    try {
+      const b = await apiFetch<BranchRow>(`/api/branches/${encodeURIComponent(bid)}`);
+      setBranch(b);
+    } catch {
+      setBranch(null);
     }
-
-    const data = await apiFetch<BranchRow[]>("/api/branches");
-    const list = data ?? [];
-    setBranches(list);
-
-    const stored = effectiveBranchId || null;
-    const first = list?.[0]?.id;
-    const next = (stored && list.some((b) => b.id === stored) ? stored : undefined) || first || undefined;
-
-    setBranchId(next);
-    if (next) if (isGlobalScope) setActiveBranchId(next || null);
-    return next;
-  }
-
-  async function loadUnitTypesCatalog() {
-    const rows = await apiFetch<UnitTypeCatalogRow[]>("/api/infrastructure/unit-types/catalog");
-    setUnitTypesCatalog(rows || []);
-  }
-
-  async function loadBranchEnablement(bid: string) {
-    const rows = await apiFetch<BranchUnitTypeRow[]>(`/api/infrastructure/branches/${encodeURIComponent(bid)}/unit-types`);
-    setEnabledUnitTypeIds(new Set(normalizeEnabledIds(rows || [])));
   }
 
   async function loadDepartments(bid: string) {
-    const rows = await apiFetch<DepartmentRow[]>(`/api/infrastructure/departments?branchId=${encodeURIComponent(bid)}`);
-    setDepartments(rows || []);
+    try {
+      const list = await apiFetch<DepartmentRow[]>(`/api/infrastructure/departments?branchId=${encodeURIComponent(bid)}`);
+      setDepartments(Array.isArray(list) ? list : []);
+    } catch {
+      setDepartments([]);
+    }
+  }
+
+  async function loadUnitTypesCatalog() {
+    try {
+      const list = await apiFetch<UnitTypeCatalogRow[]>(`/api/infrastructure/unit-types/catalog`);
+      setUnitTypesCatalog(Array.isArray(list) ? list : []);
+    } catch {
+      setUnitTypesCatalog([]);
+    }
+  }
+
+  async function loadBranchUnitTypeEnablement(bid: string) {
+    try {
+      const list = await apiFetch<BranchUnitTypeRow[]>(
+        `/api/infrastructure/branches/${encodeURIComponent(bid)}/unit-types`,
+      );
+      setEnabledUnitTypeIds(new Set(normalizeEnabledIds(Array.isArray(list) ? list : [])));
+    } catch {
+      setEnabledUnitTypeIds(new Set());
+    }
+  }
+
+  async function loadLocations(bid: string) {
+    try {
+      const t = await apiFetch<LocationTree>(`/api/infrastructure/locations/tree?branchId=${encodeURIComponent(bid)}`);
+      setLocationsTree(t);
+    } catch {
+      setLocationsTree({ campuses: [] });
+    }
   }
 
   async function loadUnits(bid: string) {
-    const rows = await apiFetch<UnitRow[]>(`/api/infrastructure/units?branchId=${encodeURIComponent(bid)}`);
-    setRows(rows || []);
-  }
-
-  async function refresh(showToast = false) {
-    // ✅ Don’t call backend if user can’t read
-    if (!canRead) {
-      setRows([]);
-      setDepartments([]);
-      setUnitTypesCatalog([]);
-      setEnabledUnitTypeIds(new Set());
-      setErr(null);
-      setLoading(false);
-      return;
-    }
-
     setErr(null);
     setLoading(true);
     try {
-      const bid = branchId || (await loadBranches());
-      await loadUnitTypesCatalog();
-      if (bid) {
-        await Promise.all([loadDepartments(bid), loadBranchEnablement(bid), loadUnits(bid)]);
-      }
+      const params = new URLSearchParams();
+      params.set("branchId", bid);
+      if (q.trim()) params.set("q", q.trim());
+      if (includeInactive) params.set("includeInactive", "true");
+      if (filterDept !== "ALL") params.set("departmentId", filterDept);
+      if (filterUnitType !== "ALL") params.set("unitTypeId", filterUnitType);
+      if (filterLocation !== "ALL") params.set("locationNodeId", filterLocation);
 
-      if (showToast) toast({ title: "Units refreshed", description: `Loaded ${bid ? "branch scope" : ""} units.` });
+      const data = await apiFetch<UnitRow[]>(`/api/infrastructure/units?${params.toString()}`);
+      setRows(Array.isArray(data) ? data : []);
     } catch (e: any) {
-      const msg = e?.message || "Failed to load units";
+      const msg = e instanceof ApiError ? e.message : "Failed to load units";
       setErr(msg);
-      toast({ variant: "destructive", title: "Refresh failed", description: msg });
+      setRows([]);
     } finally {
       setLoading(false);
     }
   }
+
+  const refreshAll = React.useCallback(async () => {
+    if (!branchId) return;
+    await Promise.all([
+      loadBranch(branchId),
+      loadDepartments(branchId),
+      loadUnitTypesCatalog(),
+      loadBranchUnitTypeEnablement(branchId),
+      loadLocations(branchId),
+      loadUnits(branchId),
+    ]);
+  }, [branchId, q, includeInactive, filterDept, filterUnitType, filterLocation]);
 
   React.useEffect(() => {
-    void refresh(false);
+    if (!isReady || !branchId) return;
+    void loadBranch(branchId);
+    void Promise.all([
+      loadDepartments(branchId),
+      loadUnitTypesCatalog(),
+      loadBranchUnitTypeEnablement(branchId),
+      loadLocations(branchId),
+    ]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canRead]);
+  }, [isReady, branchId]);
 
-  async function onBranchChange(nextId: string) {
-    setBranchId(nextId);
-    if (isGlobalScope) setActiveBranchId(nextId || null);
-// Reset filters like Branch page behavior
-    setQ("");
-    setFilterDept(undefined);
-    setFilterUT(undefined);
-    setFilterLoc(undefined);
+  React.useEffect(() => {
+    if (!isReady || !branchId) return;
+    void loadUnits(branchId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isReady, branchId, q, includeInactive, filterDept, filterUnitType, filterLocation]);
 
-    setErr(null);
-    setLoading(true);
+  function openCreate() {
+    setEditing(null);
+    setFormDeptId("");
+    setFormUnitTypeId("");
+    setFormLocationId("");
+    setFormCode("");
+    setFormName("");
+    setFormTotalRoomCount("");
+    setFormTotalBedCapacity("");
+    setFormCommissioningDate("");
+    setFormFloorNumber("");
+    setFormWingZone("");
+    setFormInchargeStaffId("");
+    setFormNursingStation("");
+    setModalErr(null);
+    setOpen(true);
+  }
+
+  function openEdit(r: UnitRow) {
+    setEditing(r);
+    setFormDeptId(r.departmentId);
+    setFormUnitTypeId(r.unitTypeId);
+    setFormLocationId(r.locationNodeId ?? "");
+    setFormCode(r.code);
+    setFormName(r.name);
+    setFormTotalRoomCount(r.totalRoomCount != null ? String(r.totalRoomCount) : "");
+    setFormTotalBedCapacity(r.totalBedCapacity != null ? String(r.totalBedCapacity) : "");
+    setFormCommissioningDate(r.commissioningDate ? new Date(r.commissioningDate).toISOString().slice(0, 10) : "");
+    setFormFloorNumber(r.floorNumber != null ? String(r.floorNumber) : "");
+    setFormWingZone(r.wingZone ?? "");
+    setFormInchargeStaffId(r.inchargeStaffId ?? "");
+    setFormNursingStation(r.nursingStation ?? "");
+    setModalErr(null);
+    setOpen(true);
+  }
+
+  const unitTypeOptions = React.useMemo(() => {
+    if (editing) return unitTypesCatalog;
+    return enabledUnitTypes.length ? enabledUnitTypes : unitTypesCatalog;
+  }, [editing, enabledUnitTypes, unitTypesCatalog]);
+
+  const selectedUnitType = React.useMemo(() => {
+    return unitTypeOptions.find((x) => x.id === formUnitTypeId) ?? null;
+  }, [unitTypeOptions, formUnitTypeId]);
+
+  const derivedUsesRooms = React.useMemo(() => {
+    if (!selectedUnitType) return null;
+    return selectedUnitType.usesRoomsDefault ?? null;
+  }, [selectedUnitType]);
+
+  const derivedSchedulable = React.useMemo(() => {
+    if (!selectedUnitType) return null;
+    return selectedUnitType.schedulableByDefault ?? null;
+  }, [selectedUnitType]);
+
+  const derivedBedBased = React.useMemo(() => {
+    if (!selectedUnitType) return null;
+    return selectedUnitType.bedBasedDefault ?? null;
+  }, [selectedUnitType]);
+
+  // Helpful defaults when user selects a Unit Type
+  React.useEffect(() => {
+    if (!open || !!editing) return;
+    if (derivedUsesRooms === false) {
+      setFormTotalRoomCount("0");
+    } else if (derivedUsesRooms === true && !formTotalRoomCount.trim()) {
+      setFormTotalRoomCount("1");
+    }
+
+    if (derivedBedBased === false) {
+      // leave blank unless user wants to record a nominal value
+    } else if (derivedBedBased === true && !formTotalBedCapacity.trim()) {
+      setFormTotalBedCapacity("1");
+    }
+  }, [open, editing, derivedUsesRooms, derivedBedBased]);
+
+  const nameDupWarning = React.useMemo(() => {
+    const name = formName.trim().toLowerCase();
+    if (!name || !formDeptId) return null;
+    const dup = rows.find(
+      (u) =>
+        u.departmentId === formDeptId &&
+        u.name.trim().toLowerCase() === name &&
+        (!editing || u.id !== editing.id),
+    );
+    if (!dup) return null;
+    return `Another unit in this department already uses the name “${dup.name}”. Recommended: keep unit names unique within a department.`;
+  }, [rows, formName, formDeptId, editing]);
+
+  async function saveUnit() {
+    if (!branchId) return;
+    setModalErr(null);
+    setBusy(true);
+
     try {
-      await Promise.all([loadDepartments(nextId), loadBranchEnablement(nextId), loadUnits(nextId)]);
-      toast({ title: "Branch scope changed", description: "Loaded units for selected branch." });
+      if (!formDeptId) throw new ApiError("Department is required");
+      if (!formUnitTypeId) throw new ApiError("Unit type is required");
+      if (!formLocationId) throw new ApiError("Location is required");
+      if (!formName.trim()) throw new ApiError("Unit name is required");
+
+      const totalRoomCountRaw = formTotalRoomCount.trim();
+      const totalRoomCount = totalRoomCountRaw ? Number.parseInt(totalRoomCountRaw, 10) : undefined;
+      if (totalRoomCountRaw) {
+        const totalRoomCountValue = totalRoomCount ?? Number.NaN;
+        if (!Number.isFinite(totalRoomCountValue) || totalRoomCountValue < 0) {
+          throw new ApiError("Total room count must be a non-negative integer");
+        }
+      }
+
+      const totalBedCapacityRaw = formTotalBedCapacity.trim();
+      const totalBedCapacity = totalBedCapacityRaw ? Number.parseInt(totalBedCapacityRaw, 10) : undefined;
+      if (totalBedCapacityRaw) {
+        const totalBedCapacityValue = totalBedCapacity ?? Number.NaN;
+        if (!Number.isFinite(totalBedCapacityValue) || totalBedCapacityValue < 0) {
+          throw new ApiError("Total bed capacity must be a non-negative integer");
+        }
+      }
+
+      const floorNumberRaw = formFloorNumber.trim();
+      const floorNumber = floorNumberRaw ? Number.parseInt(floorNumberRaw, 10) : undefined;
+      if (floorNumberRaw) {
+        const floorNumberValue = floorNumber ?? Number.NaN;
+        if (!Number.isFinite(floorNumberValue) || floorNumberValue < 0) {
+          throw new ApiError("Floor number must be a non-negative integer");
+        }
+      }
+
+      const usesRooms = derivedUsesRooms ?? true;
+      const bedBased = derivedBedBased ?? false;
+
+      const effectiveRoomCount = usesRooms ? (totalRoomCount ?? 0) : 0;
+      if (usesRooms && effectiveRoomCount < 1) {
+        throw new ApiError("Total room count must be at least 1 for room-based units");
+      }
+
+      const effectiveBedCapacity = bedBased ? (totalBedCapacity ?? 0) : 0;
+      if (bedBased && effectiveBedCapacity < 1) {
+        throw new ApiError("Total bed capacity must be at least 1 for bed-based unit types");
+      }
+      const bedCapacityPayload = bedBased ? effectiveBedCapacity : undefined;
+
+      if (!editing) {
+        const ce = validateUnitCode(formCode);
+        if (ce) throw new ApiError(ce);
+        await apiFetch(`/api/infrastructure/units?branchId=${encodeURIComponent(branchId)}`, {
+          method: "POST",
+          body: JSON.stringify({
+            departmentId: formDeptId,
+            unitTypeId: formUnitTypeId,
+            locationNodeId: formLocationId,
+            code: normalizeCode(formCode),
+            name: formName.trim(),
+            totalRoomCount: effectiveRoomCount,
+            totalBedCapacity: bedCapacityPayload,
+            commissioningDate: formCommissioningDate ? formCommissioningDate : undefined,
+            floorNumber,
+            wingZone: formWingZone.trim() ? formWingZone.trim() : undefined,
+            inchargeStaffId: formInchargeStaffId.trim() ? formInchargeStaffId.trim() : undefined,
+            nursingStation: formNursingStation.trim() ? formNursingStation.trim() : undefined,
+          }),
+        });
+        toast({ title: "Unit created", description: "Unit added successfully.", duration: 1600 });
+      } else {
+        await apiFetch(`/api/infrastructure/units/${encodeURIComponent(editing.id)}`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            name: formName.trim(),
+            locationNodeId: formLocationId,
+            totalRoomCount: effectiveRoomCount,
+            totalBedCapacity: bedCapacityPayload,
+            commissioningDate: formCommissioningDate ? formCommissioningDate : undefined,
+            floorNumber,
+            wingZone: formWingZone.trim() ? formWingZone.trim() : undefined,
+            inchargeStaffId: formInchargeStaffId.trim() ? formInchargeStaffId.trim() : undefined,
+            nursingStation: formNursingStation.trim() ? formNursingStation.trim() : undefined,
+          }),
+        });
+        toast({ title: "Unit updated", description: "Changes saved successfully.", duration: 1600 });
+      }
+
+      setOpen(false);
+      await loadUnits(branchId);
     } catch (e: any) {
-      const msg = e?.message || "Failed to load branch scope";
-      setErr(msg);
-      toast({ variant: "destructive", title: "Load failed", description: msg });
+      const msg = e instanceof ApiError ? e.message : "Failed to save unit";
+      setModalErr(msg);
+      toast({ title: "Save failed", description: msg, variant: "destructive" });
     } finally {
-      setLoading(false);
+      setBusy(false);
+    }
+  }
+
+  async function confirmDeactivation() {
+    if (!branchId || !deactivateTarget) return;
+    const reason = deactivateReason.trim();
+    if (!reason) {
+      setDeactivateErr("Please provide a reason for deactivation.");
+      return;
+    }
+    setBusy(true);
+    try {
+      // Soft deactivate (backend uses DELETE for deactivation; reason is passed as query for future compatibility)
+      await apiFetch(
+        `/api/infrastructure/units/${encodeURIComponent(deactivateTarget.id)}?hard=false&cascade=true&reason=${encodeURIComponent(
+          reason,
+        )}`,
+        { method: "DELETE" },
+      );
+      toast({ title: "Deactivated", description: `${deactivateTarget.name}`, duration: 1400 });
+      setDeactivateOpen(false);
+      setDeactivateTarget(null);
+      setDeactivateReason("");
+      setDeactivateErr(null);
+      await loadUnits(branchId);
+    } catch (e: any) {
+      const msg = e instanceof ApiError ? e.message : "Failed to update status";
+      setDeactivateErr(msg);
+      toast({ title: "Update failed", description: msg, variant: "destructive" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function toggleActive(r: UnitRow) {
+    if (!branchId) return;
+    if (r.isActive) {
+      setDeactivateTarget(r);
+      setDeactivateReason("");
+      setDeactivateErr(null);
+      setDeactivateOpen(true);
+      return;
+    }
+    setBusy(true);
+    try {
+      await apiFetch(`/api/infrastructure/units/${encodeURIComponent(r.id)}`, {
+        method: "PATCH",
+        body: JSON.stringify({ isActive: true }),
+      });
+      toast({ title: "Activated", description: `${r.name}`, duration: 1400 });
+      await loadUnits(branchId);
+    } catch (e: any) {
+      const msg = e instanceof ApiError ? e.message : "Failed to update status";
+      toast({ title: "Update failed", description: msg, variant: "destructive" });
+    } finally {
+      setBusy(false);
     }
   }
 
   return (
-    <AppShell title="Infrastructure • Units">
-      {!permsLoaded ? (
+    <AppShell title="Infrastructure - Units">
+      <RequirePerm perm="INFRA_UNIT_READ">
         <div className="grid gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Loading…</CardTitle>
-              <CardDescription>Preparing your access controls and data.</CardDescription>
+          {/* Header */}
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-2xl border border-zc-border bg-zc-panel/30">
+                <IconBuilding className="h-5 w-5 text-zc-accent" />
+              </span>
+              <div className="min-w-0">
+                <div className="text-3xl font-semibold tracking-tight">Units</div>
+                <div className="mt-1 text-sm text-zc-muted">
+                  Configure Units/Wards under Departments. Then manage Rooms/Bays and Resources inside each Unit.
+                </div>
+                {scope === "GLOBAL" && !branchId ? (
+                  <div className="mt-3 rounded-xl border border-zc-border bg-zc-panel/10 px-3 py-2 text-sm text-zc-muted">
+                    {reason ?? "Select an active branch to manage units."}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                className="px-5 gap-2"
+                onClick={() => void refreshAll()}
+                disabled={loading || busy || !branchId}
+              >
+                <RefreshCw className={busy ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+                Refresh
+              </Button>
+              <Button
+                variant="primary"
+                className="px-5 gap-2"
+                onClick={openCreate}
+                disabled={loading || busy || !branchId}
+              >
+                <Plus className="h-4 w-4" />
+                New Unit
+              </Button>
+            </div>
+          </div>
+
+          {/* Overview */}
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base">Overview</CardTitle>
+              <CardDescription className="text-sm">Search and filter units in the active branch.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-64 w-full" />
+
+            <CardContent className="grid gap-4">
+              <div className="grid gap-3 md:grid-cols-3">
+                <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-3 dark:border-blue-900/50 dark:bg-blue-900/10">
+                  <div className="text-xs font-medium text-blue-600 dark:text-blue-400">Total Units</div>
+                  <div className="mt-1 text-lg font-bold text-blue-700 dark:text-blue-300">{rows.length}</div>
+                  <div className="mt-1 text-[11px] text-blue-700/80 dark:text-blue-300/80">
+                    Active: <span className="font-semibold tabular-nums">{activeCount}</span> | Inactive:{" "}
+                    <span className="font-semibold tabular-nums">{inactiveCount}</span>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-sky-200 bg-sky-50/50 p-3 dark:border-sky-900/50 dark:bg-sky-900/10">
+                  <div className="text-xs font-medium text-sky-600 dark:text-sky-400">Uses Rooms</div>
+                  <div className="mt-1 text-lg font-bold text-sky-700 dark:text-sky-300">{usesRoomsCount}</div>
+                </div>
+
+                <div className="rounded-xl border border-violet-200 bg-violet-50/50 p-3 dark:border-violet-900/50 dark:bg-violet-900/10">
+                  <div className="text-xs font-medium text-violet-600 dark:text-violet-400">Enabled Unit Types</div>
+                  <div className="mt-1 text-lg font-bold text-violet-700 dark:text-violet-300">{enabledUnitTypes.length}</div>
+                  <div className="mt-1 text-[11px] text-violet-700/80 dark:text-violet-300/80">
+                    Catalog: <span className="font-semibold tabular-nums">{unitTypesCatalog.length}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="relative w-full lg:max-w-md">
+                  <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-zc-muted" />
+                  <Input
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") e.preventDefault();
+                    }}
+                    placeholder="Search by code or name..."
+                    className="pl-10"
+                    disabled={!branchId}
+                  />
+                </div>
+
+                <div className="text-xs text-zc-muted">
+                  Showing <span className="font-semibold tabular-nums text-zc-text">{filteredRows.length}</span> units
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="min-w-[220px]">
+                  <Label className="text-xs text-zc-muted">Department</Label>
+                  <Select value={filterDept} onValueChange={(v) => setFilterDept(v)} disabled={!branchId}>
+                    <SelectTrigger className="h-10 rounded-xl border-zc-border bg-zc-card">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">All</SelectItem>
+                      {departments.map((d) => (
+                        <SelectItem key={d.id} value={d.id}>
+                          {d.name} <span className="font-mono text-xs text-zc-muted">({d.code})</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="min-w-[220px]">
+                  <Label className="text-xs text-zc-muted">Unit Type</Label>
+                  <Select value={filterUnitType} onValueChange={(v) => setFilterUnitType(v)} disabled={!branchId}>
+                    <SelectTrigger className="h-10 rounded-xl border-zc-border bg-zc-card">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[320px] overflow-y-auto">
+                      <SelectItem value="ALL">All</SelectItem>
+                      {(enabledUnitTypes.length ? enabledUnitTypes : unitTypesCatalog).map((ut) => (
+                        <SelectItem key={ut.id} value={ut.id}>
+                          {ut.name} <span className="font-mono text-xs text-zc-muted">({ut.code})</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="min-w-[260px]">
+                  <Label className="text-xs text-zc-muted">Location</Label>
+                  <Select value={filterLocation} onValueChange={(v) => setFilterLocation(v)} disabled={!branchId}>
+                    <SelectTrigger className="h-10 rounded-xl border-zc-border bg-zc-card">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[320px] overflow-y-auto">
+                      <SelectItem value="ALL">All</SelectItem>
+                      {locationOptions.map((o) => (
+                        <SelectItem key={o.id} value={o.id}>
+                          <span className="block max-w-full truncate" title={o.label}>
+                            {o.label}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center gap-2 rounded-xl border border-zc-border bg-zc-card px-3 py-2">
+                  <Switch checked={includeInactive} onCheckedChange={setIncludeInactive} disabled={!branchId} />
+                  <span className="text-xs text-zc-muted">Include inactive</span>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => {
+                    setQ("");
+                    setFilterDept("ALL");
+                    setFilterUnitType("ALL");
+                    setFilterLocation("ALL");
+                    setIncludeInactive(false);
+                  }}
+                  disabled={!branchId}
+                >
+                  <Filter className="h-4 w-4" />
+                  Reset
+                </Button>
+
+                {branch ? (
+                  <span className="text-xs text-zc-muted">
+                    Branch: <span className="font-semibold text-zc-text">{branch.code}</span>
+                  </span>
+                ) : null}
+              </div>
+
+              {err ? (
+                <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
+                  <AlertTriangle className="mt-0.5 h-4 w-4" />
+                  <div className="min-w-0">{err}</div>
+                </div>
+              ) : null}
             </CardContent>
           </Card>
-        </div>
-      ) : !canRead ? (
-        <NoAccess
-          perm="INFRA_UNIT_READ"
-          title="Units"
-          description="You don’t have access to view or manage Units."
-        />
-      ) : (
-        <>
-          <div className="grid gap-6">
-        {/* Header (same pattern as Branch page) */}
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-zc-border bg-zc-panel/30">
-              <IconBuilding className="h-5 w-5 text-zc-accent" />
-            </span>
-            <div className="min-w-0">
-              <div className="text-3xl font-semibold tracking-tight">Units</div>
-              <div className="mt-1 text-sm text-zc-muted">
-                Select branch, create Units/Wards, then configure Rooms/Bays and Resources inside each Unit.
+
+          {/* Table */}
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-3">
+              <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <CardTitle className="text-base">Unit Directory</CardTitle>
+                  <CardDescription className="text-sm">Units/Wards configured in the active branch.</CardDescription>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button asChild variant="outline" size="sm" className="gap-2" disabled={!branchId}>
+                    <Link href={branchId ? `/infrastructure/unit-types` : "#"}>
+                      <Settings2 className="h-4 w-4" />
+                      Unit Types
+                    </Link>
+                  </Button>
+                </div>
               </div>
-            </div>
-          </div>
+            </CardHeader>
+            <Separator />
 
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" className="px-5 gap-2" onClick={() => void refresh(true)} disabled={loading}>
-              <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-              Refresh
-            </Button>
-
-            {canCreate ? (
-              <Button variant="primary" className="px-5 gap-2" onClick={() => setCreateOpen(true)} disabled={!branchId}>
-                <IconPlus className="h-4 w-4" />
-                Create Unit
-              </Button>
-            ) : null}
-          </div>
-        </div>
-
-        {/* Overview (same concept as Branch page + branch scope + filters) */}
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-base">Overview</CardTitle>
-            <CardDescription className="text-sm">
-              Pick a branch, filter units, and open details. Actions are permission-controlled.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="grid gap-4">
-            {/* Branch picker */}
-            <div className="grid gap-2">
-              <Label>Branch</Label>
-              <Select value={branchId ?? ""} onValueChange={(v) => void onBranchChange(v)}>
-                <SelectTrigger className={selectTriggerCls}>
-                  <SelectValue placeholder="Select branch…" />
-                </SelectTrigger>
-                <SelectContent align="start" className={selectContentMaxW}>
-                  {branches.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>
-                      <span className="block max-w-full truncate" title={branchOneLineLabel(b)}>
-                        {branchOneLineLabel(b)}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Stats tiles (same style as Branch page) */}
-            <div className="grid gap-3 md:grid-cols-3">
-              <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-3 dark:border-blue-900/50 dark:bg-blue-900/10">
-                <div className="text-xs font-medium text-blue-600 dark:text-blue-400">Total Units</div>
-                <div className="mt-1 text-lg font-bold text-blue-700 dark:text-blue-300">{totalUnits}</div>
-              </div>
-
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 dark:border-emerald-900/50 dark:bg-emerald-900/10">
-                <div className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Active Units</div>
-                <div className="mt-1 text-lg font-bold text-emerald-700 dark:text-emerald-300">{activeUnits}</div>
-              </div>
-
-              <div className="rounded-xl border border-violet-200 bg-violet-50/50 p-3 dark:border-violet-900/50 dark:bg-violet-900/10">
-                <div className="text-xs font-medium text-violet-600 dark:text-violet-400">Uses Rooms</div>
-                <div className="mt-1 text-lg font-bold text-violet-700 dark:text-violet-300">{roomsUnits}</div>
-              </div>
-            </div>
-
-            {/* Search + count line (same style as Branch page) */}
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div className="relative w-full lg:max-w-md">
-                <IconSearch className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-zc-muted" />
-                <Input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") e.preventDefault();
-                  }}
-                  placeholder="Search by code, name, department, unit type…"
-                  className="pl-10"
-                />
-              </div>
-
-              <div className="text-xs text-zc-muted">
-                Showing <span className="font-semibold tabular-nums text-zc-text">{filtered.length}</span> of{" "}
-                <span className="font-semibold tabular-nums text-zc-text">{rows.length}</span>
-              </div>
-            </div>
-
-            {/* Filters row (kept compact; still consistent with overall layout) */}
-            <div className="grid gap-3 md:grid-cols-3">
-              <div className="grid gap-2 min-w-0">
-                <Label>Department</Label>
-                <Select value={filterDept ?? ""} onValueChange={(v) => setFilterDept(v || undefined)}>
-                  <SelectTrigger className={selectTriggerCls}>
-                    <SelectValue placeholder="All departments" />
-                  </SelectTrigger>
-                  <SelectContent align="start" className={selectContentMaxW}>
-                    {departments.map((d) => (
-                      <SelectItem key={d.id} value={d.id}>
-                        <span className="block max-w-full truncate" title={`${d.name} (${d.code})`}>
-                          {d.name} <span className="font-mono text-xs text-zc-muted">({d.code})</span>
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid gap-2 min-w-0">
-  <Label>Unit Type</Label>
-  <Select value={filterUT ?? ""} onValueChange={(v) => setFilterUT(v || undefined)}>
-    <SelectTrigger className={selectTriggerCls}>
-      <SelectValue placeholder="All unit types" />
-    </SelectTrigger>
-
-    <SelectContent
-      align="start"
-      className={cn(selectContentMaxW, "max-h-[320px] overflow-y-auto overflow-x-hidden")}
-    >
-      {unitTypesCatalog.map((ut) => (
-        <SelectItem key={ut.id} value={ut.id}>
-          <span className="block max-w-full truncate" title={`${ut.name} (${ut.code})`}>
-            {ut.name} <span className="font-mono text-xs text-zc-muted">({ut.code})</span>
-          </span>
-        </SelectItem>
-      ))}
-    </SelectContent>
-  </Select>
-</div>
-
-
-              <div className="grid gap-2 min-w-0">
-                <Label>Location</Label>
-                <LocationNodePicker
-                  branchId={branchId}
-                  value={filterLoc}
-                  onValueChange={(v) => setFilterLoc(v || undefined)}
-                  placeholder="All locations"
-                />
-              </div>
-            </div>
-
-            {err ? (
-              <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
-                <AlertTriangle className="mt-0.5 h-4 w-4" />
-                <div className="min-w-0">{err}</div>
-              </div>
-            ) : null}
-          </CardContent>
-        </Card>
-
-        {/* Registry table (same pattern as Branch page) */}
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Unit Registry</CardTitle>
-            <CardDescription className="text-sm">Open Details to configure Rooms/Bays, Resources, and OT assets.</CardDescription>
-          </CardHeader>
-          <Separator />
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-zc-panel/20 text-xs text-zc-muted">
-                <tr>
-                  <th className="px-4 py-3 text-left font-semibold">Code</th>
-                  <th className="px-4 py-3 text-left font-semibold">Unit</th>
-                  <th className="px-4 py-3 text-left font-semibold">Department</th>
-                  <th className="px-4 py-3 text-left font-semibold">Unit Type</th>
-                  <th className="px-4 py-3 text-left font-semibold">Rooms</th>
-                  <th className="px-4 py-3 text-left font-semibold">Active</th>
-                  <th className="px-4 py-3 text-right font-semibold">Action</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {!filtered.length ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-zc-panel/20 text-xs text-zc-muted">
                   <tr>
-                    <td colSpan={7} className="px-4 py-10 text-center text-sm text-zc-muted">
-                      {loading ? "Loading units…" : "No units found."}
-                    </td>
+                    <th className="px-4 py-3 text-left font-semibold">Code</th>
+                    <th className="px-4 py-3 text-left font-semibold">Unit</th>
+                    <th className="px-4 py-3 text-left font-semibold">Department</th>
+                    <th className="px-4 py-3 text-left font-semibold">Unit Type</th>
+                    <th className="px-4 py-3 text-left font-semibold">Location</th>
+                    <th className="px-4 py-3 text-left font-semibold">Rooms</th>
+                    <th className="px-4 py-3 text-left font-semibold">Status</th>
+                    <th className="px-4 py-3 text-left font-semibold">Updated</th>
+                    <th className="px-4 py-3 text-right font-semibold">Actions</th>
                   </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <tr key={i} className="border-t border-zc-border">
+                        <td className="px-4 py-3" colSpan={9}>
+                          <div className="h-4 w-full animate-pulse rounded bg-zc-panel/30" />
+                        </td>
+                      </tr>
+                    ))
+                  ) : filteredRows.length === 0 ? (
+                    <tr className="border-t border-zc-border">
+                      <td className="px-4 py-10 text-center text-sm text-zc-muted" colSpan={9}>
+                        No units found.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredRows.map((r) => (
+                      <tr key={r.id} className="border-t border-zc-border hover:bg-zc-panel/10">
+                        <td className="px-4 py-3 font-mono text-xs">{r.code}</td>
+
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">{r.name}</span>
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-3">
+                          {r.department ? (
+                            <span>
+                              {r.department.name}{" "}
+                              <span className="font-mono text-xs text-zc-muted">({r.department.code})</span>
+                            </span>
+                          ) : (
+                            <span className="text-zc-muted">—</span>
+                          )}
+                        </td>
+
+                        <td className="px-4 py-3">
+                          {r.unitType ? (
+                            <span>
+                              {r.unitType.name}{" "}
+                              <span className="font-mono text-xs text-zc-muted">({r.unitType.code})</span>
+                            </span>
+                          ) : (
+                            <span className="text-zc-muted">—</span>
+                          )}
+                        </td>
+
+                        <td className="px-4 py-3 text-sm text-zc-muted">{unitLocationLabel(r)}</td>
+
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {r.usesRooms ? (
+                              <Badge
+                                variant="outline"
+                                className="border-emerald-200 bg-emerald-50/60 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200"
+                              >
+                                {`${r.roomsCount ?? r.totalRoomCount ?? 0} rooms`}
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="outline"
+                                className="border-slate-200 bg-slate-50/60 text-slate-700 dark:border-slate-800/40 dark:bg-slate-900/20 dark:text-slate-200"
+                              >
+                                Open-bay
+                              </Badge>
+                            )}
+
+                            {r.totalBedCapacity != null ? (
+                              <Badge
+                                variant="outline"
+                                className="border-amber-200 bg-amber-50/60 text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200"
+                              >
+                                {`${r.totalBedCapacity} beds`}
+                              </Badge>
+                            ) : null}
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-3">
+                          {r.isActive ? (
+                            <span className="inline-flex items-center rounded-full border border-emerald-200/70 bg-emerald-50/70 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200">
+                              ACTIVE
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center rounded-full border border-amber-200/70 bg-amber-50/70 px-2 py-0.5 text-[11px] font-semibold text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200">
+                              INACTIVE
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="px-4 py-3 text-sm text-zc-muted">{fmtDateTime(r.updatedAt)}</td>
+
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="success"
+                              size="icon"
+                              onClick={() => router.push(`/infrastructure/units/${r.id}`)}
+                              title="View details"
+                              aria-label="View details"
+                              disabled={!branchId}
+                            >
+                              <IconChevronRight className="h-4 w-4" />
+                            </Button>
+
+                            <Button
+                              variant="info"
+                              size="icon"
+                              onClick={() => openEdit(r)}
+                              title="Edit unit"
+                              aria-label="Edit unit"
+                              disabled={!branchId || busy}
+                            >
+                              <Settings2 className="h-4 w-4" />
+                            </Button>
+
+                            <Button
+                              variant={r.isActive ? "secondary" : "success"}
+                              size="icon"
+                              onClick={() => void toggleActive(r)}
+                              title={r.isActive ? "Deactivate unit" : "Activate unit"}
+                              aria-label={r.isActive ? "Deactivate unit" : "Activate unit"}
+                              disabled={!branchId || busy}
+                            >
+                              {busy ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : r.isActive ? (
+                                <ToggleLeft className="h-4 w-4" />
+                              ) : (
+                                <ToggleRight className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          {/* Deactivate */}
+          <Dialog
+            open={deactivateOpen}
+            onOpenChange={(v) => {
+              if (busy) return;
+              setDeactivateOpen(v);
+              if (!v) {
+                setDeactivateErr(null);
+                setDeactivateReason("");
+                setDeactivateTarget(null);
+              }
+            }}
+          >
+            <DialogContent className="sm:max-w-[520px] rounded-2xl border border-indigo-200/50 bg-zc-card shadow-2xl shadow-indigo-500/10 dark:border-indigo-800/50">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-3 text-indigo-700 dark:text-indigo-400">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
+                    <AlertTriangle className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  Deactivate Unit
+                </DialogTitle>
+                <DialogDescription>
+                  {deactivateTarget ? `Tell us why you're deactivating ${deactivateTarget.name}.` : "Tell us why you're deactivating this unit."}
+                </DialogDescription>
+              </DialogHeader>
+
+              <Separator className="my-4" />
+
+              {deactivateErr ? (
+                <div className="mb-2 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
+                  <AlertTriangle className="mt-0.5 h-4 w-4" />
+                  <div className="min-w-0">{deactivateErr}</div>
+                </div>
+              ) : null}
+
+              <div className="grid gap-3">
+                <Label htmlFor="deactivate-reason">Reason</Label>
+                <Textarea
+                  id="deactivate-reason"
+                  value={deactivateReason}
+                  onChange={(e) => {
+                    setDeactivateReason(e.target.value);
+                    if (deactivateErr) setDeactivateErr(null);
+                  }}
+                  rows={4}
+                  placeholder="e.g., Unit merged, temporarily closed, or repurposed."
+                />
+              </div>
+
+              <DialogFooter className="mt-5">
+                <Button variant="ghost" onClick={() => setDeactivateOpen(false)} disabled={busy}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={() => void confirmDeactivation()} disabled={busy || !deactivateReason.trim()}>
+                  {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Deactivate
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Editor */}
+          <Dialog
+            open={open}
+            onOpenChange={(v) => {
+              if (busy) return;
+              if (!v) setModalErr(null);
+              setOpen(v);
+            }}
+          >
+            <DialogContent className={drawerClassName()}>
+              <ModalHeader
+                title={editing ? "Edit Unit" : "Create Unit"}
+                description="Configure units with capacity, location, and staffing defaults."
+                onClose={() => setOpen(false)}
+              />
+
+              <div className="grid gap-6">
+                {!branchId ? (
+                  <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-warn-rgb)/0.35)] bg-[rgb(var(--zc-warn-rgb)/0.12)] px-3 py-2 text-sm text-zc-text">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 text-[rgb(var(--zc-warn))]" />
+                    <div className="min-w-0">Select a branch first.</div>
+                  </div>
                 ) : null}
 
-                {filtered.map((u) => (
-                  <tr key={u.id} className="border-t border-zc-border hover:bg-zc-panel/20">
-                    <td className="px-4 py-3">
-                      <span className="inline-flex rounded-lg border border-zc-border bg-zc-accent/20 px-2.5 py-1 font-mono text-xs text-zc-text">
-                        {u.code}
+                {modalErr ? (
+                  <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
+                    <AlertTriangle className="mt-0.5 h-4 w-4" />
+                    <div className="min-w-0">{modalErr}</div>
+                  </div>
+                ) : null}
+
+                {nameDupWarning ? (
+                  <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-warn-rgb)/0.35)] bg-[rgb(var(--zc-warn-rgb)/0.10)] px-3 py-2 text-sm text-zc-text">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 text-[rgb(var(--zc-warn))]" />
+                    <div className="min-w-0">{nameDupWarning}</div>
+                  </div>
+                ) : null}
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label>Department</Label>
+                    <Select value={formDeptId} onValueChange={setFormDeptId} disabled={!branchId || !!editing}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select department…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departments.map((d) => (
+                          <SelectItem key={d.id} value={d.id}>
+                            {d.name} <span className="font-mono text-xs text-zc-muted">({d.code})</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {editing ? <p className="text-[11px] text-zc-muted">Department cannot be changed after creation.</p> : null}
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label>Unit Type</Label>
+                    <Select value={formUnitTypeId} onValueChange={(v) => setFormUnitTypeId(v)} disabled={!branchId || !!editing}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select unit type…" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[320px] overflow-y-auto">
+                        {unitTypeOptions.map((ut) => (
+                          <SelectItem key={ut.id} value={ut.id}>
+                            {ut.name} <span className="font-mono text-xs text-zc-muted">({ut.code})</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {editing ? <p className="text-[11px] text-zc-muted">Unit type cannot be changed after creation.</p> : null}
+                  </div>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label>Location (Floor / Zone / Area)</Label>
+                  <Select value={formLocationId} onValueChange={setFormLocationId} disabled={!branchId}>
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Select location…" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[340px] overflow-y-auto">
+                      {locationOptions.map((o) => (
+                        <SelectItem key={o.id} value={o.id}>
+                          <span className="block max-w-full truncate" title={o.label}>
+                            {o.label}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[11px] text-zc-muted">Allowed levels: Floor / Zone / Area.</p>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label>Unit Code</Label>
+                    <Input
+                      value={formCode}
+                      onChange={(e) => setFormCode(e.target.value.toUpperCase())}
+                      placeholder="e.g. OT-1, TH01, LAB1"
+                      className="font-mono"
+                      disabled={!!editing || !branchId}
+                    />
+                    
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label>Unit Name</Label>
+                    <Input
+                      value={formName}
+                      onChange={(e) => setFormName(e.target.value)}
+                      placeholder="e.g. Operation Theatre Suite"
+                      disabled={!branchId}
+                    />
+                  </div>
+                </div>
+<p className="text-[11px] text-zc-muted">Code should be stable. Editing is disabled after creation.</p>
+                <Separator />
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label>Total Room Count</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={formTotalRoomCount}
+                      onChange={(e) => setFormTotalRoomCount(e.target.value)}
+                      disabled={derivedUsesRooms !== true}
+                    />
+                    <p className="text-xs text-zc-muted">
+                      For room-based units, minimum 1. For open-bay units, this stays 0.
+                    </p>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label>Total Bed Capacity</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={formTotalBedCapacity}
+                      onChange={(e) => setFormTotalBedCapacity(e.target.value)}
+                      disabled={derivedBedBased !== true}
+                    />
+                    <p className="text-xs text-zc-muted">Required when the unit type is bed-based.</p>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="grid gap-2">
+                    <Label>Commissioning Date</Label>
+                    <Input type="date" value={formCommissioningDate} onChange={(e) => setFormCommissioningDate(e.target.value)} />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label>Floor Number</Label>
+                    <Input type="number" min={0} value={formFloorNumber} onChange={(e) => setFormFloorNumber(e.target.value)} />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label>Wing / Zone</Label>
+                    <Input value={formWingZone} onChange={(e) => setFormWingZone(e.target.value)} placeholder="e.g., A Wing" />
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-zc-border bg-zc-panel/10 p-4">
+                  <div className="text-sm font-semibold text-zc-text">Capabilities (derived from Unit Type)</div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {derivedUsesRooms == null ? (
+                      <Badge variant="secondary">Select Unit Type</Badge>
+                    ) : derivedUsesRooms ? (
+                      <Badge className="bg-emerald-600 hover:bg-emerald-600">Has Rooms</Badge>
+                    ) : (
+                      <Badge variant="outline">No Rooms</Badge>
+                    )}
+                    {derivedSchedulable == null ? null : derivedSchedulable ? (
+                      <Badge className="bg-indigo-600 hover:bg-indigo-600">Schedulable</Badge>
+                    ) : (
+                      <Badge variant="outline">Not Schedulable</Badge>
+                    )}
+                    {derivedBedBased == null ? null : derivedBedBased ? (
+                      <Badge className="bg-amber-600 hover:bg-amber-600">Bed-based</Badge>
+                    ) : (
+                      <Badge variant="outline">Not Bed-based</Badge>
+                    )}
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label>Unit In-charge (Staff ID)</Label>
+                    <Input value={formInchargeStaffId} onChange={(e) => setFormInchargeStaffId(e.target.value)} placeholder="Optional" />
+                    <p className="text-xs text-zc-muted">Optional: Staff Master ID / Employee Code.</p>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label>Nursing Station</Label>
+                    <Input value={formNursingStation} onChange={(e) => setFormNursingStation(e.target.value)} placeholder="Optional" />
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-zc-border bg-zc-panel/10 p-4">
+                  <div className="text-sm font-semibold text-zc-text">Notes</div>
+                  <div className="mt-2 text-xs text-zc-muted">
+                    These fields are optional onboarding metadata. You can refine staffing later via Staff Assignments.
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="rounded-2xl border border-zc-border bg-zc-panel/10 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold text-zc-text">Derived behavior</div>
+                      <div className="mt-1 text-xs text-zc-muted">Unit behavior is derived from the selected Unit Type.</div>
+                    </div>
+                    {derivedUsesRooms == null ? (
+                      <Badge variant="secondary">Select Unit Type</Badge>
+                    ) : derivedUsesRooms ? (
+                      <Badge className="bg-emerald-600 hover:bg-emerald-600">Uses Rooms</Badge>
+                    ) : (
+                      <Badge variant="outline">Open-bay (No Rooms)</Badge>
+                    )}
+                  </div>
+
+                  <div className="mt-4 grid gap-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      <span>
+                        Updates allow changing <span className="font-semibold">Name</span>, <span className="font-semibold">Location</span>, and onboarding metadata (capacity/staff).
                       </span>
-                    </td>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      <span>Deactivation uses cascade (Rooms/Resources) via the status toggle in the directory.</span>
+                    </div>
+                  </div>
+                </div>
 
-                    <td className="px-4 py-3">
-                      <div className="font-semibold text-zc-text">{u.name}</div>
-                      {u.locationNode?.name ? <div className="mt-0.5 text-xs text-zc-muted">{u.locationNode.name}</div> : null}
-                    </td>
-
-                    <td className="px-4 py-3 text-zc-muted">{u.department?.name || "—"}</td>
-                    <td className="px-4 py-3 text-zc-muted">{u.unitType?.name || "—"}</td>
-
-                    <td className="px-4 py-3">
-                      <span className="font-mono text-xs text-zc-text">{u.usesRooms ? "Yes" : "No"}</span>
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <span className={cn("font-mono text-xs", u.isActive ? "text-emerald-600 dark:text-emerald-300" : "text-zc-muted")}>
-                        {u.isActive ? "Active" : "Inactive"}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button asChild variant="outline" className="px-3 gap-2">
-                          <Link href={`/infrastructure/units/${encodeURIComponent(u.id)}`}>
-                            Details <IconChevronRight className="h-4 w-4" />
-                          </Link>
-                        </Button>
-
-                        {canUpdate ? (
-                          <Button
-                            variant="secondary"
-                            className="px-3 gap-2"
-                            onClick={() => {
-                              setSelected(u);
-                              setEditOpen(true);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                            Edit
-                          </Button>
-                        ) : null}
-
-                        {canDelete ? (
-                          <Button
-                            variant="destructive"
-                            className="px-3 gap-2"
-                            onClick={() => {
-                              setSelected(u);
-                              setDeleteOpen(true);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Delete
-                          </Button>
-                        ) : null}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-
-        {/* Onboarding callout (same idea as Branch page) */}
-        <div className="rounded-2xl border border-zc-border bg-zc-panel/20 p-5">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="min-w-0">
-              <div className="text-sm font-semibold text-zc-text">Recommended setup order</div>
-              <div className="mt-1 text-sm text-zc-muted">
-                1) Enable Unit Types for the Branch → 2) Create Units → 3) Configure Rooms/Bays → 4) Add Resources/OT assets and go-live checks.
+                <div className="flex items-center gap-2 rounded-2xl border border-zc-border bg-zc-card px-3 py-2">
+                  <Switch checked={editing ? !!editing.isActive : true} disabled />
+                  <span className="text-xs text-zc-muted">Status is managed from the directory (Activate/Deactivate).</span>
+                </div>
               </div>
-            </div>
-          </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>
+                  Cancel
+                </Button>
+                <Button onClick={() => void saveUnit()} disabled={busy || !branchId}>
+                  {busy ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Save
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
-      </div>
-
-      {/* Modals */}
-      <UnitEditorModal
-        mode="create"
-        open={createOpen}
-        branchId={branchId}
-        departments={departments}
-        enabledUnitTypes={enabledUnitTypes}
-        initial={null}
-        onClose={() => setCreateOpen(false)}
-        onSaved={() => refresh(false)}
-      />
-
-      <UnitEditorModal
-        mode="edit"
-        open={editOpen}
-        branchId={branchId}
-        departments={departments}
-        enabledUnitTypes={enabledUnitTypes}
-        initial={selected}
-        onClose={() => setEditOpen(false)}
-        onSaved={() => refresh(false)}
-      />
-
-      <DeleteUnitModal
-        open={deleteOpen}
-        unit={selected}
-        onClose={() => setDeleteOpen(false)}
-        onDeleted={() => refresh(false)}
-      />
-        </>
-      )}
+      </RequirePerm>
     </AppShell>
   );
 }

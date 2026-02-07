@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Query, Req } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { Permissions } from "../../auth/permissions.decorator";
 import { PERM } from "../../iam/iam.constants";
@@ -65,6 +65,35 @@ export class UnitsController {
     return this.svc.updateUnit(this.principal(req), id, dto);
   }
 
+  /**
+   * ✅ Preferred endpoint for UI (reason in body; easier than querystring)
+   * POST /infra/units/:id/deactivate
+   * body: { cascade?: boolean; reason: string; hard?: boolean }
+   */
+  @Post("units/:id/deactivate")
+  @Permissions(PERM.INFRA_UNIT_UPDATE)
+  async deactivateUnit(
+    @Req() req: any,
+    @Param("id") id: string,
+    @Body() body: { cascade?: boolean; reason?: string; hard?: boolean },
+  ) {
+    const hard = body?.hard === true;
+    const cascade = body?.cascade !== false; // default true
+
+    if (!hard) {
+      const reason = String(body?.reason ?? "").trim();
+      if (!reason) throw new BadRequestException("Deactivation reason is required.");
+      return this.svc.deactivateUnit(this.principal(req), id, { hard: false, cascade, reason });
+    }
+
+    return this.svc.deactivateUnit(this.principal(req), id, { hard: true, cascade });
+  }
+
+  /**
+   * ✅ Backward compatible endpoint
+   * DELETE /infra/units/:id?hard=false&cascade=true&reason=...
+   * Note: reason REQUIRED when hard=false.
+   */
   @Delete("units/:id")
   @Permissions(PERM.INFRA_UNIT_UPDATE)
   async deleteUnit(
@@ -72,10 +101,20 @@ export class UnitsController {
     @Param("id") id: string,
     @Query("hard") hard?: string,
     @Query("cascade") cascade?: string,
+    @Query("reason") reason?: string,
   ) {
-    return this.svc.deactivateUnit(this.principal(req), id, {
-      hard: parseBool(hard),
-      cascade: cascade == null ? true : parseBool(cascade),
-    });
+    const hardParsed = parseBool(hard);
+    const hardBool = hardParsed === true;
+
+    const cascadeParsed = parseBool(cascade);
+    const cascadeBool = cascade == null ? true : (cascadeParsed ?? true);
+
+    if (!hardBool) {
+      const r = String(reason ?? "").trim();
+      if (!r) throw new BadRequestException("Deactivation reason is required.");
+      return this.svc.deactivateUnit(this.principal(req), id, { hard: false, cascade: cascadeBool, reason: r });
+    }
+
+    return this.svc.deactivateUnit(this.principal(req), id, { hard: true, cascade: cascadeBool });
   }
 }

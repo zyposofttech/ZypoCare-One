@@ -1,24 +1,512 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException, ConflictException } from "@nestjs/common";
-import type { PrismaClient } from "@zypocare/db";
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import type { Prisma, PrismaClient } from "@zypocare/db";
 import { AuditService } from "../audit/audit.service";
 import type { Principal } from "../auth/access-policy.service";
 import { resolveBranchId as resolveBranchIdCommon } from "../../common/branch-scope.util";
-import type { CreateFacilityDto, CreateSpecialtyDto, UpdateSpecialtyDto, SetDepartmentSpecialtiesDto } from "./facility-setup.dto";
+import type {
+  CreateDepartmentDto,
+  CreateFacilityDto,
+  CreateSpecialtyDto,
+  SetDepartmentSpecialtiesDto,
+  UpdateDepartmentAssignmentsDto,
+  UpdateDepartmentDto,
+  UpdateSpecialtyDto,
+} from "./facility-setup.dto";
+import { validateOperatingHours } from "./operating-hours.validator";
 
 function uniq(ids: string[]) {
   return Array.from(new Set((ids || []).map((x) => String(x)).filter(Boolean)));
 }
+
+const LOCATION_KIND_RANK: Record<string, number> = {
+  CAMPUS: 1,
+  BUILDING: 2,
+  FLOOR: 3,
+  ZONE: 4,
+  AREA: 5,
+};
 
 @Injectable()
 export class FacilitySetupService {
   constructor(
     @Inject("PRISMA") private prisma: PrismaClient,
     private audit: AuditService,
-  ) { }
+  ) {}
 
   private resolveBranchId(principal: Principal, requestedBranchId?: string | null) {
     // Standardized branch resolution for facility setup: GLOBAL must provide branchId (except catalog ops)
     return resolveBranchIdCommon(principal, requestedBranchId ?? null, { requiredForGlobal: true });
+  }
+
+  private async getDepartmentMasterFacilityId(): Promise<string> {
+    // We keep Department.facilityId in the schema for now, but hide it from the workflow.
+    // All departments created via the simplified workflow default to this FacilityCatalog entry.
+    const row = await this.prisma.facilityCatalog.findUnique({
+      where: { code: "DEPARTMENT_MASTER" },
+      select: { id: true },
+    });
+    if (!row) {
+      throw new BadRequestException(
+        "Missing FacilityCatalog code=DEPARTMENT_MASTER. Run the seed once (FacilitySetupSeedService) and retry.",
+      );
+    }
+    return row.id;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Department rule helpers
+  // ---------------------------------------------------------------------------
+
+  private async assertDepartmentCodeUnique(branchId: string, code: string, excludeId?: string) {
+    const existing = await this.prisma.department.findFirst({
+      where: {
+        branchId,
+        code,
+        ...(excludeId ? { id: { not: excludeId } } : {}),
+      },
+      select: { id: true, facilityId: true },
+    });
+    if (existing) {
+      throw new ConflictException(`Department code '${code}' must be unique within branch.`);
+    }
+  }
+
+  private async computeDepartmentNameWarnings(branchId: string, name: string, excludeId?: string): Promise<string[]> {
+    const warnings: string[] = [];
+    const dup = await this.prisma.department.findFirst({
+      where: {
+        branchId,
+        name: { equals: name, mode: "insensitive" },
+        ...(excludeId ? { id: { not: excludeId } } : {}),
+      },
+      select: { id: true, code: true },
+    });
+    if (dup) {
+      warnings.push("Department name should be unique within branch (warning).");
+    }
+    return warnings;
+  }
+
+  private async validateHeadStaffInBranch(branchId: string, headStaffId: string) {
+    // Staff is enterprise-scoped; validate via an ACTIVE assignment in this branch.
+    const now = new Date();
+    const row = await this.prisma.staffAssignment.findFirst({
+      where: {
+        staffId: headStaffId,
+        branchId,
+        status: "ACTIVE",
+        staff: { status: "ACTIVE" },
+        AND: [
+          { effectiveFrom: { lte: now } },
+          { OR: [{ effectiveTo: null }, { effectiveTo: { gte: now } }] },
+        ],
+      },
+      select: { id: true },
+    });
+    if (!row) throw new BadRequestException("headStaffId must be an ACTIVE staff member of this branch.");
+  }
+
+  private async validateLocationNodesInBranch(branchId: string, locationNodeIds: string[]) {
+    if (!locationNodeIds.length) return { warnings: [] as string[] };
+
+    const now = new Date();
+    const rows = await this.prisma.locationNode.findMany({
+      where: {
+        id: { in: locationNodeIds },
+        branchId,
+        revisions: {
+          some: {
+            effectiveFrom: { lte: now },
+            OR: [{ effectiveTo: null }, { effectiveTo: { gt: now } }],
+            isActive: true,
+          },
+        },
+      },
+      select: { id: true, kind: true },
+    });
+
+    const ok = new Map(rows.map((r) => [r.id, r.kind as any]));
+    const bad = locationNodeIds.filter((id) => !ok.has(id));
+    if (bad.length) throw new BadRequestException(`Invalid locationNodeIds for this branch: ${bad.join(", ")}`);
+
+    // Department location rules:
+    // - must not be CAMPUS/BUILDING (blocking)
+    // - AREA is recommended (warning if FLOOR/ZONE)
+    const warnings: string[] = [];
+    for (const id of locationNodeIds) {
+      const kind = String(ok.get(id) ?? "");
+      if (kind === "CAMPUS" || kind === "BUILDING") {
+        throw new BadRequestException("Department location must be FLOOR/ZONE/AREA (not CAMPUS/BUILDING).");
+      }
+      if (kind !== "AREA") warnings.push("Department location should ideally be at AREA level (warning).");
+    }
+
+    return { warnings };
+  }
+
+  private async assertLocationExclusivity(
+    tx: Prisma.TransactionClient,
+    branchId: string,
+    departmentId: string,
+    locationNodeIds: string[],
+  ) {
+    if (!locationNodeIds.length) return;
+
+    const conflicts = await tx.departmentLocation.findMany({
+      where: {
+        isActive: true,
+        locationNodeId: { in: locationNodeIds },
+        departmentId: { not: departmentId },
+        department: {
+          branchId,
+          isActive: true,
+        },
+      },
+      select: {
+        locationNodeId: true,
+        department: { select: { id: true, code: true, name: true } },
+      },
+    });
+
+    if (conflicts.length) {
+      const msg = conflicts
+        .map((c) => `${c.locationNodeId} → ${c.department.code} (${c.department.name})`)
+        .join("; ");
+      throw new ConflictException(
+        `Location cannot be assigned to multiple active departments. Conflicts: ${msg}`,
+      );
+    }
+  }
+
+  private async syncDepartmentLocations(
+    tx: Prisma.TransactionClient,
+    branchId: string,
+    departmentId: string,
+    locationNodeIds: string[],
+    primaryLocationNodeId?: string | null,
+  ) {
+    const ids = uniq(locationNodeIds);
+
+    if (!ids.length) {
+      throw new BadRequestException("Department must have at least one physical location assigned.");
+    }
+
+    if (primaryLocationNodeId && !ids.includes(primaryLocationNodeId)) {
+      throw new BadRequestException("primaryLocationNodeId must be included in locationNodeIds");
+    }
+
+    // Exclusivity check BEFORE enabling
+    await this.assertLocationExclusivity(tx, branchId, departmentId, ids);
+
+    const current = await tx.departmentLocation.findMany({
+      where: { departmentId },
+      select: { locationNodeId: true, isActive: true },
+    });
+
+    const currentActive = new Set(current.filter((x) => x.isActive).map((x) => x.locationNodeId));
+    const desired = new Set(ids);
+
+    const toDisable = Array.from(currentActive).filter((locId) => !desired.has(locId));
+    const toEnable = ids.filter((locId) => !currentActive.has(locId));
+
+    if (toDisable.length) {
+      await tx.departmentLocation.updateMany({
+        where: { departmentId, locationNodeId: { in: toDisable } },
+        data: { isActive: false, isPrimary: false },
+      });
+    }
+
+    for (const locId of toEnable) {
+      await tx.departmentLocation.upsert({
+        where: { departmentId_locationNodeId: { departmentId, locationNodeId: locId } },
+        update: { isActive: true, isPrimary: false },
+        create: { departmentId, locationNodeId: locId, isActive: true, isPrimary: false },
+      });
+    }
+
+    // Ensure exactly one primary if any locations exist.
+    const effectivePrimary =
+      primaryLocationNodeId === undefined
+        ? null
+        : (primaryLocationNodeId ?? null);
+
+    if (primaryLocationNodeId === undefined) {
+      // If caller didn't specify, keep existing primary if present; else pick the first.
+      const existingPrimary = await tx.departmentLocation.findFirst({
+        where: { departmentId, isActive: true, isPrimary: true },
+        select: { locationNodeId: true },
+      });
+      const pick = existingPrimary?.locationNodeId ?? ids[0];
+      await tx.departmentLocation.updateMany({ where: { departmentId }, data: { isPrimary: false } });
+      await tx.departmentLocation.updateMany({
+        where: { departmentId, locationNodeId: pick },
+        data: { isPrimary: true, isActive: true },
+      });
+    } else {
+      await tx.departmentLocation.updateMany({ where: { departmentId }, data: { isPrimary: false } });
+      if (effectivePrimary) {
+        await tx.departmentLocation.updateMany({
+          where: { departmentId, locationNodeId: effectivePrimary },
+          data: { isPrimary: true, isActive: true },
+        });
+      }
+    }
+
+    return { enabled: toEnable, disabled: toDisable, after: ids };
+  }
+
+  private async assertDepartmentHierarchy(
+    tx: Prisma.TransactionClient,
+    branchId: string,
+    departmentId: string | null,
+    parentDepartmentId: string | null,
+  ) {
+    if (!parentDepartmentId) return;
+
+    if (departmentId && parentDepartmentId === departmentId) {
+      throw new BadRequestException("Parent department cannot be self.");
+    }
+
+    // parent must exist + active + same branch
+    const parent = await tx.department.findFirst({
+      where: { id: parentDepartmentId, branchId, isActive: true },
+      select: { id: true, parentDepartmentId: true },
+    });
+    if (!parent) throw new BadRequestException("Parent department must exist, be active, and belong to same branch.");
+
+    // no cycles + max 3 levels
+    const visited = new Set<string>();
+    let cur: string | null = parentDepartmentId;
+    let depth = 0; // number of nodes from parent up to root
+    while (cur) {
+      if (visited.has(cur)) throw new BadRequestException("Circular parent-child relationship detected.");
+      visited.add(cur);
+      if (departmentId && cur === departmentId) throw new BadRequestException("Circular parent-child relationship detected.");
+
+      depth += 1;
+      if (depth >= 3) {
+        // dept depth would be depth+1, max allowed = 3
+        // if parent chain length already 3, adding child exceeds
+        throw new BadRequestException("Maximum 3 levels of department nesting allowed.");
+      }
+
+      const next: { parentDepartmentId: string | null; branchId: string } | null = await tx.department.findUnique({
+        where: { id: cur },
+        select: { parentDepartmentId: true, branchId: true },
+      });
+      if (!next) break;
+      if (next.branchId !== branchId) throw new BadRequestException("Parent department must be in same branch.");
+      cur = next.parentDepartmentId ?? null;
+    }
+  }
+
+  private async assertDepartmentSpecialtyRules(
+    tx: Prisma.TransactionClient,
+    branchId: string,
+    departmentId: string,
+    facilityType: string,
+    whenActive: boolean,
+  ) {
+    if (!whenActive) return;
+
+    const isClinical = facilityType === "CLINICAL";
+    const rows = await tx.departmentSpecialty.findMany({
+      where: { departmentId, isActive: true },
+      select: { specialtyId: true, isPrimary: true },
+    });
+
+    if (isClinical && rows.length === 0) {
+      throw new BadRequestException("Clinical departments must have at least one specialty.");
+    }
+
+    if (rows.length > 0) {
+      const primaries = rows.filter((r) => r.isPrimary);
+      if (primaries.length === 0) throw new BadRequestException("At least one specialty must be marked as Primary.");
+      if (primaries.length > 1) throw new BadRequestException("Only one specialty can be marked as Primary.");
+    }
+  }
+
+  private async assertHeadStaffRules(
+    tx: Prisma.TransactionClient,
+    branchId: string,
+    departmentId: string,
+    headStaffId: string,
+    desiredDoctorIds?: string[],
+  ) {
+    // active staff in branch
+    const now = new Date();
+    const activePlacement = await tx.staffAssignment.findFirst({
+      where: {
+        staffId: headStaffId,
+        branchId,
+        status: "ACTIVE",
+        staff: { status: "ACTIVE" },
+        AND: [
+          { effectiveFrom: { lte: now } },
+          { OR: [{ effectiveTo: null }, { effectiveTo: { gte: now } }] },
+        ],
+      },
+      select: { id: true },
+    });
+    if (!activePlacement) throw new BadRequestException("HOD must be an active staff member in this branch.");
+
+    // unique HOD across active departments
+    const other = await tx.department.findFirst({
+      where: {
+        branchId,
+        isActive: true,
+        headStaffId,
+        id: { not: departmentId },
+      },
+      select: { id: true, code: true, name: true },
+    });
+    if (other) {
+      throw new ConflictException(`HOD already assigned to another department: ${other.code} (${other.name}).`);
+    }
+
+    // must be a doctor (i.e., assigned as DepartmentDoctor)
+    if (desiredDoctorIds) {
+      if (!desiredDoctorIds.includes(headStaffId)) {
+        throw new BadRequestException("HOD must be included in the department doctor list.");
+      }
+    } else {
+      const isDoctor = await tx.departmentDoctor.findFirst({
+        where: { departmentId, staffId: headStaffId },
+        select: { id: true },
+      });
+      if (!isDoctor) throw new BadRequestException("HOD must be a doctor assigned to this department.");
+    }
+
+    // must have specialty matching one of dept specialties
+    const deptSpecs = await tx.departmentSpecialty.findMany({
+      where: { departmentId, isActive: true },
+      select: { specialtyId: true },
+    });
+    const specIds = deptSpecs.map((s) => s.specialtyId);
+
+    if (!specIds.length) throw new BadRequestException("Cannot assign HOD without department specialties.");
+
+    const match = await tx.staffAssignment.findFirst({
+      where: {
+        staffId: headStaffId,
+        branchId,
+        status: "ACTIVE",
+        staff: { status: "ACTIVE" },
+        specialtyId: { in: specIds },
+        AND: [
+          { effectiveFrom: { lte: now } },
+          { OR: [{ effectiveTo: null }, { effectiveTo: { gte: now } }] },
+        ],
+      },
+      select: { id: true, specialtyId: true },
+    });
+    if (!match) {
+      throw new BadRequestException("HOD must have a specialty matching one of department's specialties.");
+    }
+  }
+
+  private async syncDepartmentSpecialties(
+    tx: Prisma.TransactionClient,
+    branchId: string,
+    departmentId: string,
+    facilityType: string,
+    dto: SetDepartmentSpecialtiesDto,
+  ): Promise<{ warnings: string[] }> {
+    const warnings: string[] = [];
+
+    const specialtyIds = uniq(dto.specialtyIds ?? []);
+    let primary = dto.primarySpecialtyId ?? null;
+
+    const isClinical = facilityType === "CLINICAL";
+
+    if (isClinical && specialtyIds.length === 0) {
+      throw new BadRequestException("Clinical departments must have at least one specialty.");
+    }
+
+    if (specialtyIds.length === 0) {
+      if (primary) throw new BadRequestException("primarySpecialtyId must be null when specialtyIds is empty.");
+      // disable all
+    } else {
+      if (!primary) {
+        if (specialtyIds.length === 1) {
+          primary = specialtyIds[0];
+          warnings.push("Primary specialty auto-selected because only one specialty was provided (warning).");
+        } else {
+          throw new BadRequestException("At least one specialty must be marked as Primary.");
+        }
+      }
+      if (!specialtyIds.includes(primary)) {
+        throw new BadRequestException("primarySpecialtyId must be included in specialtyIds");
+      }
+    }
+
+    // Validate specialties belong to this branch (and are active)
+    if (specialtyIds.length) {
+      const specs = await tx.specialty.findMany({
+        where: { id: { in: specialtyIds }, branchId, isActive: true },
+        select: { id: true },
+      });
+      const ok = new Set(specs.map((s) => s.id));
+      const bad = specialtyIds.filter((id) => !ok.has(id));
+      if (bad.length) throw new BadRequestException(`Invalid specialtyIds for this branch: ${bad.join(", ")}`);
+    }
+
+    const current = await tx.departmentSpecialty.findMany({
+      where: { departmentId },
+      select: { specialtyId: true, isActive: true },
+    });
+
+    const currentActive = new Set(current.filter((x) => x.isActive).map((x) => x.specialtyId));
+    const desired = new Set(specialtyIds);
+
+    const toDisable = Array.from(currentActive).filter((id) => !desired.has(id));
+    const toEnable = specialtyIds.filter((id) => !currentActive.has(id));
+
+    if (toDisable.length) {
+      await tx.departmentSpecialty.updateMany({
+        where: { departmentId, specialtyId: { in: toDisable } },
+        data: { isActive: false, isPrimary: false },
+      });
+    }
+
+    for (const sid of toEnable) {
+      await tx.departmentSpecialty.upsert({
+        where: { departmentId_specialtyId: { departmentId, specialtyId: sid } },
+        update: { isActive: true, isPrimary: false },
+        create: { departmentId, specialtyId: sid, isActive: true, isPrimary: false },
+      });
+    }
+
+    // primary
+    await tx.departmentSpecialty.updateMany({
+      where: { departmentId },
+      data: { isPrimary: false },
+    });
+    if (primary) {
+      await tx.departmentSpecialty.updateMany({
+        where: { departmentId, specialtyId: primary },
+        data: { isPrimary: true, isActive: true },
+      });
+    }
+
+    // enforce exactly one primary if any specialties exist
+    if (specialtyIds.length) {
+      const primaryCount = await tx.departmentSpecialty.count({
+        where: { departmentId, isActive: true, isPrimary: true },
+      });
+      if (primaryCount !== 1) {
+        throw new BadRequestException("Exactly one primary specialty is required.");
+      }
+    }
+
+    return { warnings };
   }
 
   // ---------------------------------------------------------------------------
@@ -122,9 +610,10 @@ export class FacilitySetupService {
       where: { branchId },
       select: { facilityId: true, isEnabled: true },
     });
-    const currentEnabled = new Set(current.filter((x) => x.isEnabled).map((x) => x.facilityId));
 
+    const currentEnabled = new Set(current.filter((x) => x.isEnabled).map((x) => x.facilityId));
     const desired = new Set(facilityIds);
+
     const toDisable = Array.from(currentEnabled).filter((id) => !desired.has(id));
     const toEnable = facilityIds.filter((id) => !currentEnabled.has(id));
 
@@ -151,178 +640,91 @@ export class FacilitySetupService {
       action: "BRANCH_FACILITIES_SET",
       entity: "Branch",
       entityId: branchId,
-      meta: {
-        before: Array.from(currentEnabled),
-        after: facilityIds,
-        disabled: toDisable,
-        enabled: toEnable,
-      },
+      meta: { before: Array.from(currentEnabled), after: facilityIds, enabled: toEnable, disabled: toDisable },
     });
 
     return this.getBranchFacilities(principal, branchId);
   }
 
   // ---------------------------------------------------------------------------
-  // Readiness (uses only delegates that exist in your Prisma schema)
+  // Departments
   // ---------------------------------------------------------------------------
 
-  async getBranchReadiness(principal: Principal, branchIdParam?: string) {
-    const branchId = this.resolveBranchId(principal, branchIdParam ?? null);
-
-    // IMPORTANT: Infrastructure single source of truth
-    // Legacy Ward/Room/Bed/OT tables are treated as read-only projections.
-    // Readiness must derive only from LocationNode/Unit/UnitRoom/UnitResource.
-
-    const [enabledFacilities, departments, specialties, doctors, otRooms, otTables, beds] = await Promise.all([
-      this.prisma.branchFacility.count({ where: { branchId, isEnabled: true } }),
-      this.prisma.department.count({ where: { branchId, isActive: true } }),
-      this.prisma.specialty.count({ where: { branchId, isActive: true } }),
-
-      // Staff is enterprise-wide; branch placement lives in StaffAssignment.
-      // Heuristic doctor count: ACTIVE assignments in branch with doctor-like designation.
-      (async () => {
-        const now = new Date();
-        const rows = await this.prisma.staffAssignment.groupBy({
-          by: ["staffId"],
-          where: {
-            branchId,
-            status: "ACTIVE",
-            staff: { status: "ACTIVE" },
-            AND: [
-              { effectiveFrom: { lte: now } },
-              { OR: [{ effectiveTo: null }, { effectiveTo: { gte: now } }] },
-              {
-                OR: [
-                  { designation: { contains: "doctor", mode: "insensitive" } },
-                  { designation: { contains: "consultant", mode: "insensitive" } },
-                  { designation: { contains: "surgeon", mode: "insensitive" } },
-                ],
-              },
-            ],
-          },
-        });
-        return rows.length;
-      })(),
-
-      // OT readiness: either explicit OT rooms under an OT unit, OR OT tables as resources
-      this.prisma.unitRoom.count({
-        where: {
-          branchId,
-          isActive: true,
-          unit: { isActive: true, unitType: { code: "OT" } },
-        },
-      }),
-
-      this.prisma.unitResource.count({
-        where: {
-          branchId,
-          isActive: true,
-          resourceType: "OT_TABLE" as any,
-        },
-      }),
-
-      // Beds must be represented as UnitResourceType=BED
-      this.prisma.unitResource.count({
-        where: {
-          branchId,
-          isActive: true,
-          resourceType: "BED" as any,
-        },
-      }),
-    ]);
-
-    const otSetup = Math.max(otRooms, otTables);
-    const summary = { enabledFacilities, departments, specialties, doctors, otRooms: otSetup, beds };
-
-    const score =
-      (enabledFacilities > 0 ? 20 : 0) +
-      (departments > 0 ? 20 : 0) +
-      (specialties > 0 ? 20 : 0) +
-      (doctors > 0 ? 20 : 0) +
-      (beds > 0 ? 10 : 0) +
-      (otSetup > 0 ? 10 : 0);
-
-    const blockers: string[] = [];
-    if (enabledFacilities === 0) blockers.push("No facilities enabled.");
-    if (departments === 0) blockers.push("No departments created.");
-    if (doctors === 0) blockers.push("No doctors detected (designation missing 'Doctor/Consultant/Surgeon').");
-
-    const warnings: string[] = [];
-    if (beds === 0) warnings.push("No beds configured.");
-    if (otSetup === 0) warnings.push("No OT setup configured (no OT rooms or OT tables found).");
-
-    return { score, blockers, warnings, summary };
-  }
-
-
-  // ---------------------------------------------------------------------------
-  // Departments under facilities + doctor assignment + HOD
-  // ---------------------------------------------------------------------------
-
-  async listDepartments(principal: Principal, q: { branchId?: string; facilityId?: string; includeInactive?: boolean; q?: string }) {
+  async listDepartments(
+    principal: Principal,
+    q: {
+      branchId?: string;
+      facilityId?: string;
+      facilityType?: string;
+      includeInactive?: boolean;
+      q?: string;
+    },
+  ) {
     const branchId = this.resolveBranchId(principal, q.branchId ?? null);
 
     const where: any = { branchId };
-    if (q.facilityId) where.facilityId = q.facilityId;
     if (!q.includeInactive) where.isActive = true;
-    if (q.q) where.OR = [{ name: { contains: q.q, mode: "insensitive" } }, { code: { contains: q.q, mode: "insensitive" } }];
+
+    if (q.facilityId) where.facilityId = q.facilityId;
+    if (q.facilityType) where.facilityType = q.facilityType;
+
+    if (q.q) {
+      where.OR = [
+        { name: { contains: q.q, mode: "insensitive" } },
+        { code: { contains: q.q, mode: "insensitive" } },
+      ];
+    }
 
     const rows = await this.prisma.department.findMany({
       where,
-      orderBy: [{ facility: { sortOrder: "asc" } }, { name: "asc" }],
       include: {
-        facility: true,
-        headStaff: { select: { id: true, fullName: true, designationPrimary: true } },
+        headStaff: { select: { id: true, name: true } },
         doctorAssignments: {
-          include: {
-            staff: {
-              select: {
-                id: true,
-                fullName: true,
-                designationPrimary: true,
-                assignments: {
-                  where: {
-                    branchId, // ✅ FIX
-                    status: "ACTIVE",
-                    AND: [
-                      { effectiveFrom: { lte: new Date() } },
-                      { OR: [{ effectiveTo: null }, { effectiveTo: { gte: new Date() } }] },
-                    ],
-                  },
-                  orderBy: [{ isPrimary: "desc" }, { effectiveFrom: "desc" }],
-                  take: 1,
-                  select: {
-                    id: true,
-                    designation: true,
-                    branchEmpCode: true,
-                    specialty: { select: { id: true, code: true, name: true } },
-                  },
-                },
-
-              },
-            },
+          orderBy: [{ isPrimary: "desc" }, { assignedAt: "desc" }],
+          select: {
+            staffId: true,
+            isPrimary: true,
+            assignedAt: true,
+            staff: { select: { id: true, name: true } },
           },
         },
         departmentSpecialties: {
           where: { isActive: true },
-          include: { specialty: { select: { id: true, code: true, name: true, isActive: true } } },
-          orderBy: { specialty: { name: "asc" } },
+          orderBy: [{ isPrimary: "desc" }, { specialty: { name: "asc" } }],
+          select: {
+            specialtyId: true,
+            isPrimary: true,
+            specialty: { select: { id: true, code: true, name: true, kind: true, isActive: true } },
+          },
+        },
+        locations: {
+          where: { isActive: true },
+          orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
+          select: { locationNodeId: true, isPrimary: true, isActive: true },
         },
       },
+      orderBy: [{ facilityType: "asc" }, { name: "asc" }],
     });
 
     return rows.map((d) => ({
       id: d.id,
       branchId: d.branchId,
-      facilityId: d.facilityId,
-      facility: { id: d.facility.id, code: d.facility.code, name: d.facility.name, category: d.facility.category },
       code: d.code,
       name: d.name,
+      facilityType: d.facilityType,
+      costCenterCode: d.costCenterCode,
+      extensions: (d.extensions as any) ?? null,
+      operatingHours: (d.operatingHours as any) ?? null,
       isActive: d.isActive,
+      createdAt: d.createdAt,
+      updatedAt: d.updatedAt,
+      parentDepartmentId: d.parentDepartmentId ?? null,
+      headStaffId: d.headStaffId,
       headStaff: d.headStaff,
       doctors: d.doctorAssignments.map((a) => ({
         staffId: a.staffId,
         isPrimary: a.isPrimary,
+        assignedAt: a.assignedAt,
         staff: a.staff,
       })),
       specialties: d.departmentSpecialties.map((ds) => ({
@@ -330,219 +732,407 @@ export class FacilitySetupService {
         isPrimary: ds.isPrimary,
         specialty: ds.specialty,
       })),
-      createdAt: d.createdAt,
-      updatedAt: d.updatedAt,
+      locations: d.locations.map((l) => ({
+        locationNodeId: l.locationNodeId,
+        isPrimary: l.isPrimary,
+        isActive: l.isActive,
+      })),
     }));
   }
 
-  private async assertFacilityEnabledForBranch(branchId: string, facilityId: string) {
-    const bf = await this.prisma.branchFacility.findFirst({
-      where: { branchId, facilityId, isEnabled: true },
-      select: { id: true },
-    });
-    if (!bf) throw new BadRequestException("This facility is not enabled for the branch. Please enable it first.");
-  }
-
-  async createDepartment(principal: Principal, dto: { branchId?: string; facilityId: string; code: string; name: string; isActive?: boolean }) {
+  async createDepartment(principal: Principal, dto: CreateDepartmentDto) {
     const branchId = this.resolveBranchId(principal, dto.branchId ?? null);
-
-    await this.assertFacilityEnabledForBranch(branchId, dto.facilityId);
 
     const code = dto.code.trim().toUpperCase();
     const name = dto.name.trim();
     if (!code) throw new BadRequestException("Department code is required");
     if (!name) throw new BadRequestException("Department name is required");
 
-    const created = await this.prisma.department.create({
-      data: {
+    // ✅ enforce code uniqueness within branch (even if DB unique not yet migrated)
+    await this.assertDepartmentCodeUnique(branchId, code);
+
+    const facilityId = dto.facilityId ?? (await this.getDepartmentMasterFacilityId());
+    const facilityType = (dto.facilityType ?? "CLINICAL") as any;
+
+    const warnings: string[] = [];
+    warnings.push(...(await this.computeDepartmentNameWarnings(branchId, name)));
+
+        // operating hours validation
+    let operatingHours: any = undefined;
+    if (dto.operatingHours !== undefined) {
+      try {
+        const r = validateOperatingHours(dto.operatingHours, {
+          departmentCode: code,
+          departmentName: dto.name?.trim() ?? null,
+        });
+        operatingHours = r.normalized as any;
+        warnings.push(...r.warnings);
+      } catch (e: any) {
+        throw new BadRequestException(e?.message ?? "Invalid operating hours");
+      }
+    }
+
+
+    // Location rules (mandatory)
+    const locationNodeIds = uniq(dto.locationNodeIds ?? []);
+    if (!locationNodeIds.length) throw new BadRequestException("Department must have a physical location assigned.");
+
+    const locValidate = await this.validateLocationNodesInBranch(branchId, locationNodeIds);
+    warnings.push(...locValidate.warnings);
+
+    // Specialties create-time mapping (enforced)
+    const specialtyIds = uniq((dto as any).specialtyIds ?? []);
+    const primarySpecialtyId = (dto as any).primarySpecialtyId ?? null;
+
+    if (facilityType === "CLINICAL" && specialtyIds.length === 0) {
+      throw new BadRequestException("Clinical departments must have at least one specialty.");
+    }
+
+    const created = await this.prisma.$transaction(async (tx) => {
+      // hierarchy rules
+      await this.assertDepartmentHierarchy(tx, branchId, null, (dto as any).parentDepartmentId ?? null);
+
+      const dept = await tx.department.create({
+        data: {
+          branchId,
+          facilityId,
+          code,
+          name,
+          facilityType,
+          costCenterCode: dto.costCenterCode?.trim() || null,
+          extensions: dto.extensions ? (dto.extensions as any) : null,
+          operatingHours: operatingHours,
+          isActive: dto.isActive ?? true,
+          parentDepartmentId: (dto as any).parentDepartmentId ?? null,
+        } as any,
+      });
+
+      // locations (exclusive + primary)
+      await this.syncDepartmentLocations(
+        tx,
         branchId,
-        facilityId: dto.facilityId,
-        code,
-        name,
-        isActive: dto.isActive ?? true,
-      },
-      include: { facility: true },
+        dept.id,
+        locationNodeIds,
+        dto.primaryLocationNodeId ?? null,
+      );
+
+      // specialties
+      if (specialtyIds.length || primarySpecialtyId !== null) {
+        const specWarnings = await this.syncDepartmentSpecialties(tx, branchId, dept.id, facilityType, {
+          specialtyIds,
+          primarySpecialtyId,
+        });
+        warnings.push(...specWarnings.warnings);
+      }
+
+      // enforce specialty rules if active
+      await this.assertDepartmentSpecialtyRules(tx, branchId, dept.id, facilityType, dept.isActive);
+
+      // head staff (HOD) – enforce fully by auto-adding as DepartmentDoctor
+      if (dto.headStaffId) {
+        await this.validateHeadStaffInBranch(branchId, dto.headStaffId);
+
+        // add as doctor assignment (so HOD is always a doctor)
+        await tx.departmentDoctor.upsert({
+          where: { departmentId_staffId: { departmentId: dept.id, staffId: dto.headStaffId } },
+          update: { isPrimary: true },
+          create: { departmentId: dept.id, staffId: dto.headStaffId, isPrimary: true },
+        });
+
+        // validate HOD rules now that mapping exists
+        await this.assertHeadStaffRules(tx, branchId, dept.id, dto.headStaffId);
+
+        await tx.department.update({
+          where: { id: dept.id },
+          data: { headStaffId: dto.headStaffId },
+        });
+      }
+
+      await this.audit.log({
+        branchId,
+        actorUserId: principal.userId,
+        action: "DEPARTMENT_CREATE",
+        entity: "Department",
+        entityId: dept.id,
+        meta: { dto, warnings },
+      });
+
+      return dept;
     });
 
-    await this.audit.log({
-      branchId,
-      actorUserId: principal.userId,
-      action: "DEPARTMENT_CREATE",
-      entity: "Department",
-      entityId: created.id,
-      meta: { facilityId: dto.facilityId, code, name },
-    });
-
-    return created;
+    const [full] = await this.listDepartments(principal, { branchId, includeInactive: true, q: code });
+    return full ? { ...full, warnings } : { ...created, warnings };
   }
 
-  async updateDepartment(principal: Principal, id: string, dto: { name?: string; isActive?: boolean }) {
-    const existing = await this.prisma.department.findUnique({ where: { id }, select: { id: true, branchId: true } });
-    if (!existing) throw new NotFoundException("Department not found");
-    this.resolveBranchId(principal, existing.branchId);
-
-    const updated = await this.prisma.department.update({
+  async updateDepartment(principal: Principal, id: string, dto: UpdateDepartmentDto) {
+    const existing = await this.prisma.department.findUnique({
       where: { id },
-      data: {
-        name: dto.name?.trim() || undefined,
-        isActive: typeof dto.isActive === "boolean" ? dto.isActive : undefined,
+      select: { id: true, branchId: true, facilityType: true, isActive: true },
+    });
+    if (!existing) throw new NotFoundException("Department not found");
+
+    const branchId = this.resolveBranchId(principal, existing.branchId);
+
+    // force deactivation through deactivate endpoint
+    if (dto.isActive === false) {
+      throw new BadRequestException("Use POST /departments/:id/deactivate to deactivate a department.");
+    }
+
+    const warnings: string[] = [];
+    if (dto.name) warnings.push(...(await this.computeDepartmentNameWarnings(branchId, dto.name.trim(), id)));
+
+    // validate head staff existence early
+    if (dto.headStaffId) await this.validateHeadStaffInBranch(branchId, dto.headStaffId);
+
+    // validate location payload (if provided)
+    const locationNodeIds = uniq(dto.locationNodeIds ?? []);
+    if (dto.locationNodeIds !== undefined) {
+      if (!locationNodeIds.length) throw new BadRequestException("Department must have at least one physical location.");
+      const locValidate = await this.validateLocationNodesInBranch(branchId, locationNodeIds);
+      warnings.push(...locValidate.warnings);
+    }
+
+        // operating hours validation
+    let operatingHours: any = undefined;
+    if (dto.operatingHours !== undefined) {
+      const deptRow = await this.prisma.department.findUnique({ where: { id }, select: { code: true, name: true } });
+      try {
+        const r = validateOperatingHours(dto.operatingHours, {
+          departmentCode: deptRow?.code ?? null,
+          departmentName: dto.name?.trim() ?? deptRow?.name ?? null,
+        });
+        operatingHours = r.normalized as any;
+        warnings.push(...r.warnings);
+      } catch (e: any) {
+        throw new BadRequestException(e?.message ?? "Invalid operating hours");
+      }
+    }
+
+
+    await this.prisma.$transaction(async (tx) => {
+      const nextFacilityType = (dto.facilityType ?? existing.facilityType) as any;
+
+      // hierarchy rules
+      if ((dto as any).parentDepartmentId !== undefined) {
+        await this.assertDepartmentHierarchy(tx, branchId, id, (dto as any).parentDepartmentId ?? null);
+      }
+
+      await tx.department.update({
+        where: { id },
+        data: {
+          name: dto.name?.trim() || undefined,
+          facilityType: dto.facilityType ? (dto.facilityType as any) : undefined,
+          costCenterCode: dto.costCenterCode !== undefined ? dto.costCenterCode?.trim() || null : undefined,
+          extensions: dto.extensions !== undefined ? (dto.extensions as any) : undefined,
+          operatingHours: operatingHours !== undefined ? (operatingHours as any) : undefined,
+          headStaffId: dto.headStaffId !== undefined ? dto.headStaffId : undefined,
+          // allow reactivation; if reactivated, enforce rules below
+          isActive: typeof dto.isActive === "boolean" ? dto.isActive : undefined,
+          parentDepartmentId:
+            (dto as any).parentDepartmentId !== undefined ? ((dto as any).parentDepartmentId ?? null) : undefined,
+        } as any,
+      });
+
+      // locations update
+      if (dto.locationNodeIds !== undefined || dto.primaryLocationNodeId !== undefined) {
+        await this.syncDepartmentLocations(
+          tx,
+          branchId,
+          id,
+          locationNodeIds.length ? locationNodeIds : (await tx.departmentLocation.findMany({
+            where: { departmentId: id, isActive: true },
+            select: { locationNodeId: true },
+          })).map((x) => x.locationNodeId),
+          dto.primaryLocationNodeId ?? null,
+        );
+      }
+
+      // ensure dept has at least one active location always
+      const activeLocCount = await tx.departmentLocation.count({
+        where: { departmentId: id, isActive: true },
+      });
+      if (!activeLocCount) throw new BadRequestException("Department must have a physical location assigned.");
+
+      // enforce specialty rules if department is active and/or becoming active
+      const deptNow = await tx.department.findUnique({
+        where: { id },
+        select: { isActive: true, facilityType: true, headStaffId: true },
+      });
+      if (!deptNow) throw new NotFoundException("Department not found");
+
+      await this.assertDepartmentSpecialtyRules(tx, branchId, id, nextFacilityType, deptNow.isActive);
+
+      // if headStaffId is set/changed, validate full HOD rules
+      if (dto.headStaffId) {
+        await this.assertHeadStaffRules(tx, branchId, id, dto.headStaffId);
+      }
+
+      await this.audit.log({
+        branchId,
+        actorUserId: principal.userId,
+        action: "DEPARTMENT_UPDATE",
+        entity: "Department",
+        entityId: id,
+        meta: { dto, warnings },
+      });
+    });
+
+    const row = await this.prisma.department.findUnique({
+      where: { id },
+      include: {
+        headStaff: { select: { id: true, name: true } },
+        doctorAssignments: {
+          orderBy: [{ isPrimary: "desc" }, { assignedAt: "desc" }],
+          select: { staffId: true, isPrimary: true, assignedAt: true, staff: { select: { id: true, name: true } } },
+        },
+        departmentSpecialties: {
+          where: { isActive: true },
+          orderBy: [{ isPrimary: "desc" }, { specialty: { name: "asc" } }],
+          select: {
+            specialtyId: true,
+            isPrimary: true,
+            specialty: { select: { id: true, code: true, name: true, kind: true, isActive: true } },
+          },
+        },
+        locations: {
+          where: { isActive: true },
+          orderBy: [{ isPrimary: "desc" }],
+          select: { locationNodeId: true, isPrimary: true, isActive: true },
+        },
       },
     });
 
-    await this.audit.log({
-      branchId: existing.branchId,
-      actorUserId: principal.userId,
-      action: "DEPARTMENT_UPDATE",
-      entity: "Department",
-      entityId: id,
-      meta: dto,
-    });
+    if (!row) throw new NotFoundException("Department not found");
 
-    return updated;
+    return {
+      id: row.id,
+      branchId: row.branchId,
+      code: row.code,
+      name: row.name,
+      facilityType: row.facilityType,
+      costCenterCode: row.costCenterCode,
+      extensions: (row.extensions as any) ?? null,
+      operatingHours: (row.operatingHours as any) ?? null,
+      isActive: row.isActive,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      parentDepartmentId: row.parentDepartmentId ?? null,
+      headStaffId: row.headStaffId,
+      headStaff: row.headStaff,
+      doctors: row.doctorAssignments.map((a) => ({
+        staffId: a.staffId,
+        isPrimary: a.isPrimary,
+        assignedAt: a.assignedAt,
+        staff: a.staff,
+      })),
+      specialties: row.departmentSpecialties.map((ds) => ({
+        specialtyId: ds.specialtyId,
+        isPrimary: ds.isPrimary,
+        specialty: ds.specialty,
+      })),
+      locations: row.locations.map((l) => ({ locationNodeId: l.locationNodeId, isPrimary: l.isPrimary, isActive: l.isActive })),
+      warnings,
+    };
   }
 
-  async updateDepartmentAssignments(principal: Principal, departmentId: string, dto: { doctorIds: string[]; headStaffId?: string | null }) {
+  async updateDepartmentAssignments(principal: Principal, departmentId: string, dto: UpdateDepartmentAssignmentsDto) {
     const dept = await this.prisma.department.findUnique({
       where: { id: departmentId },
-      include: { doctorAssignments: true },
+      select: { id: true, branchId: true, headStaffId: true, facilityType: true, isActive: true },
     });
     if (!dept) throw new NotFoundException("Department not found");
 
     const branchId = this.resolveBranchId(principal, dept.branchId);
-    await this.assertFacilityEnabledForBranch(branchId, dept.facilityId);
 
-    const doctorIds = uniq(dto.doctorIds);
+    const doctorIds = uniq(dto.doctorIds ?? []);
 
-    if (dto.headStaffId && dto.headStaffId !== null && !doctorIds.includes(dto.headStaffId)) {
-      throw new BadRequestException("headStaffId must be included in doctorIds");
-    }
-
-    // Validate doctorIds belong to this branch (via ACTIVE StaffAssignment)
+    // Validate staff belong to branch via ACTIVE assignments
     if (doctorIds.length) {
       const now = new Date();
-      const rows = await this.prisma.staffAssignment.groupBy({
-        by: ["staffId"],
+      const rows = await this.prisma.staffAssignment.findMany({
         where: {
+          staffId: { in: doctorIds },
           branchId,
           status: "ACTIVE",
-          staffId: { in: doctorIds },
           staff: { status: "ACTIVE" },
           AND: [
             { effectiveFrom: { lte: now } },
             { OR: [{ effectiveTo: null }, { effectiveTo: { gte: now } }] },
           ],
         },
+        select: { staffId: true },
       });
       const ok = new Set(rows.map((r) => r.staffId));
       const bad = doctorIds.filter((id) => !ok.has(id));
       if (bad.length) throw new BadRequestException(`Invalid doctorIds for this branch: ${bad.join(", ")}`);
     }
 
-    const current = new Set(dept.doctorAssignments.map((a) => a.staffId));
-    const desired = new Set(doctorIds);
-    const toDelete = Array.from(current).filter((id) => !desired.has(id));
-    const toCreate = doctorIds.filter((id) => !current.has(id));
+    if (dto.headStaffId) await this.validateHeadStaffInBranch(branchId, dto.headStaffId);
+
+    // If headStaffId provided, it must be in the department doctorIds (HOD must be a doctor)
+    if (dto.headStaffId && !doctorIds.includes(dto.headStaffId)) {
+      throw new BadRequestException("HOD must be included in the department doctor list.");
+    }
+
+    // Current assignments
+    const current = await this.prisma.departmentDoctor.findMany({
+      where: { departmentId },
+      select: { staffId: true },
+    });
+
+    const currentSet = new Set(current.map((x) => x.staffId));
+    const desiredSet = new Set(doctorIds);
+
+    const toRemove = Array.from(currentSet).filter((id) => !desiredSet.has(id));
+    const toAdd = doctorIds.filter((id) => !currentSet.has(id));
 
     await this.prisma.$transaction(async (tx) => {
-      if (toDelete.length) {
+      if (toRemove.length) {
         await tx.departmentDoctor.deleteMany({
-          where: { departmentId, staffId: { in: toDelete } },
+          where: { departmentId, staffId: { in: toRemove } },
         });
       }
 
-      if (toCreate.length) {
-        await tx.departmentDoctor.createMany({
-          data: toCreate.map((staffId) => ({
-            departmentId,
-            staffId,
-            isPrimary: dto.headStaffId ? staffId === dto.headStaffId : false,
-          })),
-          skipDuplicates: true,
+      for (const sid of toAdd) {
+        await tx.departmentDoctor.create({
+          data: { departmentId, staffId: sid, isPrimary: false },
         });
       }
 
-      // Align primary flags with head selection
       if (dto.headStaffId !== undefined) {
-        await tx.departmentDoctor.updateMany({
-          where: { departmentId },
-          data: { isPrimary: false },
-        });
         if (dto.headStaffId) {
-          await tx.departmentDoctor.updateMany({
-            where: { departmentId, staffId: dto.headStaffId },
-            data: { isPrimary: true },
-          });
+          // Validate HOD rules with desired doctors set
+          await this.assertHeadStaffRules(tx, branchId, departmentId, dto.headStaffId, doctorIds);
         }
+        await tx.department.update({
+          where: { id: departmentId },
+          data: { headStaffId: dto.headStaffId ?? null },
+        });
       }
-
-      await tx.department.update({
-        where: { id: departmentId },
-        data: { headStaffId: dto.headStaffId === undefined ? undefined : dto.headStaffId },
-      });
     });
 
     await this.audit.log({
       branchId,
       actorUserId: principal.userId,
-      action: "DEPARTMENT_ASSIGN_DOCTORS",
+      action: "DEPARTMENT_ASSIGNMENTS_SET",
       entity: "Department",
       entityId: departmentId,
       meta: {
-        before: Array.from(current),
+        before: Array.from(currentSet),
         after: doctorIds,
+        added: toAdd,
+        removed: toRemove,
         headStaffId: dto.headStaffId,
-        added: toCreate,
-        removed: toDelete,
       },
     });
 
-    return this.prisma.department.findUnique({
-      where: { id: departmentId },
-      include: {
-        facility: true,
-        headStaff: { select: { id: true, fullName: true, designationPrimary: true } },
-        doctorAssignments: {
-          include: {
-            staff: {
-              select: {
-                id: true,
-                fullName: true,
-                designationPrimary: true,
-                assignments: {
-                  where: {
-                    // NOTE: cannot reference `dept` here (it's not in scope for Prisma).
-                    branchId,
-                    status: "ACTIVE",
-                    AND: [
-                      { effectiveFrom: { lte: new Date() } },
-                      { OR: [{ effectiveTo: null }, { effectiveTo: { gte: new Date() } }] },
-                    ],
-                  },
-                  orderBy: [{ isPrimary: "desc" }, { effectiveFrom: "desc" }],
-                  take: 1,
-                  select: {
-                    id: true,
-                    designation: true,
-                    branchEmpCode: true,
-                    specialty: { select: { id: true, code: true, name: true } },
-                  },
-                },
-              },
-            },
-          },
-        },
-        departmentSpecialties: {
-          where: { isActive: true },
-          include: { specialty: { select: { id: true, code: true, name: true, isActive: true } } },
-          orderBy: { specialty: { name: "asc" } },
-        },
-      },
-    });
+    return this.updateDepartment(principal, departmentId, {});
   }
+
   async deactivateDepartment(
     principal: Principal,
     departmentId: string,
-    opts: { hard?: boolean } = {},
+    opts: { hard?: boolean; cascade?: boolean; reason?: string } = {},
   ) {
     const row = await this.prisma.department.findUnique({
       where: { id: departmentId },
@@ -550,23 +1140,23 @@ export class FacilitySetupService {
     });
     if (!row) throw new NotFoundException("Department not found");
 
-    // Branch scope enforcement
     this.resolveBranchId(principal, row.branchId);
 
     const hard = !!opts.hard;
 
     if (hard) {
-      // Strict “unused” checks for hard delete
       const staffCount = await this.prisma.staffAssignment.count({ where: { departmentId, status: "ACTIVE" } });
       const unitsCount = await this.prisma.unit.count({ where: { departmentId } });
       const doctorAssignCount = await this.prisma.departmentDoctor.count({ where: { departmentId } });
       const mapCount = await this.prisma.departmentSpecialty.count({ where: { departmentId } });
+      const locCount = await this.prisma.departmentLocation.count({ where: { departmentId } });
 
       const blockers = [
         staffCount ? `${staffCount} staff linked` : null,
         unitsCount ? `${unitsCount} units linked` : null,
         doctorAssignCount ? `${doctorAssignCount} doctor assignments` : null,
         mapCount ? `${mapCount} specialty mappings` : null,
+        locCount ? `${locCount} location tags` : null,
       ].filter(Boolean);
 
       if (blockers.length) {
@@ -587,11 +1177,110 @@ export class FacilitySetupService {
       return { ok: true, hardDeleted: true };
     }
 
-    // Soft deactivate
-    const updated = await this.prisma.department.update({
-      where: { id: departmentId },
-      data: { isActive: false },
-      select: { id: true, branchId: true, isActive: true, name: true, code: true },
+    const reason = String(opts.reason ?? "").trim();
+    if (!reason) throw new BadRequestException("Deactivation reason is required.");
+
+    const cascade = opts.cascade !== false; // default true
+    const now = new Date();
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const unitRows = await tx.unit.findMany({
+        where: { departmentId },
+        select: { id: true, isActive: true },
+      });
+      const unitIds = unitRows.map((u) => u.id);
+
+      if (!cascade) {
+        const activeUnits = await tx.unit.count({ where: { departmentId, isActive: true } });
+        if (activeUnits) {
+          throw new ConflictException(
+            "Cannot deactivate department while it has active units. Deactivate units first, or call with cascade=true.",
+          );
+        }
+      }
+
+      let resourcesDeactivated = 0;
+      let roomsDeactivated = 0;
+      let unitsDeactivated = 0;
+      let locationsDeactivated = 0;
+
+      if (cascade && unitIds.length) {
+        // Block if upcoming scheduled bookings exist
+        const scheduledBookings = await tx.procedureBooking.count({
+          where: {
+            unitId: { in: unitIds },
+            status: "SCHEDULED",
+            endAt: { gt: now },
+          },
+        });
+        if (scheduledBookings) {
+          throw new ConflictException(
+            `Cannot deactivate department: ${scheduledBookings} scheduled procedure bookings exist (future/ongoing).`,
+          );
+        }
+
+        // Block if any resources are RESERVED or OCCUPIED
+        const busyResources = await tx.unitResource.count({
+          where: {
+            unitId: { in: unitIds },
+            isActive: true,
+            state: { in: ["RESERVED", "OCCUPIED"] as any },
+          },
+        });
+        if (busyResources) {
+          throw new ConflictException(
+            `Cannot deactivate department: ${busyResources} resources are RESERVED/OCCUPIED.`,
+          );
+        }
+
+        // Cascade in order: Resource → Room → Unit
+        const resUpd = await tx.unitResource.updateMany({
+          where: { unitId: { in: unitIds }, isActive: true },
+          data: {
+            isActive: false,
+            state: "INACTIVE" as any,
+            reservedReason: null,
+            blockedReason: null,
+          } as any,
+        });
+        resourcesDeactivated = resUpd.count;
+
+        const roomUpd = await tx.unitRoom.updateMany({
+          where: { unitId: { in: unitIds }, isActive: true },
+          data: { isActive: false } as any,
+        });
+        roomsDeactivated = roomUpd.count;
+
+        const unitUpd = await tx.unit.updateMany({
+          where: { departmentId, isActive: true },
+          data: { isActive: false } as any,
+        });
+        unitsDeactivated = unitUpd.count;
+      }
+
+      // deactivate dept-location mappings to free exclusivity
+      const locUpd = await tx.departmentLocation.updateMany({
+        where: { departmentId, isActive: true },
+        data: { isActive: false, isPrimary: false } as any,
+      });
+      locationsDeactivated = locUpd.count;
+
+            // Finally deactivate the department + unassign HOD
+      const updated = await tx.department.update({
+        where: { id: departmentId },
+        data: {
+          isActive: false,
+          headStaffId: null,
+        },
+        select: { id: true, branchId: true, isActive: true, name: true, code: true },
+      });
+
+
+      return {
+        updated,
+        cascade,
+        counts: { unitsDeactivated, roomsDeactivated, resourcesDeactivated, locationsDeactivated },
+      };
     });
 
     await this.audit.log({
@@ -599,18 +1288,26 @@ export class FacilitySetupService {
       actorUserId: principal.userId,
       action: "DEPARTMENT_DEACTIVATE",
       entity: "Department",
-      entityId: updated.id,
-      meta: { hard: false },
+      entityId: result.updated.id,
+      meta: {
+        hard: false,
+        cascade: result.cascade,
+        reason,
+        ...result.counts,
+      },
     });
 
-    return updated;
+    return {
+      ...result.updated,
+      cascade: result.cascade ? result.counts : null,
+    };
   }
 
-  async deactivateSpecialty(
-    principal: Principal,
-    specialtyId: string,
-    opts: { hard?: boolean } = {},
-  ) {
+  // ---------------------------------------------------------------------------
+  // Specialties
+  // ---------------------------------------------------------------------------
+
+  async deactivateSpecialty(principal: Principal, specialtyId: string, opts: { hard?: boolean } = {}) {
     const row = await this.prisma.specialty.findUnique({
       where: { id: specialtyId },
       select: { id: true, branchId: true, isActive: true },
@@ -666,10 +1363,6 @@ export class FacilitySetupService {
     return updated;
   }
 
-  // ---------------------------------------------------------------------------
-  // Specialties (branch-scoped catalog)
-  // ---------------------------------------------------------------------------
-
   async listSpecialties(
     principal: Principal,
     q: { branchId?: string; includeInactive?: boolean; includeMappings?: boolean; q?: string },
@@ -685,24 +1378,32 @@ export class FacilitySetupService {
       ];
     }
 
-    // Default: lightweight listing
     if (!q.includeMappings) {
       return this.prisma.specialty.findMany({
         where,
-        orderBy: [{ name: "asc" }],
-        select: { id: true, branchId: true, code: true, name: true, isActive: true, createdAt: true, updatedAt: true },
+        orderBy: [{ kind: "asc" }, { name: "asc" }],
+        select: {
+          id: true,
+          branchId: true,
+          code: true,
+          name: true,
+          kind: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       });
     }
 
-    // With mappings: include departments and isPrimary flags (from DepartmentSpecialty)
     const rows = await this.prisma.specialty.findMany({
       where,
-      orderBy: [{ name: "asc" }],
+      orderBy: [{ kind: "asc" }, { name: "asc" }],
       select: {
         id: true,
         branchId: true,
         code: true,
         name: true,
+        kind: true,
         isActive: true,
         createdAt: true,
         updatedAt: true,
@@ -723,6 +1424,7 @@ export class FacilitySetupService {
       branchId: s.branchId,
       code: s.code,
       name: s.name,
+      kind: s.kind,
       isActive: s.isActive,
       createdAt: s.createdAt,
       updatedAt: s.updatedAt,
@@ -733,7 +1435,6 @@ export class FacilitySetupService {
       })),
     }));
   }
-
 
   async createSpecialty(principal: Principal, dto: CreateSpecialtyDto) {
     const branchId = this.resolveBranchId(principal, dto.branchId ?? null);
@@ -748,9 +1449,19 @@ export class FacilitySetupService {
         branchId,
         code,
         name,
+        kind: (dto.kind ?? "SPECIALTY") as any,
         isActive: dto.isActive ?? true,
       },
-      select: { id: true, branchId: true, code: true, name: true, isActive: true, createdAt: true, updatedAt: true },
+      select: {
+        id: true,
+        branchId: true,
+        code: true,
+        name: true,
+        kind: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     await this.audit.log({
@@ -775,9 +1486,19 @@ export class FacilitySetupService {
       where: { id },
       data: {
         name: dto.name?.trim() || undefined,
+        kind: dto.kind ? (dto.kind as any) : undefined,
         isActive: typeof dto.isActive === "boolean" ? dto.isActive : undefined,
       },
-      select: { id: true, branchId: true, code: true, name: true, isActive: true, createdAt: true, updatedAt: true },
+      select: {
+        id: true,
+        branchId: true,
+        code: true,
+        name: true,
+        kind: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     await this.audit.log({
@@ -793,27 +1514,25 @@ export class FacilitySetupService {
   }
 
   // ---------------------------------------------------------------------------
-  // Department ↔ Specialty mapping (many-to-many)
+  // Department ↔ Specialty mapping (public method)
   // ---------------------------------------------------------------------------
 
   async listDepartmentSpecialties(principal: Principal, departmentId: string) {
     const dept = await this.prisma.department.findUnique({
       where: { id: departmentId },
-      select: { id: true, branchId: true, facilityId: true, code: true, name: true },
+      select: { id: true, branchId: true, code: true, name: true, facilityType: true, isActive: true },
     });
     if (!dept) throw new NotFoundException("Department not found");
 
-    const branchId = this.resolveBranchId(principal, dept.branchId);
-    await this.assertFacilityEnabledForBranch(branchId, dept.facilityId);
+    this.resolveBranchId(principal, dept.branchId);
 
     const rows = await this.prisma.departmentSpecialty.findMany({
       where: { departmentId, isActive: true },
       orderBy: [{ isPrimary: "desc" }, { specialty: { name: "asc" } }],
       include: {
-        specialty: { select: { id: true, code: true, name: true, isActive: true } },
+        specialty: { select: { id: true, code: true, name: true, kind: true, isActive: true } },
       },
     });
-
 
     return {
       department: dept,
@@ -830,76 +1549,26 @@ export class FacilitySetupService {
     };
   }
 
-  async setDepartmentSpecialties(
-    principal: Principal,
-    departmentId: string,
-    dto: SetDepartmentSpecialtiesDto,
-  ) {
+  async setDepartmentSpecialties(principal: Principal, departmentId: string, dto: SetDepartmentSpecialtiesDto) {
     const dept = await this.prisma.department.findUnique({
       where: { id: departmentId },
-      include: { doctorAssignments: false },
+      select: { id: true, branchId: true, facilityType: true, isActive: true, headStaffId: true },
     });
     if (!dept) throw new NotFoundException("Department not found");
 
     const branchId = this.resolveBranchId(principal, dept.branchId);
-    await this.assertFacilityEnabledForBranch(branchId, dept.facilityId);
 
-    const specialtyIds = uniq(dto.specialtyIds);
-
-    if (dto.primarySpecialtyId && dto.primarySpecialtyId !== null && !specialtyIds.includes(dto.primarySpecialtyId)) {
-      throw new BadRequestException("primarySpecialtyId must be included in specialtyIds");
-    }
-
-    // Validate specialties belong to this branch (and are active)
-    if (specialtyIds.length) {
-      const specs = await this.prisma.specialty.findMany({
-        where: { id: { in: specialtyIds }, branchId, isActive: true },
-        select: { id: true },
-      });
-      const ok = new Set(specs.map((s) => s.id));
-      const bad = specialtyIds.filter((id) => !ok.has(id));
-      if (bad.length) throw new BadRequestException(`Invalid specialtyIds for this branch: ${bad.join(", ")}`);
-    }
-
-    const current = await this.prisma.departmentSpecialty.findMany({
-      where: { departmentId },
-      select: { specialtyId: true, isActive: true },
-    });
-
-    const currentActive = new Set(current.filter((x) => x.isActive).map((x) => x.specialtyId));
-    const desired = new Set(specialtyIds);
-
-    const toDisable = Array.from(currentActive).filter((id) => !desired.has(id));
-    const toEnable = specialtyIds.filter((id) => !currentActive.has(id));
-
+    const warnings: string[] = [];
     await this.prisma.$transaction(async (tx) => {
-      if (toDisable.length) {
-        await tx.departmentSpecialty.updateMany({
-          where: { departmentId, specialtyId: { in: toDisable } },
-          data: { isActive: false, isPrimary: false },
-        });
-      }
+      const r = await this.syncDepartmentSpecialties(tx, branchId, departmentId, dept.facilityType as any, dto);
+      warnings.push(...r.warnings);
 
-      for (const sid of toEnable) {
-        await tx.departmentSpecialty.upsert({
-          where: { departmentId_specialtyId: { departmentId, specialtyId: sid } },
-          update: { isActive: true, isPrimary: false },
-          create: { departmentId, specialtyId: sid, isActive: true, isPrimary: false },
-        });
-      }
+      // enforce clinical rules if active
+      await this.assertDepartmentSpecialtyRules(tx, branchId, departmentId, dept.facilityType as any, dept.isActive);
 
-      // Apply primary selection
-      if (dto.primarySpecialtyId !== undefined) {
-        await tx.departmentSpecialty.updateMany({
-          where: { departmentId },
-          data: { isPrimary: false },
-        });
-        if (dto.primarySpecialtyId) {
-          await tx.departmentSpecialty.updateMany({
-            where: { departmentId, specialtyId: dto.primarySpecialtyId },
-            data: { isPrimary: true, isActive: true },
-          });
-        }
+      // if HOD exists, ensure specialty still matches
+      if (dept.headStaffId) {
+        await this.assertHeadStaffRules(tx, branchId, departmentId, dept.headStaffId);
       }
     });
 
@@ -909,16 +1578,11 @@ export class FacilitySetupService {
       action: "DEPARTMENT_SPECIALTIES_SET",
       entity: "Department",
       entityId: departmentId,
-      meta: {
-        before: Array.from(currentActive),
-        after: specialtyIds,
-        enabled: toEnable,
-        disabled: toDisable,
-        primarySpecialtyId: dto.primarySpecialtyId,
-      },
+      meta: { dto, warnings },
     });
 
-    return this.listDepartmentSpecialties(principal, departmentId);
+    const res = await this.listDepartmentSpecialties(principal, departmentId);
+    return { ...res, warnings };
   }
 
   // ---------------------------------------------------------------------------
@@ -951,7 +1615,7 @@ export class FacilitySetupService {
     if (q.q) {
       where.AND.push({
         OR: [
-          { staff: { fullName: { contains: q.q, mode: "insensitive" } } },
+          { staff: { name: { contains: q.q, mode: "insensitive" } } },
           { branchEmpCode: { contains: q.q, mode: "insensitive" } },
           { designation: { contains: q.q, mode: "insensitive" } },
         ],
@@ -960,13 +1624,13 @@ export class FacilitySetupService {
 
     const rows = await this.prisma.staffAssignment.findMany({
       where,
-      orderBy: [{ staff: { fullName: "asc" } }],
+      orderBy: [{ staff: { name: "asc" } }],
       select: {
         staffId: true,
         branchEmpCode: true,
         designation: true,
-        specialty: { select: { id: true, code: true, name: true } },
-        staff: { select: { fullName: true } },
+        specialty: { select: { id: true, code: true, name: true, kind: true } },
+        staff: { select: { name: true } },
       },
       take: 200,
     });
@@ -975,7 +1639,7 @@ export class FacilitySetupService {
     return rows.map((r) => ({
       id: r.staffId,
       empCode: r.branchEmpCode ?? null,
-      name: r.staff.fullName,
+      name: r.staff.name,
       designation: r.designation ?? null,
       specialty: r.specialty ?? null,
     }));

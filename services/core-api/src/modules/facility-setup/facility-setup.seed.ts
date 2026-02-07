@@ -2,18 +2,18 @@ import { Inject, Injectable, OnModuleInit } from "@nestjs/common";
 import type { PrismaClient } from "@zypocare/db";
 
 /**
- * Master Facility Catalog Seed
- * - Ensures the Facility Setup UI has items under CLINICAL, SERVICE, SUPPORT
- * - Codes are stable identifiers (do NOT change once used in production)
- * - sortOrder keeps UI ordering consistent
+ * Facility Setup Seed
  *
- * NOTE:
- * - Items like Housekeeping / IT / Maintenance / Billing / MRD are SUPPORT (so your Support column is not empty).
- * - Diagnostic and therapy lines are SERVICE.
- * - Patient-facing care units are CLINICAL.
+ * What this seeds:
+ * 1) Master Facility Catalog (existing)
+ * 2) Department Master FacilityCatalog entry (DEPARTMENT_MASTER)
+ * 3) Specialty Master per branch (SPECIALTY + SUPER_SPECIALTY)
+ * 4) Standard Departments per branch (linked to DEPARTMENT_MASTER facility)
  */
 
 type FacilityCategory = "CLINICAL" | "SERVICE" | "SUPPORT";
+
+type SpecialtyKind = "SPECIALTY" | "SUPER_SPECIALTY";
 
 const FACILITY_SEED: Array<{
   code: string;
@@ -21,6 +21,9 @@ const FACILITY_SEED: Array<{
   category: FacilityCategory;
   sortOrder: number;
 }> = [
+  // System hidden facility used internally for Dept records (so Dept UI doesn't depend on Facilities)
+  { code: "DEPARTMENT_MASTER", name: "Department Master (System)", category: "SUPPORT", sortOrder: 0 },
+
   // =========================
   // CLINICAL (Patient-facing)
   // =========================
@@ -117,35 +120,251 @@ const FACILITY_SEED: Array<{
 
   { code: "HR_ADMIN", name: "HR & Administration", category: "SUPPORT", sortOrder: 250 },
   { code: "TRAINING_EDUCATION", name: "Training & Education", category: "SUPPORT", sortOrder: 251 },
-
-  { code: "KITCHEN_CAFETERIA", name: "Kitchen / Cafeteria", category: "SUPPORT", sortOrder: 260 },
 ];
 
+const SPECIALTY_SEED: Array<{ code: string; name: string; kind: SpecialtyKind }> = [
+  // Core specialties (extendable)
+  { code: "GENERAL_MEDICINE", name: "General Medicine", kind: "SPECIALTY" },
+  { code: "GENERAL_SURGERY", name: "General Surgery", kind: "SPECIALTY" },
+  { code: "OBSTETRICS_GYNECOLOGY", name: "Obstetrics & Gynaecology", kind: "SPECIALTY" },
+  { code: "PEDIATRICS", name: "Pediatrics", kind: "SPECIALTY" },
+  { code: "ORTHOPEDICS", name: "Orthopedics", kind: "SPECIALTY" },
+  { code: "OPHTHALMOLOGY", name: "Ophthalmology", kind: "SPECIALTY" },
+  { code: "ENT", name: "ENT (Otorhinolaryngology)", kind: "SPECIALTY" },
+  { code: "DERMATOLOGY", name: "Dermatology", kind: "SPECIALTY" },
+  { code: "PSYCHIATRY", name: "Psychiatry", kind: "SPECIALTY" },
+  { code: "CARDIOLOGY", name: "Cardiology", kind: "SPECIALTY" },
+  { code: "NEUROLOGY", name: "Neurology", kind: "SPECIALTY" },
+  { code: "NEPHROLOGY", name: "Nephrology", kind: "SPECIALTY" },
+  { code: "GASTROENTEROLOGY", name: "Gastroenterology", kind: "SPECIALTY" },
+  { code: "PULMONOLOGY", name: "Pulmonology", kind: "SPECIALTY" },
+  { code: "UROLOGY", name: "Urology", kind: "SPECIALTY" },
+  { code: "ONCOLOGY_MEDICAL", name: "Oncology (Medical)", kind: "SPECIALTY" },
+  { code: "ONCOLOGY_SURGICAL", name: "Oncology (Surgical)", kind: "SPECIALTY" },
+  { code: "ONCOLOGY_RADIATION", name: "Oncology (Radiation)", kind: "SPECIALTY" },
+  { code: "EMERGENCY_MEDICINE", name: "Emergency Medicine", kind: "SPECIALTY" },
+  { code: "ANESTHESIOLOGY", name: "Anesthesiology", kind: "SPECIALTY" },
+  { code: "RADIOLOGY", name: "Radiology", kind: "SPECIALTY" },
+  { code: "PATHOLOGY", name: "Pathology", kind: "SPECIALTY" },
+  { code: "CRITICAL_CARE_MEDICINE", name: "Critical Care Medicine", kind: "SPECIALTY" },
+  { code: "NEONATOLOGY", name: "Neonatology", kind: "SPECIALTY" },
+
+  // Add breadth (MCI/NMC recognized style)
+  { code: "COMMUNITY_MEDICINE", name: "Community Medicine", kind: "SPECIALTY" },
+  { code: "FAMILY_MEDICINE", name: "Family Medicine", kind: "SPECIALTY" },
+  { code: "INTERNAL_MEDICINE", name: "Internal Medicine", kind: "SPECIALTY" },
+  { code: "RESPIRATORY_MEDICINE", name: "Respiratory Medicine", kind: "SPECIALTY" },
+  { code: "ENDOCRINOLOGY", name: "Endocrinology", kind: "SPECIALTY" },
+  { code: "RHEUMATOLOGY", name: "Rheumatology", kind: "SPECIALTY" },
+  { code: "HEMATOLOGY", name: "Hematology", kind: "SPECIALTY" },
+  { code: "MEDICAL_GENETICS", name: "Medical Genetics", kind: "SPECIALTY" },
+  { code: "GERIATRIC_MEDICINE", name: "Geriatric Medicine", kind: "SPECIALTY" },
+  { code: "SPORTS_MEDICINE", name: "Sports Medicine", kind: "SPECIALTY" },
+  { code: "PALLIATIVE_MEDICINE", name: "Palliative Medicine", kind: "SPECIALTY" },
+  { code: "PAIN_MEDICINE", name: "Pain Medicine", kind: "SPECIALTY" },
+
+  { code: "INFECTIOUS_DISEASES", name: "Infectious Diseases", kind: "SPECIALTY" },
+  { code: "TROPICAL_MEDICINE", name: "Tropical Medicine", kind: "SPECIALTY" },
+
+  { code: "NEUROSURGERY", name: "Neurosurgery", kind: "SPECIALTY" },
+  { code: "CARDIOTHORACIC_SURGERY", name: "Cardiothoracic Surgery", kind: "SUPER_SPECIALTY" },
+  { code: "PLASTIC_SURGERY", name: "Plastic Surgery", kind: "SUPER_SPECIALTY" },
+  { code: "PEDIATRIC_SURGERY", name: "Pediatric Surgery", kind: "SUPER_SPECIALTY" },
+  { code: "SURGICAL_GASTROENTEROLOGY", name: "Surgical Gastroenterology", kind: "SUPER_SPECIALTY" },
+
+  { code: "NEUROLOGY_SUPER", name: "Neurology (Super-specialty)", kind: "SUPER_SPECIALTY" },
+  { code: "NEUROSURGERY_SUPER", name: "Neurosurgery (Super-specialty)", kind: "SUPER_SPECIALTY" },
+
+  // Surgical
+  { code: "LAPAROSCOPIC_SURGERY", name: "Laparoscopic Surgery", kind: "SPECIALTY" },
+  { code: "VASCULAR_SURGERY", name: "Vascular Surgery", kind: "SUPER_SPECIALTY" },
+  { code: "SURGICAL_ONCOLOGY", name: "Surgical Oncology", kind: "SUPER_SPECIALTY" },
+  { code: "UROLOGY_SURGERY", name: "Urology (Surgery)", kind: "SPECIALTY" },
+  { code: "ORTHOPEDIC_SURGERY", name: "Orthopedic Surgery", kind: "SPECIALTY" },
+  { code: "HAND_SURGERY", name: "Hand Surgery", kind: "SUPER_SPECIALTY" },
+
+  // Women & Child
+  { code: "REPRODUCTIVE_MEDICINE", name: "Reproductive Medicine", kind: "SUPER_SPECIALTY" },
+  { code: "FETAL_MEDICINE", name: "Fetal Medicine", kind: "SUPER_SPECIALTY" },
+  { code: "PEDIATRIC_CARDIOLOGY", name: "Pediatric Cardiology", kind: "SUPER_SPECIALTY" },
+  { code: "PEDIATRIC_NEUROLOGY", name: "Pediatric Neurology", kind: "SUPER_SPECIALTY" },
+
+  // Imaging
+  { code: "DIAGNOSTIC_RADIOLOGY", name: "Diagnostic Radiology", kind: "SPECIALTY" },
+  { code: "INTERVENTIONAL_RADIOLOGY", name: "Interventional Radiology", kind: "SUPER_SPECIALTY" },
+
+  // Labs
+  { code: "MICROBIOLOGY", name: "Microbiology", kind: "SPECIALTY" },
+  { code: "BIOCHEMISTRY", name: "Biochemistry", kind: "SPECIALTY" },
+  { code: "IMMUNOLOGY", name: "Immunology", kind: "SPECIALTY" },
+  { code: "TRANSFUSION_MEDICINE", name: "Transfusion Medicine", kind: "SPECIALTY" },
+
+  // Others
+  { code: "DENTISTRY", name: "Dentistry", kind: "SPECIALTY" },
+  { code: "ORAL_MAXILLOFACIAL_SURGERY", name: "Oral & Maxillofacial Surgery", kind: "SUPER_SPECIALTY" },
+  { code: "PHYSIOTHERAPY", name: "Physiotherapy", kind: "SPECIALTY" },
+  { code: "DIETETICS", name: "Dietetics & Nutrition", kind: "SPECIALTY" },
+  { code: "DERMATO_SURGERY", name: "Dermatosurgery", kind: "SUPER_SPECIALTY" },
+  { code: "VENEREOLOGY", name: "Venereology", kind: "SPECIALTY" },
+  { code: "HEPATOLOGY", name: "Hepatology", kind: "SUPER_SPECIALTY" },
+  { code: "GASTROENTEROLOGY_SUPER", name: "Gastroenterology (Super-specialty)", kind: "SUPER_SPECIALTY" },
+  { code: "NEPHROLOGY_SUPER", name: "Nephrology (Super-specialty)", kind: "SUPER_SPECIALTY" },
+  { code: "UROLOGY_SUPER", name: "Urology (Super-specialty)", kind: "SUPER_SPECIALTY" },
+
+  // Fill to reach 100+ (commonly used hospital directory)
+  { code: "ALLERGY_IMMUNOLOGY", name: "Allergy & Immunology", kind: "SPECIALTY" },
+  { code: "AUDIOLOGY", name: "Audiology", kind: "SPECIALTY" },
+  { code: "CARDIAC_ELECTROPHYSIOLOGY", name: "Cardiac Electrophysiology", kind: "SUPER_SPECIALTY" },
+  { code: "DIABETOLOGY", name: "Diabetology", kind: "SPECIALTY" },
+  { code: "CLINICAL_PSYCHOLOGY", name: "Clinical Psychology", kind: "SPECIALTY" },
+  { code: "NEUROPSYCHIATRY", name: "Neuropsychiatry", kind: "SUPER_SPECIALTY" },
+  { code: "SLEEP_MEDICINE", name: "Sleep Medicine", kind: "SUPER_SPECIALTY" },
+  { code: "NUCLEAR_MEDICINE", name: "Nuclear Medicine", kind: "SPECIALTY" },
+  { code: "RADIATION_ONCOLOGY", name: "Radiation Oncology", kind: "SPECIALTY" },
+  { code: "MEDICAL_ONCOLOGY", name: "Medical Oncology", kind: "SPECIALTY" },
+  { code: "HEMATO_ONCOLOGY", name: "Hemato-Oncology", kind: "SUPER_SPECIALTY" },
+  { code: "TRANSPLANT_SURGERY", name: "Transplant Surgery", kind: "SUPER_SPECIALTY" },
+  { code: "TRANSPLANT_MEDICINE", name: "Transplant Medicine", kind: "SUPER_SPECIALTY" },
+  { code: "TRAUMA_SURGERY", name: "Trauma Surgery", kind: "SPECIALTY" },
+  { code: "TRAUMA_ORTHOPEDICS", name: "Trauma Orthopedics", kind: "SPECIALTY" },
+  { code: "SPINE_SURGERY", name: "Spine Surgery", kind: "SUPER_SPECIALTY" },
+  { code: "JOINT_REPLACEMENT", name: "Joint Replacement", kind: "SUPER_SPECIALTY" },
+  { code: "ARTHROSCOPY_SPORTS", name: "Arthroscopy & Sports Injury", kind: "SUPER_SPECIALTY" },
+  { code: "NEUROREHABILITATION", name: "Neurorehabilitation", kind: "SUPER_SPECIALTY" },
+  { code: "CARDIAC_REHABILITATION", name: "Cardiac Rehabilitation", kind: "SUPER_SPECIALTY" },
+  { code: "PULMONARY_REHABILITATION", name: "Pulmonary Rehabilitation", kind: "SUPER_SPECIALTY" },
+  { code: "SPEECH_LANGUAGE_THERAPY", name: "Speech & Language Therapy", kind: "SPECIALTY" },
+  { code: "OCCUPATIONAL_THERAPY", name: "Occupational Therapy", kind: "SPECIALTY" },
+  { code: "CLINICAL_NUTRITION", name: "Clinical Nutrition", kind: "SPECIALTY" },
+  { code: "NEUROANESTHESIA", name: "Neuroanesthesia", kind: "SUPER_SPECIALTY" },
+  { code: "CARDIAC_ANESTHESIA", name: "Cardiac Anesthesia", kind: "SUPER_SPECIALTY" },
+  { code: "PEDIATRIC_ANESTHESIA", name: "Pediatric Anesthesia", kind: "SUPER_SPECIALTY" },
+  { code: "OBSTETRIC_ANESTHESIA", name: "Obstetric Anesthesia", kind: "SUPER_SPECIALTY" },
+  { code: "CRITICAL_CARE_ANESTHESIA", name: "Critical Care Anesthesia", kind: "SUPER_SPECIALTY" },
+  { code: "NEUROCRITICAL_CARE", name: "Neurocritical Care", kind: "SUPER_SPECIALTY" },
+  { code: "CARDIAC_CRITICAL_CARE", name: "Cardiac Critical Care", kind: "SUPER_SPECIALTY" },
+  { code: "NEPHROLOGY_DIALYSIS", name: "Nephrology & Dialysis", kind: "SPECIALTY" },
+  { code: "INTERVENTIONAL_CARDIOLOGY", name: "Interventional Cardiology", kind: "SUPER_SPECIALTY" },
+  { code: "CARDIAC_SURGERY", name: "Cardiac Surgery", kind: "SUPER_SPECIALTY" },
+  { code: "THORACIC_SURGERY", name: "Thoracic Surgery", kind: "SUPER_SPECIALTY" },
+  { code: "ENDOCRINE_SURGERY", name: "Endocrine Surgery", kind: "SUPER_SPECIALTY" },
+  { code: "BREAST_SURGERY", name: "Breast Surgery", kind: "SUPER_SPECIALTY" },
+  { code: "COLORECTAL_SURGERY", name: "Colorectal Surgery", kind: "SUPER_SPECIALTY" },
+  { code: "HEPATOBILIARY_SURGERY", name: "Hepatobiliary Surgery", kind: "SUPER_SPECIALTY" },
+  { code: "PANCREATIC_SURGERY", name: "Pancreatic Surgery", kind: "SUPER_SPECIALTY" },
+  { code: "BARIATRIC_SURGERY", name: "Bariatric Surgery", kind: "SUPER_SPECIALTY" },
+  { code: "DIABETIC_FOOT", name: "Diabetic Foot Care", kind: "SUPER_SPECIALTY" },
+  { code: "WOUND_CARE", name: "Wound Care", kind: "SPECIALTY" },
+  { code: "RADIATION_SAFETY", name: "Radiation Safety", kind: "SPECIALTY" },
+  { code: "PUBLIC_HEALTH", name: "Public Health", kind: "SPECIALTY" },
+  { code: "EPIDEMIOLOGY", name: "Epidemiology", kind: "SPECIALTY" },
+  { code: "CLINICAL_RESEARCH", name: "Clinical Research", kind: "SPECIALTY" },
+];
+
+const STANDARD_DEPARTMENTS: Array<{
+  code: string;
+  name: string;
+  facilityType: FacilityCategory;
+  operatingHours?: any;
+}> = [
+  { code: "EMERGENCY", name: "Emergency Department", facilityType: "CLINICAL", operatingHours: { type: "24x7" } },
+  { code: "OPD", name: "Outpatient Department", facilityType: "CLINICAL", operatingHours: { type: "DAY" } },
+  { code: "IPD", name: "Inpatient Department", facilityType: "CLINICAL", operatingHours: { type: "24x7" } },
+  { code: "ICU", name: "Intensive Care Unit", facilityType: "CLINICAL", operatingHours: { type: "24x7" } },
+  { code: "OT", name: "Operation Theatre", facilityType: "SERVICE", operatingHours: { type: "SCHEDULED" } },
+  { code: "LAB", name: "Laboratory", facilityType: "SERVICE", operatingHours: { type: "SCHEDULED" } },
+  { code: "RADIOLOGY", name: "Radiology", facilityType: "SERVICE", operatingHours: { type: "SCHEDULED" } },
+  { code: "PHARMACY", name: "Pharmacy", facilityType: "SERVICE", operatingHours: { type: "SCHEDULED" } },
+  { code: "BLOOD_BANK", name: "Blood Bank", facilityType: "SERVICE", operatingHours: { type: "24x7" } },
+  { code: "PHYSIOTHERAPY", name: "Physiotherapy", facilityType: "SERVICE", operatingHours: { type: "DAY" } },
+  { code: "DIETARY", name: "Dietary Services", facilityType: "SUPPORT", operatingHours: { type: "DAY" } },
+  { code: "CSSD", name: "Central Sterile Supply", facilityType: "SERVICE", operatingHours: { type: "SCHEDULED" } },
+  { code: "MRD", name: "Medical Records", facilityType: "SUPPORT", operatingHours: { type: "DAY" } },
+  { code: "BILLING", name: "Billing & Accounts", facilityType: "SUPPORT", operatingHours: { type: "DAY" } },
+  { code: "ADMIN", name: "Administration", facilityType: "SUPPORT", operatingHours: { type: "DAY" } },
+  { code: "HR", name: "Human Resources", facilityType: "SUPPORT", operatingHours: { type: "DAY" } },
+  { code: "MAINTENANCE", name: "Maintenance & Engineering", facilityType: "SUPPORT", operatingHours: { type: "DAY" } },
+];
+
+function uniq<T>(arr: T[]) {
+  return Array.from(new Set(arr));
+}
+
 @Injectable()
-export class FacilitySetupSeedService implements OnModuleInit {
-  constructor(@Inject("PRISMA") private prisma: PrismaClient) {}
+export class FacilitySetupSeed implements OnModuleInit {
+  constructor(@Inject("PRISMA") private readonly prisma: PrismaClient) {}
 
   async onModuleInit() {
-    // Only run in dev seed mode
     if (process.env.AUTH_DEV_SEED !== "true") return;
+    await this.seed();
+  }
 
+  async seed() {
+    // 1) Facility Catalog
     for (const f of FACILITY_SEED) {
       await this.prisma.facilityCatalog.upsert({
         where: { code: f.code },
-        update: {
-          name: f.name,
-          category: f.category as any,
-          sortOrder: f.sortOrder,
-          isActive: true,
-        },
-        create: {
-          code: f.code,
-          name: f.name,
-          category: f.category as any,
-          sortOrder: f.sortOrder,
-          isActive: true,
-        },
+        update: { name: f.name, category: f.category as any, sortOrder: f.sortOrder },
+        create: { code: f.code, name: f.name, category: f.category as any, sortOrder: f.sortOrder },
       });
+    }
+
+    // 2) Resolve Department Master facilityId
+    const deptFacility = await this.prisma.facilityCatalog.findUnique({
+      where: { code: "DEPARTMENT_MASTER" },
+      select: { id: true },
+    });
+    if (!deptFacility) return;
+
+    // 3) Seed per-branch specialties + standard departments
+    const branches = await this.prisma.branch.findMany({ select: { id: true } });
+    for (const b of branches) {
+      // Ensure branchFacility enabled for DEPARTMENT_MASTER (so legacy checks do not block)
+      await this.prisma.branchFacility.upsert({
+        where: { branchId_facilityId: { branchId: b.id, facilityId: deptFacility.id } },
+        update: { isEnabled: true },
+        create: { branchId: b.id, facilityId: deptFacility.id, isEnabled: true },
+      });
+
+      // Specialties
+      for (const s of SPECIALTY_SEED) {
+        await this.prisma.specialty.upsert({
+          where: { branchId_code: { branchId: b.id, code: s.code } },
+          update: { name: s.name, kind: s.kind as any, isActive: true },
+          create: { branchId: b.id, code: s.code, name: s.name, kind: s.kind as any, isActive: true },
+        });
+      }
+
+      // Departments (standard)
+      for (const d of STANDARD_DEPARTMENTS) {
+        const existing = await this.prisma.department.findFirst({
+          where: { branchId: b.id, facilityId: deptFacility.id, code: d.code },
+          select: { id: true },
+        });
+        if (existing) {
+          await this.prisma.department.update({
+            where: { id: existing.id },
+            data: {
+              name: d.name,
+              facilityType: d.facilityType as any,
+              operatingHours: d.operatingHours ? (d.operatingHours as any) : null,
+              isActive: true,
+            },
+          });
+        } else {
+          await this.prisma.department.create({
+            data: {
+              branchId: b.id,
+              facilityId: deptFacility.id,
+              code: d.code,
+              name: d.name,
+              facilityType: d.facilityType as any,
+              operatingHours: d.operatingHours ? (d.operatingHours as any) : null,
+              isActive: true,
+            },
+          });
+        }
+      }
     }
   }
 }

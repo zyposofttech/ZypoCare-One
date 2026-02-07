@@ -128,11 +128,32 @@ exports.Prisma.BranchScalarFieldEnum = {
   name: 'name',
   city: 'city',
   isActive: 'isActive',
+  legalEntityName: 'legalEntityName',
   address: 'address',
+  pinCode: 'pinCode',
+  state: 'state',
+  country: 'country',
   contactPhone1: 'contactPhone1',
   contactPhone2: 'contactPhone2',
   contactEmail: 'contactEmail',
   gstNumber: 'gstNumber',
+  panNumber: 'panNumber',
+  clinicalEstRegNumber: 'clinicalEstRegNumber',
+  rohiniId: 'rohiniId',
+  hfrId: 'hfrId',
+  logoUrl: 'logoUrl',
+  website: 'website',
+  socialLinks: 'socialLinks',
+  accreditations: 'accreditations',
+  bedCount: 'bedCount',
+  establishedDate: 'establishedDate',
+  defaultCurrency: 'defaultCurrency',
+  timezone: 'timezone',
+  fiscalYearStartMonth: 'fiscalYearStartMonth',
+  workingHours: 'workingHours',
+  emergency24x7: 'emergency24x7',
+  multiLanguageSupport: 'multiLanguageSupport',
+  supportedLanguages: 'supportedLanguages',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -165,7 +186,24 @@ exports.Prisma.DepartmentScalarFieldEnum = {
   code: 'code',
   name: 'name',
   headStaffId: 'headStaffId',
-  headAssignmentId: 'headAssignmentId',
+  parentDepartmentId: 'parentDepartmentId',
+  isActive: 'isActive',
+  deactivatedAt: 'deactivatedAt',
+  deactivationReason: 'deactivationReason',
+  deactivatedByUserId: 'deactivatedByUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  facilityType: 'facilityType',
+  costCenterCode: 'costCenterCode',
+  extensions: 'extensions',
+  operatingHours: 'operatingHours'
+};
+
+exports.Prisma.DepartmentLocationScalarFieldEnum = {
+  id: 'id',
+  departmentId: 'departmentId',
+  locationNodeId: 'locationNodeId',
+  isPrimary: 'isPrimary',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -196,7 +234,45 @@ exports.Prisma.SpecialtyScalarFieldEnum = {
   branchId: 'branchId',
   code: 'code',
   name: 'name',
+  kind: 'kind',
   isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.StaffScalarFieldEnum = {
+  id: 'id',
+  empCode: 'empCode',
+  name: 'name',
+  designation: 'designation',
+  category: 'category',
+  engagementType: 'engagementType',
+  status: 'status',
+  phone: 'phone',
+  email: 'email',
+  homeBranchId: 'homeBranchId',
+  hprId: 'hprId',
+  isActive: 'isActive',
+  suspendedAt: 'suspendedAt',
+  suspendedUntil: 'suspendedUntil',
+  suspensionReason: 'suspensionReason',
+  notes: 'notes',
+  personalDetails: 'personalDetails',
+  contactDetails: 'contactDetails',
+  employmentDetails: 'employmentDetails',
+  medicalDetails: 'medicalDetails',
+  systemAccess: 'systemAccess',
+  onboardingStatus: 'onboardingStatus',
+  onboardingStartedAt: 'onboardingStartedAt',
+  onboardingCompletedAt: 'onboardingCompletedAt',
+  onboardingCompletedByUserId: 'onboardingCompletedByUserId',
+  profilePhotoDocumentId: 'profilePhotoDocumentId',
+  signatureDocumentId: 'signatureDocumentId',
+  stampDocumentId: 'stampDocumentId',
+  isUsgAuthorized: 'isUsgAuthorized',
+  usgAuthorizedAt: 'usgAuthorizedAt',
+  usgAuthorizedByUserId: 'usgAuthorizedByUserId',
+  usgAuthorizationNotes: 'usgAuthorizationNotes',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -208,14 +284,28 @@ exports.Prisma.StaffAssignmentScalarFieldEnum = {
   facilityId: 'facilityId',
   departmentId: 'departmentId',
   specialtyId: 'specialtyId',
-  designation: 'designation',
+  unitId: 'unitId',
   branchEmpCode: 'branchEmpCode',
+  designation: 'designation',
   assignmentType: 'assignmentType',
   status: 'status',
-  isPrimary: 'isPrimary',
   effectiveFrom: 'effectiveFrom',
   effectiveTo: 'effectiveTo',
-  createdByUserId: 'createdByUserId',
+  isPrimary: 'isPrimary',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.UserRoleBindingScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  branchId: 'branchId',
+  roleVersionId: 'roleVersionId',
+  staffAssignmentId: 'staffAssignmentId',
+  isPrimary: 'isPrimary',
+  isActive: 'isActive',
+  effectiveFrom: 'effectiveFrom',
+  effectiveTo: 'effectiveTo',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -224,7 +314,7 @@ exports.Prisma.StaffCredentialScalarFieldEnum = {
   id: 'id',
   staffId: 'staffId',
   type: 'type',
-  issuingAuthority: 'issuingAuthority',
+  authority: 'authority',
   registrationNumber: 'registrationNumber',
   validFrom: 'validFrom',
   validTo: 'validTo',
@@ -232,11 +322,6 @@ exports.Prisma.StaffCredentialScalarFieldEnum = {
   verifiedAt: 'verifiedAt',
   verifiedByUserId: 'verifiedByUserId',
   documentUrl: 'documentUrl',
-  documentMime: 'documentMime',
-  documentSize: 'documentSize',
-  documentChecksum: 'documentChecksum',
-  notes: 'notes',
-  meta: 'meta',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -246,52 +331,150 @@ exports.Prisma.StaffIdentifierScalarFieldEnum = {
   staffId: 'staffId',
   type: 'type',
   valueHash: 'valueHash',
-  last4: 'last4',
+  valueLast4: 'valueLast4',
   issuedBy: 'issuedBy',
+  issuedAt: 'issuedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.StaffDocumentScalarFieldEnum = {
+  id: 'id',
+  staffId: 'staffId',
+  branchId: 'branchId',
+  staffAssignmentId: 'staffAssignmentId',
+  type: 'type',
+  title: 'title',
+  description: 'description',
+  refNo: 'refNo',
+  issuedBy: 'issuedBy',
+  issuedAt: 'issuedAt',
+  validFrom: 'validFrom',
+  validTo: 'validTo',
+  fileUrl: 'fileUrl',
+  fileMime: 'fileMime',
+  fileSizeBytes: 'fileSizeBytes',
+  checksum: 'checksum',
+  tags: 'tags',
+  isActive: 'isActive',
+  uploadedByUserId: 'uploadedByUserId',
+  verificationStatus: 'verificationStatus',
+  verifiedAt: 'verifiedAt',
+  verifiedByUserId: 'verifiedByUserId',
+  verificationNotes: 'verificationNotes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.StaffCredentialEvidenceScalarFieldEnum = {
+  id: 'id',
+  staffCredentialId: 'staffCredentialId',
+  staffDocumentId: 'staffDocumentId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.StaffProviderProfileScalarFieldEnum = {
+  id: 'id',
+  staffId: 'staffId',
+  branchId: 'branchId',
+  isActive: 'isActive',
+  providerCode: 'providerCode',
+  displayName: 'displayName',
+  departmentId: 'departmentId',
+  specialtyId: 'specialtyId',
+  consultationModes: 'consultationModes',
+  schedulingProfile: 'schedulingProfile',
+  billingProfile: 'billingProfile',
+  clinicalProfile: 'clinicalProfile',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.StaffPrivilegeGrantScalarFieldEnum = {
+  id: 'id',
+  staffId: 'staffId',
+  branchId: 'branchId',
+  staffAssignmentId: 'staffAssignmentId',
+  area: 'area',
+  action: 'action',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  targetMeta: 'targetMeta',
+  status: 'status',
+  effectiveFrom: 'effectiveFrom',
+  effectiveTo: 'effectiveTo',
+  grantedByUserId: 'grantedByUserId',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.StaffOnboardingItemScalarFieldEnum = {
+  id: 'id',
+  staffId: 'staffId',
+  branchId: 'branchId',
+  type: 'type',
+  title: 'title',
+  description: 'description',
+  status: 'status',
+  isRequired: 'isRequired',
+  dueAt: 'dueAt',
+  completedAt: 'completedAt',
+  completedByUserId: 'completedByUserId',
   meta: 'meta',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.StaffCompliancePackScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  category: 'category',
+  roleTemplateId: 'roleTemplateId',
+  branchId: 'branchId',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.StaffComplianceRequirementScalarFieldEnum = {
+  id: 'id',
+  packId: 'packId',
+  kind: 'kind',
+  title: 'title',
+  isMandatory: 'isMandatory',
+  documentType: 'documentType',
+  credentialType: 'credentialType',
+  identifierType: 'identifierType',
+  renewalRequired: 'renewalRequired',
+  renewalWindowDays: 'renewalWindowDays',
+  meta: 'meta',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.StaffComplianceAssignmentScalarFieldEnum = {
+  id: 'id',
+  staffId: 'staffId',
+  packId: 'packId',
+  branchId: 'branchId',
+  status: 'status',
+  effectiveFrom: 'effectiveFrom',
+  effectiveTo: 'effectiveTo',
+  assignedByUserId: 'assignedByUserId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
 
 exports.Prisma.StaffMergeLogScalarFieldEnum = {
   id: 'id',
-  fromStaffId: 'fromStaffId',
-  intoStaffId: 'intoStaffId',
+  sourceStaffId: 'sourceStaffId',
+  targetStaffId: 'targetStaffId',
   reason: 'reason',
-  meta: 'meta',
-  mergedAt: 'mergedAt',
-  mergedByUserId: 'mergedByUserId'
-};
-
-exports.Prisma.UserRoleBindingScalarFieldEnum = {
-  id: 'id',
-  userId: 'userId',
-  roleVersionId: 'roleVersionId',
-  scope: 'scope',
-  branchId: 'branchId',
-  staffAssignmentId: 'staffAssignmentId',
-  isPrimary: 'isPrimary',
-  effectiveFrom: 'effectiveFrom',
-  effectiveTo: 'effectiveTo',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.StaffScalarFieldEnum = {
-  id: 'id',
-  staffNo: 'staffNo',
-  fullName: 'fullName',
-  displayName: 'displayName',
-  category: 'category',
-  engagementType: 'engagementType',
-  status: 'status',
-  phone: 'phone',
-  email: 'email',
-  homeBranchId: 'homeBranchId',
-  hprId: 'hprId',
-  designationPrimary: 'designationPrimary',
   notes: 'notes',
-  meta: 'meta',
+  mergedByUserId: 'mergedByUserId',
+  mergedAt: 'mergedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -301,11 +484,11 @@ exports.Prisma.UserScalarFieldEnum = {
   email: 'email',
   name: 'name',
   role: 'role',
-  source: 'source',
   phone: 'phone',
   branchId: 'branchId',
   staffId: 'staffId',
   isActive: 'isActive',
+  source: 'source',
   authzVersion: 'authzVersion',
   passwordHash: 'passwordHash',
   mustChangePassword: 'mustChangePassword',
@@ -650,6 +833,13 @@ exports.Prisma.LocationNodeRevisionScalarFieldEnum = {
   code: 'code',
   name: 'name',
   isActive: 'isActive',
+  gpsLat: 'gpsLat',
+  gpsLng: 'gpsLng',
+  floorNumber: 'floorNumber',
+  wheelchairAccess: 'wheelchairAccess',
+  stretcherAccess: 'stretcherAccess',
+  emergencyExit: 'emergencyExit',
+  fireZone: 'fireZone',
   effectiveFrom: 'effectiveFrom',
   effectiveTo: 'effectiveTo',
   createdByUserId: 'createdByUserId',
@@ -660,12 +850,18 @@ exports.Prisma.UnitTypeCatalogScalarFieldEnum = {
   id: 'id',
   code: 'code',
   name: 'name',
+  category: 'category',
   usesRoomsDefault: 'usesRoomsDefault',
   schedulableByDefault: 'schedulableByDefault',
+  bedBasedDefault: 'bedBasedDefault',
+  requiresPreAuthDefault: 'requiresPreAuthDefault',
   isActive: 'isActive',
   sortOrder: 'sortOrder',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  defaultOperatingHours: 'defaultOperatingHours',
+  standardEquipment: 'standardEquipment',
+  isSystemDefined: 'isSystemDefined'
 };
 
 exports.Prisma.BranchUnitTypeScalarFieldEnum = {
@@ -686,8 +882,18 @@ exports.Prisma.UnitScalarFieldEnum = {
   unitTypeId: 'unitTypeId',
   code: 'code',
   name: 'name',
+  totalRoomCount: 'totalRoomCount',
+  totalBedCapacity: 'totalBedCapacity',
+  commissioningDate: 'commissioningDate',
+  floorNumber: 'floorNumber',
+  wingZone: 'wingZone',
+  inchargeStaffId: 'inchargeStaffId',
+  nursingStation: 'nursingStation',
   usesRooms: 'usesRooms',
   isActive: 'isActive',
+  deactivatedAt: 'deactivatedAt',
+  deactivationReason: 'deactivationReason',
+  deactivatedByUserId: 'deactivatedByUserId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -697,8 +903,31 @@ exports.Prisma.UnitRoomScalarFieldEnum = {
   branchId: 'branchId',
   unitId: 'unitId',
   code: 'code',
+  roomNumber: 'roomNumber',
   name: 'name',
+  roomType: 'roomType',
+  areaSqFt: 'areaSqFt',
+  hasAttachedBathroom: 'hasAttachedBathroom',
+  hasAC: 'hasAC',
+  hasTV: 'hasTV',
+  hasOxygen: 'hasOxygen',
+  hasSuction: 'hasSuction',
+  hasVentilator: 'hasVentilator',
+  hasMonitor: 'hasMonitor',
+  hasCallButton: 'hasCallButton',
+  maxOccupancy: 'maxOccupancy',
+  currentOccupancy: 'currentOccupancy',
+  pricingTier: 'pricingTier',
+  baseChargePerDay: 'baseChargePerDay',
+  isIsolation: 'isIsolation',
+  isolationType: 'isolationType',
   isActive: 'isActive',
+  isAvailable: 'isAvailable',
+  maintenanceStatus: 'maintenanceStatus',
+  lastCleanedAt: 'lastCleanedAt',
+  deactivatedAt: 'deactivatedAt',
+  deactivationReason: 'deactivationReason',
+  deactivatedByUserId: 'deactivatedByUserId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -710,12 +939,33 @@ exports.Prisma.UnitResourceScalarFieldEnum = {
   roomId: 'roomId',
   resourceType: 'resourceType',
   code: 'code',
+  assetTag: 'assetTag',
   name: 'name',
+  resourceCategory: 'resourceCategory',
+  manufacturer: 'manufacturer',
+  model: 'model',
+  serialNumber: 'serialNumber',
+  hasMonitor: 'hasMonitor',
+  hasOxygenSupply: 'hasOxygenSupply',
+  hasSuction: 'hasSuction',
+  hasVentilatorSupport: 'hasVentilatorSupport',
+  isPowerRequired: 'isPowerRequired',
   state: 'state',
   isActive: 'isActive',
+  assignedPatientId: 'assignedPatientId',
   isSchedulable: 'isSchedulable',
+  slotDurationMinutes: 'slotDurationMinutes',
+  lastMaintenanceDate: 'lastMaintenanceDate',
+  nextMaintenanceDate: 'nextMaintenanceDate',
+  warrantyExpiryDate: 'warrantyExpiryDate',
+  commissionedAt: 'commissionedAt',
+  reservedReason: 'reservedReason',
+  blockedReason: 'blockedReason',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  deactivatedAt: 'deactivatedAt',
+  deactivationReason: 'deactivationReason',
+  deactivatedByUserId: 'deactivatedByUserId'
 };
 
 exports.Prisma.BranchInfraConfigScalarFieldEnum = {
@@ -1729,20 +1979,53 @@ exports.Prisma.QueryMode = {
   insensitive: 'insensitive'
 };
 
-exports.Prisma.NullsOrder = {
-  first: 'first',
-  last: 'last'
-};
-
 exports.Prisma.JsonNullValueFilter = {
   DbNull: Prisma.DbNull,
   JsonNull: Prisma.JsonNull,
   AnyNull: Prisma.AnyNull
 };
+
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
+};
 exports.FacilityCategory = exports.$Enums.FacilityCategory = {
   SERVICE: 'SERVICE',
   CLINICAL: 'CLINICAL',
   SUPPORT: 'SUPPORT'
+};
+
+exports.SpecialtyKind = exports.$Enums.SpecialtyKind = {
+  SPECIALTY: 'SPECIALTY',
+  SUPER_SPECIALTY: 'SUPER_SPECIALTY'
+};
+
+exports.StaffCategory = exports.$Enums.StaffCategory = {
+  MEDICAL: 'MEDICAL',
+  NON_MEDICAL: 'NON_MEDICAL'
+};
+
+exports.StaffEngagementType = exports.$Enums.StaffEngagementType = {
+  EMPLOYEE: 'EMPLOYEE',
+  CONSULTANT: 'CONSULTANT',
+  VISITING: 'VISITING',
+  LOCUM: 'LOCUM',
+  CONTRACTOR: 'CONTRACTOR',
+  INTERN: 'INTERN',
+  TRAINEE: 'TRAINEE',
+  VENDOR: 'VENDOR'
+};
+
+exports.StaffStatus = exports.$Enums.StaffStatus = {
+  ACTIVE: 'ACTIVE',
+  SUSPENDED: 'SUSPENDED',
+  OFFBOARDED: 'OFFBOARDED'
+};
+
+exports.StaffOnboardingStatus = exports.$Enums.StaffOnboardingStatus = {
+  DRAFT: 'DRAFT',
+  IN_REVIEW: 'IN_REVIEW',
+  ACTIVE: 'ACTIVE'
 };
 
 exports.StaffAssignmentType = exports.$Enums.StaffAssignmentType = {
@@ -1752,21 +2035,22 @@ exports.StaffAssignmentType = exports.$Enums.StaffAssignmentType = {
   VISITING: 'VISITING',
   LOCUM: 'LOCUM',
   CONTRACTOR: 'CONTRACTOR',
-  TRAINEE: 'TRAINEE',
-  SHARED_SERVICE: 'SHARED_SERVICE'
+  DEPUTATION: 'DEPUTATION',
+  TRANSFER: 'TRANSFER'
 };
 
 exports.StaffAssignmentStatus = exports.$Enums.StaffAssignmentStatus = {
   ACTIVE: 'ACTIVE',
-  ENDED: 'ENDED',
-  SUSPENDED: 'SUSPENDED'
+  PLANNED: 'PLANNED',
+  SUSPENDED: 'SUSPENDED',
+  ENDED: 'ENDED'
 };
 
 exports.StaffCredentialType = exports.$Enums.StaffCredentialType = {
-  MEDICAL_REGISTRATION: 'MEDICAL_REGISTRATION',
-  NURSING_REGISTRATION: 'NURSING_REGISTRATION',
-  PHARMACY_REGISTRATION: 'PHARMACY_REGISTRATION',
-  TECHNICIAN_LICENSE: 'TECHNICIAN_LICENSE',
+  MEDICAL_REG: 'MEDICAL_REG',
+  NURSING_REG: 'NURSING_REG',
+  PHARMACY_REG: 'PHARMACY_REG',
+  TECH_CERT: 'TECH_CERT',
   OTHER: 'OTHER'
 };
 
@@ -1781,43 +2065,103 @@ exports.StaffIdentifierType = exports.$Enums.StaffIdentifierType = {
   AADHAAR: 'AADHAAR',
   PAN: 'PAN',
   PASSPORT: 'PASSPORT',
-  VOTER_ID: 'VOTER_ID',
-  DRIVING_LICENSE: 'DRIVING_LICENSE',
+  HPR_ID: 'HPR_ID',
   OTHER: 'OTHER'
 };
 
-exports.RoleScope = exports.$Enums.RoleScope = {
-  GLOBAL: 'GLOBAL',
-  BRANCH: 'BRANCH'
+exports.StaffDocumentType = exports.$Enums.StaffDocumentType = {
+  PROFILE_PHOTO: 'PROFILE_PHOTO',
+  SIGNATURE: 'SIGNATURE',
+  STAMP: 'STAMP',
+  ID_PROOF: 'ID_PROOF',
+  EDUCATION_DEGREE: 'EDUCATION_DEGREE',
+  TRAINING_CERTIFICATE: 'TRAINING_CERTIFICATE',
+  EMPLOYMENT_CONTRACT: 'EMPLOYMENT_CONTRACT',
+  MEDICAL_REG_EVIDENCE: 'MEDICAL_REG_EVIDENCE',
+  OTHER: 'OTHER'
 };
 
-exports.StaffCategory = exports.$Enums.StaffCategory = {
-  MEDICAL: 'MEDICAL',
-  NON_MEDICAL: 'NON_MEDICAL'
+exports.StaffDocumentVerificationStatus = exports.$Enums.StaffDocumentVerificationStatus = {
+  UNVERIFIED: 'UNVERIFIED',
+  PENDING: 'PENDING',
+  VERIFIED: 'VERIFIED',
+  REJECTED: 'REJECTED'
 };
 
-exports.StaffEngagementType = exports.$Enums.StaffEngagementType = {
-  EMPLOYEE: 'EMPLOYEE',
-  CONSULTANT: 'CONSULTANT',
-  VISITING_CONSULTANT: 'VISITING_CONSULTANT',
-  LOCUM: 'LOCUM',
-  CONTRACTOR: 'CONTRACTOR',
-  VENDOR_STAFF: 'VENDOR_STAFF',
-  INTERN: 'INTERN',
-  TRAINEE: 'TRAINEE'
+exports.StaffPrivilegeArea = exports.$Enums.StaffPrivilegeArea = {
+  OPD: 'OPD',
+  IPD: 'IPD',
+  ER: 'ER',
+  OT: 'OT',
+  ICU: 'ICU',
+  DIAGNOSTICS: 'DIAGNOSTICS',
+  LAB: 'LAB',
+  RADIOLOGY: 'RADIOLOGY',
+  PHARMACY: 'PHARMACY',
+  BILLING: 'BILLING',
+  ADMIN: 'ADMIN'
 };
 
-exports.StaffStatus = exports.$Enums.StaffStatus = {
+exports.StaffPrivilegeAction = exports.$Enums.StaffPrivilegeAction = {
+  VIEW: 'VIEW',
+  ORDER: 'ORDER',
+  PRESCRIBE: 'PRESCRIBE',
+  PERFORM: 'PERFORM',
+  ATTEST: 'ATTEST',
+  DISCHARGE: 'DISCHARGE',
+  SIGN: 'SIGN',
+  APPROVE: 'APPROVE',
+  OTHER: 'OTHER'
+};
+
+exports.StaffPrivilegeTargetType = exports.$Enums.StaffPrivilegeTargetType = {
+  NONE: 'NONE',
+  SERVICE_ITEM: 'SERVICE_ITEM',
+  DIAGNOSTIC_ITEM: 'DIAGNOSTIC_ITEM',
+  ORDER_SET: 'ORDER_SET',
+  OTHER: 'OTHER'
+};
+
+exports.StaffPrivilegeStatus = exports.$Enums.StaffPrivilegeStatus = {
   ACTIVE: 'ACTIVE',
   SUSPENDED: 'SUSPENDED',
-  OFFBOARDED: 'OFFBOARDED'
+  REVOKED: 'REVOKED',
+  EXPIRED: 'EXPIRED'
+};
+
+exports.StaffOnboardingItemType = exports.$Enums.StaffOnboardingItemType = {
+  DOCUMENT: 'DOCUMENT',
+  CREDENTIAL: 'CREDENTIAL',
+  IDENTIFIER: 'IDENTIFIER',
+  ASSIGNMENT: 'ASSIGNMENT',
+  SYSTEM_ACCESS: 'SYSTEM_ACCESS',
+  PRIVILEGE: 'PRIVILEGE',
+  OTHER: 'OTHER'
+};
+
+exports.StaffOnboardingItemStatus = exports.$Enums.StaffOnboardingItemStatus = {
+  PENDING: 'PENDING',
+  DONE: 'DONE',
+  WAIVED: 'WAIVED',
+  REJECTED: 'REJECTED'
+};
+
+exports.StaffComplianceRequirementKind = exports.$Enums.StaffComplianceRequirementKind = {
+  DOCUMENT: 'DOCUMENT',
+  CREDENTIAL: 'CREDENTIAL',
+  IDENTIFIER: 'IDENTIFIER'
+};
+
+exports.StaffComplianceAssignmentStatus = exports.$Enums.StaffComplianceAssignmentStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE'
 };
 
 exports.UserSource = exports.$Enums.UserSource = {
-  STAFF: 'STAFF',
   ADMIN: 'ADMIN',
-  SYSTEM: 'SYSTEM',
-  INTEGRATION: 'INTEGRATION'
+  STAFF: 'STAFF',
+  MANUAL: 'MANUAL',
+  SYSTEM: 'SYSTEM'
 };
 
 exports.EncounterType = exports.$Enums.EncounterType = {
@@ -1893,6 +2237,11 @@ exports.OutboxStatus = exports.$Enums.OutboxStatus = {
   FAILED: 'FAILED'
 };
 
+exports.RoleScope = exports.$Enums.RoleScope = {
+  GLOBAL: 'GLOBAL',
+  BRANCH: 'BRANCH'
+};
+
 exports.RoleVersionStatus = exports.$Enums.RoleVersionStatus = {
   DRAFT: 'DRAFT',
   ACTIVE: 'ACTIVE',
@@ -1916,26 +2265,104 @@ exports.LocationKind = exports.$Enums.LocationKind = {
   CAMPUS: 'CAMPUS',
   BUILDING: 'BUILDING',
   FLOOR: 'FLOOR',
-  ZONE: 'ZONE'
+  ZONE: 'ZONE',
+  AREA: 'AREA'
+};
+
+exports.UnitCategory = exports.$Enums.UnitCategory = {
+  OUTPATIENT: 'OUTPATIENT',
+  INPATIENT: 'INPATIENT',
+  CRITICAL_CARE: 'CRITICAL_CARE',
+  PROCEDURE: 'PROCEDURE',
+  DIAGNOSTIC: 'DIAGNOSTIC',
+  SUPPORT: 'SUPPORT'
+};
+
+exports.UnitRoomType = exports.$Enums.UnitRoomType = {
+  CONSULTATION: 'CONSULTATION',
+  PROCEDURE: 'PROCEDURE',
+  EXAMINATION: 'EXAMINATION',
+  PATIENT_ROOM: 'PATIENT_ROOM',
+  ISOLATION: 'ISOLATION',
+  NEGATIVE_PRESSURE: 'NEGATIVE_PRESSURE',
+  POSITIVE_PRESSURE: 'POSITIVE_PRESSURE',
+  NURSING_STATION: 'NURSING_STATION',
+  WAITING: 'WAITING',
+  STORAGE: 'STORAGE',
+  UTILITY: 'UTILITY',
+  RECOVERY: 'RECOVERY'
+};
+
+exports.PricingTier = exports.$Enums.PricingTier = {
+  ECONOMY: 'ECONOMY',
+  STANDARD: 'STANDARD',
+  DELUXE: 'DELUXE',
+  SUITE: 'SUITE',
+  VIP: 'VIP'
+};
+
+exports.IsolationType = exports.$Enums.IsolationType = {
+  CONTACT: 'CONTACT',
+  DROPLET: 'DROPLET',
+  AIRBORNE: 'AIRBORNE',
+  PROTECTIVE: 'PROTECTIVE'
+};
+
+exports.MaintenanceStatus = exports.$Enums.MaintenanceStatus = {
+  OPERATIONAL: 'OPERATIONAL',
+  UNDER_MAINTENANCE: 'UNDER_MAINTENANCE',
+  CLEANING_IN_PROGRESS: 'CLEANING_IN_PROGRESS',
+  BLOCKED: 'BLOCKED',
+  OUT_OF_SERVICE: 'OUT_OF_SERVICE'
 };
 
 exports.UnitResourceType = exports.$Enums.UnitResourceType = {
+  GENERAL_BED: 'GENERAL_BED',
+  ICU_BED: 'ICU_BED',
+  NICU_INCUBATOR: 'NICU_INCUBATOR',
+  CRIB: 'CRIB',
+  TROLLEY: 'TROLLEY',
+  STRETCHER: 'STRETCHER',
+  WHEELCHAIR_POSITION: 'WHEELCHAIR_POSITION',
+  OT_TABLE: 'OT_TABLE',
+  DIALYSIS_STATION: 'DIALYSIS_STATION',
+  CHEMOTHERAPY_CHAIR: 'CHEMOTHERAPY_CHAIR',
+  PROCEDURE_CHAIR: 'PROCEDURE_CHAIR',
+  PROCEDURE_TABLE: 'PROCEDURE_TABLE',
+  RECOVERY_BAY: 'RECOVERY_BAY',
+  DENTAL_CHAIR: 'DENTAL_CHAIR',
+  EXAMINATION_TABLE: 'EXAMINATION_TABLE',
+  XRAY_MACHINE_SLOT: 'XRAY_MACHINE_SLOT',
+  CT_SCANNER_SLOT: 'CT_SCANNER_SLOT',
+  MRI_SCANNER_SLOT: 'MRI_SCANNER_SLOT',
+  USG_MACHINE_SLOT: 'USG_MACHINE_SLOT',
+  ECG_MACHINE_SLOT: 'ECG_MACHINE_SLOT',
+  ECHO_MACHINE_SLOT: 'ECHO_MACHINE_SLOT',
+  SAMPLE_COLLECTION_COUNTER: 'SAMPLE_COLLECTION_COUNTER',
+  CONSULTATION_SLOT: 'CONSULTATION_SLOT',
+  EXAM_SLOT: 'EXAM_SLOT',
   BED: 'BED',
   BAY: 'BAY',
   CHAIR: 'CHAIR',
-  OT_TABLE: 'OT_TABLE',
-  PROCEDURE_TABLE: 'PROCEDURE_TABLE',
-  DIALYSIS_STATION: 'DIALYSIS_STATION',
-  RECOVERY_BAY: 'RECOVERY_BAY',
-  EXAM_SLOT: 'EXAM_SLOT',
   INCUBATOR: 'INCUBATOR'
+};
+
+exports.UnitResourceCategory = exports.$Enums.UnitResourceCategory = {
+  BED: 'BED',
+  PROCEDURE: 'PROCEDURE',
+  DIAGNOSTIC: 'DIAGNOSTIC',
+  CONSULTATION: 'CONSULTATION',
+  OTHER: 'OTHER'
 };
 
 exports.UnitResourceState = exports.$Enums.UnitResourceState = {
   AVAILABLE: 'AVAILABLE',
+  RESERVED: 'RESERVED',
   OCCUPIED: 'OCCUPIED',
   CLEANING: 'CLEANING',
+  SANITIZATION: 'SANITIZATION',
   MAINTENANCE: 'MAINTENANCE',
+  BLOCKED: 'BLOCKED',
   INACTIVE: 'INACTIVE'
 };
 
@@ -2335,15 +2762,24 @@ exports.Prisma.ModelName = {
   FacilityCatalog: 'FacilityCatalog',
   BranchFacility: 'BranchFacility',
   Department: 'Department',
+  DepartmentLocation: 'DepartmentLocation',
   DepartmentDoctor: 'DepartmentDoctor',
   DepartmentSpecialty: 'DepartmentSpecialty',
   Specialty: 'Specialty',
+  Staff: 'Staff',
   StaffAssignment: 'StaffAssignment',
+  UserRoleBinding: 'UserRoleBinding',
   StaffCredential: 'StaffCredential',
   StaffIdentifier: 'StaffIdentifier',
+  StaffDocument: 'StaffDocument',
+  StaffCredentialEvidence: 'StaffCredentialEvidence',
+  StaffProviderProfile: 'StaffProviderProfile',
+  StaffPrivilegeGrant: 'StaffPrivilegeGrant',
+  StaffOnboardingItem: 'StaffOnboardingItem',
+  StaffCompliancePack: 'StaffCompliancePack',
+  StaffComplianceRequirement: 'StaffComplianceRequirement',
+  StaffComplianceAssignment: 'StaffComplianceAssignment',
   StaffMergeLog: 'StaffMergeLog',
-  UserRoleBinding: 'UserRoleBinding',
-  Staff: 'Staff',
   User: 'User',
   Patient: 'Patient',
   Encounter: 'Encounter',

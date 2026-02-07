@@ -1,0 +1,29 @@
+{
+  "aerbEquipment": [
+    { "keyword": "x-ray", "category": "RADIOLOGY", "complianceType": "AERB", "safetyCode": "AERB/RF-Med/SC-3" },
+    { "keyword": "ct scanner", "category": "RADIOLOGY", "complianceType": "AERB", "safetyCode": "AERB/RF-Med/SC-3" },
+    { "keyword": "ct scan", "category": "RADIOLOGY", "complianceType": "AERB", "safetyCode": "AERB/RF-Med/SC-3" },
+    { "keyword": "fluoroscopy", "category": "RADIOLOGY", "complianceType": "AERB", "safetyCode": "AERB/RF-Med/SC-3" },
+    { "keyword": "c-arm", "category": "RADIOLOGY", "complianceType": "AERB", "safetyCode": "AERB/RF-Med/SC-3" },
+    { "keyword": "cath lab", "category": "RADIOLOGY", "complianceType": "AERB", "safetyCode": "AERB/RF-Med/SC-3" },
+    { "keyword": "linear accelerator", "category": "RADIOLOGY", "complianceType": "AERB", "safetyCode": "AERB/NF-Med/SC-1" },
+    { "keyword": "linac", "category": "RADIOLOGY", "complianceType": "AERB", "safetyCode": "AERB/NF-Med/SC-1" },
+    { "keyword": "mammography", "category": "RADIOLOGY", "complianceType": "AERB", "safetyCode": "AERB/RF-Med/SC-3" },
+    { "keyword": "bone densitometer", "category": "RADIOLOGY", "complianceType": "AERB", "safetyCode": "AERB/RF-Med/SC-3" },
+    { "keyword": "dexa", "category": "RADIOLOGY", "complianceType": "AERB", "safetyCode": "AERB/RF-Med/SC-3" },
+    { "keyword": "gamma camera", "category": "RADIOLOGY", "complianceType": "AERB", "safetyCode": "AERB/NF-Med/SC-2" },
+    { "keyword": "pet scanner", "category": "RADIOLOGY", "complianceType": "AERB", "safetyCode": "AERB/NF-Med/SC-2" },
+    { "keyword": "cobalt", "category": "RADIOLOGY", "complianceType": "AERB", "safetyCode": "AERB/NF-Med/SC-1" },
+    { "keyword": "brachytherapy", "category": "RADIOLOGY", "complianceType": "AERB", "safetyCode": "AERB/NF-Med/SC-1" }
+  ],
+  "pcpndtEquipment": [
+    { "keyword": "ultrasound", "category": "ULTRASOUND", "complianceType": "PCPNDT", "statute": "PCPNDT Act 1994 (Section 3A)" },
+    { "keyword": "sonography", "category": "ULTRASOUND", "complianceType": "PCPNDT", "statute": "PCPNDT Act 1994 (Section 3A)" },
+    { "keyword": "doppler", "category": "ULTRASOUND", "complianceType": "PCPNDT", "statute": "PCPNDT Act 1994 (Section 3A)" },
+    { "keyword": "echocardiogram", "category": "ULTRASOUND", "complianceType": "PCPNDT", "statute": "PCPNDT Act 1994 (Section 3A)" }
+  ],
+  "requiredFields": {
+    "AERB": ["aerbLicenseNo", "aerbValidTo"],
+    "PCPNDT": ["pcpndtRegNo", "pcpndtValidTo"]
+  }
+}

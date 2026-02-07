@@ -1,0 +1,100 @@
+{
+  "edition": "NABH 6th Edition (2025)",
+  "chapters": [
+    {
+      "chapter": 1,
+      "name": "Access, Assessment & Continuity of Care",
+      "checks": [
+        { "id": "NABH-1.1", "description": "Emergency department must be configured", "query": "UNIT_TYPE_EXISTS", "params": { "unitTypeCode": "ER" }, "severity": "BLOCKER", "fixHint": "Create an Emergency (ER) unit." },
+        { "id": "NABH-1.2", "description": "At least one OPD unit must exist for registration", "query": "UNIT_TYPE_EXISTS", "params": { "unitTypeCode": "OPD" }, "severity": "BLOCKER", "fixHint": "Create at least one OPD unit." },
+        { "id": "NABH-1.3", "description": "At least one IPD ward must exist", "query": "UNIT_TYPE_EXISTS", "params": { "unitTypeCode": "WARD" }, "severity": "BLOCKER", "fixHint": "Create at least one general ward unit." },
+        { "id": "NABH-1.4", "description": "ICU must be configured", "query": "UNIT_TYPE_EXISTS", "params": { "unitTypeCode": "ICU" }, "severity": "BLOCKER", "fixHint": "Create an ICU unit." },
+        { "id": "NABH-1.5", "description": "ER must have at least one examination room", "query": "ROOM_TYPE_IN_UNIT_TYPE", "params": { "unitTypeCode": "ER", "roomType": "EXAMINATION" }, "severity": "WARNING", "fixHint": "Add an examination/triage room to the ER unit." },
+        { "id": "NABH-1.6", "description": "IPD beds must exist", "query": "RESOURCE_TYPE_MIN_COUNT", "params": { "resourceType": "BED", "min": 1 }, "severity": "BLOCKER", "fixHint": "Add beds to at least one ward unit." }
+      ]
+    },
+    {
+      "chapter": 2,
+      "name": "Care of Patients",
+      "checks": [
+        { "id": "NABH-2.1", "description": "At least one OT suite must be configured", "query": "UNIT_TYPE_EXISTS", "params": { "unitTypeCode": "OT" }, "severity": "WARNING", "fixHint": "Configure an Operation Theatre unit." },
+        { "id": "NABH-2.2", "description": "OT must have recovery area", "query": "ROOM_TYPE_IN_UNIT_TYPE", "params": { "unitTypeCode": "OT", "roomType": "PATIENT_ROOM" }, "severity": "WARNING", "fixHint": "Add a recovery room/bay to the OT unit." },
+        { "id": "NABH-2.3", "description": "Procedure rooms must have consent-required services", "query": "SERVICES_WITH_CONSENT", "params": { "minPercent": 50, "categories": ["PROCEDURE"] }, "severity": "WARNING", "fixHint": "Mark consent as required for procedure-type services." }
+      ]
+    },
+    {
+      "chapter": 3,
+      "name": "Management of Medication",
+      "checks": [
+        { "id": "NABH-3.1", "description": "Pharmacy unit type must be enabled", "query": "UNIT_TYPE_EXISTS", "params": { "unitTypeCode": "PHARM" }, "severity": "BLOCKER", "fixHint": "Enable the Pharmacy unit type and create at least one pharmacy unit." },
+        { "id": "NABH-3.2", "description": "At least one pharmacy unit must exist", "query": "UNIT_COUNT_MIN", "params": { "unitTypeCode": "PHARM", "min": 1 }, "severity": "BLOCKER", "fixHint": "Create a pharmacy unit." },
+        { "id": "NABH-3.3", "description": "Drug formulary should have adequate coverage", "query": "SERVICE_CATEGORY_COUNT", "params": { "category": "PHARMACY", "min": 50 }, "severity": "WARNING", "fixHint": "Add drugs to the formulary for adequate coverage." }
+      ]
+    },
+    {
+      "chapter": 4,
+      "name": "Patient Rights & Education",
+      "checks": [
+        { "id": "NABH-4.1", "description": "Services requiring consent must be flagged", "query": "SERVICES_WITH_CONSENT", "params": { "minPercent": 80, "categories": ["PROCEDURE", "DIAGNOSTIC_IMAGING"] }, "severity": "WARNING", "fixHint": "Review services and mark consent-required flag on procedures and imaging." }
+      ]
+    },
+    {
+      "chapter": 5,
+      "name": "Hospital Infection Control",
+      "checks": [
+        { "id": "NABH-5.1", "description": "At least one isolation room must exist", "query": "ROOM_TYPE_EXISTS", "params": { "roomType": "ISOLATION" }, "severity": "WARNING", "fixHint": "Create at least one isolation room in a ward or ICU." },
+        { "id": "NABH-5.2", "description": "Negative pressure room for ICU", "query": "ROOM_TYPE_EXISTS", "params": { "roomType": "NEGATIVE_PRESSURE" }, "severity": "WARNING", "fixHint": "Add a negative pressure room in the ICU for airborne isolation." },
+        { "id": "NABH-5.3", "description": "CSSD unit type should be enabled for sterilization", "query": "UNIT_TYPE_EXISTS", "params": { "unitTypeCode": "CSSD" }, "severity": "WARNING", "fixHint": "Enable the CSSD unit type and create a CSSD unit." }
+      ]
+    },
+    {
+      "chapter": 6,
+      "name": "Continuous Quality Improvement",
+      "checks": [
+        { "id": "NABH-6.1", "description": "Audit trail must be enabled (always on)", "query": "ALWAYS_PASS", "params": {}, "severity": "INFO", "fixHint": "Audit trail is built into ZypoCare — no action needed." }
+      ]
+    },
+    {
+      "chapter": 7,
+      "name": "Responsibilities of Management",
+      "checks": [
+        { "id": "NABH-7.1", "description": "Each department should have a head assigned", "query": "DEPARTMENTS_WITH_HEAD", "params": { "minPercent": 80 }, "severity": "WARNING", "fixHint": "Assign a department head to departments without one." },
+        { "id": "NABH-7.2", "description": "At least one active staff member per department", "query": "DEPARTMENTS_WITH_STAFF", "params": {}, "severity": "WARNING", "fixHint": "Ensure every department has at least one active staff assignment." }
+      ]
+    },
+    {
+      "chapter": 8,
+      "name": "Facility Management & Safety",
+      "checks": [
+        { "id": "NABH-8.1", "description": "All buildings/floors must have fire zone assigned", "query": "LOCATIONS_WITH_FIRE_ZONE", "params": { "kinds": ["BUILDING", "FLOOR"] }, "severity": "WARNING", "fixHint": "Assign fire zone codes to all buildings and floors in Location setup." },
+        { "id": "NABH-8.2", "description": "At least one emergency exit must be marked", "query": "LOCATIONS_WITH_EMERGENCY_EXIT", "params": {}, "severity": "WARNING", "fixHint": "Mark at least one location as an emergency exit." },
+        { "id": "NABH-8.3", "description": "Radiology equipment must have valid AERB license", "query": "EQUIPMENT_AERB_VALID", "params": {}, "severity": "BLOCKER", "fixHint": "Upload a valid AERB license for all radiology/radiation equipment." },
+        { "id": "NABH-8.4", "description": "Ultrasound equipment must have PCPNDT registration", "query": "EQUIPMENT_PCPNDT_VALID", "params": {}, "severity": "BLOCKER", "fixHint": "Upload valid PCPNDT registration for all ultrasound machines." },
+        { "id": "NABH-8.5", "description": "Equipment with AMC should have valid contract dates", "query": "EQUIPMENT_AMC_VALID", "params": {}, "severity": "WARNING", "fixHint": "Renew expired AMC contracts for equipment." },
+        { "id": "NABH-8.6", "description": "Critical equipment must have preventive maintenance schedule", "query": "EQUIPMENT_PM_SCHEDULED", "params": { "categories": ["RADIOLOGY", "ULTRASOUND"] }, "severity": "WARNING", "fixHint": "Set PM frequency and next PM date for critical equipment." }
+      ]
+    },
+    {
+      "chapter": 9,
+      "name": "Human Resource Management",
+      "checks": [
+        { "id": "NABH-9.1", "description": "All medical staff must have verified credentials", "query": "STAFF_CREDENTIALS_VERIFIED", "params": { "category": "MEDICAL" }, "severity": "BLOCKER", "fixHint": "Verify registration credentials for all medical staff." },
+        { "id": "NABH-9.2", "description": "No credentials expiring within 30 days", "query": "STAFF_CREDENTIALS_EXPIRY", "params": { "days": 30 }, "severity": "WARNING", "fixHint": "Renew credentials expiring within 30 days." },
+        { "id": "NABH-9.3", "description": "Doctor-to-bed ratio must meet minimum (1:10)", "query": "DOCTOR_BED_RATIO", "params": { "maxRatio": 10 }, "severity": "WARNING", "fixHint": "Add more doctors or reduce active beds to meet the 1:10 ratio." },
+        { "id": "NABH-9.4", "description": "Nurse-to-bed ratio must meet minimum (1:5 general)", "query": "NURSE_BED_RATIO", "params": { "maxRatio": 5 }, "severity": "WARNING", "fixHint": "Add more nurses to meet minimum nurse-to-bed ratio." },
+        { "id": "NABH-9.5", "description": "USG operators must have PCPNDT authorization", "query": "USG_AUTHORIZATION", "params": {}, "severity": "BLOCKER", "fixHint": "Mark USG operators as PCPNDT-authorized in staff management." }
+      ]
+    },
+    {
+      "chapter": 10,
+      "name": "Information Management System",
+      "checks": [
+        { "id": "NABH-10.1", "description": "Service items should have standard code mappings", "query": "SERVICES_WITH_EXTERNAL_ID", "params": { "minPercent": 50 }, "severity": "WARNING", "fixHint": "Map services to standard codes (LOINC/CPT/SNOMED) using the service library." },
+        { "id": "NABH-10.2", "description": "Lab items must have reference ranges defined", "query": "DIAGNOSTIC_ITEMS_WITH_RANGES", "params": { "minPercent": 80 }, "severity": "WARNING", "fixHint": "Define reference ranges for lab diagnostic items." },
+        { "id": "NABH-10.3", "description": "Service catalog must be published", "query": "SERVICE_CATALOGUE_PUBLISHED", "params": {}, "severity": "BLOCKER", "fixHint": "Publish at least one service catalogue." },
+        { "id": "NABH-10.4", "description": "Tax codes must be configured for billing", "query": "TAX_CODES_EXIST", "params": { "min": 1 }, "severity": "BLOCKER", "fixHint": "Configure at least one tax code (e.g., GST_EXEMPT for clinical services)." },
+        { "id": "NABH-10.5", "description": "At least one active tariff plan must exist", "query": "TARIFF_PLAN_ACTIVE", "params": {}, "severity": "BLOCKER", "fixHint": "Create and activate a Price List tariff plan." }
+      ]
+    }
+  ]
+}

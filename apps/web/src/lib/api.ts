@@ -73,7 +73,22 @@ async function getLoadingStore() {
   }
 }
 
-type ApiFetchOptions = RequestInit & {
+/** ✅ Plain objects/arrays should be JSON.stringified. Do NOT stringify FormData/Blob/etc. */
+function isJsonSerializableBody(x: any) {
+  if (x == null) return false;
+  if (typeof x !== "object") return false;
+
+  if (typeof FormData !== "undefined" && x instanceof FormData) return false;
+  if (typeof Blob !== "undefined" && x instanceof Blob) return false;
+  if (typeof ArrayBuffer !== "undefined" && x instanceof ArrayBuffer) return false;
+  if (typeof URLSearchParams !== "undefined" && x instanceof URLSearchParams) return false;
+  if (ArrayBuffer.isView?.(x)) return false;
+
+  return Array.isArray(x) || Object.getPrototypeOf(x) === Object.prototype;
+}
+
+type ApiFetchOptions = Omit<RequestInit, "body"> & {
+  body?: any; // ✅ allow object bodies safely
   showLoader?: boolean; // default true
   loaderMessage?: string; // overrides default label
   /** If true, do NOT auto logout on 401 */
@@ -83,9 +98,8 @@ type ApiFetchOptions = RequestInit & {
    * - auto (default): inject/require activeBranchId only for known branch-scoped APIs
    * - require: always require an active branch for GLOBAL scope
    * - none: never inject/require branch in this call
-   * - report: alias of none (use for cross-branch reports/search)
    */
-  branch?: "auto" | "require" | "none" | "report";
+  branch?: "auto" | "require" | "none";
   /** Optional explicit branch override (rare; mostly for special flows/tests). */
   branchId?: string | null;
 };
@@ -121,6 +135,16 @@ const API_PERM_RULES: ApiPermRule[] = [
       const m = (method || "GET").toUpperCase();
       if (["GET", "HEAD", "OPTIONS"].includes(m)) return "BRANCH_FACILITY_READ";
       return "BRANCH_FACILITY_UPDATE";
+    },
+  },
+
+  // Department ↔ Specialty mapping (must be more specific than /departments)
+  {
+    re: /^\/api\/departments\/[^/]+\/specialties(\/|$)/,
+    custom: (_p, method) => {
+      const m = (method || "GET").toUpperCase();
+      if (["GET", "HEAD", "OPTIONS"].includes(m)) return "DEPARTMENT_SPECIALTY_READ";
+      return "DEPARTMENT_SPECIALTY_UPDATE";
     },
   },
 
@@ -230,7 +254,6 @@ const API_PERM_RULES: ApiPermRule[] = [
       const m = (method || "GET").toUpperCase();
       if (["GET", "HEAD", "OPTIONS"].includes(m)) return "GOV_POLICY_READ";
       if (p.endsWith("/approve") || p.endsWith("/reject")) return "GOV_POLICY_APPROVE";
-      // PATCH draft / submit draft
       return "GOV_POLICY_SUBMIT";
     },
   },
@@ -239,7 +262,6 @@ const API_PERM_RULES: ApiPermRule[] = [
     custom: (p, method) => {
       const m = (method || "GET").toUpperCase();
       if (["GET", "HEAD", "OPTIONS"].includes(m)) return "GOV_POLICY_READ";
-      // POST /policies/:code/drafts
       if (p.endsWith("/drafts")) return "GOV_POLICY_GLOBAL_DRAFT";
       return "GOV_POLICY_SUBMIT";
     },
@@ -296,7 +318,6 @@ async function assertApiPermission(url: string, method: string) {
     }
   } catch (e) {
     if (e instanceof ApiError) throw e;
-    // if anything unexpected happens, do not block the request
     return;
   }
 }
@@ -333,7 +354,6 @@ function withBranchIdQuery(u: string, branchId: string): string {
     const out = urlObj.pathname + urlObj.search + urlObj.hash;
     return isAbs ? urlObj.toString() : out;
   } catch {
-    // Fallback (should be rare)
     return u.includes("?") ? `${u}&branchId=${encodeURIComponent(branchId)}` : `${u}?branchId=${encodeURIComponent(branchId)}`;
   }
 }
@@ -341,16 +361,11 @@ function withBranchIdQuery(u: string, branchId: string): string {
 function isBranchScopedApi(u: string): boolean {
   if (!u.startsWith("/api/")) return false;
 
+  if (u.startsWith("/api/auth")) return false;
+  if (u.startsWith("/api/iam")) return false;
+  if (u.startsWith("/api/branches")) return false;
+
   const path = u.split("?")[0] || u;
-
-  // Always exclude global/auth/iam endpoints
-  if (path.startsWith("/api/auth")) return false;
-  if (path.startsWith("/api/iam")) return false;
-  if (path.startsWith("/api/branches")) return false;
-
-  // ✅ Reports should NOT force activeBranchId
-  if (path.startsWith("/api/reports")) return false;
-
   const prefixes = [
     "/api/infrastructure/",
     "/api/billing/",
@@ -364,7 +379,6 @@ function isBranchScopedApi(u: string): boolean {
 
   return prefixes.some((p) => path === p || path.startsWith(p));
 }
-
 
 async function getActiveBranchIdFromStore(): Promise<string | null> {
   if (typeof window === "undefined") return null;
@@ -386,10 +400,6 @@ async function setActiveBranchIdInStore(branchId: string | null) {
   }
 }
 
-/**
- * Ensures a usable activeBranchId for GLOBAL scope. If none is selected yet,
- * it will attempt to pick the first enabled branch from the selector API.
- */
 async function ensureActiveBranchId(): Promise<string | null> {
   if (typeof window === "undefined") return null;
 
@@ -399,7 +409,6 @@ async function ensureActiveBranchId(): Promise<string | null> {
     const existing = await getActiveBranchIdFromStore();
     if (existing) return existing;
 
-    // Try to auto-select a default branch (best UX): first active branch or first branch.
     try {
       const token = getAccessToken();
       const res = await fetch("/api/branches?mode=selector&onlyActive=true", {
@@ -409,7 +418,6 @@ async function ensureActiveBranchId(): Promise<string | null> {
       });
 
       if (res.status === 401) {
-        // Keep behavior consistent with apiFetch
         void hardLogoutIfBrowser();
         return null;
       }
@@ -433,11 +441,6 @@ async function ensureActiveBranchId(): Promise<string | null> {
   }
 }
 
-/**
- * No refresh tokens in backend:
- * Any 401 should trigger hard logout to avoid "cookie says logged-in but token expired".
- * 403 is a normal authorization outcome and must NOT log the user out.
- */
 let isLoggingOut = false;
 async function hardLogoutIfBrowser() {
   if (typeof window === "undefined") return;
@@ -445,7 +448,6 @@ async function hardLogoutIfBrowser() {
   isLoggingOut = true;
 
   try {
-    // clears proxy-gating cookies server-side
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => null);
   } finally {
     clearAccessToken();
@@ -469,6 +471,21 @@ async function hardLogoutIfBrowser() {
   }
 }
 
+async function safeReadResponse(res: Response): Promise<any> {
+  const ct = res.headers.get("content-type") || "";
+  if (res.status === 204) return null;
+  if (ct.includes("application/json")) return res.json().catch(() => null);
+  return res.text().catch(() => "");
+}
+
+function stripBranchIdFromObjectBody(body: any) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return body;
+  if (!Object.prototype.hasOwnProperty.call(body, "branchId")) return body;
+  const clone = { ...(body as any) };
+  delete (clone as any).branchId;
+  return clone;
+}
+
 export async function apiFetch<T>(url: string, init: ApiFetchOptions = {}): Promise<T> {
   const {
     showLoader = true,
@@ -486,7 +503,10 @@ export async function apiFetch<T>(url: string, init: ApiFetchOptions = {}): Prom
   headers.set("Accept", "application/json");
 
   let finalUrl = normalizedUrl;
-  let finalBody = fetchInit.body;
+  let finalBody: any = fetchInit.body;
+
+  const isRead = ["GET", "HEAD", "OPTIONS"].includes(method);
+  const isWrite = !isRead;
 
   // Attach token for protected APIs
   const token = getAccessToken();
@@ -494,18 +514,10 @@ export async function apiFetch<T>(url: string, init: ApiFetchOptions = {}): Prom
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  // ✅ Enterprise: ensure GLOBAL scope calls to branch-scoped APIs have an active branch.
-  // This prevents blank screens and noisy 4xx errors when a global user opens a branch module
-  // before selecting a branch.
-  //
-  // NOTE: if the caller already provides branchId in the URL (including branchId=ALL),
-  // we do not force an activeBranchId.
-  if (typeof window !== "undefined" && branch !== "none" && branch !== "report") {
+  // ✅ Ensure GLOBAL scope calls to branch-scoped APIs have an active branch.
+  if (typeof window !== "undefined" && branch !== "none") {
     const scope = getRoleScopeCookie();
-    const isScopedApi = isBranchScopedApi(finalUrl);
-    const hasBranch = hasBranchIdInUrl(finalUrl);
-
-    const needsBranch = branch === "require" || (branch === "auto" && isScopedApi && !hasBranch);
+    const needsBranch = branch === "require" || (branch === "auto" && isBranchScopedApi(finalUrl));
 
     if (needsBranch && scope === "GLOBAL") {
       const activeBranchId = branchOverride ?? (await ensureActiveBranchId());
@@ -519,44 +531,61 @@ export async function apiFetch<T>(url: string, init: ApiFetchOptions = {}): Prom
         });
       }
 
-      // If the caller already passes branchId (query), do not override.
-      if (!hasBranch) {
+      // Always prefer branch in query param (works for both create + update)
+      if (!hasBranchIdInUrl(finalUrl)) {
         finalUrl = withBranchIdQuery(finalUrl, activeBranchId);
       }
 
-      // Observability only (backend may ignore). Helps debugging headers in logs.
+      // Observability only
       if (!headers.has("X-Active-Branch-Id")) headers.set("X-Active-Branch-Id", activeBranchId);
 
-      // If JSON body already has branchId (but empty), fill it.
-      if (finalBody && typeof finalBody === "string") {
-        const trimmed = finalBody.trim();
-        const looksJson = trimmed.startsWith("{") || (headers.get("Content-Type") || "").includes("application/json");
-        if (looksJson) {
-          try {
-            const parsed = JSON.parse(trimmed);
-            if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-              const hasKey = Object.prototype.hasOwnProperty.call(parsed, "branchId");
-              if (hasKey) {
-                if (!parsed.branchId) parsed.branchId = activeBranchId;
-              } else if (needsBranch) {
-                // Safe for branch-scoped write APIs
-                parsed.branchId = activeBranchId;
+      // ✅ IMPORTANT:
+      // For UPDATE calls, backend forbids branchId in DTO — strip it if UI accidentally sends it
+      if (isWrite && method !== "POST") {
+        if (isJsonSerializableBody(finalBody)) {
+          finalBody = stripBranchIdFromObjectBody(finalBody);
+        } else if (typeof finalBody === "string") {
+          const trimmed = finalBody.trim();
+          if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+            try {
+              const parsed = JSON.parse(trimmed);
+              if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && "branchId" in parsed) {
+                delete (parsed as any).branchId;
+                finalBody = JSON.stringify(parsed);
               }
-              finalBody = JSON.stringify(parsed);
+            } catch {
+              // ignore
             }
-          } catch {
-            // ignore body injection failures
+          }
+        }
+      }
+
+      // ✅ For CREATE calls only, if body is JSON string/object and already has branchId empty, fill it.
+      // (We do NOT add a new branchId field for updates.)
+      if (isWrite && method === "POST") {
+        if (isJsonSerializableBody(finalBody) && typeof finalBody === "object" && !Array.isArray(finalBody)) {
+          if ("branchId" in finalBody && !finalBody.branchId) finalBody = { ...finalBody, branchId: activeBranchId };
+        } else if (typeof finalBody === "string") {
+          const trimmed = finalBody.trim();
+          if (trimmed.startsWith("{")) {
+            try {
+              const parsed = JSON.parse(trimmed);
+              if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+                if ("branchId" in parsed && !(parsed as any).branchId) (parsed as any).branchId = activeBranchId;
+                finalBody = JSON.stringify(parsed);
+              }
+            } catch {
+              // ignore
+            }
           }
         }
       }
     }
   }
 
-  // ✅ Frontend permission firewall (prevents UI from executing actions the principal cannot perform)
-  // Note: backend still enforces permissions; this is an extra UX + safety layer.
+  // ✅ Frontend permission firewall
   await assertApiPermission(finalUrl, method);
 
-  const isRead = ["GET", "HEAD", "OPTIONS"].includes(method);
   const label = loaderMessage ?? (isRead ? "Loading…" : "Saving changes…");
 
   const loadingId = zcLoading.start({
@@ -570,11 +599,24 @@ export async function apiFetch<T>(url: string, init: ApiFetchOptions = {}): Prom
   if (showLoader && store?.startLoading) store.startLoading(label);
 
   try {
-    if (!isRead) {
-      if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
-
+    if (isWrite) {
       const csrf = getCookie("xc_csrf");
       if (csrf && !headers.has("X-CSRF-Token")) headers.set("X-CSRF-Token", csrf);
+    }
+
+    // ✅ MAIN JSON FIX: stringify plain object/array bodies
+    const isFormData = typeof FormData !== "undefined" && finalBody instanceof FormData;
+
+    if (isWrite && finalBody != null && isJsonSerializableBody(finalBody)) {
+      finalBody = JSON.stringify(finalBody);
+      if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+    } else if (isWrite && typeof finalBody === "string") {
+      const t = finalBody.trim();
+      const looksJson = t.startsWith("{") || t.startsWith("[");
+      if (looksJson && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+    } else if (isWrite && isFormData) {
+      // do not set content-type for FormData (browser will set boundary)
+      if (headers.has("Content-Type")) headers.delete("Content-Type");
     }
 
     const res = await fetch(finalUrl, {
@@ -585,11 +627,9 @@ export async function apiFetch<T>(url: string, init: ApiFetchOptions = {}): Prom
       credentials: "include",
     });
 
-    const ct = res.headers.get("content-type") || "";
-    const data: any = ct.includes("application/json") ? await res.json() : await res.text();
+    const data: any = await safeReadResponse(res);
 
     if (!res.ok) {
-      // ✅ no refresh → hard logout only on 401 unless caller opts out
       if (!noAutoLogout && res.status === 401) {
         void hardLogoutIfBrowser();
       }
@@ -639,10 +679,6 @@ export async function getMe(opts: { showLoader?: boolean } = {}): Promise<Princi
   return res.principal;
 }
 
-/**
- * Fetches /api/iam/me (if access_token exists) and syncs to Zustand auth store.
- * This is the single source of truth for frontend permission gating.
- */
 export async function syncPrincipalToAuthStore(): Promise<Principal | null> {
   if (typeof window === "undefined") return null;
 
@@ -665,7 +701,7 @@ export async function syncPrincipalToAuthStore(): Promise<Principal | null> {
         name: principal.name,
         roleCode: principal.roleCode,
         roleScope: principal.roleScope,
-        permissions: principal.permissions, // ✅ add this
+        permissions: principal.permissions,
         branchId: principal.branchId,
         role: (principal.roleCode ?? currentUser.role) as any,
       });
@@ -678,16 +714,15 @@ export async function syncPrincipalToAuthStore(): Promise<Principal | null> {
           role: (principal.roleCode ?? "BRANCH_ADMIN") as any,
           roleCode: principal.roleCode,
           roleScope: principal.roleScope,
-          permissions: principal.permissions, // ✅ add this
+          permissions: principal.permissions,
           branchId: principal.branchId,
         } as any,
-        token
+        token,
       );
     }
 
     return principal;
   } catch {
-    // auto-logout is handled by apiFetch on 401
     return null;
   }
 }

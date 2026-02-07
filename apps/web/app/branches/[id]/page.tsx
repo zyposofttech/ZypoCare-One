@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiFetch } from "@/lib/api";
@@ -46,12 +47,43 @@ type BranchRow = {
 
   isActive?: boolean;
 
-  gstNumber?: string | null;
+  // Identity / legal
+  legalEntityName?: string | null;
 
+  // Address
   address?: string | null;
+  pinCode?: string | null;
+  state?: string | null;
+  country?: string | null;
+
+  // Contact
   contactPhone1?: string | null;
   contactPhone2?: string | null;
   contactEmail?: string | null;
+
+  // Statutory / registrations
+  gstNumber?: string | null;
+  panNumber?: string | null;
+  clinicalEstRegNumber?: string | null;
+  rohiniId?: string | null;
+  hfrId?: string | null;
+
+  // Optional branding + public links
+  logoUrl?: string | null;
+  website?: string | null;
+  socialLinks?: any;
+  accreditations?: any;
+  bedCount?: number | null;
+  establishedDate?: string | null;
+
+  // Settings
+  defaultCurrency?: string | null;
+  timezone?: string | null;
+  fiscalYearStartMonth?: number | null;
+  workingHours?: any;
+  emergency24x7?: boolean | null;
+  multiLanguageSupport?: boolean | null;
+  supportedLanguages?: any;
 
   createdAt?: string;
   updatedAt?: string;
@@ -64,15 +96,53 @@ type BranchRow = {
   specialtiesCount?: number;
 };
 
+
 type BranchForm = {
   name: string;
   city: string;
-  gstNumber: string;
+
+  legalEntityName: string;
+
   address: string;
+  pinCode: string;
+  state: string;
+  country: string;
+
   contactPhone1: string;
   contactPhone2: string;
   contactEmail: string;
+
+  gstNumber: string;
+  panNumber: string;
+  clinicalEstRegNumber: string;
+  rohiniId: string;
+  hfrId: string;
+
+  logoUrl: string;
+  website: string;
+
+  facebook: string;
+  instagram: string;
+  linkedin: string;
+  x: string;
+  youtube: string;
+
+  accreditationNabh: boolean;
+  accreditationJci: boolean;
+
+  bedCount: string;
+  establishedDate: string;
+
+  defaultCurrency: string;
+  timezone: string;
+  fiscalYearStartMonth: string;
+  workingHoursText: string;
+
+  emergency24x7: boolean;
+  multiLanguageSupport: boolean;
+  supportedLanguagesText: string;
 };
+
 
 // ---------------- Utilities ----------------
 
@@ -191,6 +261,76 @@ function validateGSTIN(gstin: string): string | null {
   return null;
 }
 
+
+function normalizePAN(input: string) {
+  return String(input || "").trim().toUpperCase();
+}
+
+function validatePAN(pan: string): string | null {
+  const v = normalizePAN(pan);
+  if (!v) return "PAN Number is required";
+  const re = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+  if (!re.test(v)) return "Please enter a valid PAN (example: ABCDE1234F)";
+  return null;
+}
+
+function normalizePIN(input: string) {
+  return String(input || "").trim();
+}
+
+function validatePIN(pin: string): string | null {
+  const v = normalizePIN(pin);
+  if (!v) return "PIN code is required";
+  if (!/^\d{6}$/.test(v)) return "PIN code must be 6 digits (example: 560100)";
+  return null;
+}
+
+function validateEmailBasic(email: string): string | null {
+  const v = String(email || "").trim().toLowerCase();
+  if (!v) return "Contact email is required";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return "Please enter a valid email";
+  return null;
+}
+
+function parseISODateToInput(v?: string | null) {
+  if (!v) return "";
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toISOString().slice(0, 10);
+}
+
+function jsonStringArray(v: any): string[] {
+  if (!v) return [];
+  if (Array.isArray(v)) return v.map((x) => String(x ?? "").trim()).filter(Boolean);
+  if (typeof v === "string") {
+    try {
+      const parsed = JSON.parse(v);
+      if (Array.isArray(parsed)) return parsed.map((x) => String(x ?? "").trim()).filter(Boolean);
+    } catch {
+      // ignore
+    }
+  }
+  return [];
+}
+
+function workingHoursToText(v: any): string {
+  if (!v) return "";
+  if (typeof v === "string") return v;
+  if (typeof v === "object" && typeof v.text === "string") return v.text;
+  try {
+    return JSON.stringify(v);
+  } catch {
+    return "";
+  }
+}
+
+function socialToField(v: any, key: string): string {
+  if (!v || typeof v !== "object") return "";
+  const s = String((v as any)[key] ?? "").trim();
+  return s;
+}
+
+
 // ---------------- Small Components ----------------
 
 function CopyButton({ text }: { text: string }) {
@@ -229,7 +369,7 @@ function InfoTile({
   value: React.ReactNode;
   className?: string;
   icon?: React.ReactNode;
-  tone?: "indigo" | "emerald" | "cyan" | "zinc";
+  tone?: "indigo" | "emerald" | "cyan" | "zinc" | "sky" | "violet" | "amber";
 }) {
   const toneCls =
     tone === "indigo"
@@ -336,6 +476,7 @@ function ModalShell({
   );
 }
 
+
 function EditBranchModal({
   open,
   branch,
@@ -355,33 +496,110 @@ function EditBranchModal({
 
   const [busy, setBusy] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
+
   const [form, setForm] = React.useState<BranchForm>({
     name: "",
     city: "",
-    gstNumber: "",
+
+    legalEntityName: "",
+
     address: "",
+    pinCode: "",
+    state: "",
+    country: "",
+
     contactPhone1: "",
     contactPhone2: "",
     contactEmail: "",
+
+    gstNumber: "",
+    panNumber: "",
+    clinicalEstRegNumber: "",
+    rohiniId: "",
+    hfrId: "",
+
+    logoUrl: "",
+    website: "",
+
+    facebook: "",
+    instagram: "",
+    linkedin: "",
+    x: "",
+    youtube: "",
+
+    accreditationNabh: false,
+    accreditationJci: false,
+
+    bedCount: "",
+    establishedDate: "",
+
+    defaultCurrency: "INR",
+    timezone: "Asia/Kolkata",
+    fiscalYearStartMonth: "4",
+    workingHoursText: "",
+
+    emergency24x7: true,
+    multiLanguageSupport: false,
+    supportedLanguagesText: "",
   });
 
   React.useEffect(() => {
     if (!open || !branch) return;
     setErr(null);
     setBusy(false);
+
+    const acc = jsonStringArray(branch.accreditations);
+    const langs = jsonStringArray(branch.supportedLanguages);
+
     setForm({
       name: branch.name ?? "",
       city: branch.city ?? "",
-      gstNumber: branch.gstNumber ?? "",
+
+      legalEntityName: branch.legalEntityName ?? "",
+
       address: branch.address ?? "",
+      pinCode: branch.pinCode ?? "",
+      state: branch.state ?? "",
+      country: branch.country ?? "",
+
       contactPhone1: branch.contactPhone1 ?? "",
       contactPhone2: branch.contactPhone2 ?? "",
       contactEmail: branch.contactEmail ?? "",
+
+      gstNumber: branch.gstNumber ?? "",
+      panNumber: branch.panNumber ?? "",
+      clinicalEstRegNumber: branch.clinicalEstRegNumber ?? "",
+      rohiniId: branch.rohiniId ?? "",
+      hfrId: branch.hfrId ?? "",
+
+      logoUrl: branch.logoUrl ?? "",
+      website: branch.website ?? "",
+
+      facebook: socialToField(branch.socialLinks, "facebook"),
+      instagram: socialToField(branch.socialLinks, "instagram"),
+      linkedin: socialToField(branch.socialLinks, "linkedin"),
+      x: socialToField(branch.socialLinks, "x"),
+      youtube: socialToField(branch.socialLinks, "youtube"),
+
+      accreditationNabh: acc.includes("NABH"),
+      accreditationJci: acc.includes("JCI"),
+
+      bedCount: branch.bedCount != null ? String(branch.bedCount) : "",
+      establishedDate: parseISODateToInput(branch.establishedDate),
+
+      defaultCurrency: (branch.defaultCurrency ?? "INR").toUpperCase(),
+      timezone: branch.timezone ?? "Asia/Kolkata",
+      fiscalYearStartMonth: String(branch.fiscalYearStartMonth ?? 4),
+      workingHoursText: workingHoursToText(branch.workingHours),
+
+      emergency24x7: branch.emergency24x7 ?? true,
+      multiLanguageSupport: branch.multiLanguageSupport ?? false,
+      supportedLanguagesText: langs.length ? langs.join(", ") : "",
     });
   }, [open, branch]);
 
   function cleanOptional(s: string) {
-    const v = s.trim();
+    const v = String(s ?? "").trim();
     return v ? v : "";
   }
 
@@ -390,11 +608,47 @@ function EditBranchModal({
     if (!canSubmit) return setErr(deniedMessage);
     setErr(null);
 
+    // Required validations
     if (!form.name.trim()) return setErr("Branch name is required");
     if (!form.city.trim()) return setErr("City is required");
+    if (!form.legalEntityName.trim()) return setErr("Legal entity name is required");
+    if (!form.address.trim()) return setErr("Address is required");
+
+    const pinErr = validatePIN(form.pinCode);
+    if (pinErr) return setErr(pinErr);
+
+    if (!form.contactPhone1.trim()) return setErr("Primary contact phone is required");
+
+    const emailErr = validateEmailBasic(form.contactEmail);
+    if (emailErr) return setErr(emailErr);
 
     const gstErr = validateGSTIN(form.gstNumber);
     if (gstErr) return setErr(gstErr);
+
+    const panErr = validatePAN(form.panNumber);
+    if (panErr) return setErr(panErr);
+
+    if (!form.clinicalEstRegNumber.trim()) return setErr("Clinical establishment registration number is required");
+
+    const accreditations = [
+      ...(form.accreditationNabh ? ["NABH"] : []),
+      ...(form.accreditationJci ? ["JCI"] : []),
+    ];
+
+    const supportedLanguages = form.supportedLanguagesText
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const bedCount = form.bedCount.trim() ? Number(form.bedCount) : undefined;
+    if (form.bedCount.trim() && !Number.isFinite(bedCount as any)) return setErr("Bed count must be a number");
+
+    const fiscalMonth = form.fiscalYearStartMonth.trim() ? Number(form.fiscalYearStartMonth) : undefined;
+    if (form.fiscalYearStartMonth.trim()) {
+      if (!Number.isInteger(fiscalMonth as any) || (fiscalMonth as any) < 1 || (fiscalMonth as any) > 12) {
+        return setErr("Fiscal year start month must be between 1 and 12");
+      }
+    }
 
     setBusy(true);
     try {
@@ -403,11 +657,46 @@ function EditBranchModal({
         body: JSON.stringify({
           name: form.name.trim(),
           city: form.city.trim(),
-          gstNumber: normalizeGSTIN(form.gstNumber),
-          address: cleanOptional(form.address),
+
+          legalEntityName: form.legalEntityName.trim(),
+
+          address: form.address.trim(),
+          pinCode: normalizePIN(form.pinCode),
+          state: cleanOptional(form.state),
+          country: cleanOptional(form.country),
+
           contactPhone1: cleanOptional(form.contactPhone1),
           contactPhone2: cleanOptional(form.contactPhone2),
-          contactEmail: cleanOptional(form.contactEmail),
+          contactEmail: form.contactEmail.trim().toLowerCase(),
+
+          gstNumber: normalizeGSTIN(form.gstNumber),
+          panNumber: normalizePAN(form.panNumber),
+          clinicalEstRegNumber: form.clinicalEstRegNumber.trim(),
+          rohiniId: cleanOptional(form.rohiniId),
+          hfrId: cleanOptional(form.hfrId),
+
+          logoUrl: cleanOptional(form.logoUrl),
+          website: cleanOptional(form.website),
+
+          facebook: cleanOptional(form.facebook),
+          instagram: cleanOptional(form.instagram),
+          linkedin: cleanOptional(form.linkedin),
+          x: cleanOptional(form.x),
+          youtube: cleanOptional(form.youtube),
+
+          accreditations,
+
+          bedCount,
+          establishedDate: form.establishedDate ? form.establishedDate : undefined,
+
+          defaultCurrency: (cleanOptional(form.defaultCurrency) || "INR").toUpperCase(),
+          timezone: cleanOptional(form.timezone) || "Asia/Kolkata",
+          fiscalYearStartMonth: fiscalMonth,
+          workingHoursText: cleanOptional(form.workingHoursText),
+
+          emergency24x7: Boolean(form.emergency24x7),
+          multiLanguageSupport: Boolean(form.multiLanguageSupport),
+          supportedLanguages,
         }),
       });
 
@@ -444,7 +733,9 @@ function EditBranchModal({
             </div>
             Edit Branch
           </DialogTitle>
-          <DialogDescription>Update GSTIN, address & contact details. Branch code is immutable.</DialogDescription>
+          <DialogDescription>
+            Update legal identity, statutory IDs, contact, branding, and operational settings.
+          </DialogDescription>
         </DialogHeader>
 
         <Separator className="my-4" />
@@ -456,89 +747,407 @@ function EditBranchModal({
           </div>
         ) : null}
 
-        <div className="grid gap-4">
-          <div className="grid gap-3 md:grid-cols-2">
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Branch code</div>
-              <Input value={branch.code} disabled className="mt-1 font-mono" />
+        <div className="grid gap-6">
+          {/* Basic */}
+          <div className="grid gap-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Basic</div>
+            <div className="grid gap-3 md:grid-cols-3">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Branch code</div>
+                <Input value={branch.code} disabled className="mt-1 font-mono" />
+              </div>
+              <div className="md:col-span-2">
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">
+                  Branch name <span className="text-[rgb(var(--zc-danger))]">*</span>
+                </div>
+                <Input
+                  value={form.name}
+                  onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">
+                  City <span className="text-[rgb(var(--zc-danger))]">*</span>
+                </div>
+                <Input
+                  value={form.city}
+                  onChange={(e) => setForm((s) => ({ ...s, city: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
             </div>
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">City</div>
-              <Input
-                value={form.city}
-                onChange={(e) => setForm((s) => ({ ...s, city: e.target.value }))}
-                className="mt-1"
-              />
+          </div>
+
+          {/* Legal & Compliance */}
+          <div className="grid gap-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Legal & Compliance</div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">
+                  Legal entity name <span className="text-[rgb(var(--zc-danger))]">*</span>
+                </div>
+                <Input
+                  value={form.legalEntityName}
+                  onChange={(e) => setForm((s) => ({ ...s, legalEntityName: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">
+                  GSTIN <span className="text-[rgb(var(--zc-danger))]">*</span>
+                </div>
+                <Input
+                  value={form.gstNumber}
+                  onChange={(e) => setForm((s) => ({ ...s, gstNumber: e.target.value.toUpperCase() }))}
+                  placeholder="29ABCDE1234F1Z5"
+                  maxLength={15}
+                  className="mt-1 font-mono"
+                />
+              </div>
+
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">
+                  PAN <span className="text-[rgb(var(--zc-danger))]">*</span>
+                </div>
+                <Input
+                  value={form.panNumber}
+                  onChange={(e) => setForm((s) => ({ ...s, panNumber: e.target.value.toUpperCase() }))}
+                  placeholder="ABCDE1234F"
+                  maxLength={10}
+                  className="mt-1 font-mono"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">
+                  Clinical establishment registration no. <span className="text-[rgb(var(--zc-danger))]">*</span>
+                </div>
+                <Input
+                  value={form.clinicalEstRegNumber}
+                  onChange={(e) => setForm((s) => ({ ...s, clinicalEstRegNumber: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">ROHINI ID</div>
+                <Input
+                  value={form.rohiniId}
+                  onChange={(e) => setForm((s) => ({ ...s, rohiniId: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">HFR ID (ABDM)</div>
+                <Input
+                  value={form.hfrId}
+                  onChange={(e) => setForm((s) => ({ ...s, hfrId: e.target.value }))}
+                  className="mt-1"
+                />
+                <div className="mt-1 text-xs text-zc-muted">Auto-populated after ABDM registration (editable if needed).</div>
+              </div>
             </div>
           </div>
 
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Branch name</div>
-            <Input
-              value={form.name}
-              onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
-              className="mt-1"
-            />
-          </div>
-
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">GST Number (GSTIN)</div>
-            <Input
-              value={form.gstNumber}
-              onChange={(e) => setForm((s) => ({ ...s, gstNumber: e.target.value.toUpperCase() }))}
-              placeholder="29ABCDE1234F1Z5"
-              maxLength={15}
-              className="mt-1 font-mono"
-            />
-            <div className="mt-1 text-xs text-zc-muted">Used in Accounting, invoices, statutory reporting.</div>
-          </div>
-
-          <div>
+          {/* Address */}
+          <div className="grid gap-4">
             <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Address</div>
-            <textarea
-              value={form.address}
-              onChange={(e) => setForm((s) => ({ ...s, address: e.target.value }))}
-              placeholder="Address line for this campus"
-              className={cn(
-                "mt-1 min-h-[90px] w-full rounded-lg border border-zc-border bg-transparent px-3 py-2 text-sm text-zc-text outline-none",
-                "focus-visible:ring-2 focus-visible:ring-zc-ring",
-              )}
-            />
-          </div>
 
-          <div className="grid gap-3 md:grid-cols-2">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Contact phone 1</div>
-              <Input
-                value={form.contactPhone1}
-                onChange={(e) => setForm((s) => ({ ...s, contactPhone1: e.target.value }))}
-                placeholder="+91 9XXXXXXXXX"
-                className="mt-1"
+              <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">
+                Address <span className="text-[rgb(var(--zc-danger))]">*</span>
+              </div>
+              <textarea
+                value={form.address}
+                onChange={(e) => setForm((s) => ({ ...s, address: e.target.value }))}
+                placeholder="Full address for this branch (include landmark if needed)"
+                className={cn(
+                  "mt-1 min-h-[90px] w-full rounded-lg border border-zc-border bg-transparent px-3 py-2 text-sm text-zc-text outline-none",
+                  "focus-visible:ring-2 focus-visible:ring-zc-ring",
+                )}
               />
             </div>
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Contact phone 2</div>
-              <Input
-                value={form.contactPhone2}
-                onChange={(e) => setForm((s) => ({ ...s, contactPhone2: e.target.value }))}
-                placeholder="Optional alternate number"
-                className="mt-1"
-              />
+
+            <div className="grid gap-3 md:grid-cols-3">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">
+                  PIN code <span className="text-[rgb(var(--zc-danger))]">*</span>
+                </div>
+                <Input
+                  value={form.pinCode}
+                  onChange={(e) => setForm((s) => ({ ...s, pinCode: e.target.value }))}
+                  placeholder="560100"
+                  maxLength={6}
+                  className="mt-1 font-mono"
+                />
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">State</div>
+                <Input
+                  value={form.state}
+                  onChange={(e) => setForm((s) => ({ ...s, state: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Country</div>
+                <Input
+                  value={form.country}
+                  onChange={(e) => setForm((s) => ({ ...s, country: e.target.value }))}
+                  placeholder="India"
+                  className="mt-1"
+                />
+              </div>
             </div>
           </div>
 
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Contact email</div>
-            <Input
-              value={form.contactEmail}
-              onChange={(e) => setForm((s) => ({ ...s, contactEmail: e.target.value }))}
-              placeholder="branch@zypocare.local"
-              className="mt-1"
-            />
+          {/* Contact */}
+          <div className="grid gap-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Contact</div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">
+                  Primary phone <span className="text-[rgb(var(--zc-danger))]">*</span>
+                </div>
+                <Input
+                  value={form.contactPhone1}
+                  onChange={(e) => setForm((s) => ({ ...s, contactPhone1: e.target.value }))}
+                  placeholder="+91 9XXXXXXXXX"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Secondary phone</div>
+                <Input
+                  value={form.contactPhone2}
+                  onChange={(e) => setForm((s) => ({ ...s, contactPhone2: e.target.value }))}
+                  placeholder="Optional alternate number"
+                  className="mt-1"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">
+                  Contact email <span className="text-[rgb(var(--zc-danger))]">*</span>
+                </div>
+                <Input
+                  value={form.contactEmail}
+                  onChange={(e) => setForm((s) => ({ ...s, contactEmail: e.target.value }))}
+                  placeholder="branch@hospital.com"
+                  className="mt-1"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Branding */}
+          <div className="grid gap-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Branding & Links</div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Logo URL</div>
+                <Input
+                  value={form.logoUrl}
+                  onChange={(e) => setForm((s) => ({ ...s, logoUrl: e.target.value }))}
+                  placeholder="https://..."
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Website</div>
+                <Input
+                  value={form.website}
+                  onChange={(e) => setForm((s) => ({ ...s, website: e.target.value }))}
+                  placeholder="https://..."
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Facebook</div>
+                <Input
+                  value={form.facebook}
+                  onChange={(e) => setForm((s) => ({ ...s, facebook: e.target.value }))}
+                  placeholder="https://facebook.com/..."
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Instagram</div>
+                <Input
+                  value={form.instagram}
+                  onChange={(e) => setForm((s) => ({ ...s, instagram: e.target.value }))}
+                  placeholder="https://instagram.com/..."
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">LinkedIn</div>
+                <Input
+                  value={form.linkedin}
+                  onChange={(e) => setForm((s) => ({ ...s, linkedin: e.target.value }))}
+                  placeholder="https://linkedin.com/..."
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">X (Twitter)</div>
+                <Input
+                  value={form.x}
+                  onChange={(e) => setForm((s) => ({ ...s, x: e.target.value }))}
+                  placeholder="https://x.com/..."
+                  className="mt-1"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">YouTube</div>
+                <Input
+                  value={form.youtube}
+                  onChange={(e) => setForm((s) => ({ ...s, youtube: e.target.value }))}
+                  placeholder="https://youtube.com/..."
+                  className="mt-1"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Accreditation & Capacity */}
+          <div className="grid gap-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Accreditation & Capacity</div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel/20 px-3 py-2">
+                <div>
+                  <div className="text-sm font-semibold text-zc-text">NABH</div>
+                  <div className="text-xs text-zc-muted">Accreditation status</div>
+                </div>
+                <Switch
+                  checked={form.accreditationNabh}
+                  onCheckedChange={(v) => setForm((s) => ({ ...s, accreditationNabh: Boolean(v) }))}
+                />
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel/20 px-3 py-2">
+                <div>
+                  <div className="text-sm font-semibold text-zc-text">JCI</div>
+                  <div className="text-xs text-zc-muted">Accreditation status</div>
+                </div>
+                <Switch
+                  checked={form.accreditationJci}
+                  onCheckedChange={(v) => setForm((s) => ({ ...s, accreditationJci: Boolean(v) }))}
+                />
+              </div>
+
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Bed count</div>
+                <Input
+                  type="number"
+                  value={form.bedCount}
+                  onChange={(e) => setForm((s) => ({ ...s, bedCount: e.target.value }))}
+                  placeholder="e.g. 250"
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Established date</div>
+                <Input
+                  type="date"
+                  value={form.establishedDate}
+                  onChange={(e) => setForm((s) => ({ ...s, establishedDate: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Settings */}
+          <div className="grid gap-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Branch Settings</div>
+
+            <div className="grid gap-3 md:grid-cols-3">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Default currency</div>
+                <Input
+                  value={form.defaultCurrency}
+                  onChange={(e) => setForm((s) => ({ ...s, defaultCurrency: e.target.value.toUpperCase() }))}
+                  placeholder="INR"
+                  className="mt-1 font-mono"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Timezone</div>
+                <Input
+                  value={form.timezone}
+                  onChange={(e) => setForm((s) => ({ ...s, timezone: e.target.value }))}
+                  placeholder="Asia/Kolkata"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Fiscal year start month</div>
+                <Input
+                  type="number"
+                  min={1}
+                  max={12}
+                  value={form.fiscalYearStartMonth}
+                  onChange={(e) => setForm((s) => ({ ...s, fiscalYearStartMonth: e.target.value }))}
+                  className="mt-1"
+                />
+                <div className="mt-1 text-xs text-zc-muted">India default is 4 (April).</div>
+              </div>
+            </div>
+
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Working hours</div>
+              <textarea
+                value={form.workingHoursText}
+                onChange={(e) => setForm((s) => ({ ...s, workingHoursText: e.target.value }))}
+                placeholder="e.g. Mon-Sat 09:00-18:00"
+                className={cn(
+                  "mt-1 min-h-[80px] w-full rounded-lg border border-zc-border bg-transparent px-3 py-2 text-sm text-zc-text outline-none",
+                  "focus-visible:ring-2 focus-visible:ring-zc-ring",
+                )}
+              />
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel/20 px-3 py-2">
+                <div>
+                  <div className="text-sm font-semibold text-zc-text">Emergency 24×7</div>
+                  <div className="text-xs text-zc-muted">Branch handles emergency around the clock</div>
+                </div>
+                <Switch checked={form.emergency24x7} onCheckedChange={(v) => setForm((s) => ({ ...s, emergency24x7: Boolean(v) }))} />
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel/20 px-3 py-2">
+                <div>
+                  <div className="text-sm font-semibold text-zc-text">Multi-language</div>
+                  <div className="text-xs text-zc-muted">Enable multilingual UI and docs</div>
+                </div>
+                <Switch
+                  checked={form.multiLanguageSupport}
+                  onCheckedChange={(v) => setForm((s) => ({ ...s, multiLanguageSupport: Boolean(v) }))}
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Supported languages</div>
+              <Input
+                value={form.supportedLanguagesText}
+                onChange={(e) => setForm((s) => ({ ...s, supportedLanguagesText: e.target.value }))}
+                placeholder="e.g. English, Hindi, Kannada"
+                className="mt-1"
+              />
+              <div className="mt-1 text-xs text-zc-muted">Comma-separated (used when multi-language is enabled).</div>
+            </div>
           </div>
         </div>
 
-        <DialogFooter className="mt-5">
+        <DialogFooter className="mt-6">
           <Button variant="outline" onClick={onClose} disabled={busy}>
             Cancel
           </Button>
@@ -550,6 +1159,7 @@ function EditBranchModal({
     </Dialog>
   );
 }
+
 
 function DeleteConfirmModal({
   open,
@@ -866,6 +1476,12 @@ export default function BranchDetailPage() {
   // We can’t know mapping completeness from branch counts alone; this is a safe minimum signal.
   const readyMapping = readyDepartments && readySpecialties;
 
+  const accreditations = jsonStringArray(row?.accreditations);
+  const supportedLangs = jsonStringArray(row?.supportedLanguages);
+  const social = row?.socialLinks && typeof row.socialLinks === "object" ? (row.socialLinks as any) : null;
+  const workingHoursText = workingHoursToText(row?.workingHours);
+
+
   return (
     <AppShell title="Branch Dashboard">
       <div className="grid gap-6">
@@ -1025,7 +1641,8 @@ export default function BranchDetailPage() {
                 <Skeleton className="h-16" />
               </div>
             ) : row ? (
-              <div className="grid gap-4 md:grid-cols-3">
+              <>
+                <div className="grid gap-4 md:grid-cols-4">
                 <InfoTile
                   label="Branch ID"
                   icon={<ClipboardList className="h-4 w-4" />}
@@ -1054,7 +1671,51 @@ export default function BranchDetailPage() {
                     </div>
                   }
                 />
+                <InfoTile
+                  label="PAN"
+                  icon={<ClipboardList className="h-4 w-4" />}
+                  tone="cyan"
+                  value={
+                    <div className="flex items-center">
+                      <span className="font-mono text-sm font-semibold">{valOrDash(row.panNumber)}</span>
+                      {row.panNumber ? <CopyButton text={row.panNumber} /> : null}
+                    </div>
+                  }
+                />
               </div>
+
+              <div className="mt-4 grid gap-4 md:grid-cols-3">
+                <InfoTile
+                  label="Clinical Reg No."
+                  icon={<ClipboardList className="h-4 w-4" />}
+                  tone="zinc"
+                  value={<span className="text-sm font-semibold">{valOrDash(row.clinicalEstRegNumber)}</span>}
+                />
+                <InfoTile
+                  label="HFR ID (ABDM)"
+                  icon={<ShieldCheck className="h-4 w-4" />}
+                  tone="indigo"
+                  value={<span className="text-sm font-semibold">{valOrDash(row.hfrId)}</span>}
+                />
+                <InfoTile
+                  label="Settings"
+                  icon={<Layers className="h-4 w-4" />}
+                  tone="emerald"
+                  value={
+                    <div className="text-sm text-zc-text">
+                      <div>
+                        <span className="font-semibold">{valOrDash(row.defaultCurrency ?? "INR")}</span>{" "}
+                        <span className="text-zc-muted">•</span>{" "}
+                        <span className="font-semibold">{valOrDash(row.timezone ?? "Asia/Kolkata")}</span>
+                      </div>
+                      <div className="text-xs text-zc-muted mt-1">
+                        Fiscal start: {row.fiscalYearStartMonth ?? 4} • Emergency: {row.emergency24x7 === false ? "No" : "Yes"}
+                      </div>
+                    </div>
+                  }
+                />
+              </div>
+              </>
             ) : (
               <div className="text-sm text-zc-muted">No data.</div>
             )}
@@ -1114,8 +1775,24 @@ export default function BranchDetailPage() {
                         </div>
                       ) : row ? (
                         <div className="grid gap-4 md:grid-cols-2">
-                          <InfoTile label="Name" value={<span className="text-sm font-semibold">{row.name}</span>} />
+                          {/* Basic */}
+                          <div className="md:col-span-2 text-xs font-semibold uppercase tracking-wide text-zc-muted">
+                            Identity
+                          </div>
+                          <InfoTile label="Branch Name" value={<span className="text-sm font-semibold">{row.name}</span>} />
                           <InfoTile label="City" value={<span className="text-sm font-semibold">{row.city}</span>} />
+
+                          <InfoTile
+                            label="Legal Entity Name"
+                            value={<span className="text-sm text-zc-text">{valOrDash(row.legalEntityName)}</span>}
+                            className="md:col-span-2"
+                            tone="zinc"
+                          />
+
+                          {/* Statutory */}
+                          <div className="md:col-span-2 pt-2 text-xs font-semibold uppercase tracking-wide text-zc-muted">
+                            Statutory & Registration
+                          </div>
 
                           <InfoTile
                             label="GSTIN"
@@ -1126,8 +1803,49 @@ export default function BranchDetailPage() {
                           />
 
                           <InfoTile
+                            label="PAN"
+                            value={<span className="font-mono text-sm font-semibold">{valOrDash(row.panNumber)}</span>}
+                            icon={<ClipboardList className="h-4 w-4" />}
+                            tone="cyan"
+                          />
+
+                          <InfoTile
+                            label="Clinical Establishment Reg No."
+                            value={<span className="text-sm font-semibold">{valOrDash(row.clinicalEstRegNumber)}</span>}
+                            icon={<ClipboardList className="h-4 w-4" />}
+                            tone="zinc"
+                          />
+
+                          <InfoTile
+                            label="ROHINI ID"
+                            value={<span className="text-sm font-semibold">{valOrDash(row.rohiniId)}</span>}
+                            tone="zinc"
+                          />
+
+                          <InfoTile
+                            label="HFR ID (ABDM)"
+                            value={<span className="text-sm font-semibold">{valOrDash(row.hfrId)}</span>}
+                            icon={<ShieldCheck className="h-4 w-4" />}
+                            tone="indigo"
+                          />
+
+                          {/* Address & Contact */}
+                          <div className="md:col-span-2 pt-2 text-xs font-semibold uppercase tracking-wide text-zc-muted">
+                            Address & Contact
+                          </div>
+
+                          <InfoTile
                             label="Address"
-                            value={<div className="text-sm text-zc-text">{valOrDash(row.address)}</div>}
+                            value={
+                              <div className="text-sm text-zc-text">
+                                <div>{valOrDash(row.address)}</div>
+                                <div className="mt-1 text-xs text-zc-muted">
+                                  PIN: <span className="font-mono text-zc-text">{valOrDash(row.pinCode)}</span>
+                                  {row.state?.trim() ? <span className="text-zc-muted"> • {row.state}</span> : null}
+                                  {row.country?.trim() ? <span className="text-zc-muted"> • {row.country}</span> : null}
+                                </div>
+                              </div>
+                            }
                             className="md:col-span-2"
                             icon={<MapPin className="h-4 w-4" />}
                             tone="indigo"
@@ -1139,7 +1857,7 @@ export default function BranchDetailPage() {
                               <div className="text-sm text-zc-text">
                                 <div>{valOrDash(row.contactPhone1)}</div>
                                 {row.contactPhone2?.trim() ? <div className="text-zc-muted">{row.contactPhone2}</div> : null}
-                                {!row.contactPhone1?.trim() && !row.contactPhone2?.trim() ? <span>--</span> : null}
+                                {!row.contactPhone1?.trim() && !row.contactPhone2?.trim() ? <span>—</span> : null}
                               </div>
                             }
                             tone="cyan"
@@ -1151,8 +1869,163 @@ export default function BranchDetailPage() {
                             tone="zinc"
                           />
 
-                          <InfoTile label="Created At" value={<span className="text-sm text-zc-text">{fmtDate(row.createdAt)}</span>} />
-                          <InfoTile label="Updated At" value={<span className="text-sm text-zc-text">{fmtDate(row.updatedAt)}</span>} />
+                          {/* Branding */}
+                          <div className="md:col-span-2 pt-2 text-xs font-semibold uppercase tracking-wide text-zc-muted">
+                            Branding & Public Links
+                          </div>
+
+                          <InfoTile
+                            label="Website"
+                            value={
+                              row.website?.trim() ? (
+                                <a className="text-sm font-semibold text-indigo-600 hover:underline" href={row.website} target="_blank" rel="noreferrer">
+                                  {row.website}
+                                </a>
+                              ) : (
+                                <span className="text-sm text-zc-text">—</span>
+                              )
+                            }
+                            tone="indigo"
+                          />
+
+                          <InfoTile
+                            label="Logo URL"
+                            value={
+                              row.logoUrl?.trim() ? (
+                                <a className="text-sm font-semibold text-indigo-600 hover:underline" href={row.logoUrl} target="_blank" rel="noreferrer">
+                                  View
+                                </a>
+                              ) : (
+                                <span className="text-sm text-zc-text">—</span>
+                              )
+                            }
+                            tone="zinc"
+                          />
+
+                          <InfoTile
+                            label="Social Links"
+                            className="md:col-span-2"
+                            value={
+                              social ? (
+                                <div className="text-sm text-zc-text space-y-1">
+                                  {Object.entries(social)
+                                    .filter(([_, v]) => String(v ?? "").trim())
+                                    .map(([k, v]) => (
+                                      <div key={k} className="flex items-center justify-between gap-2">
+                                        <span className="text-xs font-semibold uppercase tracking-wide text-zc-muted">{k}</span>
+                                        <a className="truncate text-indigo-600 hover:underline" href={String(v)} target="_blank" rel="noreferrer">
+                                          {String(v)}
+                                        </a>
+                                      </div>
+                                    ))}
+                                  {Object.entries(social).filter(([_, v]) => String(v ?? "").trim()).length === 0 ? <span>—</span> : null}
+                                </div>
+                              ) : (
+                                <span className="text-sm text-zc-text">—</span>
+                              )
+                            }
+                            tone="zinc"
+                          />
+
+                          <InfoTile
+                            label="Accreditations"
+                            value={
+                              accreditations.length ? (
+                                <div className="flex flex-wrap gap-2">
+                                  {accreditations.map((a) => (
+                                    <span key={a} className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.emerald)}>
+                                      {a}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-sm text-zc-text">—</span>
+                              )
+                            }
+                            tone="emerald"
+                          />
+
+                          <InfoTile
+                            label="Bed Count"
+                            value={<span className="text-sm font-semibold">{row.bedCount != null ? row.bedCount : "—"}</span>}
+                            tone="zinc"
+                          />
+
+                          <InfoTile
+                            label="Established Date"
+                            value={<span className="text-sm font-semibold">{row.establishedDate ? fmtDate(row.establishedDate) : "—"}</span>}
+                            tone="zinc"
+                          />
+
+                          {/* Settings */}
+                          <div className="md:col-span-2 pt-2 text-xs font-semibold uppercase tracking-wide text-zc-muted">
+                            Branch Settings
+                          </div>
+
+                          <InfoTile
+                            label="Default Currency"
+                            value={<span className="font-mono text-sm font-semibold">{valOrDash(row.defaultCurrency ?? "INR")}</span>}
+                            tone="indigo"
+                          />
+
+                          <InfoTile
+                            label="Timezone"
+                            value={<span className="text-sm font-semibold">{valOrDash(row.timezone ?? "Asia/Kolkata")}</span>}
+                            tone="indigo"
+                          />
+
+                          <InfoTile
+                            label="Fiscal Year Start"
+                            value={<span className="text-sm font-semibold">Month {row.fiscalYearStartMonth ?? 4}</span>}
+                            tone="zinc"
+                          />
+
+                          <InfoTile
+                            label="Working Hours"
+                            value={<div className="text-sm text-zc-text whitespace-pre-wrap">{workingHoursText ? workingHoursText : "—"}</div>}
+                            className="md:col-span-2"
+                            tone="zinc"
+                          />
+
+                          <InfoTile
+                            label="Emergency 24×7"
+                            value={<span className="text-sm font-semibold">{row.emergency24x7 === false ? "No" : "Yes"}</span>}
+                            tone="emerald"
+                          />
+
+                          <InfoTile
+                            label="Multi-language Support"
+                            value={<span className="text-sm font-semibold">{row.multiLanguageSupport ? "Enabled" : "Disabled"}</span>}
+                            tone="zinc"
+                          />
+
+                          <InfoTile
+                            label="Supported Languages"
+                            className="md:col-span-2"
+                            value={
+                              supportedLangs.length ? (
+                                <div className="flex flex-wrap gap-2">
+                                  {supportedLangs.map((l) => (
+                                    <span key={l} className={cn("rounded-full border px-2 py-0.5 text-[11px]", pillTones.sky)}>
+                                      {l}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-sm text-zc-text">—</span>
+                              )
+                            }
+                            tone="sky"
+                          />
+
+                          <InfoTile
+                            label="Created At"
+                            value={<span className="text-sm text-zc-text">{fmtDate(row.createdAt)}</span>}
+                          />
+                          <InfoTile
+                            label="Updated At"
+                            value={<span className="text-sm text-zc-text">{fmtDate(row.updatedAt)}</span>}
+                          />
                         </div>
                       ) : (
                         <div className="text-sm text-zc-muted">No data.</div>

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, Req } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, Param, Post, Query, Req } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { Permissions } from "../../auth/permissions.decorator";
 import { PERM } from "../../iam/iam.constants";
@@ -24,7 +24,15 @@ export class SchedulingController {
     @Query("from") from?: string,
     @Query("to") to?: string,
   ) {
-    return this.svc.listBookings(this.principal(req), { branchId: branchId ?? null, unitId, resourceId, from, to });
+    const p = this.principal(req);
+
+    // Branch-scoped users can omit branchId (it will resolve from principal).
+    // GLOBAL users must provide branchId (explicit scoping) to avoid accidental cross-branch listing.
+    if (p?.roleScope === "GLOBAL" && !branchId) {
+      throw new BadRequestException("branchId is required for GLOBAL users to list bookings.");
+    }
+
+    return this.svc.listBookings(p, { branchId: branchId ?? null, unitId, resourceId, from, to });
   }
 
   @Post("bookings")
@@ -36,6 +44,8 @@ export class SchedulingController {
   @Post("bookings/:id/cancel")
   @Permissions(PERM.INFRA_SCHED_CANCEL)
   async cancelBooking(@Req() req: any, @Param("id") id: string, @Body() dto: CancelProcedureBookingDto) {
-    return this.svc.cancelBooking(this.principal(req), id, dto.reason);
+    const reason = String(dto?.reason ?? "").trim();
+    if (!reason) throw new BadRequestException("Cancellation reason is required.");
+    return this.svc.cancelBooking(this.principal(req), id, reason);
   }
 }

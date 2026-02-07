@@ -156,18 +156,21 @@ export class IamPrincipalService {
     // Multi-branch branchIds derived from active UserRoleBinding rows (if present)
     const now = new Date();
     const rawBindings = (fullUser as any).roleBindings ?? [];
+
     const activeBindings = Array.isArray(rawBindings)
-      ? rawBindings.filter((b: any) =>
-        !!b.branchId &&
-        (!b.effectiveFrom || new Date(b.effectiveFrom).getTime() <= now.getTime()) &&
-        (!b.effectiveTo || new Date(b.effectiveTo).getTime() >= now.getTime()),
-      )
+      ? rawBindings.filter((b: any) => {
+        if (!b?.branchId) return false;
+        if (b.isActive === false) return false;
+
+        const fromOk = !b.effectiveFrom || new Date(b.effectiveFrom).getTime() <= now.getTime();
+        const toOk = !b.effectiveTo || new Date(b.effectiveTo).getTime() >= now.getTime();
+        return fromOk && toOk;
+      })
       : [];
 
     const branchIds = Array.from(new Set(activeBindings.map((b: any) => b.branchId)));
     const primaryBinding = activeBindings.find((b: any) => b.isPrimary) ?? activeBindings[0] ?? null;
 
-    // ✅ FIX: use `u`, not `fullUser`
     const effectiveBranchId = primaryBinding?.branchId ?? (fullUser.branchId ?? null);
 
 
@@ -245,11 +248,17 @@ export class IamPrincipalService {
           },
         },
         roleBindings: {
-          where: {
-            scope: "BRANCH",
+          where: { isActive: true },
+          select: {
+            branchId: true,
+            isPrimary: true,
+            isActive: true,
+            effectiveFrom: true,
+            effectiveTo: true,
           },
-          select: { branchId: true, isPrimary: true, effectiveFrom: true, effectiveTo: true },
         },
+
+
       },
     });
 
@@ -287,9 +296,15 @@ export class IamPrincipalService {
         },
         roleBindings: {
           where: {
-            scope: "BRANCH",
+            isActive: true,
           },
-          select: { branchId: true, isPrimary: true, effectiveFrom: true, effectiveTo: true },
+          select: {
+            branchId: true,
+            isPrimary: true,
+            isActive: true,
+            effectiveFrom: true,
+            effectiveTo: true,
+          },
         },
       },
     });
@@ -297,90 +312,8 @@ export class IamPrincipalService {
     if (!u) return null;
     if (u.isActive === false) return null;
 
-    let roleCode = (u.roleVersion?.roleTemplate?.code ?? (u.role as any) ?? null) as string | null;
-    roleCode = roleCode ? roleCode.trim().toUpperCase() : null;
-
-    let roleScope = (u.roleVersion?.roleTemplate?.scope as any) ?? null;
-    let roleVersionId = u.roleVersionId ?? null;
-
-    let perms: string[] =
-      (u.roleVersion?.permissions || [])
-        .filter((rp: any) => rp.allowed !== false)
-        .map((rp: any) => rp.permission.code) ?? [];
-
-    // Fallback: if user has role but no roleVersionId, resolve latest ACTIVE role version
-    if (!roleVersionId && roleCode) {
-      const tpl = await this.prisma.roleTemplate.findUnique({ where: { code: roleCode } });
-      if (tpl) {
-        const rv = await this.prisma.roleTemplateVersion.findFirst({
-          where: { roleTemplateId: tpl.id, status: "ACTIVE" },
-          orderBy: { version: "desc" },
-          include: {
-            roleTemplate: true,
-            permissions: { include: { permission: true } },
-          },
-        });
-
-        if (rv) {
-          roleVersionId = rv.id;
-          roleScope = (rv.roleTemplate?.scope as any) ?? roleScope;
-          perms = (rv.permissions || [])
-            .filter((rp: any) => rp.allowed !== false)
-            .map((rp: any) => rp.permission.code);
-        }
-      }
-    }
-
-    // Infer scope if still missing
-    if (!roleScope) {
-      const corporateRole = (ROLE as any).CORPORATE_ADMIN ?? "CORPORATE_ADMIN";
-      if (roleCode === ROLE.SUPER_ADMIN || roleCode === corporateRole) roleScope = "GLOBAL";
-      else if (u.branchId) roleScope = "BRANCH";
-    }
-
-    /**
-     * ✅ SUPER_ADMIN bootstrap safety:
-     * - Always include ALL code-defined permission codes (PERM)
-     * - Also union all DB permission rows (if you have custom extensions)
-     *
-     * This guarantees the Access UI never gets stuck in a chicken-egg state
-     * where "sync" buttons are hidden because the permissions table isn't seeded yet.
-     */
-    if (roleCode === ROLE.SUPER_ADMIN) {
-      const allDb = await this.prisma.permission.findMany({ select: { code: true } });
-      const allCodeDefined = Object.values(PERM);
-
-      perms = Array.from(new Set([...(perms || []), ...allDb.map((p) => p.code), ...allCodeDefined]));
-      roleScope = roleScope ?? "GLOBAL";
-    }
-
-    const uniquePerms = Array.from(new Set(perms || []));
-
-    // Multi-branch branchIds derived from active UserRoleBinding rows (if present)
-    const now = new Date();
-    const rawBindings = (u as any).roleBindings ?? [];
-    const activeBindings = Array.isArray(rawBindings)
-      ? rawBindings.filter((b: any) =>
-        !!b.branchId &&
-        (!b.effectiveFrom || new Date(b.effectiveFrom).getTime() <= now.getTime()) &&
-        (!b.effectiveTo || new Date(b.effectiveTo).getTime() >= now.getTime()),
-      )
-      : [];
-    const branchIds = Array.from(new Set(activeBindings.map((b: any) => b.branchId)));
-    const primaryBinding = activeBindings.find((b: any) => b.isPrimary) ?? activeBindings[0] ?? null;
-    const effectiveBranchId = primaryBinding?.branchId ?? (u.branchId ?? null);
-
-    return {
-      userId: u.id,
-      email: u.email,
-      name: u.name,
-      branchId: effectiveBranchId,
-      branchIds: branchIds.length ? branchIds : undefined,
-      roleCode,
-      roleScope,
-      roleVersionId,
-      permissions: uniquePerms,
-      authzVersion: (u as any).authzVersion ?? 1,
-    };
+    const authzVersion = Number((u as any).authzVersion ?? 1);
+    return this.buildPrincipalFromUser(u, authzVersion);
   }
+
 }

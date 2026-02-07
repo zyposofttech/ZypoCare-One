@@ -6,6 +6,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -16,7 +19,7 @@ import { cn } from "@/lib/cn";
 import { useAuthStore, hasPerm } from "@/lib/auth/store";
 
 import { IconBuilding, IconChevronRight, IconPlus, IconSearch } from "@/components/icons";
-import { AlertTriangle, Building2, Loader2, Pencil, RefreshCw, Trash2, Wand2 } from "lucide-react";
+import { AlertTriangle, Building2, Loader2, Pencil, RefreshCw, ToggleLeft, ToggleRight, Trash2, Wand2 } from "lucide-react";
 
 type BranchCounts = Record<string, number | undefined>;
 
@@ -28,12 +31,40 @@ type BranchRow = {
 
   isActive?: boolean;
 
-  gstNumber?: string | null;
+  // Required configuration fields (API-enforced)
+  legalEntityName?: string | null;
 
   address?: string | null;
+  pinCode?: string | null;
+  state?: string | null;
+  country?: string | null;
+
   contactPhone1?: string | null;
   contactPhone2?: string | null;
   contactEmail?: string | null;
+
+  gstNumber?: string | null;
+  panNumber?: string | null;
+  clinicalEstRegNumber?: string | null;
+  rohiniId?: string | null;
+  hfrId?: string | null;
+
+  // Optional branding / links
+  logoUrl?: string | null;
+  website?: string | null;
+  socialLinks?: any;
+  accreditations?: any;
+  bedCount?: number | null;
+  establishedDate?: string | null;
+
+  // Settings
+  defaultCurrency?: string | null;
+  timezone?: string | null;
+  fiscalYearStartMonth?: number | null;
+  workingHours?: any;
+  emergency24x7?: boolean | null;
+  multiLanguageSupport?: boolean | null;
+  supportedLanguages?: any;
 
   createdAt?: string;
   updatedAt?: string;
@@ -51,12 +82,45 @@ type BranchForm = {
   name: string;
   city: string;
 
-  gstNumber: string;
+  legalEntityName: string;
 
   address: string;
+  pinCode: string;
+  state: string;
+  country: string;
+
   contactPhone1: string;
   contactPhone2: string;
   contactEmail: string;
+
+  gstNumber: string;
+  panNumber: string;
+  clinicalEstRegNumber: string;
+  rohiniId: string;
+  hfrId: string;
+
+  logoUrl: string;
+  website: string;
+
+  facebook: string;
+  instagram: string;
+  linkedin: string;
+  x: string;
+  youtube: string;
+
+  accreditationNabh: boolean;
+  accreditationJci: boolean;
+
+  bedCount: string;
+  establishedDate: string;
+
+  defaultCurrency: string;
+  timezone: string;
+  fiscalYearStartMonth: string;
+  workingHoursText: string;
+  emergency24x7: boolean;
+  multiLanguageSupport: boolean;
+  supportedLanguagesText: string; // comma-separated
 };
 
 function normalizeCode(input: string) {
@@ -88,6 +152,48 @@ function validateGSTIN(gstin: string): string | null {
   const re = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
   if (!re.test(v)) return "Please enter a valid GSTIN (example: 29ABCDE1234F1Z5)";
   return null;
+}
+
+function normalizePAN(input: string) {
+  return String(input || "").trim().toUpperCase();
+}
+
+function validatePAN(pan: string): string | null {
+  const v = normalizePAN(pan);
+  if (!v) return "PAN Number is required";
+  const re = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+  if (!re.test(v)) return "Please enter a valid PAN (example: ABCDE1234F)";
+  return null;
+}
+
+function validatePIN(pin: string): string | null {
+  const v = String(pin || "").trim();
+  if (!v) return "PIN code is required";
+  if (!/^\d{6}$/.test(v)) return "PIN code must be 6 digits (e.g. 560100)";
+  return null;
+}
+
+function getWorkingHoursText(input: any): string {
+  if (!input) return "";
+  if (typeof input === "string") return input;
+  if (typeof input === "object" && typeof input.text === "string") return input.text;
+  return "";
+}
+
+function getSocialLink(input: any, key: string): string {
+  if (!input || typeof input !== "object") return "";
+  const v = (input as any)[key];
+  return typeof v === "string" ? v : "";
+}
+
+function arrayToComma(input: any): string {
+  if (!input) return "";
+  if (Array.isArray(input)) return input.map((x) => String(x)).filter(Boolean).join(", ");
+  return "";
+}
+
+function arrayHas(input: any, value: string): boolean {
+  return Array.isArray(input) ? input.includes(value) : false;
 }
 
 function validateEmail(email: string): string | null {
@@ -322,7 +428,9 @@ function DeleteConfirmModal({
         <Button variant="outline" onClick={onClose} disabled={busy}>
           Cancel
         </Button>
-        <Button variant="destructive" onClick={onConfirm} disabled={busy || deps > 0 || !canDelete} title={!canDelete ? deniedMessage : undefined}>
+        <Button variant="destructive" onClick={onConfirm} disabled={busy || deps > 0 || !canDelete} title={!canDelete ? deniedMessage : undefined} className="gap-2">
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          Delete Permanently
         </Button>
       </div>
     </ModalShell>
@@ -454,11 +562,46 @@ function BranchEditorModal({
     code: initial?.code ?? "",
     name: initial?.name ?? "",
     city: initial?.city ?? "",
-    gstNumber: initial?.gstNumber ?? "",
+
+    legalEntityName: initial?.legalEntityName ?? "",
+
     address: initial?.address ?? "",
+    pinCode: initial?.pinCode ?? "",
+    state: initial?.state ?? "",
+    country: initial?.country ?? "",
+
     contactPhone1: initial?.contactPhone1 ?? "",
     contactPhone2: initial?.contactPhone2 ?? "",
     contactEmail: initial?.contactEmail ?? "",
+
+    gstNumber: initial?.gstNumber ?? "",
+    panNumber: initial?.panNumber ?? "",
+    clinicalEstRegNumber: initial?.clinicalEstRegNumber ?? "",
+    rohiniId: initial?.rohiniId ?? "",
+    hfrId: initial?.hfrId ?? "",
+
+    logoUrl: initial?.logoUrl ?? "",
+    website: initial?.website ?? "",
+
+    facebook: getSocialLink(initial?.socialLinks, "facebook"),
+    instagram: getSocialLink(initial?.socialLinks, "instagram"),
+    linkedin: getSocialLink(initial?.socialLinks, "linkedin"),
+    x: getSocialLink(initial?.socialLinks, "x"),
+    youtube: getSocialLink(initial?.socialLinks, "youtube"),
+
+    accreditationNabh: arrayHas(initial?.accreditations, "NABH"),
+    accreditationJci: arrayHas(initial?.accreditations, "JCI"),
+
+    bedCount: initial?.bedCount != null ? String(initial.bedCount) : "",
+    establishedDate: initial?.establishedDate ? String(initial.establishedDate).slice(0, 10) : "",
+
+    defaultCurrency: (initial?.defaultCurrency ?? "INR") || "INR",
+    timezone: (initial?.timezone ?? "Asia/Kolkata") || "Asia/Kolkata",
+    fiscalYearStartMonth: String(initial?.fiscalYearStartMonth ?? 4),
+    workingHoursText: getWorkingHoursText(initial?.workingHours),
+    emergency24x7: initial?.emergency24x7 ?? true,
+    multiLanguageSupport: initial?.multiLanguageSupport ?? false,
+    supportedLanguagesText: arrayToComma(initial?.supportedLanguages),
   });
 
   React.useEffect(() => {
@@ -466,15 +609,51 @@ function BranchEditorModal({
     setErr(null);
     setBusy(false);
     setManualCode(false);
+
     setForm({
       code: initial?.code ?? "",
       name: initial?.name ?? "",
       city: initial?.city ?? "",
-      gstNumber: initial?.gstNumber ?? "",
+
+      legalEntityName: initial?.legalEntityName ?? "",
+
       address: initial?.address ?? "",
+      pinCode: initial?.pinCode ?? "",
+      state: initial?.state ?? "",
+      country: initial?.country ?? "",
+
       contactPhone1: initial?.contactPhone1 ?? "",
       contactPhone2: initial?.contactPhone2 ?? "",
       contactEmail: initial?.contactEmail ?? "",
+
+      gstNumber: initial?.gstNumber ?? "",
+      panNumber: initial?.panNumber ?? "",
+      clinicalEstRegNumber: initial?.clinicalEstRegNumber ?? "",
+      rohiniId: initial?.rohiniId ?? "",
+      hfrId: initial?.hfrId ?? "",
+
+      logoUrl: initial?.logoUrl ?? "",
+      website: initial?.website ?? "",
+
+      facebook: getSocialLink(initial?.socialLinks, "facebook"),
+      instagram: getSocialLink(initial?.socialLinks, "instagram"),
+      linkedin: getSocialLink(initial?.socialLinks, "linkedin"),
+      x: getSocialLink(initial?.socialLinks, "x"),
+      youtube: getSocialLink(initial?.socialLinks, "youtube"),
+
+      accreditationNabh: arrayHas(initial?.accreditations, "NABH"),
+      accreditationJci: arrayHas(initial?.accreditations, "JCI"),
+
+      bedCount: initial?.bedCount != null ? String(initial.bedCount) : "",
+      establishedDate: initial?.establishedDate ? String(initial.establishedDate).slice(0, 10) : "",
+
+      defaultCurrency: (initial?.defaultCurrency ?? "INR") || "INR",
+      timezone: (initial?.timezone ?? "Asia/Kolkata") || "Asia/Kolkata",
+      fiscalYearStartMonth: String(initial?.fiscalYearStartMonth ?? 4),
+      workingHoursText: getWorkingHoursText(initial?.workingHours),
+      emergency24x7: initial?.emergency24x7 ?? true,
+      multiLanguageSupport: initial?.multiLanguageSupport ?? false,
+      supportedLanguagesText: arrayToComma(initial?.supportedLanguages),
     });
   }, [open, initial]);
 
@@ -487,9 +666,14 @@ function BranchEditorModal({
     if (next && next !== form.code) setForm((s) => ({ ...s, code: next }));
   }, [open, mode, manualCode, form.name, form.city, form.code]);
 
+  function set<K extends keyof BranchForm>(key: K, value: BranchForm[K]) {
+    setForm((s) => ({ ...s, [key]: value }));
+  }
+
   async function onSubmit() {
     setErr(null);
     if (!canSubmit) return setErr(deniedMessage);
+
     if (mode === "create") {
       const ce = validateCode(form.code);
       if (ce) return setErr(ce);
@@ -497,11 +681,19 @@ function BranchEditorModal({
 
     if (!form.name.trim()) return setErr("Branch name is required");
     if (!form.city.trim()) return setErr("City is required");
+    if (!form.legalEntityName.trim()) return setErr("Legal entity name is required");
 
     const gstErr = validateGSTIN(form.gstNumber);
     if (gstErr) return setErr(gstErr);
 
+    const panErr = validatePAN(form.panNumber);
+    if (panErr) return setErr(panErr);
+
+    if (!form.clinicalEstRegNumber.trim()) return setErr("Clinical establishment registration number is required");
     if (!form.address.trim()) return setErr("Branch address is required");
+
+    const pinErr = validatePIN(form.pinCode);
+    if (pinErr) return setErr(pinErr);
 
     const p1 = validatePhone(form.contactPhone1, "Contact number 1");
     if (p1) return setErr(p1);
@@ -514,6 +706,24 @@ function BranchEditorModal({
     const em = validateEmail(form.contactEmail);
     if (em) return setErr(em);
 
+    const fy = Number(form.fiscalYearStartMonth || "4");
+    if (!Number.isInteger(fy) || fy < 1 || fy > 12) return setErr("Fiscal year start month must be between 1 and 12");
+
+    const accreditations = [
+      ...(form.accreditationNabh ? ["NABH"] : []),
+      ...(form.accreditationJci ? ["JCI"] : []),
+    ];
+
+    const supportedLanguages = (form.supportedLanguagesText || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const bedCount = form.bedCount.trim() ? Number(form.bedCount) : undefined;
+    if (bedCount !== undefined && (!Number.isFinite(bedCount) || bedCount < 0)) {
+      return setErr("Bed count must be a non-negative number");
+    }
+
     setBusy(true);
     try {
       if (mode === "create") {
@@ -523,11 +733,44 @@ function BranchEditorModal({
             code: normalizeCode(form.code),
             name: form.name.trim(),
             city: form.city.trim(),
-            gstNumber: normalizeGSTIN(form.gstNumber),
+
+            legalEntityName: form.legalEntityName.trim(),
+
             address: form.address.trim(),
+            pinCode: form.pinCode.trim(),
+            state: form.state.trim() || undefined,
+            country: form.country.trim() || undefined,
+
             contactPhone1: form.contactPhone1.trim(),
             contactPhone2: form.contactPhone2.trim() || null,
             contactEmail: form.contactEmail.trim().toLowerCase(),
+
+            gstNumber: normalizeGSTIN(form.gstNumber),
+            panNumber: normalizePAN(form.panNumber),
+            clinicalEstRegNumber: form.clinicalEstRegNumber.trim(),
+            rohiniId: form.rohiniId.trim() || null,
+            hfrId: form.hfrId.trim() || null,
+
+            logoUrl: form.logoUrl.trim() || null,
+            website: form.website.trim() || null,
+
+            facebook: form.facebook.trim() || null,
+            instagram: form.instagram.trim() || null,
+            linkedin: form.linkedin.trim() || null,
+            x: form.x.trim() || null,
+            youtube: form.youtube.trim() || null,
+
+            accreditations,
+            bedCount,
+            establishedDate: form.establishedDate || null,
+
+            defaultCurrency: (form.defaultCurrency.trim() || "INR").toUpperCase(),
+            timezone: form.timezone.trim() || "Asia/Kolkata",
+            fiscalYearStartMonth: fy,
+            workingHoursText: form.workingHoursText.trim() || null,
+            emergency24x7: Boolean(form.emergency24x7),
+            multiLanguageSupport: Boolean(form.multiLanguageSupport),
+            supportedLanguages: form.multiLanguageSupport ? supportedLanguages : [],
           }),
         });
       } else {
@@ -537,11 +780,44 @@ function BranchEditorModal({
           body: JSON.stringify({
             name: form.name.trim(),
             city: form.city.trim(),
-            gstNumber: normalizeGSTIN(form.gstNumber),
+
+            legalEntityName: form.legalEntityName.trim(),
+
             address: form.address.trim(),
+            pinCode: form.pinCode.trim(),
+            state: form.state.trim() || null,
+            country: form.country.trim() || null,
+
             contactPhone1: form.contactPhone1.trim(),
             contactPhone2: form.contactPhone2.trim() || null,
             contactEmail: form.contactEmail.trim().toLowerCase(),
+
+            gstNumber: normalizeGSTIN(form.gstNumber),
+            panNumber: normalizePAN(form.panNumber),
+            clinicalEstRegNumber: form.clinicalEstRegNumber.trim(),
+            rohiniId: form.rohiniId.trim() || null,
+            hfrId: form.hfrId.trim() || null,
+
+            logoUrl: form.logoUrl.trim() || null,
+            website: form.website.trim() || null,
+
+            facebook: form.facebook.trim() || null,
+            instagram: form.instagram.trim() || null,
+            linkedin: form.linkedin.trim() || null,
+            x: form.x.trim() || null,
+            youtube: form.youtube.trim() || null,
+
+            accreditations,
+            bedCount: form.bedCount.trim() ? Number(form.bedCount) : null,
+            establishedDate: form.establishedDate || null,
+
+            defaultCurrency: (form.defaultCurrency.trim() || "INR").toUpperCase(),
+            timezone: form.timezone.trim() || "Asia/Kolkata",
+            fiscalYearStartMonth: fy,
+            workingHoursText: form.workingHoursText.trim() || null,
+            emergency24x7: Boolean(form.emergency24x7),
+            multiLanguageSupport: Boolean(form.multiLanguageSupport),
+            supportedLanguages: form.multiLanguageSupport ? supportedLanguages : [],
           }),
         });
       }
@@ -555,9 +831,6 @@ function BranchEditorModal({
       });
 
       onClose();
-
-      // refresh list after close
-      void Promise.resolve(onSaved()).catch(() => { });
     } catch (e: any) {
       setErr(e?.message || "Save failed");
       toast({ variant: "destructive", title: "Save failed", description: e?.message || "Save failed" });
@@ -579,10 +852,7 @@ function BranchEditorModal({
         }
       }}
     >
-      <DialogContent
-        className={drawerClassName()}
-        onInteractOutside={(e) => e.preventDefault()}
-      >
+      <DialogContent className={drawerClassName()} onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-indigo-700 dark:text-indigo-400">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
@@ -592,8 +862,8 @@ function BranchEditorModal({
           </DialogTitle>
           <DialogDescription>
             {mode === "create"
-              ? "Create the branch first (including GSTIN). Then configure Facilities, Departments, and Specialties."
-              : "Update branch details and contact information."}
+              ? "Create the branch master (legal, contact, compliance & settings). Then configure Facilities → Departments → Specialties."
+              : "Update branch identity, statutory numbers, contact and settings."}
           </DialogDescription>
         </DialogHeader>
 
@@ -606,129 +876,345 @@ function BranchEditorModal({
           </div>
         ) : null}
 
-        <div className="grid gap-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label>Branch Name</Label>
-              <Input
-                value={form.name}
-                onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
-                placeholder="e.g. Electronic City Campus"
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label>City</Label>
-              <Input value={form.city} onChange={(e) => setForm((s) => ({ ...s, city: e.target.value }))} placeholder="e.g. Bengaluru" />
-            </div>
-          </div>
-
-          <div className="grid gap-2">
-            <div className="flex items-center justify-between">
-              <Label>Branch Code</Label>
-              {mode === "create" && !manualCode && form.code ? (
-                <span className="flex items-center gap-1 text-[10px] text-indigo-600 dark:text-indigo-400">
-                  <Wand2 className="h-3 w-3" /> Auto-generated
-                </span>
-              ) : null}
-            </div>
-
-            <div className="relative">
-              <Input
-                value={form.code}
-                disabled={mode === "edit"}
-                onChange={(e) => {
-                  setForm((s) => ({ ...s, code: e.target.value.toUpperCase() }));
-                  if (mode === "create") setManualCode(true);
-                }}
-                placeholder="BLR-EC"
-                className={cn(
-                  "font-mono bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800 focus-visible:ring-indigo-500",
-                  mode === "edit" && "opacity-80",
-                )}
-              />
-
-              {mode === "create" && !manualCode && form.code ? (
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="absolute right-1 top-1 h-7 w-7 text-zc-muted hover:text-zc-text"
-                  title="Edit manually"
-                  onClick={() => setManualCode(true)}
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                  <span className="sr-only">Edit</span>
-                </Button>
-              ) : null}
-            </div>
-
-            <p className="text-[11px] text-zc-muted">
-              Example: <span className="font-mono">BLR-EC</span> (City code + Campus initials)
-            </p>
-          </div>
-
-          {/* GSTIN */}
-          <div className="grid gap-2">
-            <Label>GST Number (GSTIN)</Label>
-            <Input
-              value={form.gstNumber}
-              onChange={(e) => setForm((s) => ({ ...s, gstNumber: e.target.value.toUpperCase() }))}
-              placeholder="e.g. 29ABCDE1234F1Z5"
-              maxLength={15}
-              className="font-mono"
-            />
-            <p className="text-[11px] text-zc-muted">Used in Accounting, invoices, and statutory reporting.</p>
-          </div>
-
-          <div className="grid gap-2">
-            <Label>Branch Address</Label>
-            <Input
-              value={form.address}
-              onChange={(e) => setForm((s) => ({ ...s, address: e.target.value }))}
-              placeholder="Street, Area, Landmark, City, State, PIN"
-            />
-            <p className="text-[11px] text-zc-muted">Used in reports, invoices, and branch communications.</p>
-          </div>
-
-          <Separator className="my-1" />
-
-          <div className="grid gap-4">
-            <div className="text-sm font-semibold text-zc-text">Contact Details</div>
+        <div className="grid gap-6">
+          {/* Basics */}
+          <div className="grid gap-3">
+            <div className="text-sm font-semibold text-zc-text">Basics</div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label>Contact Number 1</Label>
+                <Label>Branch Name</Label>
+                <Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="e.g. Electronic City Campus" />
+              </div>
+
+              <div className="grid gap-2">
+                <Label>City</Label>
+                <Input value={form.city} onChange={(e) => set("city", e.target.value)} placeholder="e.g. Bengaluru" />
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Legal Entity Name</Label>
+              <Input value={form.legalEntityName} onChange={(e) => set("legalEntityName", e.target.value)} placeholder="e.g. ZypoCare Hospitals Pvt Ltd" />
+              <p className="text-[11px] text-zc-muted">Printed on statutory reports, invoices and letterheads.</p>
+            </div>
+
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between">
+                <Label>Branch Code</Label>
+                {mode === "create" && !manualCode && form.code ? (
+                  <span className="flex items-center gap-1 text-[10px] text-indigo-600 dark:text-indigo-400">
+                    <Wand2 className="h-3 w-3" /> Auto-generated
+                  </span>
+                ) : null}
+              </div>
+
+              <div className="relative">
                 <Input
-                  value={form.contactPhone1}
-                  onChange={(e) => setForm((s) => ({ ...s, contactPhone1: e.target.value }))}
-                  placeholder="+91 98765 43210"
+                  value={form.code}
+                  disabled={mode === "edit"}
+                  onChange={(e) => {
+                    set("code", e.target.value.toUpperCase());
+                    if (mode === "create") setManualCode(true);
+                  }}
+                  placeholder="BLR-EC"
+                  className={cn(
+                    "font-mono bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800 focus-visible:ring-indigo-500",
+                    mode === "edit" && "opacity-80",
+                  )}
+                />
+
+                {mode === "create" && !manualCode && form.code ? (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="absolute right-1 top-1 h-7 w-7 text-zc-muted hover:text-zc-text"
+                    title="Edit manually"
+                    onClick={() => setManualCode(true)}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                    <span className="sr-only">Edit</span>
+                  </Button>
+                ) : null}
+              </div>
+
+              <p className="text-[11px] text-zc-muted">
+                Example: <span className="font-mono">BLR-EC</span> (City code + Campus initials)
+              </p>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Statutory / Compliance */}
+          <div className="grid gap-3">
+            <div className="text-sm font-semibold text-zc-text">Statutory & Registration</div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>GST Number (GSTIN)</Label>
+                <Input
+                  value={form.gstNumber}
+                  onChange={(e) => set("gstNumber", e.target.value.toUpperCase())}
+                  placeholder="e.g. 29ABCDE1234F1Z5"
+                  maxLength={15}
+                  className="font-mono"
                 />
               </div>
 
               <div className="grid gap-2">
-                <Label>Contact Number 2</Label>
+                <Label>PAN Number</Label>
+                <Input value={form.panNumber} onChange={(e) => set("panNumber", e.target.value.toUpperCase())} placeholder="e.g. ABCDE1234F" maxLength={10} className="font-mono" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Clinical Establishment Registration No.</Label>
                 <Input
-                  value={form.contactPhone2}
-                  onChange={(e) => setForm((s) => ({ ...s, contactPhone2: e.target.value }))}
-                  placeholder="+91 91234 56789 (optional)"
+                  value={form.clinicalEstRegNumber}
+                  onChange={(e) => set("clinicalEstRegNumber", e.target.value)}
+                  placeholder="Registration / License number"
                 />
+              </div>
+
+              <div className="grid gap-2">
+                <Label>ROHINI ID (optional)</Label>
+                <Input value={form.rohiniId} onChange={(e) => set("rohiniId", e.target.value)} placeholder="If applicable" />
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label>HFR ID (ABDM)</Label>
+              <Input
+                value={form.hfrId}
+                onChange={(e) => set("hfrId", e.target.value)}
+                placeholder="Auto-populated after ABDM registration"
+                disabled={Boolean(initial?.hfrId)}
+                className={cn(Boolean(initial?.hfrId) && "opacity-80")}
+              />
+              <p className="text-[11px] text-zc-muted">
+                This is typically auto-populated after ABDM/HFR registration. You can leave it blank for now.
+              </p>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Address */}
+          <div className="grid gap-3">
+            <div className="text-sm font-semibold text-zc-text">Address</div>
+
+            <div className="grid gap-2">
+              <Label>Full Address</Label>
+              <Textarea
+                value={form.address}
+                onChange={(e) => set("address", e.target.value)}
+                placeholder="Street, Area, Landmark, City, State"
+                className="min-h-[84px]"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid gap-2">
+                <Label>PIN Code</Label>
+                <Input value={form.pinCode} onChange={(e) => set("pinCode", e.target.value)} placeholder="560100" maxLength={6} className="font-mono" />
+              </div>
+
+              <div className="grid gap-2">
+                <Label>State (optional)</Label>
+                <Input value={form.state} onChange={(e) => set("state", e.target.value)} placeholder="Karnataka" />
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Country (optional)</Label>
+                <Input value={form.country} onChange={(e) => set("country", e.target.value)} placeholder="India" />
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Contact */}
+          <div className="grid gap-3">
+            <div className="text-sm font-semibold text-zc-text">Contact</div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Contact Phone (Primary)</Label>
+                <Input value={form.contactPhone1} onChange={(e) => set("contactPhone1", e.target.value)} placeholder="+91 98765 43210" />
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Contact Phone (Secondary)</Label>
+                <Input value={form.contactPhone2} onChange={(e) => set("contactPhone2", e.target.value)} placeholder="+91 91234 56789 (optional)" />
               </div>
             </div>
 
             <div className="grid gap-2">
               <Label>Contact Email</Label>
+              <Input value={form.contactEmail} onChange={(e) => set("contactEmail", e.target.value)} placeholder="campus.admin@zypocare.local" />
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Branding */}
+          <div className="grid gap-3">
+            <div className="text-sm font-semibold text-zc-text">Branding & Links (optional)</div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Logo URL</Label>
+                <Input value={form.logoUrl} onChange={(e) => set("logoUrl", e.target.value)} placeholder="https://…" />
+                <p className="text-[11px] text-zc-muted">Used for reports and letterheads.</p>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Website</Label>
+                <Input value={form.website} onChange={(e) => set("website", e.target.value)} placeholder="https://…" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Facebook</Label>
+                <Input value={form.facebook} onChange={(e) => set("facebook", e.target.value)} placeholder="https://facebook.com/…" />
+              </div>
+              <div className="grid gap-2">
+                <Label>Instagram</Label>
+                <Input value={form.instagram} onChange={(e) => set("instagram", e.target.value)} placeholder="https://instagram.com/…" />
+              </div>
+              <div className="grid gap-2">
+                <Label>LinkedIn</Label>
+                <Input value={form.linkedin} onChange={(e) => set("linkedin", e.target.value)} placeholder="https://linkedin.com/…" />
+              </div>
+              <div className="grid gap-2">
+                <Label>X (Twitter)</Label>
+                <Input value={form.x} onChange={(e) => set("x", e.target.value)} placeholder="https://x.com/…" />
+              </div>
+              <div className="grid gap-2 sm:col-span-2">
+                <Label>YouTube</Label>
+                <Input value={form.youtube} onChange={(e) => set("youtube", e.target.value)} placeholder="https://youtube.com/…" />
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Accreditation */}
+          <div className="grid gap-3">
+            <div className="text-sm font-semibold text-zc-text">Accreditation & Licensing (optional)</div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-center gap-3 rounded-xl border border-zc-border bg-zc-panel/20 p-3">
+                <Checkbox checked={form.accreditationNabh} onCheckedChange={(v) => set("accreditationNabh", v === true)} />
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-zc-text">NABH</div>
+                  <div className="text-xs text-zc-muted">Accredited by NABH</div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 rounded-xl border border-zc-border bg-zc-panel/20 p-3">
+                <Checkbox checked={form.accreditationJci} onCheckedChange={(v) => set("accreditationJci", v === true)} />
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-zc-text">JCI</div>
+                  <div className="text-xs text-zc-muted">Accredited by JCI</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Bed Count</Label>
+                <Input value={form.bedCount} onChange={(e) => set("bedCount", e.target.value)} placeholder="e.g. 250" inputMode="numeric" />
+                <p className="text-[11px] text-zc-muted">Helpful for licensing and regulatory reporting.</p>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Established Date</Label>
+                <Input value={form.establishedDate} onChange={(e) => set("establishedDate", e.target.value)} type="date" />
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Settings */}
+          <div className="grid gap-3">
+            <div className="text-sm font-semibold text-zc-text">Branch Settings</div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid gap-2">
+                <Label>Default Currency</Label>
+                <Input value={form.defaultCurrency} onChange={(e) => set("defaultCurrency", e.target.value.toUpperCase())} placeholder="INR" className="font-mono" />
+              </div>
+
+              <div className="grid gap-2 sm:col-span-2">
+                <Label>Timezone</Label>
+                <Input value={form.timezone} onChange={(e) => set("timezone", e.target.value)} placeholder="Asia/Kolkata" className="font-mono" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid gap-2">
+                <Label>Fiscal Year Start Month</Label>
+                <Input
+                  value={form.fiscalYearStartMonth}
+                  onChange={(e) => set("fiscalYearStartMonth", e.target.value)}
+                  placeholder="4 (April)"
+                  inputMode="numeric"
+                />
+                <p className="text-[11px] text-zc-muted">India default is April (4).</p>
+              </div>
+
+              <div className="grid gap-2 sm:col-span-2">
+                <Label>Working Hours</Label>
+                <Textarea
+                  value={form.workingHoursText}
+                  onChange={(e) => set("workingHoursText", e.target.value)}
+                  placeholder="e.g. Mon–Sat 9:00–18:00; Sunday closed"
+                  className="min-h-[72px]"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel/20 p-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-zc-text">Emergency 24×7</div>
+                  <div className="text-xs text-zc-muted">Marks branch as always open for emergency services.</div>
+                </div>
+                <Switch checked={form.emergency24x7} onCheckedChange={(v) => set("emergency24x7", v)} />
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel/20 p-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-zc-text">Multi-language Support</div>
+                  <div className="text-xs text-zc-muted">Enable language selection in branch UI.</div>
+                </div>
+                <Switch checked={form.multiLanguageSupport} onCheckedChange={(v) => set("multiLanguageSupport", v)} />
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Supported Languages</Label>
               <Input
-                value={form.contactEmail}
-                onChange={(e) => setForm((s) => ({ ...s, contactEmail: e.target.value }))}
-                placeholder="campus.admin@zypocare.local"
+                value={form.supportedLanguagesText}
+                onChange={(e) => set("supportedLanguagesText", e.target.value)}
+                placeholder="en, hi, kn (comma-separated)"
+                disabled={!form.multiLanguageSupport}
+                className={cn(!form.multiLanguageSupport && "opacity-70")}
               />
+              <p className="text-[11px] text-zc-muted">
+                Enter language codes (comma-separated). This is used when multi-language support is enabled.
+              </p>
             </div>
           </div>
         </div>
 
         <DialogFooter>
-          {/* Footer already uses flex-col-reverse which is good for mobile */}
           <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
             <Button variant="outline" onClick={onClose} disabled={busy}>
               Cancel
@@ -741,7 +1227,6 @@ function BranchEditorModal({
               title={!canSubmit ? deniedMessage : undefined}
               className="gap-2"
             >
-
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               {mode === "create" ? "Create Branch" : "Save Changes"}
             </Button>
@@ -780,7 +1265,7 @@ export default function BranchesPage() {
     if (!s) return rows;
 
     return (rows ?? []).filter((b) => {
-      const hay = `${b.code} ${b.name} ${b.city} ${b.gstNumber ?? ""}`.toLowerCase();
+      const hay = `${b.code} ${b.name} ${b.legalEntityName ?? ""} ${b.city} ${b.gstNumber ?? ""} ${b.panNumber ?? ""} ${b.clinicalEstRegNumber ?? ""}`.toLowerCase();
       return hay.includes(s);
     });
   }, [rows, q]);
@@ -902,7 +1387,7 @@ export default function BranchesPage() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") e.preventDefault();
                   }}
-                  placeholder="Search by code, name, city, or GSTIN…"
+                  placeholder="Search by code, name, legal entity, city, GSTIN, PAN…"
                   className="pl-10"
                 />
               </div>
@@ -939,7 +1424,7 @@ export default function BranchesPage() {
                   <th className="px-4 py-3 text-left font-semibold">City</th>
                   <th className="px-4 py-3 text-left font-semibold">GSTIN</th>
                   <th className="px-4 py-3 text-left font-semibold">Setup</th>
-                  <th className="px-4 py-3 text-right font-semibold">Action</th>
+                  <th className="px-4 py-3 text-right font-semibold">Actions</th>
                 </tr>
               </thead>
 
@@ -962,6 +1447,11 @@ export default function BranchesPage() {
 
                     <td className="px-4 py-3">
                       <div className="font-semibold text-zc-text">{b.name}</div>
+                      {b.legalEntityName ? (
+                        <div className="mt-0.5 text-xs text-zc-muted truncate" title={b.legalEntityName}>
+                          {b.legalEntityName}
+                        </div>
+                      ) : null}
                       <div className="mt-1">
                         {b.isActive !== false ? (
                           <span className="inline-flex items-center rounded-full border border-emerald-200/70 bg-emerald-50/70 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200">
@@ -991,9 +1481,9 @@ export default function BranchesPage() {
 
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
-                        <Button asChild variant="success" className="px-3 gap-2">
-                          <Link href={`/branches/${b.id}`}>
-                            Details <IconChevronRight className="h-4 w-4" />
+                        <Button asChild variant="success" size="icon">
+                          <Link href={`/branches/${b.id}`} title="View details" aria-label="View details">
+                            <IconChevronRight className="h-4 w-4" />
                           </Link>
                         </Button>
 
@@ -1001,39 +1491,43 @@ export default function BranchesPage() {
                           <>
                             <Button
                               variant="info"
-                              className="px-3 gap-2"
+                              size="icon"
                               onClick={() => {
                                 setSelected(b);
                                 setEditOpen(true);
                               }}
+                              title="Edit branch"
+                              aria-label="Edit branch"
                             >
                               <Pencil className="h-4 w-4" />
-                              Edit
                             </Button>
 
                             <Button
                               variant={b.isActive !== false ? "secondary" : "success"}
-                              className="px-3 gap-2"
+                              size="icon"
                               onClick={() => {
                                 setSelected(b);
                                 setToggleAction(b.isActive !== false ? "deactivate" : "reactivate");
                                 setToggleOpen(true);
                               }}
+                              title={b.isActive !== false ? "Deactivate branch" : "Reactivate branch"}
+                              aria-label={b.isActive !== false ? "Deactivate branch" : "Reactivate branch"}
                             >
-                              {b.isActive !== false ? "Deactivate" : "Reactivate"}
+                              {b.isActive !== false ? <ToggleLeft className="h-4 w-4" /> : <ToggleRight className="h-4 w-4" />}
                             </Button>
 
                             {canDelete && b.isActive === false ? (
                               <Button
                                 variant="destructive"
-                                className="px-3 gap-2"
+                                size="icon"
                                 onClick={() => {
                                   setSelected(b);
                                   setDeleteOpen(true);
                                 }}
+                                title="Hard delete branch"
+                                aria-label="Hard delete branch"
                               >
                                 <Trash2 className="h-4 w-4" />
-                                Hard Delete
                               </Button>
                             ) : null}
                           </>
@@ -1054,7 +1548,7 @@ export default function BranchesPage() {
             <div className="min-w-0">
               <div className="text-sm font-semibold text-zc-text">Recommended setup order</div>
               <div className="mt-1 text-sm text-zc-muted">
-                1) Create Branch (GSTIN) → 2) Facility Setup (Facilities → Departments → Specialties → Mapping) → 3) Branch Admin config (later).
+                1) Create Branch (Legal/Contact/Compliance/Settings) → 2) Facility Setup (Facilities → Departments → Specialties → Mapping) → 3) Branch Admin config (later).
               </div>
             </div>
           </div>

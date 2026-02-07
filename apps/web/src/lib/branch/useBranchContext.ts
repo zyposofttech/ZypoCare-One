@@ -7,6 +7,7 @@ import { useActiveBranchStore } from "@/lib/branch/active-branch";
 export type BranchContext = {
   scope: "GLOBAL" | "BRANCH";
   branchId: string | null;
+  activeBranchId: string | null;
   isReady: boolean;
   reason?: string;
 };
@@ -34,11 +35,13 @@ export function useBranchContext(): BranchContext {
 
   // BRANCH scope: branch is always fixed.
   if (scope === "BRANCH") {
+    const resolvedBranchId = user?.branchId ?? null;
     return {
       scope,
-      branchId: user?.branchId ?? null,
-      isReady: Boolean(user?.branchId),
-      reason: user?.branchId ? undefined : "Missing branchId on principal",
+      branchId: resolvedBranchId,
+      activeBranchId: resolvedBranchId,
+      isReady: Boolean(resolvedBranchId),
+      reason: resolvedBranchId ? undefined : "Missing branchId on principal",
     };
   }
 
@@ -46,6 +49,7 @@ export function useBranchContext(): BranchContext {
   return {
     scope,
     branchId: activeBranchId ?? null,
+    activeBranchId: activeBranchId ?? null,
     isReady: Boolean(activeBranchId),
     reason: activeBranchId ? undefined : "Select an active branch",
   };

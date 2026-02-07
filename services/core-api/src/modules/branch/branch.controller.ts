@@ -11,109 +11,20 @@ import {
   ForbiddenException,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { IsEmail, IsOptional, IsString, Matches, MaxLength } from "class-validator";
 import { Permissions } from "../auth/permissions.decorator";
 import { PERM } from "../iam/iam.constants";
 import { BranchService } from "./branch.service";
-
-class ListBranchesQuery {
-  @IsOptional()
-  @IsString()
-  q?: string;
-
-  // When true, returns only active branches (useful for selectors)
-  @IsOptional()
-  @IsString()
-  onlyActive?: string;
-
-  // When set to "selector", returns a lite payload (id, code, name, city, isActive)
-  @IsOptional()
-  @IsString()
-  mode?: string | null;
-}
-
-class CreateBranchDto {
-  @IsString()
-  @Matches(/^[A-Za-z0-9][A-Za-z0-9-]{1,31}$/, {
-    message: "code must be 2–32 chars, letters/numbers/hyphen (e.g. BLR-EC)",
-  })
-  code!: string;
-
-  @IsString()
-  name!: string;
-
-  @IsString()
-  city!: string;
-
-  @IsString()
-  @Matches(/^\d{2}[A-Z]{5}\d{4}[A-Z][A-Z0-9]Z[A-Z0-9]$/, {
-    message: "gstNumber must be a valid 15-character GSTIN (e.g. 29ABCDE1234F1Z5)",
-  })
-  gstNumber!: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(240)
-  address?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  contactPhone1?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  contactPhone2?: string;
-
-  @IsOptional()
-  @IsEmail()
-  @MaxLength(120)
-  contactEmail?: string;
-}
-
-class UpdateBranchDto {
-  @IsOptional()
-  @IsString()
-  name?: string;
-
-  @IsOptional()
-  @IsString()
-  city?: string;
-
-  @IsOptional()
-  @IsString()
-  @Matches(/^\d{2}[A-Z]{5}\d{4}[A-Z][A-Z0-9]Z[A-Z0-9]$/, {
-    message: "gstNumber must be a valid 15-character GSTIN (e.g. 29ABCDE1234F1Z5)",
-  })
-  gstNumber?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(240)
-  address?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  contactPhone1?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  contactPhone2?: string;
-
-  @IsOptional()
-  @IsEmail()
-  @MaxLength(120)
-  contactEmail?: string;
-}
+import { CreateBranchDto, ListBranchesQueryDto, UpdateBranchDto } from "./branch.dto";
 
 function isGlobalAdmin(principal: any): boolean {
   if (!principal) return false;
   return (
-    principal.roleScope === "GLOBAL" || principal.roleCode === "CORPORATE_ADMIN" || principal.roleCode === "GLOBAL_ADMIN" ||
-    principal.roleCode === "SUPER_ADMIN" || principal.role === "CORPORATE_ADMIN" || principal.role === "GLOBAL_ADMIN" ||
+    principal.roleScope === "GLOBAL" ||
+    principal.roleCode === "CORPORATE_ADMIN" ||
+    principal.roleCode === "GLOBAL_ADMIN" ||
+    principal.roleCode === "SUPER_ADMIN" ||
+    principal.role === "CORPORATE_ADMIN" ||
+    principal.role === "GLOBAL_ADMIN" ||
     principal.role === "SUPER_ADMIN"
   );
 }
@@ -121,34 +32,36 @@ function isGlobalAdmin(principal: any): boolean {
 @ApiTags("branches")
 @Controller("branches")
 export class BranchController {
-  constructor(private readonly branches: BranchService) { }
+  constructor(private readonly branches: BranchService) {}
 
   @Permissions(PERM.BRANCH_READ)
   @Get()
-  async list(@Query() q: ListBranchesQuery, @Req() req: any) {
+  async list(@Query() q: ListBranchesQueryDto, @Req() req: any) {
     const principal = req.principal;
 
-    const onlyActive = String(q.onlyActive ?? "").toLowerCase();
-    const onlyActiveBool = onlyActive === "true" || onlyActive === "1" || onlyActive === "yes";
-    const mode = String(q.mode ?? "").toLowerCase();
-    const modeNorm = mode === "selector" ? "selector" : "full";
+    // If ValidationPipe(transform:true) is enabled, these come already typed.
+    // If not, this still works because DTO transforms handle it.
+    const onlyActiveBool = q.onlyActive === true ? true : null;
+    const modeNorm = (q.mode ?? "full") as any;
 
     if (isGlobalAdmin(principal)) {
       return this.branches.list({
         q: q.q ?? null,
-        onlyActive: onlyActiveBool ? true : null,
-        mode: modeNorm as any,
+        onlyActive: onlyActiveBool,
+        mode: modeNorm,
       });
     }
 
     if (!principal?.branchId) return [];
     const row = await this.branches.get(principal.branchId);
-    // Respect onlyActive for branch-scoped callers too
+
     if (onlyActiveBool && !row.isActive) return [];
+
     const outRow: any =
       modeNorm === "selector"
         ? { id: row.id, code: row.code, name: row.name, city: row.city, isActive: row.isActive }
         : row;
+
     if (q.q) {
       const term = q.q.toLowerCase();
       const match =

@@ -1,166 +1,205 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Req, Delete, Put } from "@nestjs/common";
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Query,
+  Req,
+} from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { parseBool } from "../../common/http.util";
 import { Permissions } from "../auth/permissions.decorator";
 import type { Principal } from "../auth/access-policy.service";
 import { PERM } from "../iam/iam.constants";
-import { FacilitySetupService } from "./facility-setup.service";
 import {
   CreateDepartmentDto,
-  SetBranchFacilitiesDto,
-  UpdateDepartmentAssignmentsDto,
-  UpdateDepartmentDto,
   CreateFacilityDto,
   CreateSpecialtyDto,
-  UpdateSpecialtyDto,
+  SetBranchFacilitiesDto,
   SetDepartmentSpecialtiesDto,
+  UpdateDepartmentAssignmentsDto,
+  UpdateDepartmentDto,
+  UpdateSpecialtyDto,
 } from "./facility-setup.dto";
+import { FacilitySetupService } from "./facility-setup.service";
 
 @ApiTags("facility-setup")
 @Controller()
 export class FacilitySetupController {
-  constructor(private svc: FacilitySetupService) { }
+  constructor(private readonly svc: FacilitySetupService) {}
 
   private principal(req: any): Principal {
     return req.principal as Principal;
   }
 
-  // -------------------- Facility catalog + branch selection --------------------
+  
 
-  @Get("facilities/master")
-  @Permissions(PERM.FACILITY_CATALOG_READ)
-  async facilityCatalog(
-    @Query("category") category: string | undefined,
-    @Query("includeInactive") includeInactive: string | undefined,
-    @Req() req: any,
-  ) {
-    return this.svc.listFacilityCatalog(this.principal(req), {
-      category,
-      includeInactive: includeInactive === "true",
-    });
-  }
+  // ---------------------------------------------------------------------------
+  // Branch Facilities selection (optional; keep if you still store per branch)
+  // ---------------------------------------------------------------------------
 
-  @Post("facilities/master")
-  @Permissions(PERM.FACILITY_CATALOG_CREATE)
-  async createFacility(@Body() dto: CreateFacilityDto, @Req() req: any) {
-    return this.svc.createFacility(this.principal(req), dto);
-  }
-
-  /**
-   * Convenience endpoints for BRANCH-scoped users.
-   * GLOBAL users should use /branches/:branchId variants.
-   */
   @Get("branch/facilities")
   @Permissions(PERM.BRANCH_FACILITY_READ)
-  async myBranchFacilities(@Req() req: any) {
+  async getMyBranchFacilities(@Req() req: any) {
     return this.svc.getBranchFacilities(this.principal(req));
   }
 
   @Get("branches/:branchId/facilities")
   @Permissions(PERM.BRANCH_FACILITY_READ)
-  async branchFacilities(@Param("branchId") branchId: string, @Req() req: any) {
+  async getBranchFacilities(@Req() req: any, @Param("branchId") branchId: string) {
     return this.svc.getBranchFacilities(this.principal(req), branchId);
   }
 
   @Put("branch/facilities")
   @Permissions(PERM.BRANCH_FACILITY_UPDATE)
-  async setMyBranchFacilities(@Body() dto: SetBranchFacilitiesDto, @Req() req: any) {
-    // branch scoped => resolve from principal
+  async setMyBranchFacilities(@Req() req: any, @Body() dto: SetBranchFacilitiesDto) {
     return this.svc.setBranchFacilities(this.principal(req), dto.facilityIds);
   }
 
   @Put("branches/:branchId/facilities")
   @Permissions(PERM.BRANCH_FACILITY_UPDATE)
-  async setBranchFacilities(@Param("branchId") branchId: string, @Body() dto: SetBranchFacilitiesDto, @Req() req: any) {
-    // global scope => explicit branchId
+  async setBranchFacilities(@Req() req: any, @Param("branchId") branchId: string, @Body() dto: SetBranchFacilitiesDto) {
     return this.svc.setBranchFacilities(this.principal(req), dto.facilityIds, branchId);
   }
 
-  // -------------------- Readiness summary --------------------
-
-  @Get("branch/readiness")
-  @Permissions(PERM.BRANCH_FACILITY_READ)
-  async myBranchReadiness(@Req() req: any) {
-    return this.svc.getBranchReadiness(this.principal(req));
-  }
-
-  @Get("branches/:branchId/readiness")
-  @Permissions(PERM.BRANCH_FACILITY_READ)
-  async branchReadiness(@Param("branchId") branchId: string, @Req() req: any) {
-    return this.svc.getBranchReadiness(this.principal(req), branchId);
-  }
-
-  // -------------------- Departments --------------------
+  // ---------------------------------------------------------------------------
+  // Departments
+  // ---------------------------------------------------------------------------
 
   @Get("departments")
   @Permissions(PERM.DEPARTMENT_READ)
   async listDepartments(
-    @Query("branchId") branchId: string | undefined,
-    @Query("facilityId") facilityId: string | undefined,
-    @Query("includeInactive") includeInactive: string | undefined,
-    @Query("q") q: string | undefined,
     @Req() req: any,
+    @Query("branchId") branchId?: string,
+    @Query("facilityId") facilityId?: string,
+    @Query("includeInactive") includeInactive?: string,
+    @Query("q") q?: string,
   ) {
     return this.svc.listDepartments(this.principal(req), {
       branchId,
       facilityId,
-      includeInactive: includeInactive === "true",
+      includeInactive: parseBool(includeInactive, false),
       q,
     });
   }
 
+  // Convenience for details page: pull from list + match id
+  @Get("departments/:id")
+  @Permissions(PERM.DEPARTMENT_READ)
+  async getDepartment(
+    @Req() req: any,
+    @Param("id") id: string,
+    @Query("branchId") branchId?: string,
+  ) {
+    const rows = await this.svc.listDepartments(this.principal(req), {
+      branchId,
+      includeInactive: true,
+    });
+    return (rows as any[]).find((x) => x.id === id) ?? null;
+  }
+
   @Post("departments")
   @Permissions(PERM.DEPARTMENT_CREATE)
-  async createDepartment(@Body() dto: CreateDepartmentDto, @Req() req: any) {
+  async createDepartment(@Req() req: any, @Body() dto: CreateDepartmentDto) {
     return this.svc.createDepartment(this.principal(req), dto);
+  }
+
+  @Put("departments/:id")
+  @Permissions(PERM.DEPARTMENT_UPDATE)
+  async updateDepartmentPut(@Req() req: any, @Param("id") id: string, @Body() dto: UpdateDepartmentDto) {
+    return this.svc.updateDepartment(this.principal(req), id, dto);
   }
 
   @Patch("departments/:id")
   @Permissions(PERM.DEPARTMENT_UPDATE)
-  async updateDepartment(@Param("id") id: string, @Body() dto: UpdateDepartmentDto, @Req() req: any) {
+  async updateDepartmentPatch(@Req() req: any, @Param("id") id: string, @Body() dto: UpdateDepartmentDto) {
     return this.svc.updateDepartment(this.principal(req), id, dto);
   }
 
-  @Put("departments/:id/doctors")
-  @Permissions(PERM.DEPARTMENT_ASSIGN_DOCTORS)
-  async updateAssignments(@Param("id") id: string, @Body() dto: UpdateDepartmentAssignmentsDto, @Req() req: any) {
-    return this.svc.updateDepartmentAssignments(this.principal(req), id, dto);
+  @Delete("departments/:id")
+  @Permissions(PERM.DEPARTMENT_UPDATE) // no DEPARTMENT_DELETE in your PERM
+  async deleteDepartment(
+    @Req() req: any,
+    @Param("id") id: string,
+    @Query("hard") hard?: string,
+    @Query("cascade") cascade?: string,
+    @Query("reason") reason?: string,
+  ) {
+    const hardBool = parseBool(hard, false);
+    const cascadeBool = cascade == null ? true : parseBool(cascade, true);
+
+    if (!hardBool) {
+      const r = String(reason ?? "").trim();
+      if (!r) throw new BadRequestException("Deactivation reason is required.");
+      // ✅ Default: cascade=true (Department → Units → Rooms → Resources)
+      return this.svc.deactivateDepartment(this.principal(req), id, { hard: false, cascade: cascadeBool, reason: r });
+    }
+
+    return this.svc.deactivateDepartment(this.principal(req), id, { hard: true });
   }
 
+  /**
+   * ✅ Preferred endpoint for UI
+   * POST /departments/:id/deactivate
+   * body: { cascade?: boolean; reason: string; hard?: boolean }
+   */
+  @Post("departments/:id/deactivate")
   @Permissions(PERM.DEPARTMENT_UPDATE)
-@Delete("departments/:id")
-async deleteDepartment(
-  @Req() req: any,
-  @Param("id") id: string,
-  @Query("hard") hard?: string,
-) {
-  return this.svc.deactivateDepartment(this.principal(req), id, { hard: parseBool(hard, false) });
-}
+  async deactivateDepartment(
+    @Req() req: any,
+    @Param("id") id: string,
+    @Body() body: { cascade?: boolean; reason?: string; hard?: boolean },
+  ) {
+    const hard = body?.hard === true;
+    const cascade = body?.cascade !== false; // default true
 
-@Permissions(PERM.SPECIALTY_UPDATE)
-@Delete("specialties/:id")
-async deleteSpecialty(
-  @Req() req: any,
-  @Param("id") id: string,
-  @Query("hard") hard?: string,
-) {
-  return this.svc.deactivateSpecialty(this.principal(req), id, { hard: parseBool(hard, false) });
-}
+    if (!hard) {
+      const r = String(body?.reason ?? "").trim();
+      if (!r) throw new BadRequestException("Deactivation reason is required.");
+      return this.svc.deactivateDepartment(this.principal(req), id, { hard: false, cascade, reason: r });
+    }
 
-  // -------------------- Department ↔ Specialty mapping --------------------
+    return this.svc.deactivateDepartment(this.principal(req), id, { hard: true });
+  }
 
+  // Dept ↔ Specialties mapping
   @Get("departments/:id/specialties")
   @Permissions(PERM.DEPARTMENT_SPECIALTY_READ)
-  async listDepartmentSpecialties(@Param("id") id: string, @Req() req: any) {
+  async listDepartmentSpecialties(@Req() req: any, @Param("id") id: string) {
     return this.svc.listDepartmentSpecialties(this.principal(req), id);
   }
 
   @Put("departments/:id/specialties")
   @Permissions(PERM.DEPARTMENT_SPECIALTY_UPDATE)
-  async setDepartmentSpecialties(@Param("id") id: string, @Body() dto: SetDepartmentSpecialtiesDto, @Req() req: any) {
+  async setDepartmentSpecialties(@Req() req: any, @Param("id") id: string, @Body() dto: SetDepartmentSpecialtiesDto) {
     return this.svc.setDepartmentSpecialties(this.principal(req), id, dto);
   }
-  // -------------------- Specialties --------------------
+
+  // Doctors & HOD assignment
+  @Get("staff/doctors")
+  @Permissions(PERM.STAFF_READ)
+  async listDoctors(@Req() req: any, @Query("branchId") branchId?: string, @Query("q") q?: string) {
+    return this.svc.listDoctors(this.principal(req), { branchId, q });
+  }
+
+  @Put("departments/:id/doctors")
+  @Permissions(PERM.DEPARTMENT_ASSIGN_DOCTORS)
+  async setDepartmentDoctors(
+    @Req() req: any,
+    @Param("id") id: string,
+    @Body() dto: UpdateDepartmentAssignmentsDto,
+  ) {
+    return this.svc.updateDepartmentAssignments(this.principal(req), id, dto);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Specialties
+  // ---------------------------------------------------------------------------
 
   @Get("specialties")
   @Permissions(PERM.SPECIALTY_READ)
@@ -173,34 +212,27 @@ async deleteSpecialty(
   ) {
     return this.svc.listSpecialties(this.principal(req), {
       branchId,
-      includeInactive: includeInactive === "true",
-      includeMappings: includeMappings === "true",
+      includeInactive: parseBool(includeInactive, false),
+      includeMappings: parseBool(includeMappings, false),
       q,
     });
   }
 
   @Post("specialties")
   @Permissions(PERM.SPECIALTY_CREATE)
-  async createSpecialty(@Body() dto: CreateSpecialtyDto, @Req() req: any) {
+  async createSpecialty(@Req() req: any, @Body() dto: CreateSpecialtyDto) {
     return this.svc.createSpecialty(this.principal(req), dto);
   }
 
   @Patch("specialties/:id")
-
   @Permissions(PERM.SPECIALTY_UPDATE)
-  async updateSpecialty(@Param("id") id: string, @Body() dto: UpdateSpecialtyDto, @Req() req: any) {
+  async updateSpecialty(@Req() req: any, @Param("id") id: string, @Body() dto: UpdateSpecialtyDto) {
     return this.svc.updateSpecialty(this.principal(req), id, dto);
   }
 
-  // -------------------- Staff helper (doctors) --------------------
-
-  @Get("staff/doctors")
-  @Permissions(PERM.STAFF_READ)
-  async listDoctors(
-    @Query("branchId") branchId: string | undefined,
-    @Query("q") q: string | undefined,
-    @Req() req: any,
-  ) {
-    return this.svc.listDoctors(this.principal(req), { branchId, q });
+  @Delete("specialties/:id")
+  @Permissions(PERM.SPECIALTY_UPDATE) // no SPECIALTY_DELETE in your PERM
+  async deleteSpecialty(@Req() req: any, @Param("id") id: string, @Query("hard") hard?: string) {
+    return this.svc.deactivateSpecialty(this.principal(req), id, { hard: parseBool(hard, false) });
   }
 }

@@ -56,7 +56,20 @@ export class LocationService {
           },
           orderBy: [{ effectiveFrom: "desc" }],
           take: 1,
-          select: { code: true, name: true, isActive: true, effectiveFrom: true, effectiveTo: true },
+          select: {
+            code: true,
+            name: true,
+            isActive: true,
+            effectiveFrom: true,
+            effectiveTo: true,
+            gpsLat: true,
+            gpsLng: true,
+            floorNumber: true,
+            wheelchairAccess: true,
+            stretcherAccess: true,
+            emergencyExit: true,
+            fireZone: true,
+          },
         },
       },
       orderBy: [{ createdAt: "asc" }],
@@ -71,6 +84,15 @@ export class LocationService {
       isActive: boolean;
       effectiveFrom: Date;
       effectiveTo: Date | null;
+
+      gpsLat?: number | null;
+      gpsLng?: number | null;
+      floorNumber?: number | null;
+      wheelchairAccess?: boolean;
+      stretcherAccess?: boolean;
+      emergencyExit?: boolean;
+      fireZone?: string | null;
+
       children: TreeNode[];
     };
 
@@ -79,6 +101,7 @@ export class LocationService {
     for (const n of nodes) {
       const cur = n.revisions?.[0];
       if (!cur) continue;
+
       byId.set(n.id, {
         id: n.id,
         kind: n.kind,
@@ -88,6 +111,15 @@ export class LocationService {
         isActive: cur.isActive,
         effectiveFrom: cur.effectiveFrom,
         effectiveTo: cur.effectiveTo,
+
+        gpsLat: cur.gpsLat ?? null,
+        gpsLng: cur.gpsLng ?? null,
+        floorNumber: cur.floorNumber ?? null,
+        wheelchairAccess: cur.wheelchairAccess ?? false,
+        stretcherAccess: cur.stretcherAccess ?? false,
+        emergencyExit: cur.emergencyExit ?? false,
+        fireZone: cur.fireZone ?? null,
+
         children: [],
       });
     }
@@ -110,7 +142,13 @@ export class LocationService {
     return { branchId, roots };
   }
 
-  private async assertLocationCodeUnique(branchId: string, code: string, effectiveFrom: Date, effectiveTo: Date | null, excludeNodeId?: string) {
+  private async assertLocationCodeUnique(
+    branchId: string,
+    code: string,
+    effectiveFrom: Date,
+    effectiveTo: Date | null,
+    excludeNodeId?: string,
+  ) {
     const overlaps = await this.ctx.prisma.locationNodeRevision.findMany({
       where: {
         code,
@@ -144,13 +182,10 @@ export class LocationService {
     return rev.code;
   }
 
-  /**
-   * Used by Units service: validates that locationNodeId belongs to branch and is active.
-   */
   async assertValidLocationNode(
     branchId: string,
     locationNodeId: string,
-    opts?: { allowKinds?: ("CAMPUS" | "BUILDING" | "FLOOR" | "ZONE")[] },
+    opts?: { allowKinds?: ("CAMPUS" | "BUILDING" | "FLOOR" | "ZONE" | "AREA")[] },
   ) {
     if (!locationNodeId?.trim()) throw new BadRequestException("locationNodeId is required");
 
@@ -190,15 +225,50 @@ export class LocationService {
   async createLocation(principal: Principal, dto: CreateLocationNodeDto, branchIdParam?: string | null) {
     const branchId = this.ctx.resolveBranchId(principal, branchIdParam ?? null);
 
-    const parent = dto.parentId
-      ? await this.ctx.prisma.locationNode.findFirst({ where: { id: dto.parentId, branchId }, select: { id: true, kind: true } })
-      : null;
-
     const effectiveFrom = dto.effectiveFrom ? new Date(dto.effectiveFrom) : new Date();
     const effectiveTo = dto.effectiveTo ? new Date(dto.effectiveTo) : null;
 
-    const rawCode = canonicalizeCode(dto.code);
-    const code = assertLocationCode(dto.kind as any, rawCode, parent ? await this.getCurrentLocationCode(parent.id, new Date()) : undefined);
+    const expectedParentKind: Record<string, string | null> = {
+      CAMPUS: null,
+      BUILDING: "CAMPUS",
+      FLOOR: "BUILDING",
+      ZONE: "FLOOR",
+      AREA: "ZONE",
+    };
+
+    const expected = expectedParentKind[dto.kind];
+    if (expected == null) {
+      if (dto.parentId) throw new BadRequestException("CAMPUS cannot have a parent.");
+    } else {
+      if (!dto.parentId) throw new BadRequestException(`${dto.kind} requires a parent location.`);
+    }
+
+    const parent = dto.parentId
+      ? await this.ctx.prisma.locationNode.findFirst({
+          where: { id: dto.parentId, branchId },
+          select: { id: true, kind: true },
+        })
+      : null;
+
+    if (dto.parentId && !parent) throw new BadRequestException("Invalid parentId (must belong to your branch)");
+    if (parent && expected && parent.kind !== (expected as any)) {
+      throw new BadRequestException(`${dto.kind} parent must be a ${expected}.`);
+    }
+
+    const hasGps = dto.gpsLat !== undefined || dto.gpsLng !== undefined;
+    if (hasGps) {
+      if (dto.kind !== "CAMPUS") throw new BadRequestException("GPS coordinates are allowed only for CAMPUS nodes.");
+      if (dto.gpsLat === undefined || dto.gpsLng === undefined) {
+        throw new BadRequestException("Both gpsLat and gpsLng are required together.");
+      }
+    }
+
+    if (dto.floorNumber !== undefined && dto.kind !== "FLOOR") {
+      throw new BadRequestException("floorNumber can be set only on FLOOR nodes.");
+    }
+
+    const parentCode = parent ? await this.getCurrentLocationCode(parent.id, effectiveFrom) : undefined;
+    const code = assertLocationCode(dto.kind as any, canonicalizeCode(dto.code), parentCode);
 
     await this.assertLocationCodeUnique(branchId, code, effectiveFrom, effectiveTo, undefined);
 
@@ -215,6 +285,15 @@ export class LocationService {
             effectiveFrom,
             effectiveTo,
             createdByUserId: principal.userId,
+
+            gpsLat: dto.kind === "CAMPUS" ? dto.gpsLat ?? null : null,
+            gpsLng: dto.kind === "CAMPUS" ? dto.gpsLng ?? null : null,
+            floorNumber: dto.kind === "FLOOR" ? dto.floorNumber ?? null : null,
+
+            wheelchairAccess: dto.wheelchairAccess ?? false,
+            stretcherAccess: dto.stretcherAccess ?? false,
+            emergencyExit: dto.emergencyExit ?? false,
+            fireZone: dto.fireZone?.trim() || null,
           },
         },
       },
@@ -234,7 +313,10 @@ export class LocationService {
   }
 
   async updateLocation(principal: Principal, id: string, dto: UpdateLocationNodeDto) {
-    const node = await this.ctx.prisma.locationNode.findUnique({ where: { id }, select: { id: true, branchId: true, kind: true, parentId: true } });
+    const node = await this.ctx.prisma.locationNode.findUnique({
+      where: { id },
+      select: { id: true, branchId: true, kind: true, parentId: true },
+    });
     if (!node) throw new NotFoundException("Location not found");
 
     const branchId = this.ctx.resolveBranchId(principal, node.branchId);
@@ -249,6 +331,16 @@ export class LocationService {
     const effectiveFrom = dto.effectiveFrom ? new Date(dto.effectiveFrom) : now;
     const effectiveTo = dto.effectiveTo ? new Date(dto.effectiveTo) : null;
 
+    const hasGps = dto.gpsLat !== undefined || dto.gpsLng !== undefined;
+    if (hasGps) {
+      if (node.kind !== ("CAMPUS" as any)) throw new BadRequestException("GPS coordinates are allowed only for CAMPUS nodes.");
+      if (dto.gpsLat === undefined || dto.gpsLng === undefined) throw new BadRequestException("Both gpsLat and gpsLng are required together.");
+    }
+
+    if (dto.floorNumber !== undefined && node.kind !== ("FLOOR" as any)) {
+      throw new BadRequestException("floorNumber can be set only on FLOOR nodes.");
+    }
+
     let nextCode = current.code;
     if (dto.code) {
       const parentCode = node.parentId ? await this.getCurrentLocationCode(node.parentId, effectiveFrom) : undefined;
@@ -257,12 +349,20 @@ export class LocationService {
 
     await this.assertLocationCodeUnique(branchId, nextCode, effectiveFrom, effectiveTo, node.id);
 
+    const nextGpsLat = dto.gpsLat ?? (current as any).gpsLat ?? null;
+    const nextGpsLng = dto.gpsLng ?? (current as any).gpsLng ?? null;
+    const nextFloorNumber = dto.floorNumber ?? (current as any).floorNumber ?? null;
+
+    const nextWheelchair = dto.wheelchairAccess ?? (current as any).wheelchairAccess ?? false;
+    const nextStretcher = dto.stretcherAccess ?? (current as any).stretcherAccess ?? false;
+    const nextEmergencyExit = dto.emergencyExit ?? (current as any).emergencyExit ?? false;
+
+    const nextFireZone =
+      dto.fireZone !== undefined ? (dto.fireZone?.trim() || null) : ((current as any).fireZone ?? null);
+
     const newRev = await this.ctx.prisma.$transaction(async (tx) => {
       if (current.effectiveTo == null || current.effectiveTo > effectiveFrom) {
-        await tx.locationNodeRevision.update({
-          where: { id: current.id },
-          data: { effectiveTo: effectiveFrom },
-        });
+        await tx.locationNodeRevision.update({ where: { id: current.id }, data: { effectiveTo: effectiveFrom } });
       }
 
       return tx.locationNodeRevision.create({
@@ -274,6 +374,16 @@ export class LocationService {
           effectiveFrom,
           effectiveTo,
           createdByUserId: principal.userId,
+
+          gpsLat: node.kind === ("CAMPUS" as any) ? nextGpsLat : null,
+          gpsLng: node.kind === ("CAMPUS" as any) ? nextGpsLng : null,
+          floorNumber: node.kind === ("FLOOR" as any) ? nextFloorNumber : null,
+
+          wheelchairAccess: nextWheelchair,
+          stretcherAccess: nextStretcher,
+          emergencyExit: nextEmergencyExit,
+
+          fireZone: nextFireZone,
         },
       });
     });

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Req } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query, Req } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { Permissions } from "../../auth/permissions.decorator";
 import { PERM } from "../../iam/iam.constants";
@@ -16,16 +16,26 @@ export class UnitTypesController {
 
   @Get("unit-types/catalog")
   @Permissions(PERM.INFRA_UNITTYPE_READ)
-  async unitTypeCatalog(@Req() req: any) {
-    return this.svc.listUnitTypeCatalog(this.principal(req));
+  async unitTypeCatalog(@Req() req: any, @Query("includeInactive") includeInactive?: any) {
+    const flag =
+      includeInactive === true ||
+      includeInactive === "true" ||
+      includeInactive === "1" ||
+      includeInactive === "yes";
+
+    return this.svc.listUnitTypeCatalog(this.principal(req), flag);
   }
 
-  // ✅ FIX: add POST endpoint so /api/infrastructure/unit-types/catalog stops returning 404
   @Post("unit-types/catalog")
-  // Using UPDATE permission to avoid introducing a new permission constant.
   @Permissions(PERM.INFRA_UNITTYPE_UPDATE)
   async createUnitTypeCatalog(@Req() req: any, @Body() body: any) {
     return this.svc.createUnitTypeCatalog(this.principal(req), body);
+  }
+
+  @Patch("unit-types/catalog/:id")
+  @Permissions(PERM.INFRA_UNITTYPE_UPDATE)
+  async updateUnitTypeCatalog(@Req() req: any, @Param("id") id: string, @Body() body: any) {
+    return this.svc.updateUnitTypeCatalog(this.principal(req), id, body);
   }
 
   @Get("branches/:branchId/unit-types")
@@ -34,7 +44,7 @@ export class UnitTypesController {
     return this.svc.getBranchUnitTypes(this.principal(req), branchId);
   }
 
-  @Put("branches/:branchId/unit-types")
+  @Patch("branches/:branchId/unit-types")
   @Permissions(PERM.INFRA_UNITTYPE_UPDATE)
   async setBranchUnitTypes(@Req() req: any, @Param("branchId") branchId: string, @Body() dto: SetBranchUnitTypesDto) {
     return this.svc.setBranchUnitTypes(this.principal(req), dto.unitTypeIds, branchId);

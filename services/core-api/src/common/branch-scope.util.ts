@@ -46,30 +46,32 @@ export function resolveBranchId(
   opts?: { requiredForGlobal?: boolean },
 ): string | null {
   const requiredForGlobal = opts?.requiredForGlobal ?? false;
+  const req = requestedBranchId ? String(requestedBranchId).trim() : "";
+  const requested = req.length ? req : null;
 
   if (principal.roleScope === "BRANCH") {
-    const allowed = Array.isArray((principal as any).branchIds) && (principal as any).branchIds.length
-      ? (principal as any).branchIds
-      : (principal.branchId ? [principal.branchId] : []);
+    const allowed =
+      Array.isArray((principal as any).branchIds) && (principal as any).branchIds.length
+        ? (principal as any).branchIds
+        : (principal.branchId ? [principal.branchId] : []);
 
     if (!allowed.length) throw new ForbiddenException("Branch-scoped principal missing branchId");
 
-    // If caller requested a branchId, it must be one of the allowed branches.
-    if (requestedBranchId && !allowed.includes(requestedBranchId)) {
+    if (requested && !allowed.includes(requested)) {
       throw new ForbiddenException("Cannot access another branch");
     }
 
-    // Default when not explicitly requested: use principal.branchId if set, else first allowed.
-    return requestedBranchId ?? principal.branchId ?? allowed[0];
+    return requested ?? principal.branchId ?? allowed[0];
   }
 
   // GLOBAL
-  if (!requestedBranchId) {
+  if (!requested) {
     if (requiredForGlobal) throw new BadRequestException("branchId is required for this operation");
     return null;
   }
-  return requestedBranchId;
+  return requested;
 }
+
 
 /** Convenience: actor user id extraction for audit */
 export function actorUserIdFromReq(req: any): string | null {

@@ -68,14 +68,6 @@ export class AccessPolicyService {
     }
     return false;
   }
-
-  /**
-   * Enterprise-safe branch scoping helper.
-   *
-   * Rules:
-   *  - BRANCH principals are hard-scoped to principal.branchId (client branchId is ignored)
-   *  - GLOBAL principals may operate on any branch, but some endpoints require branchId
-   */
   resolveBranchId(
     principal: Principal,
     requestedBranchId: string | null | undefined,

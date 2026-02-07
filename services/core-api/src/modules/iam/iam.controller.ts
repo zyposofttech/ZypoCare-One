@@ -119,9 +119,10 @@ export class IamController {
   async users(
     @Query("q") q: string | undefined,
     @Query("branchId") branchId: string | undefined,
+    @Query("includeStaff") includeStaff: string | undefined,
     @Req() req: any,
   ) {
-    return this.iam.listUsers(this.principal(req), q, branchId);
+    return this.iam.listUsers(this.principal(req), q, branchId, includeStaff === "true");
   }
 
   @Get("users/:id")

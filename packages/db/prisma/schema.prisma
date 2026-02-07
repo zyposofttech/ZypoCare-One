@@ -1,7 +1,7 @@
 generator client {
   provider      = "prisma-client-js"
-  //output        = "../src/generated/client"
-  //binaryTargets = ["native", "debian-openssl-3.0.x"]
+  output        = "../src/generated/client"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -40,7 +40,10 @@ enum FacilityCategory {
   CLINICAL
   SUPPORT
 }
-
+enum SpecialtyKind {
+  SPECIALTY
+  SUPER_SPECIALTY
+}
 enum BedState {
   VACANT
   OCCUPIED
@@ -122,33 +125,70 @@ model Branch {
   // Soft lifecycle toggle (preferred over delete)
   isActive Boolean @default(true)
 
-  address       String? @db.VarChar(240)
+  // ---- Required identity/legal (enforced at API layer; DB allows null for backfill) ----
+  legalEntityName String? @db.VarChar(160)
+
+  // Address (store as full text + PIN; keep city separately for quick filtering)
+  address String? @db.VarChar(240)
+  pinCode String? @db.VarChar(10)
+  state   String? @db.VarChar(80)
+  country String? @db.VarChar(80)
+
+  // Contact
   contactPhone1 String? @db.VarChar(20)
   contactPhone2 String? @db.VarChar(20)
   contactEmail  String? @db.VarChar(120)
 
-  gstNumber String? @db.VarChar(15)
+  // Statutory / registrations
+  gstNumber            String? @db.VarChar(15)
+  panNumber            String? @db.VarChar(10)
+  clinicalEstRegNumber String? @db.VarChar(64)
+  rohiniId             String? @db.VarChar(64)
+  hfrId                String? @db.VarChar(64) // ABDM (auto-populated after registration)
+
+  // Optional branding + public links
+  logoUrl         String?   @db.VarChar(500)
+  website         String?   @db.VarChar(200)
+  socialLinks     Json?
+  accreditations  Json? // e.g. ["NABH","JCI"]
+  bedCount        Int?
+  establishedDate DateTime?
+
+  // Branch settings (defaults are India-centric but configurable)
+  defaultCurrency      String  @default("INR") @db.VarChar(8)
+  timezone             String  @default("Asia/Kolkata") @db.VarChar(64)
+  fiscalYearStartMonth Int     @default(4)
+  workingHours         Json? // flexible schema for future (text or structured)
+  emergency24x7        Boolean @default(true)
+  multiLanguageSupport Boolean @default(false)
+  supportedLanguages   Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  departments      Department[]
-  users            User[]
-  patients         Patient[]
-  wards            Ward[]
-  tariffPlans      TariffPlan[]
+  departments                Department[]
+  users                      User[]
+  patients                   Patient[]
+  wards                      Ward[]
+  tariffPlans                TariffPlan[]
   // Advanced billing setup (branch-scoped)
-  taxCodes         TaxCode[]
-  payers           Payer[]
-  payerContracts   PayerContract[]
-  assets           Asset[]
-  specialties      Specialty[]
-  homeStaff        Staff[]           @relation("StaffHomeBranch")
-  staffAssignments StaffAssignment[]
-  userRoleBindings UserRoleBinding[]
-  Encounter        Encounter[]
-  Bed              Bed[]
-  Admission        Admission[]
+  taxCodes                   TaxCode[]
+  payers                     Payer[]
+  payerContracts             PayerContract[]
+  assets                     Asset[]
+  specialties                Specialty[]
+  homeStaff                  Staff[]                     @relation("StaffHomeBranch")
+  staffAssignments           StaffAssignment[]
+  userRoleBindings           UserRoleBinding[]
+  staffDocuments             StaffDocument[]
+  staffProviderProfiles      StaffProviderProfile[]
+  staffPrivilegeGrants       StaffPrivilegeGrant[]
+  staffOnboardingItems       StaffOnboardingItem[]
+  staffCompliancePacks       StaffCompliancePack[]
+  staffComplianceAssignments StaffComplianceAssignment[]
+  Encounter                  Encounter[]
+  Bed                        Bed[]
+  Admission                  Admission[]
 
   // Facilities enabled for this branch (multi-select from FacilityCatalog)
   branchFacilities BranchFacility[]
@@ -252,13 +292,31 @@ model Department {
   headStaffId String?
   headStaff   Staff?  @relation("DepartmentHead", fields: [headStaffId], references: [id], onDelete: SetNull)
 
+  // Optional department hierarchy (enforced in service layer)
+  parentDepartmentId String?
+  parentDepartment   Department?  @relation("DepartmentHierarchy", fields: [parentDepartmentId], references: [id], onDelete: SetNull)
+  childDepartments   Department[] @relation("DepartmentHierarchy")
+
   isActive  Boolean  @default(true)
+
+  // Soft deactivation metadata (required by deactivation flows)
+  deactivatedAt       DateTime?
+  deactivationReason  String?  @db.VarChar(500)
+  deactivatedByUserId String?
+  deactivatedByUser   User?    @relation("DepartmentDeactivatedBy", fields: [deactivatedByUserId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   doctorAssignments DepartmentDoctor[]
 
-  staffAssignments StaffAssignment[]
+  staffAssignments      StaffAssignment[]
+  staffProviderProfiles StaffProviderProfile[]
+  facilityType   FacilityCategory @default(CLINICAL)
+  costCenterCode String?          @db.VarChar(64)
+  extensions     Json?
+  operatingHours Json?
+
+  locations DepartmentLocation[]
 
   // ✅ Many-to-many link to specialties (single source of truth for mapping)
   departmentSpecialties DepartmentSpecialty[]
@@ -270,8 +328,31 @@ model Department {
   serviceCatalogues ServiceCatalogue[]
   OrderSet          OrderSet[]
 
-  @@unique([branchId, facilityId, code])
+  // BRD: department code unique within branch (not per facility)
+  @@unique([branchId, code], name: "branchId_departmentCode")
   @@index([branchId, facilityId, isActive])
+  @@index([branchId, isActive])
+  @@index([deactivatedByUserId])
+}
+
+model DepartmentLocation {
+  id String @id @default(cuid())
+
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  locationNodeId String
+  locationNode   LocationNode @relation(fields: [locationNodeId], references: [id], onDelete: Cascade)
+
+  isPrimary Boolean @default(false)
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([departmentId, locationNodeId])
+  @@index([departmentId, isActive])
+  @@index([locationNodeId, isActive])
 }
 
 model DepartmentDoctor {
@@ -318,17 +399,22 @@ model Specialty {
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id])
 
-  code      String
-  name      String
-  isActive  Boolean  @default(true)
+  code String
+  name String
+
+  kind SpecialtyKind @default(SPECIALTY)
+
+  isActive Boolean @default(true)
+
+  departmentLinks DepartmentSpecialty[]
+  staffAssignments StaffAssignment[]
+  staffProviderProfiles StaffProviderProfile[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  staffAssignments StaffAssignment[]
-  // ✅ Many-to-many link to departments
-  departmentLinks  DepartmentSpecialty[]
-
   @@unique([branchId, code])
+  @@index([branchId, isActive])
 }
 
 enum UserSource {
@@ -401,6 +487,100 @@ enum StaffIdentifierType {
   OTHER
 }
 
+enum StaffOnboardingStatus {
+  DRAFT
+  IN_REVIEW
+  ACTIVE
+}
+
+enum StaffDocumentType {
+  PROFILE_PHOTO
+  SIGNATURE
+  STAMP
+  ID_PROOF
+  EDUCATION_DEGREE
+  TRAINING_CERTIFICATE
+  EMPLOYMENT_CONTRACT
+  MEDICAL_REG_EVIDENCE
+  OTHER
+}
+
+enum StaffDocumentVerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum StaffOnboardingItemType {
+  DOCUMENT
+  CREDENTIAL
+  IDENTIFIER
+  ASSIGNMENT
+  SYSTEM_ACCESS
+  PRIVILEGE
+  OTHER
+}
+
+enum StaffOnboardingItemStatus {
+  PENDING
+  DONE
+  WAIVED
+  REJECTED
+}
+
+enum StaffPrivilegeArea {
+  OPD
+  IPD
+  ER
+  OT
+  ICU
+  DIAGNOSTICS
+  LAB
+  RADIOLOGY
+  PHARMACY
+  BILLING
+  ADMIN
+}
+
+enum StaffPrivilegeAction {
+  VIEW
+  ORDER
+  PRESCRIBE
+  PERFORM
+  ATTEST
+  DISCHARGE
+  SIGN
+  APPROVE
+  OTHER
+}
+
+enum StaffPrivilegeTargetType {
+  NONE
+  SERVICE_ITEM
+  DIAGNOSTIC_ITEM
+  ORDER_SET
+  OTHER
+}
+
+enum StaffPrivilegeStatus {
+  ACTIVE
+  SUSPENDED
+  REVOKED
+  EXPIRED
+}
+
+enum StaffComplianceRequirementKind {
+  DOCUMENT
+  CREDENTIAL
+  IDENTIFIER
+}
+
+enum StaffComplianceAssignmentStatus {
+  ACTIVE
+  INACTIVE
+}
+
 model Staff {
   id String @id @default(cuid())
 
@@ -427,7 +607,43 @@ model Staff {
   // ABDM/HPR identifier (optional; can also be stored as identifier)
   hprId String? @unique @db.VarChar(64)
 
-  isActive Boolean @default(true)
+  isActive         Boolean   @default(true)
+  // Suspension tracking (BRD FR6.2)
+  suspendedAt      DateTime?
+  suspendedUntil   DateTime?
+  suspensionReason String?   @db.VarChar(240)
+
+  // Optional profile notes
+  notes             String?
+  personalDetails   Json?
+  contactDetails    Json?
+  employmentDetails Json?
+  medicalDetails    Json?
+  systemAccess      Json?
+
+  // Onboarding workflow (ops readiness)
+  onboardingStatus            StaffOnboardingStatus @default(DRAFT)
+  onboardingStartedAt         DateTime?
+  onboardingCompletedAt       DateTime?
+  onboardingCompletedByUserId String?
+  onboardingCompletedByUser   User?                 @relation("StaffOnboardingCompletedBy", fields: [onboardingCompletedByUserId], references: [id], onDelete: SetNull)
+
+  // Convenience pointers (documents still live in StaffDocument vault)
+  profilePhotoDocumentId String?        @unique
+  profilePhotoDocument   StaffDocument? @relation("StaffProfilePhoto", fields: [profilePhotoDocumentId], references: [id], onDelete: SetNull)
+
+  signatureDocumentId String?        @unique
+  signatureDocument   StaffDocument? @relation("StaffSignatureDoc", fields: [signatureDocumentId], references: [id], onDelete: SetNull)
+
+  stampDocumentId String?        @unique
+  stampDocument   StaffDocument? @relation("StaffStampDoc", fields: [stampDocumentId], references: [id], onDelete: SetNull)
+
+  // PCPNDT / compliance marker (BRD FR5.3)
+  isUsgAuthorized       Boolean   @default(false)
+  usgAuthorizedAt       DateTime?
+  usgAuthorizedByUserId String?
+  usgAuthorizedByUser   User?     @relation("StaffUsgAuthorizedBy", fields: [usgAuthorizedByUserId], references: [id], onDelete: SetNull)
+  usgAuthorizationNotes String?   @db.VarChar(240)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -439,8 +655,15 @@ model Staff {
   credentials StaffCredential[]
   identifiers StaffIdentifier[]
 
+  // Documents + onboarding + privileging + provider profile (enterprise-grade staff backbone)
+  documents             StaffDocument[]             @relation("StaffDocuments")
+  onboardingItems       StaffOnboardingItem[]
+  privilegeGrants       StaffPrivilegeGrant[]       @relation("StaffPrivilegeGrants")
+  providerProfiles      StaffProviderProfile[]      @relation("StaffProviderProfiles")
+  complianceAssignments StaffComplianceAssignment[]
+
   // User linkage (preferred 1:1)
-  user User?
+  user User? @relation("StaffUserLink")
 
   // Existing relations kept for compatibility
   doctorAssignments        DepartmentDoctor[]
@@ -455,6 +678,12 @@ model Staff {
   @@index([phone])
   @@index([email])
   @@index([status, isActive])
+  @@index([category])
+  @@index([engagementType])
+  @@index([isUsgAuthorized])
+  @@index([suspendedUntil])
+  @@index([onboardingStatus])
+  @@index([onboardingCompletedAt])
 }
 
 model StaffAssignment {
@@ -496,7 +725,9 @@ model StaffAssignment {
   updatedAt DateTime @updatedAt
 
   // Optional tie-back for access bindings
-  userRoleBindings UserRoleBinding[]
+  userRoleBindings     UserRoleBinding[]
+  staffDocuments       StaffDocument[]
+  staffPrivilegeGrants StaffPrivilegeGrant[]
 
   @@index([staffId, status])
   @@index([branchId, status])
@@ -555,7 +786,10 @@ model StaffCredential {
   verifiedByUserId   String?
   verifiedByUser     User?                             @relation(fields: [verifiedByUserId], references: [id], onDelete: SetNull)
 
+  // Legacy single URL (keep for back-compat). Prefer StaffCredentialEvidence -> StaffDocument
   documentUrl String?
+
+  evidences StaffCredentialEvidence[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -585,6 +819,280 @@ model StaffIdentifier {
 
   @@unique([type, valueHash])
   @@index([staffId, type])
+}
+
+model StaffDocument {
+  id String @id @default(cuid())
+
+  staffId String
+  staff   Staff  @relation("StaffDocuments", fields: [staffId], references: [id], onDelete: Cascade)
+
+  // Optional: branch/assignment scoping (some docs are enterprise-wide, some are branch-local)
+  branchId String?
+  branch   Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  staffAssignmentId String?
+  staffAssignment   StaffAssignment? @relation(fields: [staffAssignmentId], references: [id], onDelete: SetNull)
+
+  type        StaffDocumentType @default(OTHER)
+  title       String?           @db.VarChar(160)
+  description String?
+
+  refNo     String?   @db.VarChar(80)
+  issuedBy  String?   @db.VarChar(120)
+  issuedAt  DateTime?
+  validFrom DateTime?
+  validTo   DateTime?
+
+  // Storage pointer (S3/minio/local file service)
+  fileUrl       String  @db.VarChar(512)
+  fileMime      String? @db.VarChar(120)
+  fileSizeBytes Int?
+  checksum      String? @db.VarChar(128)
+
+  tags     Json?
+  isActive Boolean @default(true)
+
+  uploadedByUserId String?
+  uploadedByUser   User?   @relation("StaffDocumentUploadedBy", fields: [uploadedByUserId], references: [id], onDelete: SetNull)
+
+  verificationStatus StaffDocumentVerificationStatus @default(UNVERIFIED)
+  verifiedAt         DateTime?
+  verifiedByUserId   String?
+  verifiedByUser     User?                           @relation("StaffDocumentVerifiedBy", fields: [verifiedByUserId], references: [id], onDelete: SetNull)
+  verificationNotes  String?                         @db.VarChar(240)
+
+  // Back-relations for convenience pointers on Staff
+  profilePhotoFor Staff? @relation("StaffProfilePhoto")
+  signatureFor    Staff? @relation("StaffSignatureDoc")
+  stampFor        Staff? @relation("StaffStampDoc")
+
+  // Evidence links
+  credentialEvidences StaffCredentialEvidence[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([staffId, type])
+  @@index([branchId, type])
+  @@index([staffAssignmentId])
+  @@index([validTo])
+  @@index([verificationStatus])
+  @@index([isActive])
+}
+
+model StaffCredentialEvidence {
+  id String @id @default(cuid())
+
+  staffCredentialId String
+  staffCredential   StaffCredential @relation(fields: [staffCredentialId], references: [id], onDelete: Cascade)
+
+  staffDocumentId String
+  staffDocument   StaffDocument @relation(fields: [staffDocumentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([staffCredentialId, staffDocumentId])
+  @@index([staffCredentialId])
+  @@index([staffDocumentId])
+}
+
+model StaffProviderProfile {
+  id String @id @default(cuid())
+
+  staffId String
+  staff   Staff  @relation("StaffProviderProfiles", fields: [staffId], references: [id], onDelete: Cascade)
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  isActive Boolean @default(true)
+
+  // Branch/provider code used in scheduling/billing integrations
+  providerCode String? @db.VarChar(32)
+  displayName  String? @db.VarChar(160)
+
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+  specialtyId String?
+  specialty   Specialty? @relation(fields: [specialtyId], references: [id], onDelete: SetNull)
+
+  // Hooks for future modules (keep flexible)
+  consultationModes Json?
+  schedulingProfile Json?
+  billingProfile    Json?
+  clinicalProfile   Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([staffId, branchId])
+  @@index([branchId, isActive])
+  @@index([departmentId])
+  @@index([specialtyId])
+}
+
+model StaffPrivilegeGrant {
+  id String @id @default(cuid())
+
+  staffId String
+  staff   Staff  @relation("StaffPrivilegeGrants", fields: [staffId], references: [id], onDelete: Cascade)
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  staffAssignmentId String?
+  staffAssignment   StaffAssignment? @relation(fields: [staffAssignmentId], references: [id], onDelete: SetNull)
+
+  area   StaffPrivilegeArea
+  action StaffPrivilegeAction
+
+  // Optional: scope to a specific target (procedure/service/test/order set)
+  targetType StaffPrivilegeTargetType @default(NONE)
+  targetId   String?                  @db.VarChar(80)
+  targetMeta Json?
+
+  status StaffPrivilegeStatus @default(ACTIVE)
+
+  effectiveFrom DateTime  @default(now())
+  effectiveTo   DateTime?
+
+  grantedByUserId String?
+  grantedByUser   User?   @relation("StaffPrivilegeGrantedBy", fields: [grantedByUserId], references: [id], onDelete: SetNull)
+
+  notes String? @db.VarChar(240)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([staffId, branchId, area, action])
+  @@index([branchId, status])
+  @@index([effectiveTo])
+  @@index([targetType, targetId])
+  @@index([staffAssignmentId])
+}
+
+model StaffOnboardingItem {
+  id String @id @default(cuid())
+
+  staffId String
+  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  branchId String?
+  branch   Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  type        StaffOnboardingItemType
+  title       String                  @db.VarChar(160)
+  description String?
+
+  status     StaffOnboardingItemStatus @default(PENDING)
+  isRequired Boolean                   @default(true)
+
+  dueAt DateTime?
+
+  completedAt       DateTime?
+  completedByUserId String?
+  completedByUser   User?     @relation("StaffOnboardingItemCompletedBy", fields: [completedByUserId], references: [id], onDelete: SetNull)
+
+  meta Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([staffId, status])
+  @@index([branchId, status])
+  @@index([type, status])
+  @@index([dueAt])
+}
+
+model StaffCompliancePack {
+  id String @id @default(cuid())
+
+  name        String  @db.VarChar(160)
+  description String?
+
+  // Applicability (optional)
+  category       StaffCategory?
+  roleTemplateId String?
+  roleTemplate   RoleTemplate?  @relation(fields: [roleTemplateId], references: [id], onDelete: SetNull)
+
+  branchId String?
+  branch   Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  isActive Boolean @default(true)
+
+  requirements StaffComplianceRequirement[]
+  assignments  StaffComplianceAssignment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([roleTemplateId])
+  @@index([branchId])
+  @@index([isActive])
+}
+
+model StaffComplianceRequirement {
+  id String @id @default(cuid())
+
+  packId String
+  pack   StaffCompliancePack @relation(fields: [packId], references: [id], onDelete: Cascade)
+
+  kind        StaffComplianceRequirementKind
+  title       String                         @db.VarChar(160)
+  isMandatory Boolean                        @default(true)
+
+  // One of these based on kind
+  documentType   StaffDocumentType?
+  credentialType StaffCredentialType?
+  identifierType StaffIdentifierType?
+
+  // Optional renewal expectations
+  renewalRequired   Boolean @default(false)
+  renewalWindowDays Int?
+
+  meta Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([packId, kind])
+  @@index([documentType])
+  @@index([credentialType])
+  @@index([identifierType])
+}
+
+model StaffComplianceAssignment {
+  id String @id @default(cuid())
+
+  staffId String
+  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  packId String
+  pack   StaffCompliancePack @relation(fields: [packId], references: [id], onDelete: Cascade)
+
+  // Optional branch scoping for packs applied only in certain branches
+  branchId String?
+  branch   Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  status StaffComplianceAssignmentStatus @default(ACTIVE)
+
+  effectiveFrom DateTime  @default(now())
+  effectiveTo   DateTime?
+
+  assignedByUserId String?
+  assignedByUser   User?   @relation("StaffComplianceAssignedBy", fields: [assignedByUserId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([staffId, packId, branchId])
+  @@index([staffId, status])
+  @@index([packId, status])
+  @@index([branchId, status])
+  @@index([effectiveTo])
 }
 
 model StaffMergeLog {
@@ -624,7 +1132,7 @@ model User {
   branch   Branch? @relation(fields: [branchId], references: [id])
 
   staffId String? @unique
-  staff   Staff?  @relation(fields: [staffId], references: [id])
+  staff   Staff?  @relation("StaffUserLink", fields: [staffId], references: [id])
 
   isActive Boolean @default(true)
 
@@ -638,16 +1146,28 @@ model User {
   passwordHash       String?
   mustChangePassword Boolean @default(false)
 
-  passwordResetToken   String?              @unique
-  passwordResetExpires DateTime?
-  roleVersionId        String?
-  roleVersion          RoleTemplateVersion? @relation("UserRoleVersion", fields: [roleVersionId], references: [id])
+  passwordResetToken                 String?                     @unique
+  passwordResetExpires               DateTime?
+  roleVersionId                      String?
+  roleVersion                        RoleTemplateVersion?        @relation("UserRoleVersion", fields: [roleVersionId], references: [id])
+  usgAuthorizedStaff                 Staff[]                     @relation("StaffUsgAuthorizedBy")
+  completedStaffOnboardings          Staff[]                     @relation("StaffOnboardingCompletedBy")
+  grantedStaffPrivilegeGrants        StaffPrivilegeGrant[]       @relation("StaffPrivilegeGrantedBy")
+  completedStaffOnboardingItems      StaffOnboardingItem[]       @relation("StaffOnboardingItemCompletedBy")
+  assignedStaffComplianceAssignments StaffComplianceAssignment[] @relation("StaffComplianceAssignedBy")
 
   // Multi-branch role bindings (Doctor@BranchA, Doctor@BranchB, ...)
   roleBindings UserRoleBinding[]
 
   createdRoleVersions RoleTemplateVersion[] @relation("RoleVersionCreatedBy")
   auditEventsAsActor  AuditEvent[]          @relation("AuditActor")
+
+  // Opposite relation for department deactivation metadata
+  deactivatedDepartments Department[] @relation("DepartmentDeactivatedBy")
+  // ---- Deactivation actor back-relations (infra) ----
+  deactivatedUnits         Unit[]        @relation("UnitDeactivatedBy")
+  deactivatedUnitRooms     UnitRoom[]    @relation("UnitRoomDeactivatedBy")
+  deactivatedUnitResources UnitResource[] @relation("UnitResourceDeactivatedBy")
 
   // Policy governance opposite relations
   policyVersionsCreatedBy   PolicyVersion[] @relation("PolicyVersionCreatedBy")
@@ -714,6 +1234,8 @@ model User {
   governedChangeRequestsSubmitted GovernedChangeRequest[] @relation("GovernedChangeSubmittedBy")
   governedChangeRequestsApproved  GovernedChangeRequest[] @relation("GovernedChangeApprovedBy")
   governedChangeRequestsRejected  GovernedChangeRequest[] @relation("GovernedChangeRejectedBy")
+  staffDocumentsUploaded          StaffDocument[]         @relation("StaffDocumentUploadedBy")
+  staffDocumentsVerified          StaffDocument[]         @relation("StaffDocumentVerifiedBy")
   StaffCredential                 StaffCredential[]
   StaffMergeLog                   StaffMergeLog[]
 }
@@ -1169,7 +1691,8 @@ model RoleTemplate {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  versions RoleTemplateVersion[]
+  versions             RoleTemplateVersion[]
+  staffCompliancePacks StaffCompliancePack[]
 }
 
 model RoleTemplateVersion {
@@ -1318,6 +1841,7 @@ enum LocationKind {
   BUILDING
   FLOOR
   ZONE
+  AREA
 }
 
 model LocationNode {
@@ -1342,6 +1866,7 @@ model LocationNode {
   // Diagnostics setup mappings
   diagnosticServicePoints DiagnosticServicePoint[]
   EquipmentPlacement      EquipmentPlacement[]
+  departmentLocations DepartmentLocation[]
 
   @@index([branchId, kind])
   @@index([branchId, parentId])
@@ -1356,6 +1881,17 @@ model LocationNodeRevision {
   name     String
   isActive Boolean @default(true)
 
+  // 2.2.2 Location Attributes
+  gpsLat      Float?
+  gpsLng      Float?
+  floorNumber Int?
+
+  wheelchairAccess Boolean @default(false)
+  stretcherAccess  Boolean @default(false)
+  emergencyExit    Boolean @default(false)
+
+  fireZone String?
+
   effectiveFrom DateTime
   effectiveTo   DateTime?
 
@@ -1369,14 +1905,63 @@ model LocationNodeRevision {
 }
 
 // ---------------- Unit Types Enablement ----------------
+enum UnitRoomType {
+  CONSULTATION
+  PROCEDURE
+  EXAMINATION
+  PATIENT_ROOM
+  ISOLATION
+  NEGATIVE_PRESSURE
+  POSITIVE_PRESSURE
+  NURSING_STATION
+  WAITING
+  STORAGE
+  UTILITY
+  RECOVERY
+}
+enum IsolationType {
+  CONTACT
+  DROPLET
+  AIRBORNE
+  PROTECTIVE
+}
+
+enum MaintenanceStatus {
+  OPERATIONAL
+  UNDER_MAINTENANCE
+  CLEANING_IN_PROGRESS
+  BLOCKED
+  OUT_OF_SERVICE
+}
+
+enum UnitCategory {
+  OUTPATIENT
+  INPATIENT
+  CRITICAL_CARE
+  PROCEDURE
+  DIAGNOSTIC
+  SUPPORT
+}
+enum PricingTier {
+  ECONOMY
+  STANDARD
+  DELUXE
+  SUITE
+  VIP
+}
+
 
 model UnitTypeCatalog {
   id   String @id @default(cuid())
   code String @unique @db.VarChar(32)
   name String @db.VarChar(120)
-
-  usesRoomsDefault     Boolean @default(true)
-  schedulableByDefault Boolean @default(false)
+  
+  category UnitCategory @default(OUTPATIENT)
+  
+  usesRoomsDefault         Boolean @default(true)
+  schedulableByDefault     Boolean @default(false)
+  bedBasedDefault          Boolean @default(false)
+  requiresPreAuthDefault   Boolean @default(false)
 
   isActive  Boolean @default(true)
   sortOrder Int     @default(0)
@@ -1387,6 +1972,12 @@ model UnitTypeCatalog {
   branchLinks BranchUnitType[]
   units       Unit[]
 
+  defaultOperatingHours Json?
+  standardEquipment     Json?
+
+  isSystemDefined Boolean @default(false)
+
+  @@index([category])
   @@index([isActive, sortOrder])
 }
 
@@ -1411,23 +2002,62 @@ model BranchUnitType {
 // ---------------- Units / Rooms / Resources ----------------
 
 enum UnitResourceType {
+  // Bed Resources
+  GENERAL_BED
+  ICU_BED
+  NICU_INCUBATOR
+  CRIB
+  TROLLEY
+  STRETCHER
+  WHEELCHAIR_POSITION
+
+  // Procedure Resources
+  OT_TABLE
+  DIALYSIS_STATION
+  CHEMOTHERAPY_CHAIR
+  PROCEDURE_CHAIR
+  PROCEDURE_TABLE
+  RECOVERY_BAY
+  DENTAL_CHAIR
+  EXAMINATION_TABLE
+
+  // Diagnostic Resources
+  XRAY_MACHINE_SLOT
+  CT_SCANNER_SLOT
+  MRI_SCANNER_SLOT
+  USG_MACHINE_SLOT
+  ECG_MACHINE_SLOT
+  ECHO_MACHINE_SLOT
+  SAMPLE_COLLECTION_COUNTER
+
+  // Other / Slots
+  CONSULTATION_SLOT
+  EXAM_SLOT
+
+  // Legacy (kept for backward compatibility)
   BED
   BAY
   CHAIR
-  OT_TABLE
-  PROCEDURE_TABLE
-  DIALYSIS_STATION
-  RECOVERY_BAY
-  EXAM_SLOT
   INCUBATOR
 }
 
 enum UnitResourceState {
   AVAILABLE
+  RESERVED
   OCCUPIED
   CLEANING
+  SANITIZATION
   MAINTENANCE
+  BLOCKED
   INACTIVE
+}
+
+enum UnitResourceCategory {
+  BED
+  PROCEDURE
+  DIAGNOSTIC
+  CONSULTATION
+  OTHER
 }
 
 model Unit {
@@ -1447,10 +2077,25 @@ model Unit {
 
   code String @db.VarChar(32)
   name String @db.VarChar(160)
+  // Physical / capacity metadata (captured during onboarding; optional)
+  totalRoomCount    Int      @default(0)
+  totalBedCapacity  Int?
+  commissioningDate DateTime?
 
+  // Convenience fields (optional; can be derived from Location/Staff modules)
+  floorNumber     Int?
+  wingZone        String? @db.VarChar(120)
+  inchargeStaffId String? @db.VarChar(64)
+  nursingStation  String? @db.VarChar(160)
+  
   usesRooms Boolean @default(true)
   isActive  Boolean @default(true)
-
+  
+  // Soft deactivation metadata (future-proof; aligns with BRD reason-required flows)
+  deactivatedAt       DateTime?
+  deactivationReason  String?  @db.VarChar(500)
+  deactivatedByUserId String?
+  deactivatedByUser   User?    @relation("UnitDeactivatedBy", fields: [deactivatedByUserId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1475,23 +2120,61 @@ model UnitRoom {
   unitId String
   unit   Unit   @relation(fields: [unitId], references: [id], onDelete: Cascade)
 
-  code String @db.VarChar(64)
-  name String @db.VarChar(160)
+  code       String  @db.VarChar(64)
+  roomNumber String? @db.VarChar(32) // UI will require; DB kept nullable for safe migration
+  name       String  @db.VarChar(160)
 
-  isActive Boolean @default(true)
+  roomType UnitRoomType?
+
+  // Physical Attributes
+  areaSqFt            Int?
+  hasAttachedBathroom Boolean @default(false)
+  hasAC               Boolean @default(false)
+  hasTV               Boolean @default(false)
+  hasOxygen           Boolean @default(false)
+  hasSuction          Boolean @default(false)
+  hasVentilator       Boolean @default(false)
+  hasMonitor          Boolean @default(false)
+  hasCallButton       Boolean @default(false)
+
+  // Capacity
+  maxOccupancy     Int @default(1)
+  currentOccupancy Int @default(0)
+
+  // Pricing
+  pricingTier       PricingTier?
+  baseChargePerDay  Decimal? @db.Decimal(12, 2)
+
+  // Isolation/Special
+  isIsolation   Boolean       @default(false)
+  isolationType IsolationType?
+
+  // Status
+  isActive           Boolean           @default(true)
+  isAvailable        Boolean           @default(true)
+  maintenanceStatus  MaintenanceStatus @default(OPERATIONAL)
+  lastCleanedAt      DateTime?
+
+  // Soft deactivation metadata (future-proof)
+  deactivatedAt       DateTime?
+  deactivationReason  String?  @db.VarChar(500)
+  deactivatedByUserId String?
+  deactivatedByUser   User?    @relation("UnitRoomDeactivatedBy", fields: [deactivatedByUserId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   resources                   UnitResource[]
-  // Diagnostics mappings
   diagnosticServicePointRooms DiagnosticServicePointRoom[]
   diagnosticCapabilityRooms   DiagnosticCapabilityRoom[]
   EquipmentPlacement          EquipmentPlacement[]
 
   @@unique([unitId, code], name: "unitId_roomCode")
+  @@unique([unitId, roomNumber], name: "unitId_roomNumber")
   @@index([branchId, unitId, isActive])
+  @@index([deactivatedByUserId])
 }
+
 
 model UnitResource {
   id       String @id @default(cuid())
@@ -1506,15 +2189,50 @@ model UnitResource {
 
   resourceType UnitResourceType
   code         String           @db.VarChar(96)
+  assetTag     String?          @db.VarChar(64)
   name         String           @db.VarChar(160)
 
-  state         UnitResourceState @default(AVAILABLE)
-  isActive      Boolean           @default(true)
-  isSchedulable Boolean           @default(false)
+  // Category (required by interface; nullable for legacy rows)
+  resourceCategory UnitResourceCategory?
+
+  // Specifications
+  manufacturer String? @db.VarChar(120)
+  model        String? @db.VarChar(120)
+  serialNumber String? @db.VarChar(120)
+
+  // Capabilities
+  hasMonitor           Boolean @default(false)
+  hasOxygenSupply      Boolean @default(false)
+  hasSuction           Boolean @default(false)
+  hasVentilatorSupport Boolean @default(false)
+  isPowerRequired      Boolean @default(false)
+
+  // State Management
+  state             UnitResourceState @default(AVAILABLE)
+  isActive          Boolean           @default(true)
+  assignedPatientId String?           @db.VarChar(64)
+
+  // Scheduling
+  isSchedulable       Boolean @default(false)
+  slotDurationMinutes Int?
+
+  // Maintenance
+  lastMaintenanceDate DateTime?
+  nextMaintenanceDate DateTime?
+  warrantyExpiryDate  DateTime?
+
+  // Commissioning
+  commissionedAt DateTime?
+
+  reservedReason String? @db.VarChar(500)
+  blockedReason  String? @db.VarChar(500)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  deactivatedAt       DateTime?
+  deactivationReason  String?  @db.VarChar(500)
+  deactivatedByUserId String?
+  deactivatedByUser   User?    @relation("UnitResourceDeactivatedBy", fields: [deactivatedByUserId], references: [id], onDelete: SetNull)
   bookings                        ProcedureBooking[]
   // Diagnostics mappings
   diagnosticServicePointResources DiagnosticServicePointResource[]
@@ -1522,8 +2240,11 @@ model UnitResource {
   EquipmentPlacement              EquipmentPlacement[]
 
   @@unique([unitId, code], name: "unitId_resourceCode")
+  @@unique([branchId, assetTag], name: "branchId_resourceAssetTag")
   @@index([branchId, unitId, isActive])
   @@index([branchId, resourceType, isSchedulable])
+  @@index([branchId, assetTag])
+  @@index([deactivatedByUserId])
 }
 
 model BranchInfraConfig {

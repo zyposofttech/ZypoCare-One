@@ -16,7 +16,7 @@ async function bootstrap() {
   });
   
   app.use(correlation); 
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true,forbidNonWhitelisted: true, }));
 
   // ==================================================
   // 2. ADD SWAGGER CONFIGURATION HERE

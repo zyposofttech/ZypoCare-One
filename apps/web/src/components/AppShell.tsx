@@ -200,22 +200,7 @@ const NAV_WORKSPACES: NavNode[] = [
     href: "/dashboard",
     icon: IconDashboard,
   },
-  {
-    label: "Central Console",
-    href: "/dashboard/global",
-    icon: IconDashboard,
-    children: [
-      // { label: "Overview", href: "/dashboard/global" },
-      { label: "Branches", href: "/branches" },
-      { label: "Policy Governance", href: "/policy" },
-      { label: "Policy Presets", href: "/policy/presets" },
-      { label: "Policies", href: "/policy/policies" },
-      { label: "Approvals", href: "/policy/approvals" },
-      { label: "Audit Trail", href: "/policy/audit" },
-      { label: "Access Control", href: "/access" },
-    ],
-  },
-  {
+   {
     label: "Infrastructure Setup",
     href: "/infrastructure",
     icon: IconBuilding,
@@ -223,23 +208,29 @@ const NAV_WORKSPACES: NavNode[] = [
       { label: "Overview", href: "/infrastructure" },
       {
         type: "group",
+        label: "Branch & Location",
+        children: [
+         { label: "Branches", href: "/branches" },
+          { label: "Locations (Building)", href: "/infrastructure/locations" },
+        ],
+      },
+      {
+        type: "group",
         label: "Org & Clinical Structure",
         children: [
-          { label: "Facilities", href: "/infrastructure/facilities" },
-          { label: "Departments", href: "/infrastructure/departments" },
           { label: "Specialties", href: "/infrastructure/specialties" },
+          { label: "Departments", href: "/infrastructure/departments" },
         ],
       },
       {
         type: "group",
         label: "Infra Core",
         children: [
-          { label: "Locations (Building)", href: "/infrastructure/locations" },
+          
           { label: "Unit Types", href: "/infrastructure/unit-types" },
           { label: "Units", href: "/infrastructure/units" },
           { label: "Rooms / Bays", href: "/infrastructure/rooms" },
           { label: "Resources", href: "/infrastructure/resources" },
-          { label: "Housekeeping Gate", href: "/infrastructure/bed-policy" },
         ],
       },
       {
@@ -249,6 +240,13 @@ const NAV_WORKSPACES: NavNode[] = [
           { label: "OT Setup", href: "/infrastructure/ot" },
           { label: "Diagnostics Configuration", href: "/infrastructure/diagnostics" },
           { label: "Equipment Register", href: "/infrastructure/equipment" },
+        ],
+      },
+      {
+        type: "group",
+        label: "Hospital Staff",
+        children: [
+          { label: "Staff", href: "/infrastructure/staff" },
         ],
       },
       {
@@ -284,6 +282,22 @@ const NAV_WORKSPACES: NavNode[] = [
       },
     ],
   },
+  {
+    label: "Central Console",
+    href: "/dashboard/global",
+    icon: IconDashboard,
+    children: [
+      // { label: "Overview", href: "/dashboard/global" },
+      
+      { label: "Policy Governance", href: "/policy" },
+      { label: "Policy Presets", href: "/policy/presets" },
+      { label: "Policies", href: "/policy/policies" },
+      { label: "Approvals", href: "/policy/approvals" },
+      { label: "Audit Trail", href: "/policy/audit" },
+      { label: "Access Control", href: "/access" },
+    ],
+  },
+ 
 
 ];
 
@@ -488,6 +502,7 @@ const ROUTE_RULES: Array<{ root: string; anyPrefixes: string[] }> = [
     root: "/infrastructure",
     anyPrefixes: [
       "INFRA_",
+      "STAFF_",
       "SERVICE_",
       "CATALOG_",
       "ORDERSET_",
@@ -588,7 +603,7 @@ function filterNavGroupsForUser(groups: NavGroup[], user: any): NavGroup[] {
   // - Clinical personas hide Workspaces to keep the menu clean.
   const persona: "ADMIN" | "CLINICAL" | "UNKNOWN" = !perms
     ? "UNKNOWN"
-    : hasAnyPrefix(perms, ["IAM_", "INFRA_", "POLICY_", "ORG_", "BRANCH_", "ACCESS_"])
+    : hasAnyPrefix(perms, ["IAM_", "INFRA_", "STAFF_", "POLICY_", "ORG_", "BRANCH_", "ACCESS_"])
       ? "ADMIN"
       : "CLINICAL";
 
@@ -797,12 +812,21 @@ function NavBadge({ badge }: { badge?: NavBadgeDef }) {
 
 // --- Component ---
 
+type BreadcrumbItem = {
+  label: string;
+  href?: string;
+};
+
 export function AppShell({
   title,
   children,
+  breadcrumbs,
+  actions,
 }: {
   title: string;
   children: React.ReactNode;
+  breadcrumbs?: BreadcrumbItem[];
+  actions?: React.ReactNode;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -1833,6 +1857,32 @@ export function AppShell({
             </header>
 
             <main className="min-w-0 flex-1 min-h-0 overflow-y-auto p-4 md:p-6 zc-scroll-no-track">
+              {breadcrumbs?.length || actions ? (
+                <div className="mb-4 flex flex-col gap-2">
+                  {breadcrumbs?.length ? (
+                    <div className="flex flex-wrap items-center gap-1.5 text-xs text-zc-muted">
+                      {breadcrumbs.map((crumb, idx) => (
+                        <React.Fragment key={`${crumb.label}-${idx}`}>
+                          {crumb.href ? (
+                            <Link href={crumb.href} className="hover:text-zc-text">
+                              {crumb.label}
+                            </Link>
+                          ) : (
+                            <span className="text-zc-text">{crumb.label}</span>
+                          )}
+                          {idx < breadcrumbs.length - 1 ? (
+                            <IconChevronRight className="h-3 w-3 text-zc-muted" />
+                          ) : null}
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  ) : null}
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="text-lg font-semibold text-zc-text">{title}</div>
+                    {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
+                  </div>
+                </div>
+              ) : null}
               <div className="w-full">{children}</div>
             </main>
           </div>

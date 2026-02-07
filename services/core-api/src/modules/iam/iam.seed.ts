@@ -6,7 +6,7 @@ import { PERMISSIONS, normalizePermCode } from "./rbac/permission-catalog";
 
 @Injectable()
 export class IamSeedService implements OnModuleInit {
-  constructor(@Inject("PRISMA") private prisma: PrismaClient) { }
+  constructor(@Inject("PRISMA") private prisma: PrismaClient) {}
 
   async onModuleInit() {
     if (process.env.AUTH_DEV_SEED !== "true") return;
@@ -36,6 +36,28 @@ export class IamSeedService implements OnModuleInit {
     const INFRA_ALL = Object.values(PERM).filter((c) => c.startsWith("INFRA_"));
     const OT_ALL = Object.values(PERM).filter((c) => c.startsWith("ot."));
 
+    // Staff ops pack (enterprise onboarding + governance)
+    const STAFF_OPS = [
+      PERM.STAFF_READ,
+      PERM.STAFF_CREATE,
+      PERM.STAFF_UPDATE,
+      PERM.STAFF_ASSIGNMENT_CREATE,
+      PERM.STAFF_ASSIGNMENT_UPDATE,
+      PERM.STAFF_ASSIGNMENT_END,
+      PERM.STAFF_PROVISION_USER_PREVIEW,
+      PERM.STAFF_PROVISION_USER,
+      PERM.STAFF_CREDENTIAL_CREATE,
+      PERM.STAFF_CREDENTIAL_UPDATE,
+      PERM.STAFF_IDENTIFIER_CREATE,
+      PERM.STAFF_IDENTIFIER_DELETE,
+      PERM.STAFF_DEDUPE_PREVIEW,
+      PERM.STAFF_SUSPEND,
+      PERM.STAFF_REACTIVATE,
+      PERM.STAFF_OFFBOARD,
+      PERM.STAFF_AUDIT_READ,
+      PERM.STAFF_REPORTS_READ,
+    ].map(normalizePermCode);
+
     for (const p of permissions) {
       await this.prisma.permission.upsert({
         where: { code: p.code },
@@ -44,7 +66,83 @@ export class IamSeedService implements OnModuleInit {
       });
     }
 
+    const KNOWN = new Set(permissions.map((x) => x.code));
+
+    const keepKnown = (codes: string[]) =>
+      codes
+        .map((c) => normalizePermCode(c))
+        .filter((c) => KNOWN.has(c));
+
+    const isReadCode = (code: string) =>
+      code.endsWith("_READ") || code.endsWith(".read");
+
+    const pickReadByRegex = (re: RegExp) =>
+      permissions
+        .map((p) => p.code)
+        .filter((c) => isReadCode(c) && re.test(c));
+
+    // Conservative baseline for starter clinical/non-clinical roles:
+    // - Enough for app shell + basic reference lookups (no create/update)
+    const STARTER_BASE_READ = keepKnown([
+      PERM.IAM_ME_READ,
+      PERM.BRANCH_READ,
+
+      PERM.FACILITY_CATALOG_READ,
+      PERM.BRANCH_FACILITY_READ,
+
+      PERM.DEPARTMENT_READ,
+      PERM.DEPARTMENT_SPECIALTY_READ,
+
+      PERM.SPECIALTY_READ,
+    ]);
+
+    const STARTER_ROLE_CODES = {
+      DOCTOR: "DOCTOR",
+      NURSE: "NURSE",
+      TECHNICIAN: "TECHNICIAN",
+      PHARMACIST: "PHARMACIST",
+      BILLING_CLERK: "BILLING_CLERK",
+      FRONT_OFFICE: "FRONT_OFFICE",
+      ACCOUNTS_FINANCE: "ACCOUNTS_FINANCE",
+      MRD: "MRD",
+    } as const;
+
+    const resolveStarterPerms = (code: string) => {
+      // Always start with baseline read-only
+      const base = [...STARTER_BASE_READ];
+
+      // Optional “smart” enrichment: if you already have these permission families in catalog,
+      // add READ-only ones by pattern. If none exist, this adds nothing (safe).
+      if (code === STARTER_ROLE_CODES.TECHNICIAN) {
+        base.push(...pickReadByRegex(/DIAG|DIAGNOSTIC|LAB|RADIO|PACS/i));
+      }
+
+      if (code === STARTER_ROLE_CODES.PHARMACIST) {
+        base.push(...pickReadByRegex(/PHARM|DRUG|MEDICINE|INVENTORY|STOCK/i));
+      }
+
+      if (code === STARTER_ROLE_CODES.BILLING_CLERK) {
+        base.push(...pickReadByRegex(/BILL|CHARGE|TARIFF|TAX|INVOICE|RECEIPT|PAYMENT|AR|DENIAL/i));
+      }
+
+      if (code === STARTER_ROLE_CODES.ACCOUNTS_FINANCE) {
+        base.push(...pickReadByRegex(/FINANCE|ACCOUNT|LEDGER|PAYMENT|AR|AP|REVENUE/i));
+      }
+
+      if (code === STARTER_ROLE_CODES.FRONT_OFFICE) {
+        base.push(...pickReadByRegex(/FRONT|RECEPTION|REGISTRATION|APPOINT|QUEUE|OPD/i));
+      }
+
+      if (code === STARTER_ROLE_CODES.MRD) {
+        base.push(...pickReadByRegex(/MRD|RECORD|DOCUMENT|EMR|EHR|DISCHARGE/i));
+      }
+
+      // Doctor/Nurse stay conservative until clinical modules land
+      return Array.from(new Set(base));
+    };
+
     const roleTemplates = [
+      // ---------------- SYSTEM ROLES ----------------
       {
         code: ROLE.SUPER_ADMIN,
         name: "Super Admin",
@@ -73,13 +171,88 @@ export class IamSeedService implements OnModuleInit {
         desc: "Branch IT operations (user resets/activation)",
         isSystem: true,
       },
-    ];
+
+      // ---------------- STAFF/HR OPS ----------------
+      {
+        code: ROLE.HR_ADMIN,
+        name: "HR / Staff Admin",
+        scope: "BRANCH" as const,
+        desc: "Staff directory onboarding, assignments, credentialing, and user provisioning",
+        isSystem: true,
+      },
+
+      // ---------------- STARTER PACK ROLES (Phase-1 practical) ----------------
+      {
+        code: STARTER_ROLE_CODES.DOCTOR,
+        name: "Doctor",
+        scope: "BRANCH" as const,
+        desc: "Starter pack: Doctor (conservative read-only until clinical modules land)",
+        isSystem: true,
+        isStarter: true,
+      },
+      {
+        code: STARTER_ROLE_CODES.NURSE,
+        name: "Nurse",
+        scope: "BRANCH" as const,
+        desc: "Starter pack: Nurse (conservative read-only until nursing workflows land)",
+        isSystem: true,
+        isStarter: true,
+      },
+      {
+        code: STARTER_ROLE_CODES.TECHNICIAN,
+        name: "Technician (Lab/Radiology)",
+        scope: "BRANCH" as const,
+        desc: "Starter pack: Technician (read-only; expands as diagnostics modules land)",
+        isSystem: true,
+        isStarter: true,
+      },
+      {
+        code: STARTER_ROLE_CODES.PHARMACIST,
+        name: "Pharmacist",
+        scope: "BRANCH" as const,
+        desc: "Starter pack: Pharmacist (read-only; expands as pharmacy/inventory modules land)",
+        isSystem: true,
+        isStarter: true,
+      },
+      {
+        code: STARTER_ROLE_CODES.BILLING_CLERK,
+        name: "Billing Clerk",
+        scope: "BRANCH" as const,
+        desc: "Starter pack: Billing Clerk (read-only until billing module permissions finalize)",
+        isSystem: true,
+        isStarter: true,
+      },
+      {
+        code: STARTER_ROLE_CODES.FRONT_OFFICE,
+        name: "Front Office / Reception",
+        scope: "BRANCH" as const,
+        desc: "Starter pack: Front Office (read-only until registration/OPD modules land)",
+        isSystem: true,
+        isStarter: true,
+      },
+      {
+        code: STARTER_ROLE_CODES.ACCOUNTS_FINANCE,
+        name: "Accounts / Finance",
+        scope: "BRANCH" as const,
+        desc: "Starter pack: Accounts/Finance (read-only; expands with finance controls)",
+        isSystem: true,
+        isStarter: true,
+      },
+      {
+        code: STARTER_ROLE_CODES.MRD,
+        name: "Medical Records (MRD)",
+        scope: "BRANCH" as const,
+        desc: "Starter pack: MRD (read-only; expands with records and compliance workflows)",
+        isSystem: true,
+        isStarter: true,
+      },
+    ] as const;
 
     for (const r of roleTemplates) {
       const tpl = await this.prisma.roleTemplate.upsert({
         where: { code: r.code },
-        update: { name: r.name, scope: r.scope, description: r.desc, isSystem: r.isSystem ?? false },
-        create: { code: r.code, name: r.name, scope: r.scope, description: r.desc, isSystem: r.isSystem ?? false },
+        update: { name: r.name, scope: r.scope, description: r.desc, isSystem: (r as any).isSystem ?? false },
+        create: { code: r.code, name: r.name, scope: r.scope, description: r.desc, isSystem: (r as any).isSystem ?? false },
       });
 
       const existingV1 = await this.prisma.roleTemplateVersion.findFirst({
@@ -89,111 +262,157 @@ export class IamSeedService implements OnModuleInit {
       const v1 =
         existingV1 ??
         (await this.prisma.roleTemplateVersion.create({
-          data: { roleTemplateId: tpl.id, version: 1, status: "ACTIVE", notes: "Initial seed v1" },
+          data: {
+            roleTemplateId: tpl.id,
+            version: 1,
+            status: "ACTIVE",
+            notes: (r as any).isStarter ? "Starter pack v1 (conservative)" : "Initial seed v1",
+          },
         }));
 
-      // ✅ SUPER_ADMIN gets EVERYTHING we seeded
-      const permCodes =
-        r.code === ROLE.SUPER_ADMIN
-          ? permissions.map((x) => x.code)
-          : r.code === ROLE.CORPORATE_ADMIN
-            ? [
-              // Enterprise ops (multi-branch) + Infrastructure Setup Studio
-              PERM.BRANCH_READ,
-              // PERM.BRANCH_CREATE,
-              // PERM.BRANCH_UPDATE,
-              // PERM.BRANCH_DELETE,
+      // Resolve permission codes for this role
+      let permCodes: string[] = [];
 
-              PERM.IAM_USER_READ,
-              // PERM.IAM_USER_CREATE,
-              // PERM.IAM_USER_UPDATE,
-              // PERM.IAM_USER_RESET_PASSWORD,
+      if (r.code === ROLE.SUPER_ADMIN) {
+        permCodes = permissions.map((x) => x.code);
+      } else if (r.code === ROLE.CORPORATE_ADMIN) {
+        permCodes = [
+          PERM.BRANCH_READ,
 
-              // Read-only role/permission visibility (dropdowns etc.)
-              PERM.IAM_ROLE_READ,
-              PERM.IAM_PERMISSION_READ,
+          PERM.IAM_USER_READ,
+          PERM.IAM_ROLE_READ,
+          PERM.IAM_PERMISSION_READ,
+          PERM.IAM_AUDIT_READ,
 
-              // Audit read (optional but useful)
-              PERM.IAM_AUDIT_READ,
+          PERM.FACILITY_CATALOG_READ,
+          PERM.FACILITY_CATALOG_CREATE,
+          PERM.BRANCH_FACILITY_READ,
+          PERM.BRANCH_FACILITY_UPDATE,
 
-              // Facility setup (catalog + mappings)
-              PERM.FACILITY_CATALOG_READ,
-              PERM.FACILITY_CATALOG_CREATE,
-              PERM.BRANCH_FACILITY_READ,
-              PERM.BRANCH_FACILITY_UPDATE,
+          PERM.DEPARTMENT_READ,
+          PERM.DEPARTMENT_CREATE,
+          PERM.DEPARTMENT_UPDATE,
+          PERM.DEPARTMENT_ASSIGN_DOCTORS,
 
-              PERM.DEPARTMENT_READ,
-              PERM.DEPARTMENT_CREATE,
-              PERM.DEPARTMENT_UPDATE,
-              PERM.DEPARTMENT_ASSIGN_DOCTORS,
+          PERM.DEPARTMENT_SPECIALTY_READ,
+          PERM.DEPARTMENT_SPECIALTY_UPDATE,
 
-              PERM.DEPARTMENT_SPECIALTY_READ,
-              PERM.DEPARTMENT_SPECIALTY_UPDATE,
+          PERM.SPECIALTY_READ,
+          PERM.SPECIALTY_CREATE,
+          PERM.SPECIALTY_UPDATE,
 
-              PERM.SPECIALTY_READ,
-              PERM.SPECIALTY_CREATE,
-              PERM.SPECIALTY_UPDATE,
+          // Staff directory ops (enterprise)
+          ...STAFF_OPS,
+          PERM.STAFF_MERGE_PREVIEW,
+          PERM.STAFF_MERGE,
 
-              PERM.STAFF_READ,
+          ...INFRA_ALL,
+          ...OT_ALL,
+        ].map(normalizePermCode);
+      } else if (r.code === ROLE.BRANCH_ADMIN) {
+        permCodes = [
+          PERM.BRANCH_READ,
 
-              // Infrastructure + OT configuration
-              ...INFRA_ALL,
-              ...OT_ALL,
+          PERM.IAM_USER_READ,
+          PERM.IAM_USER_CREATE,
+          PERM.IAM_USER_UPDATE,
 
-              // NOTE: Explicitly NOT granted (by design):
-              // - PERM.IAM_ROLE_CREATE / PERM.IAM_ROLE_UPDATE / PERM.IAM_PERMISSION_CREATE
-              // - PERM.GOV_POLICY_* (unless you explicitly want Corporate to manage governance packs)
-            ]
-            : r.code === ROLE.BRANCH_ADMIN
-            ? [
-              PERM.BRANCH_READ,
-              PERM.IAM_USER_READ, PERM.IAM_USER_CREATE, PERM.IAM_USER_UPDATE,
-              PERM.IAM_ROLE_READ, PERM.IAM_PERMISSION_READ, PERM.IAM_AUDIT_READ,
+          PERM.IAM_ROLE_READ,
+          PERM.IAM_PERMISSION_READ,
+          PERM.IAM_AUDIT_READ,
 
-              PERM.FACILITY_CATALOG_READ,
-              PERM.BRANCH_FACILITY_READ, PERM.BRANCH_FACILITY_UPDATE,
-              PERM.DEPARTMENT_READ, PERM.DEPARTMENT_CREATE, PERM.DEPARTMENT_UPDATE, PERM.DEPARTMENT_ASSIGN_DOCTORS,
-              PERM.DEPARTMENT_SPECIALTY_READ, PERM.DEPARTMENT_SPECIALTY_UPDATE,
-              PERM.SPECIALTY_READ, PERM.SPECIALTY_CREATE, PERM.SPECIALTY_UPDATE,
-              PERM.STAFF_READ,
+          PERM.FACILITY_CATALOG_READ,
+          PERM.BRANCH_FACILITY_READ,
+          PERM.BRANCH_FACILITY_UPDATE,
 
-              // Diagnostics configuration (branch-level)
-              PERM.INFRA_DIAGNOSTICS_READ,
-              PERM.INFRA_DIAGNOSTICS_CREATE,
-              PERM.INFRA_DIAGNOSTICS_UPDATE,
-              PERM.INFRA_DIAGNOSTICS_DELETE,
+          PERM.DEPARTMENT_READ,
+          PERM.DEPARTMENT_CREATE,
+          PERM.DEPARTMENT_UPDATE,
+          PERM.DEPARTMENT_ASSIGN_DOCTORS,
 
-              // infra setup at branch level
-              PERM.INFRA_LOCATION_READ, PERM.INFRA_LOCATION_CREATE, PERM.INFRA_LOCATION_UPDATE, PERM.INFRA_LOCATION_REVISE, PERM.INFRA_LOCATION_RETIRE,
-              PERM.INFRA_UNITTYPE_READ, PERM.INFRA_UNITTYPE_UPDATE,
-              PERM.INFRA_UNIT_READ, PERM.INFRA_UNIT_CREATE, PERM.INFRA_UNIT_UPDATE,
-              PERM.INFRA_ROOM_READ, PERM.INFRA_ROOM_CREATE, PERM.INFRA_ROOM_UPDATE,
-              PERM.INFRA_RESOURCE_READ, PERM.INFRA_RESOURCE_CREATE, PERM.INFRA_RESOURCE_UPDATE, PERM.INFRA_RESOURCE_STATE_UPDATE,
-              PERM.INFRA_GOLIVE_READ, PERM.INFRA_GOLIVE_RUN,
-            ]
-            : [
-              PERM.BRANCH_READ,
-              PERM.IAM_USER_READ, PERM.IAM_USER_UPDATE, PERM.IAM_USER_RESET_PASSWORD,
-              PERM.IAM_ROLE_READ, PERM.IAM_PERMISSION_READ, PERM.IAM_AUDIT_READ,
+          PERM.DEPARTMENT_SPECIALTY_READ,
+          PERM.DEPARTMENT_SPECIALTY_UPDATE,
 
-              PERM.FACILITY_CATALOG_READ,
-              PERM.BRANCH_FACILITY_READ,
-              PERM.DEPARTMENT_READ,
-              PERM.DEPARTMENT_SPECIALTY_READ,
-              PERM.SPECIALTY_READ,
-              PERM.STAFF_READ,
+          PERM.SPECIALTY_READ,
+          PERM.SPECIALTY_CREATE,
+          PERM.SPECIALTY_UPDATE,
 
-              // limited infra ops
-              PERM.INFRA_LOCATION_READ,
-              PERM.INFRA_EQUIPMENT_READ,
-              PERM.INFRA_FIXIT_READ,
-            ];
+          // Staff onboarding + access provisioning
+          ...STAFF_OPS,
+
+          // Diagnostics configuration (branch-level)
+          PERM.INFRA_DIAGNOSTICS_READ,
+          PERM.INFRA_DIAGNOSTICS_CREATE,
+          PERM.INFRA_DIAGNOSTICS_UPDATE,
+          PERM.INFRA_DIAGNOSTICS_DELETE,
+
+          // infra setup at branch level
+          PERM.INFRA_LOCATION_READ,
+          PERM.INFRA_LOCATION_CREATE,
+          PERM.INFRA_LOCATION_UPDATE,
+          PERM.INFRA_LOCATION_REVISE,
+          PERM.INFRA_LOCATION_RETIRE,
+
+          PERM.INFRA_UNITTYPE_READ,
+          PERM.INFRA_UNITTYPE_UPDATE,
+
+          PERM.INFRA_UNIT_READ,
+          PERM.INFRA_UNIT_CREATE,
+          PERM.INFRA_UNIT_UPDATE,
+
+          PERM.INFRA_ROOM_READ,
+          PERM.INFRA_ROOM_CREATE,
+          PERM.INFRA_ROOM_UPDATE,
+
+          PERM.INFRA_RESOURCE_READ,
+          PERM.INFRA_RESOURCE_CREATE,
+          PERM.INFRA_RESOURCE_UPDATE,
+          PERM.INFRA_RESOURCE_STATE_UPDATE,
+
+          PERM.INFRA_GOLIVE_READ,
+          PERM.INFRA_GOLIVE_RUN,
+        ].map(normalizePermCode);
+      } else if (r.code === ROLE.HR_ADMIN) {
+        permCodes = [
+          ...STARTER_BASE_READ,
+          ...STAFF_OPS,
+        ].map(normalizePermCode);
+      } else if (r.code === ROLE.IT_ADMIN) {
+        permCodes = [
+          PERM.BRANCH_READ,
+
+          PERM.IAM_USER_READ,
+          PERM.IAM_USER_UPDATE,
+          PERM.IAM_USER_RESET_PASSWORD,
+
+          PERM.IAM_ROLE_READ,
+          PERM.IAM_PERMISSION_READ,
+          PERM.IAM_AUDIT_READ,
+
+          PERM.FACILITY_CATALOG_READ,
+          PERM.BRANCH_FACILITY_READ,
+          PERM.DEPARTMENT_READ,
+          PERM.DEPARTMENT_SPECIALTY_READ,
+          PERM.SPECIALTY_READ,
+          // Staff directory (read-only)
+          PERM.STAFF_READ,
+
+          // limited infra ops
+          PERM.INFRA_LOCATION_READ,
+          PERM.INFRA_EQUIPMENT_READ,
+          PERM.INFRA_FIXIT_READ,
+        ].map(normalizePermCode);
+      } else {
+        // ✅ Starter pack roles
+        permCodes = resolveStarterPerms(r.code);
+      }
+
+      // Keep only codes that exist in catalog (prevents seed failures if catalog changes)
+      permCodes = keepKnown(permCodes);
 
       const perms = await this.prisma.permission.findMany({ where: { code: { in: permCodes } } });
 
-
-      // Keep CORPORATE_ADMIN permissions aligned to the intended minimal set (seed acts as source-of-truth).
-      // This prevents accidental privilege creep (e.g., GOV_POLICY_* or RBAC design permissions) in dev environments.
+      // Keep CORPORATE_ADMIN permissions aligned to intended minimal set (seed acts as source-of-truth).
       if (r.code === ROLE.CORPORATE_ADMIN) {
         const allowedIds = perms.map((x) => x.id);
         await this.prisma.roleTemplatePermission.deleteMany({
@@ -212,9 +431,7 @@ export class IamSeedService implements OnModuleInit {
 
     // ✅ Ensure CORPORATE_ADMIN users have roleVersionId set (prevents empty permissions)
     const corpTpl = await this.prisma.roleTemplate.findUnique({ where: { code: ROLE.CORPORATE_ADMIN } });
-    const corpV1 = corpTpl
-      ? await this.prisma.roleTemplateVersion.findFirst({ where: { roleTemplateId: corpTpl.id, version: 1 } })
-      : null;
+    const corpV1 = corpTpl ? await this.prisma.roleTemplateVersion.findFirst({ where: { roleTemplateId: corpTpl.id, version: 1 } }) : null;
 
     if (corpV1) {
       await this.prisma.user.updateMany({
@@ -225,9 +442,7 @@ export class IamSeedService implements OnModuleInit {
 
     // ✅ Ensure SUPER_ADMIN users have roleVersionId set (prevents empty permissions)
     const superTpl = await this.prisma.roleTemplate.findUnique({ where: { code: ROLE.SUPER_ADMIN } });
-    const superV1 = superTpl
-      ? await this.prisma.roleTemplateVersion.findFirst({ where: { roleTemplateId: superTpl.id, version: 1 } })
-      : null;
+    const superV1 = superTpl ? await this.prisma.roleTemplateVersion.findFirst({ where: { roleTemplateId: superTpl.id, version: 1 } }) : null;
 
     if (superV1) {
       await this.prisma.user.updateMany({
