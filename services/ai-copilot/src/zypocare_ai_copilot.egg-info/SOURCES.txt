@@ -1,0 +1,13 @@
+pyproject.toml
+src/__init__.py
+src/__main__.py
+src/app.py
+src/infra/__init__.py
+src/infra/autofill.py
+src/infra/models.py
+src/zypocare_ai_copilot.egg-info/PKG-INFO
+src/zypocare_ai_copilot.egg-info/SOURCES.txt
+src/zypocare_ai_copilot.egg-info/dependency_links.txt
+src/zypocare_ai_copilot.egg-info/entry_points.txt
+src/zypocare_ai_copilot.egg-info/requires.txt
+src/zypocare_ai_copilot.egg-info/top_level.txt

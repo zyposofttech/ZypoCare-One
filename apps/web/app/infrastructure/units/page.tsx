@@ -25,6 +25,11 @@ import { apiFetch, ApiError } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
 
+import { useFieldCopilot } from "@/lib/copilot/useFieldCopilot";
+import { usePageInsights } from "@/lib/copilot/usePageInsights";
+import { AIFieldWrapper } from "@/components/copilot/AIFieldWrapper";
+import { PageInsightBanner } from "@/components/copilot/PageInsightBanner";
+
 import {
   AlertTriangle,
   CheckCircle2,
@@ -125,18 +130,18 @@ function validateUnitCode(code: string): string | null {
   const v = normalizeCode(code);
   if (!v) return "Unit code is required";
   if (!/^[A-Z0-9][A-Z0-9-]{1,31}$/.test(v)) {
-    return "Code must be 2–32 chars, letters/numbers/hyphen (example: OT-1, TH01, LAB1)";
+    return "Code must be 2â€“32 chars, letters/numbers/hyphen (example: OT-1, TH01, LAB1)";
   }
   return null;
 }
 
 function fmtDateTime(v?: string | null) {
-  if (!v) return "—";
+  if (!v) return "â€”";
   try {
     const d = new Date(v);
     return d.toLocaleString();
   } catch {
-    return "—";
+    return "â€”";
   }
 }
 
@@ -205,7 +210,7 @@ function buildLocationOptions(tree: LocationTree | null): LocationOption[] {
           out.push({
             id: floor.id,
             type: "FLOOR",
-            label: `${buildingName} — ${floorName}${floorCode}`,
+            label: `${buildingName} â€” ${floorName}${floorCode}`,
           });
         }
 
@@ -217,7 +222,7 @@ function buildLocationOptions(tree: LocationTree | null): LocationOption[] {
             out.push({
               id: zone.id,
               type: "ZONE",
-              label: `${buildingName} — ${floorName} — ${zoneName}${zoneCode}`,
+              label: `${buildingName} â€” ${floorName} â€” ${zoneName}${zoneCode}`,
             });
           }
 
@@ -229,7 +234,7 @@ function buildLocationOptions(tree: LocationTree | null): LocationOption[] {
               out.push({
                 id: area.id,
                 type: "AREA",
-                label: `${buildingName} — ${floorName} — ${zoneName} — ${areaName}${areaCode}`,
+                label: `${buildingName} â€” ${floorName} â€” ${zoneName} â€” ${areaName}${areaCode}`,
               });
             }
           }
@@ -245,7 +250,7 @@ function buildLocationOptions(tree: LocationTree | null): LocationOption[] {
           out.push({
             id: zone.id,
             type: "ZONE",
-            label: `${buildingName} — ${zoneName}${zoneCode}`,
+            label: `${buildingName} â€” ${zoneName}${zoneCode}`,
           });
         }
 
@@ -257,7 +262,7 @@ function buildLocationOptions(tree: LocationTree | null): LocationOption[] {
             out.push({
               id: area.id,
               type: "AREA",
-              label: `${buildingName} — ${zoneName} — ${areaName}${areaCode}`,
+              label: `${buildingName} â€” ${zoneName} â€” ${areaName}${areaCode}`,
             });
           }
         }
@@ -274,7 +279,7 @@ function unitLocationLabel(u: UnitRow) {
   const name = r0?.name ?? null;
   const code = r0?.code ?? null;
   const label = [name, code ? `(${code})` : ""].filter(Boolean).join(" ").trim();
-  return label || (u.locationNodeId ? `#${u.locationNodeId.slice(0, 8)}…` : "—");
+  return label || (u.locationNodeId ? `#${u.locationNodeId.slice(0, 8)}â€¦` : "â€”");
 }
 
 /* ---------------------------------- Page ---------------------------------- */
@@ -541,8 +546,25 @@ export default function UnitsPage() {
         (!editing || u.id !== editing.id),
     );
     if (!dup) return null;
-    return `Another unit in this department already uses the name “${dup.name}”. Recommended: keep unit names unique within a department.`;
+    return `Another unit in this department already uses the name "${dup.name}". Recommended: keep unit names unique within a department.`;
   }, [rows, formName, formDeptId, editing]);
+
+  const codeFieldAI = useFieldCopilot({
+    module: "unit",
+    field: "code",
+    value: formCode,
+    enabled: open && !editing && formCode.length > 0,
+  });
+  const nameFieldAI = useFieldCopilot({
+    module: "unit",
+    field: "name",
+    value: formName,
+    enabled: open && formName.length > 2,
+  });
+  const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({
+    module: "units",
+    enabled: !!branchId,
+  });
 
   async function saveUnit() {
     if (!branchId) return;
@@ -891,6 +913,8 @@ export default function UnitsPage() {
             </CardContent>
           </Card>
 
+          <PageInsightBanner insights={insights} loading={insightsLoading} onDismiss={dismissInsight} />
+
           {/* Table */}
           <Card className="overflow-hidden">
             <CardHeader className="pb-3">
@@ -902,7 +926,7 @@ export default function UnitsPage() {
 
                 <div className="flex flex-wrap items-center gap-2">
                   <Button asChild variant="outline" size="sm" className="gap-2" disabled={!branchId}>
-                    <Link href={branchId ? `/infrastructure/unit-types` : "#"}>
+                    <Link href={branchId ? `/infrastructure/unit-types` : "#" as any}>
                       <Settings2 className="h-4 w-4" />
                       Unit Types
                     </Link>
@@ -960,7 +984,7 @@ export default function UnitsPage() {
                               <span className="font-mono text-xs text-zc-muted">({r.department.code})</span>
                             </span>
                           ) : (
-                            <span className="text-zc-muted">—</span>
+                            <span className="text-zc-muted">â€”</span>
                           )}
                         </td>
 
@@ -971,7 +995,7 @@ export default function UnitsPage() {
                               <span className="font-mono text-xs text-zc-muted">({r.unitType.code})</span>
                             </span>
                           ) : (
-                            <span className="text-zc-muted">—</span>
+                            <span className="text-zc-muted">â€”</span>
                           )}
                         </td>
 
@@ -1025,7 +1049,7 @@ export default function UnitsPage() {
                             <Button
                               variant="success"
                               size="icon"
-                              onClick={() => router.push(`/infrastructure/units/${r.id}`)}
+                              onClick={() => router.push(`/infrastructure/units/${r.id}` as any)}
                               title="View details"
                               aria-label="View details"
                               disabled={!branchId}
@@ -1174,7 +1198,7 @@ export default function UnitsPage() {
                     <Label>Department</Label>
                     <Select value={formDeptId} onValueChange={setFormDeptId} disabled={!branchId || !!editing}>
                       <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Select department…" />
+                        <SelectValue placeholder="Select departmentâ€¦" />
                       </SelectTrigger>
                       <SelectContent>
                         {departments.map((d) => (
@@ -1191,7 +1215,7 @@ export default function UnitsPage() {
                     <Label>Unit Type</Label>
                     <Select value={formUnitTypeId} onValueChange={(v) => setFormUnitTypeId(v)} disabled={!branchId || !!editing}>
                       <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Select unit type…" />
+                        <SelectValue placeholder="Select unit typeâ€¦" />
                       </SelectTrigger>
                       <SelectContent className="max-h-[320px] overflow-y-auto">
                         {unitTypeOptions.map((ut) => (
@@ -1209,7 +1233,7 @@ export default function UnitsPage() {
                   <Label>Location (Floor / Zone / Area)</Label>
                   <Select value={formLocationId} onValueChange={setFormLocationId} disabled={!branchId}>
                     <SelectTrigger className="h-10">
-                      <SelectValue placeholder="Select location…" />
+                      <SelectValue placeholder="Select locationâ€¦" />
                     </SelectTrigger>
                     <SelectContent className="max-h-[340px] overflow-y-auto">
                       {locationOptions.map((o) => (
@@ -1227,24 +1251,28 @@ export default function UnitsPage() {
                 <div className="grid gap-3 md:grid-cols-2">
                   <div className="grid gap-2">
                     <Label>Unit Code</Label>
-                    <Input
-                      value={formCode}
-                      onChange={(e) => setFormCode(e.target.value.toUpperCase())}
-                      placeholder="e.g. OT-1, TH01, LAB1"
-                      className="font-mono"
-                      disabled={!!editing || !branchId}
-                    />
-                    
+                    <AIFieldWrapper warnings={codeFieldAI.warnings} suggestion={codeFieldAI.suggestion} validating={codeFieldAI.validating}>
+                      <Input
+                        value={formCode}
+                        onChange={(e) => setFormCode(e.target.value.toUpperCase())}
+                        placeholder="e.g. OT-1, TH01, LAB1"
+                        className="font-mono"
+                        disabled={!!editing || !branchId}
+                      />
+                    </AIFieldWrapper>
+
                   </div>
 
                   <div className="grid gap-2">
                     <Label>Unit Name</Label>
-                    <Input
-                      value={formName}
-                      onChange={(e) => setFormName(e.target.value)}
-                      placeholder="e.g. Operation Theatre Suite"
-                      disabled={!branchId}
-                    />
+                    <AIFieldWrapper warnings={nameFieldAI.warnings} suggestion={nameFieldAI.suggestion} validating={nameFieldAI.validating}>
+                      <Input
+                        value={formName}
+                        onChange={(e) => setFormName(e.target.value)}
+                        placeholder="e.g. Operation Theatre Suite"
+                        disabled={!branchId}
+                      />
+                    </AIFieldWrapper>
                   </div>
                 </div>
 <p className="text-[11px] text-zc-muted">Code should be stable. Editing is disabled after creation.</p>

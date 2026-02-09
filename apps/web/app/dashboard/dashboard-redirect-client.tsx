@@ -10,7 +10,7 @@ export default function DashboardRedirectClient() {
 
   React.useEffect(() => {
     if (!user) {
-      router.replace("/login?next=/dashboard");
+      router.replace("/login?next=/dashboard" as any);
       return;
     }
 
@@ -23,7 +23,9 @@ export default function DashboardRedirectClient() {
             ? "BRANCH"
             : "GLOBAL";
 
-    router.replace(scope === "BRANCH" ? "/dashboard/branch" : "/dashboard/global");
+    const target = scope === "BRANCH" ? "/dashboard/branch" : "/dashboard/global";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    router.replace(target as any);
   }, [user, router]);
 
   return null;

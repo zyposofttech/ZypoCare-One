@@ -21,6 +21,9 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { ToastHost } from "@/components/ToastHost";
+import { CopilotProvider } from "@/lib/copilot/CopilotProvider";
+import { CopilotWidget } from "@/components/copilot/CopilotWidget";
+import { NavBadgeAI } from "@/components/copilot/NavBadgeAI";
 import {
   IconBed,
   IconBrain,
@@ -233,6 +236,22 @@ const NAV_WORKSPACES: NavNode[] = [
           { label: "Resources", href: "/infrastructure/resources" },
         ],
       },
+      
+      {
+        type: "group",
+        label: "Human Resource",
+        children: [
+          { label: "Overview", href: "/infrastructure/human-resource" },
+           { label: "Staff Directory", href: "/infrastructure/human-resource/staff" },
+           { label: "Onboarding", href: "/infrastructure/human-resource/staff/onboarding/start" },
+          { label: "Roster", href: "/infrastructure/human-resource/roster" },
+          { label: "Attendance", href: "/infrastructure/human-resource/attendance" },
+          { label: "Leaves", href: "/infrastructure/human-resource/leaves" },
+          { label: "Training", href: "/infrastructure/human-resource/training" },
+          { label: "Appraisals", href: "/infrastructure/human-resource/appraisals" },
+          { label: "Separation", href: "/infrastructure/human-resource/separation" },
+        ],
+      },
       {
         type: "group",
         label: "Clinical Facilities",
@@ -240,13 +259,6 @@ const NAV_WORKSPACES: NavNode[] = [
           { label: "OT Setup", href: "/infrastructure/ot" },
           { label: "Diagnostics Configuration", href: "/infrastructure/diagnostics" },
           { label: "Equipment Register", href: "/infrastructure/equipment" },
-        ],
-      },
-      {
-        type: "group",
-        label: "Hospital Staff",
-        children: [
-          { label: "Staff", href: "/infrastructure/staff" },
         ],
       },
       {
@@ -482,7 +494,7 @@ type NavCtx = {
 };
 
 /**
- * Route → permission prefix rules.
+ * Route â†’ permission prefix rules.
  * Used for:
  * - Sidebar visibility
  * - Command Center filtering
@@ -588,7 +600,7 @@ function allowHrefByPerm(href: string, ctx: NavCtx) {
 
 
 function rewriteHref(label: string, href: string, _ctx: { scope: "GLOBAL" | "BRANCH" }) {
-  // Fix “App Users” link so GLOBAL users land on the corporate user screen
+  // Fix â€œApp Usersâ€ link so GLOBAL users land on the corporate user screen
   if (label === "App Users") return "/access/users";
   return href;
 }
@@ -655,7 +667,7 @@ function filterNavGroupsForUser(groups: NavGroup[], user: any): NavGroup[] {
       }
 
       // Keep the node if:
-      // - it’s allowed directly, OR
+      // - itâ€™s allowed directly, OR
       // - it has at least one allowed child
       if (!nodeHrefAllowed && (!nextChildren || nextChildren.length === 0)) continue;
 
@@ -841,7 +853,7 @@ export function AppShell({
       // ignore network failures; still logout locally
     } finally {
       logout();
-      router.replace("/login");
+      router.replace("/login" as any);
     }
   }, [logout, router]);
 
@@ -933,7 +945,7 @@ export function AppShell({
       setBranchGateOpen(true);
 
       if (pathname !== "/welcome") {
-        router.replace("/welcome");
+        router.replace("/welcome" as any);
       }
       return;
     }
@@ -944,7 +956,7 @@ export function AppShell({
       branchGateNotifiedRef.current = false;
 
       if (branchGateNext && branchGateNext !== "/welcome" && branchGateNext !== pathname) {
-        router.replace(branchGateNext);
+        router.replace(branchGateNext as any);
       }
       setBranchGateNext(null);
     }
@@ -976,20 +988,20 @@ export function AppShell({
         pathname.startsWith("/dashboard/global") ||
         pathname.startsWith("/superadmin"))
     ) {
-      router.replace("/welcome");
+      router.replace("/welcome" as any);
       return;
     }
 
     // GLOBAL users: avoid /admin workspace
     if (scope === "GLOBAL" && pathname.startsWith("/admin")) {
-      router.replace("/welcome");
+      router.replace("/welcome" as any);
       return;
     }
 
     // If permissions are known and the current route is not allowed, bounce to welcome.
     // (Backend remains the true authority.)
     if (!allowHrefByPerm(pathname, navCtx)) {
-      router.replace("/welcome");
+      router.replace("/welcome" as any);
     }
   }, [scope, pathname, router, user]);
 
@@ -1093,7 +1105,7 @@ export function AppShell({
         label: item.label,
         group: item.group,
         icon: item.icon,
-        subtitle: item.parent ? `${item.parent} • ${item.group}` : item.group,
+        subtitle: item.parent ? `${item.parent} â€¢ ${item.group}` : item.group,
         keywords: [item.parent, item.group, item.label].filter(Boolean) as string[],
         href: item.href,
       }));
@@ -1275,7 +1287,7 @@ export function AppShell({
                     ))}
                   </div>
                   <div className="pt-4 text-xs text-zc-muted">
-                    Loading access rights…
+                    Loading access rightsâ€¦
                   </div>
                 </div>
               </main>
@@ -1288,6 +1300,7 @@ export function AppShell({
 
   return (
     <GlobalRefreshContext.Provider value={globalRefresh}>
+    <CopilotProvider>
       <div className="h-screen overflow-hidden bg-zc-bg text-zc-text">
         {/* Command Center Dialog */}
         <Dialog open={commandOpen} onOpenChange={setCommandOpen}>
@@ -1374,7 +1387,7 @@ export function AppShell({
               })()}
             </div>
             <div className="flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 py-2.5 text-[10px] text-zinc-500">
-              <div>↑/↓ to navigate • Enter to open</div>
+              <div>â†‘/â†“ to navigate â€¢ Enter to open</div>
               <div>Zypocare Command Center</div>
             </div>
           </DialogContent>
@@ -1396,7 +1409,7 @@ export function AppShell({
             <div className="mt-5 flex items-center justify-end gap-2">
               <Button
                 variant="outline"
-                onClick={() => router.push("/branches")}
+                onClick={() => router.push("/branches" as any)}
               >
                 Manage Branches
               </Button>
@@ -1629,6 +1642,7 @@ export function AppShell({
                                                 >
                                                   {child.label}
                                                 </span>
+                                                <NavBadgeAI href={child.href as any} />
                                                 <NavBadge badge={child.badge} />
                                               </Link>
                                             );
@@ -1663,6 +1677,7 @@ export function AppShell({
                                         >
                                           {c.label}
                                         </span>
+                                        <NavBadgeAI href={c.href as any} />
                                         <NavBadge badge={c.badge} />
                                       </Link>
                                     );
@@ -1697,7 +1712,7 @@ export function AppShell({
                         {user?.name ?? "Super Admin"}
                       </div>
                       <div className="mt-0.5 truncate text-xs text-zc-muted">
-                        ZypoCare Hospital • Bengaluru
+                        ZypoCare Hospital â€¢ Bengaluru
                       </div>
                     </div>
                   </>
@@ -1821,7 +1836,7 @@ export function AppShell({
                     <DropdownMenuItem
                       onSelect={(e) => {
                         e.preventDefault();
-                        router.push("/profile");
+                        router.push("/profile" as any);
                       }}
                     >
                       <IconUsers className="h-4 w-4" />
@@ -1831,7 +1846,7 @@ export function AppShell({
                     <DropdownMenuItem
                       onSelect={(e) => {
                         e.preventDefault();
-                        router.push("/settings");
+                        router.push("/settings" as any);
                       }}
                     >
                       <IconKeyboard className="h-4 w-4" />
@@ -1864,7 +1879,7 @@ export function AppShell({
                       {breadcrumbs.map((crumb, idx) => (
                         <React.Fragment key={`${crumb.label}-${idx}`}>
                           {crumb.href ? (
-                            <Link href={crumb.href} className="hover:text-zc-text">
+                            <Link href={crumb.href as any} className="hover:text-zc-text">
                               {crumb.label}
                             </Link>
                           ) : (
@@ -1888,7 +1903,9 @@ export function AppShell({
           </div>
         </div>
         <ToastHost />
+        <CopilotWidget />
       </div>
+    </CopilotProvider>
     </GlobalRefreshContext.Provider>
   );
 }

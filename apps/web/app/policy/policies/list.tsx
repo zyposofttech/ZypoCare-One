@@ -264,7 +264,7 @@ export default function PoliciesList() {
                 <Input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  placeholder="Search by code, name, type…"
+                  placeholder="Search by code, name, typeâ€¦"
                   className="pl-10"
                 />
               </div>
@@ -323,7 +323,7 @@ export default function PoliciesList() {
                 {!filtered.length ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-10 text-center text-sm text-zc-muted">
-                      {loading ? "Loading policies…" : "No policies found."}
+                      {loading ? "Loading policiesâ€¦" : "No policies found."}
                     </td>
                   </tr>
                 ) : null}
@@ -331,8 +331,8 @@ export default function PoliciesList() {
                 {filtered.map((p) => {
                   const status = deriveStatus(p);
                   const eff = effectiveByCode[String(p.code || "").toUpperCase()] ?? null;
-                  const scopeLabel = eff?.scope ? (eff.scope === "BRANCH_OVERRIDE" ? "Override" : "Global") : "—";
-                  const effVersion = eff?.version != null ? `v${eff.version}` : p.activeVersion != null ? `v${p.activeVersion}` : "—";
+                  const scopeLabel = eff?.scope ? (eff.scope === "BRANCH_OVERRIDE" ? "Override" : "Global") : "â€”";
+                  const effVersion = eff?.version != null ? `v${eff.version}` : p.activeVersion != null ? `v${p.activeVersion}` : "â€”";
                   const effAt = eff?.effectiveAt ?? p.activeEffectiveAt;
 
                   return (
@@ -340,7 +340,7 @@ export default function PoliciesList() {
                       key={p.id}
                       className="cursor-pointer border-t border-zc-border hover:bg-zc-panel/20"
                       onClick={() => {
-                        router.push(`/policy/policies/${encodeURIComponent(p.id)}`);
+                        router.push(`/policy/policies/${encodeURIComponent(p.id as any)}`);
                       }}
                     >
                       <td className="px-4 py-3">
@@ -359,12 +359,12 @@ export default function PoliciesList() {
                           <Pill label={scopeLabel} tone={scopeLabel === "Override" ? badgeTone("DRAFT") : badgeTone("ACTIVE")} />
                           <span className="text-xs text-zc-muted">{effVersion}</span>
                         </div>
-                        {effAt ? <div className="mt-1 text-xs text-zc-muted">{new Date(effAt).toLocaleString()}</div> : <div className="mt-1 text-xs text-zc-muted">—</div>}
+                        {effAt ? <div className="mt-1 text-xs text-zc-muted">{new Date(effAt).toLocaleString()}</div> : <div className="mt-1 text-xs text-zc-muted">â€”</div>}
                       </td>
-                      <td className="px-4 py-3 text-zc-muted">{p.updatedAt ? new Date(p.updatedAt).toLocaleString() : "—"}</td>
+                      <td className="px-4 py-3 text-zc-muted">{p.updatedAt ? new Date(p.updatedAt).toLocaleString() : "â€”"}</td>
                       <td className="px-4 py-3 text-right">
                         <Button asChild variant="outline" className="px-3" onClick={(e) => e.stopPropagation()}>
-                          <Link href={`/policy/policies/${encodeURIComponent(p.id)}`}>Open</Link>
+                          <Link href={`/policy/policies/${encodeURIComponent(p.id)}` as any}>Open</Link>
                         </Button>
                       </td>
                     </tr>
@@ -382,7 +382,7 @@ export default function PoliciesList() {
             onCreated={async (createdId) => {
               setCreateOpen(false);
               await refresh();
-              if (createdId) router.push(`/policy/policies/${encodeURIComponent(createdId)}`);
+              if (createdId) router.push(`/policy/policies/${encodeURIComponent(createdId as any)}`);
             }}
           />
         ) : null}
@@ -601,7 +601,7 @@ function CreatePolicyModal({
                   onChange={(e) => setForm((p) => ({ ...p, code: normalizeCode(e.target.value) }))}
                   placeholder="RETENTION_CLINICAL_RECORDS"
                 />
-                <div className="text-xs text-zc-muted min-h-[1rem]">Allowed: A–Z, 0–9, underscore. Max 64 chars.</div>
+                <div className="text-xs text-zc-muted min-h-[1rem]">Allowed: Aâ€“Z, 0â€“9, underscore. Max 64 chars.</div>
               </div>
 
               {/* Column 3: Type */}
@@ -642,7 +642,7 @@ function CreatePolicyModal({
               <Textarea
                 value={form.description}
                 onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-                placeholder="Optional description…"
+                placeholder="Optional descriptionâ€¦"
               />
             </div>
 
@@ -651,7 +651,7 @@ function CreatePolicyModal({
               <Textarea
                 value={form.notes}
                 onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
-                placeholder="Change notes for reviewers…"
+                placeholder="Change notes for reviewersâ€¦"
               />
             </div>
 
@@ -695,7 +695,7 @@ function CreatePolicyModal({
                           <div className="min-w-0">
                             <div className="text-sm font-semibold text-zc-text">{b.name}</div>
                             <div className="text-xs text-zc-muted">
-                              {b.city ?? ""} {b.code ? `• ${b.code}` : ""}
+                              {b.city ?? ""} {b.code ? `â€¢ ${b.code}` : ""}
                             </div>
                           </div>
                         </label>

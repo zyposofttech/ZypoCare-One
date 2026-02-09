@@ -175,9 +175,9 @@ function buildQS(params: Record<string, any>) {
 }
 
 function fmtDate(v?: string | null) {
-  if (!v) return "—";
+  if (!v) return "â€”";
   const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "â€”";
   return d.toLocaleDateString();
 }
 
@@ -253,7 +253,7 @@ function flattenLocations(tree: LocationTreeResponse): Array<{ id: string; label
 
   const out: Array<{ id: string; label: string; type: LocationType }> = [];
   const walk = (node: LocationNode, prefix: string) => {
-    const label = `${prefix}${node.code} • ${node.name}`;
+    const label = `${prefix}${node.code} â€¢ ${node.name}`;
     out.push({ id: node.id, label, type: node.type });
     (node.buildings || []).forEach((c) => walk(c, `${prefix}${node.code} / `));
     (node.floors || []).forEach((c) => walk(c, `${prefix}${node.code} / `));
@@ -325,7 +325,7 @@ const DUE_OPTIONS = [
 
 export default function SuperAdminEquipmentRegisterPage() {
   const { toast } = useToast();
-  // ✅ Unified branch context
+  // âœ… Unified branch context
   const branchCtx = useBranchContext();
   const activeBranchId = useActiveBranchStore((s) => s.activeBranchId);
   const setActiveBranchId = useActiveBranchStore((s) => s.setActiveBranchId);
@@ -620,7 +620,7 @@ setBranchId(next || "");
   }
 
   async function retireAsset(r: EquipmentAssetRow) {
-    if (!window.confirm(`Retire equipment ${r.code} • ${r.name}? This will disable scheduling.`)) return;
+    if (!window.confirm(`Retire equipment ${r.code} â€¢ ${r.name}? This will disable scheduling.`)) return;
     setBusy(true);
     try {
       await apiFetch(`/api/infrastructure/equipment/${encodeURIComponent(r.id)}/retire`, { method: "POST" });
@@ -675,7 +675,7 @@ setBranchId(next || "");
   const complianceExpiringCount = summary?.due.complianceExpiringIn30Count ?? 0;
 
   return (
-    <AppShell title="Infrastructure • Equipment Register">
+    <AppShell title="Infrastructure â€¢ Equipment Register">
       <RequirePerm perm="INFRA_EQUIPMENT_READ">
       <div className="grid gap-6">
         {/* Header */}
@@ -1147,10 +1147,10 @@ setBranchId(next || "");
                                       {(r.make || r.model || r.serial) ? (
                                         <>
                                           {[r.make, r.model].filter(Boolean).join(" ")}
-                                          {r.serial ? ` • SN: ${r.serial}` : ""}
+                                          {r.serial ? ` â€¢ SN: ${r.serial}` : ""}
                                         </>
                                       ) : (
-                                        "—"
+                                        "â€”"
                                       )}
                                     </span>
                                     {r.warnings?.length ? (
@@ -1169,11 +1169,11 @@ setBranchId(next || "");
                                 <TableCell>
                                   <div className="text-sm">
                                     <div className="text-zc-text">
-                                      {u ? `${u.code}` : r.unitId ? `${String(r.unitId).slice(0, 8)}…` : "—"}
-                                      {rm ? ` / ${rm.code}` : r.roomId ? ` / ${String(r.roomId).slice(0, 8)}…` : ""}
+                                      {u ? `${u.code}` : r.unitId ? `${String(r.unitId).slice(0, 8)}â€¦` : "â€”"}
+                                      {rm ? ` / ${rm.code}` : r.roomId ? ` / ${String(r.roomId).slice(0, 8)}â€¦` : ""}
                                     </div>
                                     <div className="text-xs text-zc-muted">
-                                      {r.locationNodeId ? `Loc: ${String(r.locationNodeId).slice(0, 8)}…` : ""}
+                                      {r.locationNodeId ? `Loc: ${String(r.locationNodeId).slice(0, 8)}â€¦` : ""}
                                     </div>
                                   </div>
                                 </TableCell>
@@ -1211,7 +1211,7 @@ setBranchId(next || "");
                                     <DropdownMenuContent align="end" className="w-[220px]">
                                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                       <DropdownMenuItem asChild>
-                                        <Link href={`/infrastructure/equipment/${encodeURIComponent(r.id)}`}>
+                                        <Link href={`/infrastructure/equipment/${encodeURIComponent(r.id)}` as any}>
                                           <ExternalLink className="mr-2 h-4 w-4" />
                                           View details
                                         </Link>
@@ -1417,7 +1417,7 @@ setBranchId(next || "");
                                 <TableRow key={t.id}>
                                   <TableCell className="font-mono text-xs">
                                     <div className="flex flex-col gap-1">
-                                      <span className="font-semibold text-zc-text">{t.asset?.code || "—"}</span>
+                                      <span className="font-semibold text-zc-text">{t.asset?.code || "â€”"}</span>
                                       <span className="text-[11px] text-zc-muted">{t.asset?.name || ""}</span>
                                     </div>
                                   </TableCell>
@@ -1498,7 +1498,7 @@ setBranchId(next || "");
         editing={editing}
         onSaved={async (result, mode) => {
           if (result?.warnings?.length) {
-            toast({ title: mode === "create" ? "Saved with warnings" : "Updated with warnings", description: result.warnings.join(" • ") });
+            toast({ title: mode === "create" ? "Saved with warnings" : "Updated with warnings", description: result.warnings.join(" â€¢ ") });
           } else {
             toast({ title: mode === "create" ? "Equipment created" : "Equipment updated", description: "Saved successfully." });
           }
@@ -1515,7 +1515,7 @@ setBranchId(next || "");
           </DialogHeader>
           <div className="grid gap-4">
             <div className="rounded-xl border border-zc-border bg-zc-panel/20 p-4">
-              <div className="text-sm font-semibold text-zc-text">{downtimeAsset ? `${downtimeAsset.code} • ${downtimeAsset.name}` : ""}</div>
+              <div className="text-sm font-semibold text-zc-text">{downtimeAsset ? `${downtimeAsset.code} â€¢ ${downtimeAsset.name}` : ""}</div>
               <div className="mt-1 text-sm text-zc-muted">
                 {closingTicket ? "Add closure notes and confirm." : "Create a downtime ticket; equipment status will be set to DOWN."}
               </div>
@@ -1625,7 +1625,7 @@ function AlertList({
                       <TableCell>
                         <div className="flex flex-col gap-1">
                           <span className="font-semibold text-zc-text">{r.name}</span>
-                          <span className="text-xs text-zc-muted">{[r.make, r.model].filter(Boolean).join(" ") || "—"}</span>
+                          <span className="text-xs text-zc-muted">{[r.make, r.model].filter(Boolean).join(" ") || "â€”"}</span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -1636,7 +1636,7 @@ function AlertList({
                       </TableCell>
                       <TableCell className="text-right">
                         <Button variant="primary" size="sm" asChild>
-                          <Link href={`/infrastructure/equipment/${encodeURIComponent(r.id)}`}>View</Link>
+                          <Link href={`/infrastructure/equipment/${encodeURIComponent(r.id)}` as any}>View</Link>
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -1694,7 +1694,7 @@ function EquipmentAssetDialog({
       .filter((c) => c.id && c.isActive)
       .map((c) => {
         const section = sectionById.get(c.sectionId);
-        const label = section ? `${c.name} (${c.code}) • ${section.name}` : `${c.name} (${c.code})`;
+        const label = section ? `${c.name} (${c.code}) â€¢ ${section.name}` : `${c.name} (${c.code})`;
         return {
           id: c.id,
           label,
@@ -1912,7 +1912,7 @@ function EquipmentAssetDialog({
                   <SelectItem value="none">None</SelectItem>
                   {departments.filter((d) => d.id).map((d) => (
                     <SelectItem key={d.id} value={d.id}>
-                      {d.code} • {d.name}
+                      {d.code} â€¢ {d.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1936,7 +1936,7 @@ function EquipmentAssetDialog({
                   <SelectItem value="none">None</SelectItem>
                   {units.filter((u) => u.id).map((u) => (
                     <SelectItem key={u.id} value={u.id}>
-                      {u.code} • {u.name}
+                      {u.code} â€¢ {u.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1956,7 +1956,7 @@ function EquipmentAssetDialog({
                   <SelectItem value="none">None</SelectItem>
                   {roomOptions.filter((r) => r.id).map((r) => (
                     <SelectItem key={r.id} value={r.id}>
-                      {r.code} • {r.name}
+                      {r.code} â€¢ {r.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

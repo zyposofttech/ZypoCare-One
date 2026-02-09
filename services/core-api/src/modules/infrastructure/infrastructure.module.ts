@@ -61,9 +61,6 @@ import { TariffPlansService } from "./tariff-plans/tariff-plans.service";
 import { StaffController } from "./staff/staff.controller";
 import { StaffService } from "./staff/staff.service";
 
-import { InfraAiModule } from "./ai/infra-ai.module";
-
-
 @Module({
   imports: [
     AuthModule,
@@ -75,7 +72,6 @@ import { InfraAiModule } from "./ai/infra-ai.module";
     ServicePackagesModule,
     OrderSetsModule,
     ServiceLibraryModule,
-    InfraAiModule,
   ],
   controllers: [
     LocationController,

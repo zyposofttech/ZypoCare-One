@@ -33,7 +33,7 @@ export default function ResetPasswordPage() {
 
       if (!res.ok) throw new Error("Link expired or invalid.");
       setSuccess(true);
-      setTimeout(() => router.push("/login"), 3000);
+      setTimeout(() => router.push("/login" as any), 3000);
     } catch (e: any) {
       setError(e.message);
     } finally {

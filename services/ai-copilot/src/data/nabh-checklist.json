@@ -1,0 +1,254 @@
+{
+  "version": "6th-edition-2025-infra",
+  "scope": "Physical Infrastructure (Branch \u00b7 Location \u00b7 Department \u00b7 Unit \u00b7 Room \u00b7 Resource)",
+  "chapters": [
+    {
+      "chapter": 1,
+      "name": "Access & Assessment \u2013 Physical Setup",
+      "checks": [
+        {
+          "id": "NABH-1.01",
+          "description": "At least one OPD unit exists for outpatient access",
+          "severity": "BLOCKER",
+          "fixHint": "Create an OPD unit type and add at least one OPD unit.",
+          "query": "UNIT_TYPE_EXISTS",
+          "params": { "unitTypeCode": "OPD" }
+        },
+        {
+          "id": "NABH-1.02",
+          "description": "OPD units have at least one consultation room",
+          "severity": "WARNING",
+          "fixHint": "Add consultation rooms (type CONSULTATION) to OPD units.",
+          "query": "ROOM_TYPE_IN_UNIT_TYPE",
+          "params": { "roomType": "CONSULTATION", "unitTypeCode": "OPD" }
+        },
+        {
+          "id": "NABH-1.03",
+          "description": "Emergency unit exists (24\u00d77 branch)",
+          "severity": "WARNING",
+          "fixHint": "Create an ER unit type and unit for emergency care.",
+          "query": "UNIT_TYPE_EXISTS_IF_EMERGENCY",
+          "params": { "unitTypeCode": "ER" }
+        },
+        {
+          "id": "NABH-1.04",
+          "description": "At least one examination room exists for patient assessment",
+          "severity": "INFO",
+          "fixHint": "Add examination rooms (type EXAMINATION) for clinical assessments.",
+          "query": "ROOM_TYPE_EXISTS",
+          "params": { "roomType": "EXAMINATION" }
+        }
+      ]
+    },
+    {
+      "chapter": 2,
+      "name": "Care of Patients \u2013 Bed & Ward Configuration",
+      "checks": [
+        {
+          "id": "NABH-2.01",
+          "description": "IPD ward unit with active beds exists",
+          "severity": "BLOCKER",
+          "fixHint": "Create a WARD unit and add BED resources.",
+          "query": "UNIT_HAS_RESOURCE",
+          "params": { "unitTypeCodes": ["WARD", "ICU", "HDU"], "resourceType": "BED", "minCount": 1 }
+        },
+        {
+          "id": "NABH-2.02",
+          "description": "Branch bed count configured and matches actual beds",
+          "severity": "WARNING",
+          "fixHint": "Set Branch.bedCount and ensure it matches the actual number of BED resources.",
+          "query": "BED_COUNT_SYNC",
+          "params": {}
+        },
+        {
+          "id": "NABH-2.03",
+          "description": "ICU unit exists with beds for critical care",
+          "severity": "WARNING",
+          "fixHint": "Create an ICU unit with bed resources for critical care patients.",
+          "query": "UNIT_TYPE_EXISTS",
+          "params": { "unitTypeCode": "ICU" }
+        },
+        {
+          "id": "NABH-2.04",
+          "description": "Isolation / negative-pressure rooms available for infection control",
+          "severity": "INFO",
+          "fixHint": "Add ISOLATION or NEGATIVE_PRESSURE rooms for infection control.",
+          "query": "ROOM_TYPE_EXISTS_ANY",
+          "params": { "roomTypes": ["ISOLATION", "NEGATIVE_PRESSURE"] }
+        },
+        {
+          "id": "NABH-2.05",
+          "description": "ICU rooms have oxygen supply flagged",
+          "severity": "WARNING",
+          "fixHint": "Enable hasOxygen on all ICU/HDU room records.",
+          "query": "CRITICAL_CARE_ROOMS_HAVE_AMENITY",
+          "params": { "amenity": "hasOxygen", "unitTypeCodes": ["ICU", "HDU", "CCU", "NICU", "PICU"] }
+        },
+        {
+          "id": "NABH-2.06",
+          "description": "ICU rooms have suction available",
+          "severity": "INFO",
+          "fixHint": "Enable hasSuction on all ICU/HDU room records.",
+          "query": "CRITICAL_CARE_ROOMS_HAVE_AMENITY",
+          "params": { "amenity": "hasSuction", "unitTypeCodes": ["ICU", "HDU", "CCU", "NICU", "PICU"] }
+        },
+        {
+          "id": "NABH-2.07",
+          "description": "Nursing station rooms exist in IPD areas",
+          "severity": "INFO",
+          "fixHint": "Add NURSING_STATION rooms in IPD units.",
+          "query": "ROOM_TYPE_IN_UNIT_TYPES",
+          "params": { "roomType": "NURSING_STATION", "unitTypeCodes": ["WARD", "ICU", "HDU"] }
+        }
+      ]
+    },
+    {
+      "chapter": 5,
+      "name": "Hospital Infrastructure & Safety",
+      "checks": [
+        {
+          "id": "NABH-5.01",
+          "description": "Location tree has a Campus root node",
+          "severity": "BLOCKER",
+          "fixHint": "Create a CAMPUS location node as the root of the location hierarchy.",
+          "query": "LOCATION_ROOT_EXISTS",
+          "params": { "kind": "CAMPUS" }
+        },
+        {
+          "id": "NABH-5.02",
+          "description": "At least one Building node exists under Campus",
+          "severity": "BLOCKER",
+          "fixHint": "Add BUILDING location nodes under the Campus.",
+          "query": "LOCATION_KIND_EXISTS",
+          "params": { "kind": "BUILDING" }
+        },
+        {
+          "id": "NABH-5.03",
+          "description": "Floor nodes exist under Buildings",
+          "severity": "WARNING",
+          "fixHint": "Add FLOOR location nodes under each Building.",
+          "query": "LOCATION_KIND_EXISTS",
+          "params": { "kind": "FLOOR" }
+        },
+        {
+          "id": "NABH-5.04",
+          "description": "Fire zones designated for all buildings and floors",
+          "severity": "BLOCKER",
+          "fixHint": "Set the fireZone attribute on all BUILDING and FLOOR location revisions.",
+          "query": "LOCATION_FIRE_ZONE_COVERAGE",
+          "params": { "kinds": ["BUILDING", "FLOOR"] }
+        },
+        {
+          "id": "NABH-5.05",
+          "description": "At least one emergency exit marked in location tree",
+          "severity": "BLOCKER",
+          "fixHint": "Mark at least one location node revision as emergencyExit = true.",
+          "query": "LOCATION_HAS_EMERGENCY_EXIT",
+          "params": {}
+        },
+        {
+          "id": "NABH-5.06",
+          "description": "Wheelchair accessibility marked on public areas",
+          "severity": "WARNING",
+          "fixHint": "Flag wheelchairAccess = true on accessible location nodes.",
+          "query": "LOCATION_HAS_WHEELCHAIR_ACCESS",
+          "params": {}
+        },
+        {
+          "id": "NABH-5.07",
+          "description": "Stretcher accessibility marked for clinical floors",
+          "severity": "INFO",
+          "fixHint": "Flag stretcherAccess = true on stretcher-accessible location nodes.",
+          "query": "LOCATION_HAS_STRETCHER_ACCESS",
+          "params": {}
+        },
+        {
+          "id": "NABH-5.08",
+          "description": "All location nodes have an active revision with code and name",
+          "severity": "WARNING",
+          "fixHint": "Ensure every location node has at least one active revision.",
+          "query": "LOCATION_ALL_HAVE_ACTIVE_REVISION",
+          "params": {}
+        },
+        {
+          "id": "NABH-5.09",
+          "description": "Units are mapped to location nodes for wayfinding",
+          "severity": "INFO",
+          "fixHint": "Assign each unit to a location node via locationNodeId.",
+          "query": "UNITS_LINKED_TO_LOCATION",
+          "params": { "minPercent": 80 }
+        }
+      ]
+    },
+    {
+      "chapter": 8,
+      "name": "Responsibilities of Management \u2013 Branch Configuration",
+      "checks": [
+        {
+          "id": "NABH-8.01",
+          "description": "Branch legal entity name is set",
+          "severity": "WARNING",
+          "fixHint": "Set the legalEntityName in Branch Profile.",
+          "query": "BRANCH_FIELD_SET",
+          "params": { "field": "legalEntityName" }
+        },
+        {
+          "id": "NABH-8.02",
+          "description": "Branch address is complete (address, PIN, state)",
+          "severity": "WARNING",
+          "fixHint": "Complete all address fields in Branch Profile.",
+          "query": "BRANCH_ADDRESS_COMPLETE",
+          "params": {}
+        },
+        {
+          "id": "NABH-8.03",
+          "description": "GSTIN configured for tax compliance",
+          "severity": "WARNING",
+          "fixHint": "Enter the GSTIN in Branch Profile.",
+          "query": "BRANCH_FIELD_SET",
+          "params": { "field": "gstNumber" }
+        },
+        {
+          "id": "NABH-8.04",
+          "description": "PAN configured for statutory compliance",
+          "severity": "WARNING",
+          "fixHint": "Enter the PAN in Branch Profile.",
+          "query": "BRANCH_FIELD_SET",
+          "params": { "field": "panNumber" }
+        },
+        {
+          "id": "NABH-8.05",
+          "description": "Clinical Establishment Registration number is set",
+          "severity": "INFO",
+          "fixHint": "Enter the registration number in Branch Profile.",
+          "query": "BRANCH_FIELD_SET",
+          "params": { "field": "clinicalEstRegNumber" }
+        },
+        {
+          "id": "NABH-8.06",
+          "description": "All departments have a designated head",
+          "severity": "WARNING",
+          "fixHint": "Assign headStaffId on each department.",
+          "query": "DEPARTMENTS_WITH_HEAD",
+          "params": { "minPercent": 100 }
+        },
+        {
+          "id": "NABH-8.07",
+          "description": "At least one department is configured",
+          "severity": "BLOCKER",
+          "fixHint": "Create at least one department.",
+          "query": "DEPARTMENT_COUNT_MIN",
+          "params": { "min": 1 }
+        },
+        {
+          "id": "NABH-8.08",
+          "description": "Branch infrastructure config initialized",
+          "severity": "INFO",
+          "fixHint": "Initialize BranchInfraConfig for this branch.",
+          "query": "INFRA_CONFIG_EXISTS",
+          "params": {}
+        }
+      ]
+    }
+  ]
+}

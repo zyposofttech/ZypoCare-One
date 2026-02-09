@@ -24,6 +24,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { apiFetch, ApiError } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
+import { useFieldCopilot } from "@/lib/copilot/useFieldCopilot";
+import { usePageInsights } from "@/lib/copilot/usePageInsights";
+import { AIFieldWrapper } from "@/components/copilot/AIFieldWrapper";
+import { PageInsightBanner } from "@/components/copilot/PageInsightBanner";
 
 import {
   AlertTriangle,
@@ -186,9 +190,9 @@ function typeLabel(t: FacilityType) {
 
 function hoursLabel(h: any): string {
   if (!h) return "-";
-  if (h.is24x7 || h.mode === "24X7") return "24×7";
+  if (h.is24x7 || h.mode === "24X7") return "24Ã—7";
   if (h.mode === "WEEKLY" && h.days) return "Weekly";
-  if (h.mode === "SHIFT" && (h.start || h.end)) return `${h.start ?? ""}${h.end ? `–${h.end}` : ""}`;
+  if (h.mode === "SHIFT" && (h.start || h.end)) return `${h.start ?? ""}${h.end ? `â€“${h.end}` : ""}`;
   return "Custom";
 }
 
@@ -296,6 +300,30 @@ export default function DepartmentsPage() {
   const serviceCount = rows.filter((r) => r.facilityType === "SERVICE").length;
   const supportCount = rows.filter((r) => r.facilityType === "SUPPORT").length;
   const nonClinicalCount = serviceCount + supportCount;
+
+  // â”€â”€ AI Copilot hooks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const codeFieldAI = useFieldCopilot({
+    module: "department",
+    field: "code",
+    value: formCode,
+    enabled: open && !editing && formCode.length > 0,
+  });
+  const nameFieldAI = useFieldCopilot({
+    module: "department",
+    field: "name",
+    value: formName,
+    enabled: open && formName.length > 2,
+  });
+  const costCenterAI = useFieldCopilot({
+    module: "department",
+    field: "costCenterCode",
+    value: formCostCenter,
+    enabled: open && formCostCenter.length > 0,
+  });
+  const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({
+    module: "departments",
+    enabled: !!branchId,
+  });
 
   async function loadBranch(bid: string) {
     try {
@@ -483,7 +511,7 @@ export default function DepartmentsPage() {
 
       const hod = full.headStaff ?? null;
       setHodId(hod?.id ?? null);
-      setHodLabel(hod ? `${hod.name}${hod.designation ? ` — ${hod.designation}` : ""}` : "");
+      setHodLabel(hod ? `${hod.name}${hod.designation ? ` â€” ${hod.designation}` : ""}` : "");
       setHodSearch(hod?.name ?? "");
 
       let specIds = (full.specialties ?? []).map((x) => x.specialtyId);
@@ -951,6 +979,9 @@ export default function DepartmentsPage() {
             </CardContent>
           </Card>
 
+          {/* AI Insights Banner */}
+          <PageInsightBanner insights={insights} loading={insightsLoading} onDismiss={dismissInsight} />
+
           {/* Table */}
           <Card className="overflow-hidden">
             <CardHeader className="pb-3">
@@ -962,7 +993,7 @@ export default function DepartmentsPage() {
 
                 <div className="flex flex-wrap items-center gap-2">
                   <Button asChild variant="outline" size="sm" className="gap-2" disabled={!branchId}>
-                    <Link href={branchId ? `/infrastructure/specialties?tab=mapping` : "#"}>
+                    <Link href={branchId ? `/infrastructure/specialties?tab=mapping` : "#" as any}>
                       <Settings2 className="h-4 w-4" />
                       Specialty mapping
                     </Link>
@@ -1090,7 +1121,7 @@ export default function DepartmentsPage() {
                               <Button
                                 variant="success"
                                 size="icon"
-                                onClick={() => router.push(`/infrastructure/departments/${r.id}`)}
+                                onClick={() => router.push(`/infrastructure/departments/${r.id}` as any)}
                                 title="View details"
                                 aria-label="View details"
                                 disabled={!branchId}
@@ -1269,25 +1300,29 @@ export default function DepartmentsPage() {
                     <div className="grid gap-4 md:grid-cols-12">
                       <div className="md:col-span-4">
                         <Label>Code</Label>
-                        <Input
-                          value={formCode}
-                          onChange={(e) => setFormCode(e.target.value)}
-                          placeholder="e.g. OPD"
-                          className="h-11 rounded-xl border-zc-border bg-zc-card font-mono"
-                          disabled={!!editing || busy}
-                        />
+                        <AIFieldWrapper warnings={codeFieldAI.warnings} suggestion={codeFieldAI.suggestion} validating={codeFieldAI.validating}>
+                          <Input
+                            value={formCode}
+                            onChange={(e) => setFormCode(e.target.value)}
+                            placeholder="e.g. OPD"
+                            className="h-11 rounded-xl border-zc-border bg-zc-card font-mono"
+                            disabled={!!editing || busy}
+                          />
+                        </AIFieldWrapper>
                         <div className="mt-1 text-xs text-zc-muted">Unique within branch. Uppercase letters/numbers/_</div>
                       </div>
 
                       <div className="md:col-span-8">
                         <Label>Name</Label>
-                        <Input
-                          value={formName}
-                          onChange={(e) => setFormName(e.target.value)}
-                          placeholder="Department name"
-                          className="h-11 rounded-xl border-zc-border bg-zc-card"
-                          disabled={busy}
-                        />
+                        <AIFieldWrapper warnings={nameFieldAI.warnings} suggestion={nameFieldAI.suggestion} validating={nameFieldAI.validating}>
+                          <Input
+                            value={formName}
+                            onChange={(e) => setFormName(e.target.value)}
+                            placeholder="Department name"
+                            className="h-11 rounded-xl border-zc-border bg-zc-card"
+                            disabled={busy}
+                          />
+                        </AIFieldWrapper>
                       </div>
 
                       <div className="md:col-span-4">
@@ -1308,13 +1343,15 @@ export default function DepartmentsPage() {
 
                       <div className="md:col-span-4">
                         <Label>Cost Center Code</Label>
-                        <Input
-                          value={formCostCenter}
-                          onChange={(e) => setFormCostCenter(e.target.value)}
-                          placeholder="Optional"
-                          className="h-11 rounded-xl border-zc-border bg-zc-card"
-                          disabled={busy}
-                        />
+                        <AIFieldWrapper warnings={costCenterAI.warnings} suggestion={costCenterAI.suggestion} validating={costCenterAI.validating}>
+                          <Input
+                            value={formCostCenter}
+                            onChange={(e) => setFormCostCenter(e.target.value)}
+                            placeholder="Optional"
+                            className="h-11 rounded-xl border-zc-border bg-zc-card"
+                            disabled={busy}
+                          />
+                        </AIFieldWrapper>
                       </div>
 
                       <div className="md:col-span-4">
@@ -1331,7 +1368,7 @@ export default function DepartmentsPage() {
 
                       <div className="md:col-span-12 rounded-xl border border-zc-border bg-zc-panel/10 p-3 text-sm text-zc-muted">
                         Tag specialties in the <span className="font-semibold text-zc-text">Specialties</span> tab above. Master list is under{" "}
-                        <span className="font-semibold text-zc-text">Infrastructure → Specialties</span>.
+                        <span className="font-semibold text-zc-text">Infrastructure â†’ Specialties</span>.
                       </div>
                     </div>
                   </TabsContent>
@@ -1424,7 +1461,7 @@ export default function DepartmentsPage() {
                             <Input
                               value={specSearch}
                               onChange={(e) => setSpecSearch(e.target.value)}
-                              placeholder="Search specialties (name/code/kind)…"
+                              placeholder="Search specialties (name/code/kind)â€¦"
                               className="h-11 rounded-xl border-zc-border bg-zc-card pl-9"
                               disabled={busy}
                             />
@@ -1523,12 +1560,12 @@ export default function DepartmentsPage() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="24X7">24×7</SelectItem>
+                              <SelectItem value="24X7">24Ã—7</SelectItem>
                               <SelectItem value="WEEKLY">Weekly schedule</SelectItem>
                               <SelectItem value="CUSTOM">Advanced (JSON)</SelectItem>
                             </SelectContent>
                           </Select>
-                          <div className="mt-1 text-xs text-zc-muted">No JSON required for 24×7 or weekly schedules.</div>
+                          <div className="mt-1 text-xs text-zc-muted">No JSON required for 24Ã—7 or weekly schedules.</div>
                         </div>
 
                         <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3 text-sm">
@@ -1538,7 +1575,7 @@ export default function DepartmentsPage() {
                               try {
                                 return hoursLabel(resolveOperatingHours());
                               } catch (e: any) {
-                                return e?.message ? `⚠ ${e.message}` : "⚠ Invalid";
+                                return e?.message ? `âš  ${e.message}` : "âš  Invalid";
                               }
                             })()}
                           </div>
@@ -1547,7 +1584,7 @@ export default function DepartmentsPage() {
 
                       {formOperatingMode === "24X7" ? (
                         <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-4 text-sm text-zc-muted">
-                          This department is marked as <span className="font-semibold text-zc-text">24×7</span>. No additional configuration needed.
+                          This department is marked as <span className="font-semibold text-zc-text">24Ã—7</span>. No additional configuration needed.
                         </div>
                       ) : null}
 
@@ -1576,10 +1613,10 @@ export default function DepartmentsPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="CUSTOM">(keep current)</SelectItem>
-                                  <SelectItem value="MON_FRI_9_5">Weekdays (Mon–Fri) 09:00–17:00</SelectItem>
-                                  <SelectItem value="MON_SAT_9_5">OPD (Mon–Sat) 09:00–17:00</SelectItem>
-                                  <SelectItem value="ALL_9_9">All days 09:00–21:00</SelectItem>
-                                  <SelectItem value="MON_SAT_TWO_SHIFTS">Two shifts (Mon–Sat) 09:00–13:00 & 14:00–18:00</SelectItem>
+                                  <SelectItem value="MON_FRI_9_5">Weekdays (Monâ€“Fri) 09:00â€“17:00</SelectItem>
+                                  <SelectItem value="MON_SAT_9_5">OPD (Monâ€“Sat) 09:00â€“17:00</SelectItem>
+                                  <SelectItem value="ALL_9_9">All days 09:00â€“21:00</SelectItem>
+                                  <SelectItem value="MON_SAT_TWO_SHIFTS">Two shifts (Monâ€“Sat) 09:00â€“13:00 & 14:00â€“18:00</SelectItem>
                                 </SelectContent>
                               </Select>
                               <div className="mt-1 text-xs text-zc-muted">Pick a preset, then tweak per day if needed.</div>
@@ -1909,7 +1946,7 @@ export default function DepartmentsPage() {
                                         className="gap-2"
                                         onClick={() => {
                                           setHodId(s.id);
-                                          setHodLabel(`${s.name}${s.designation ? ` — ${s.designation}` : ""}`);
+                                          setHodLabel(`${s.name}${s.designation ? ` â€” ${s.designation}` : ""}`);
                                         }}
                                         disabled={busy}
                                       >

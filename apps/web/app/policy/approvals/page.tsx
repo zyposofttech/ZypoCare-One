@@ -204,7 +204,7 @@ export default function SuperAdminPolicyApprovalsPage() {
 
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="relative w-full lg:max-w-md">
-                <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by code, name, maker…" />
+                <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by code, name, makerâ€¦" />
               </div>
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -261,7 +261,7 @@ export default function SuperAdminPolicyApprovalsPage() {
                 {!filtered.length ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-10 text-center text-sm text-zc-muted">
-                      {loading ? "Loading approvals…" : "No approval requests."}
+                      {loading ? "Loading approvalsâ€¦" : "No approval requests."}
                     </td>
                   </tr>
                 ) : null}
@@ -278,12 +278,12 @@ export default function SuperAdminPolicyApprovalsPage() {
                     <tr key={r.id} className="border-t border-zc-border hover:bg-zc-panel/20">
                       <td className="px-4 py-3">
                         <Link
-                          href={`/policy/policies/${encodeURIComponent(r.policyId)}`}
+                          href={`/policy/policies/${encodeURIComponent(r.policyId)}` as any}
                           className="font-semibold text-zc-text hover:underline"
                         >
                           {r.policyName ?? r.policyCode}
                         </Link>
-                        <div className="mt-0.5 font-mono text-xs text-zc-muted">{r.policyCode} • v{r.version}</div>
+                        <div className="mt-0.5 font-mono text-xs text-zc-muted">{r.policyCode} â€¢ v{r.version}</div>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap items-center gap-2">
@@ -295,8 +295,8 @@ export default function SuperAdminPolicyApprovalsPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-zc-muted">{target}</td>
-                      <td className="px-4 py-3 text-zc-muted">{r.submittedAt ? new Date(r.submittedAt).toLocaleString() : "—"}</td>
-                      <td className="px-4 py-3 text-zc-muted">{r.createdByName ?? "—"}</td>
+                      <td className="px-4 py-3 text-zc-muted">{r.submittedAt ? new Date(r.submittedAt).toLocaleString() : "â€”"}</td>
+                      <td className="px-4 py-3 text-zc-muted">{r.createdByName ?? "â€”"}</td>
                       <td className="px-4 py-3">
                         <div className="flex justify-end gap-2">
                           <Button
@@ -420,7 +420,7 @@ function ApprovalActionDialog({
             {mode === "approve" ? "Approve request" : "Reject request"}
           </div>
           <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
-            {row.policyCode} • v{row.version} • {row.scope === "GLOBAL" ? "Global" : "Override"}
+            {row.policyCode} â€¢ v{row.version} â€¢ {row.scope === "GLOBAL" ? "Global" : "Override"}
           </div>
         </div>
 
@@ -439,7 +439,7 @@ function ApprovalActionDialog({
             <Textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder={mode === "approve" ? "Write a short note for audit trail…" : "Why is this rejected?"}
+              placeholder={mode === "approve" ? "Write a short note for audit trailâ€¦" : "Why is this rejected?"}
               className="min-h-[140px]"
             />
             {mode === "reject" ? (
@@ -458,7 +458,7 @@ function ApprovalActionDialog({
             disabled={busy}
             className="px-5"
           >
-            {busy ? "Saving…" : mode === "approve" ? "Approve" : "Reject"}
+            {busy ? "Savingâ€¦" : mode === "approve" ? "Approve" : "Reject"}
           </Button>
         </div>
       </DialogContent>

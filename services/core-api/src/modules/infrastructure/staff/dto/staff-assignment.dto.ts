@@ -124,3 +124,35 @@ export class EndStaffAssignmentDto {
   @MaxLength(240)
   reason?: string | null;
 }
+
+// --- Optional approval workflow helpers ---
+// These do not require schema changes; they map to status transitions.
+export class ApproveStaffAssignmentDto {
+  // When approved, assignment status transitions to ACTIVE.
+  // You may optionally set an activation date (defaults to now).
+  @IsOptional()
+  @IsDateString()
+  activatedAt?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(240)
+  notes?: string | null;
+}
+
+export class RejectStaffAssignmentDto extends EndStaffAssignmentDto {}
+
+// Compatibility with workflow addendum: /staff-branch-assignments/:id/approval
+export class StaffAssignmentApprovalDto {
+  @IsIn(["APPROVED", "REJECTED"] as unknown as string[])
+  approvalStatus!: "APPROVED" | "REJECTED";
+
+  @IsOptional()
+  @IsDateString()
+  actionDate?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(240)
+  approvalRemarks?: string | null;
+}

@@ -20,6 +20,10 @@ import { useAuthStore, hasPerm } from "@/lib/auth/store";
 
 import { IconBuilding, IconChevronRight, IconPlus, IconSearch } from "@/components/icons";
 import { AlertTriangle, Building2, Loader2, Pencil, RefreshCw, ToggleLeft, ToggleRight, Trash2, Wand2 } from "lucide-react";
+import { useAutoFill } from "@/lib/infrastructure/ai/useAutoFill";
+import { AISuggestionPanel } from "@/components/infrastructure/AISuggestionPanel";
+import { usePageInsights } from "@/lib/copilot/usePageInsights";
+import { PageInsightBanner } from "@/components/copilot/PageInsightBanner";
 
 type BranchCounts = Record<string, number | undefined>;
 
@@ -131,7 +135,7 @@ function validateCode(code: string): string | null {
   const v = normalizeCode(code);
   if (!v) return "Branch code is required";
   if (!/^[A-Z0-9][A-Z0-9-]{1,31}$/.test(v)) {
-    return "Code must be 2–32 chars, letters/numbers/hyphen (example: BLR-EC)";
+    return "Code must be 2â€“32 chars, letters/numbers/hyphen (example: BLR-EC)";
   }
   return null;
 }
@@ -331,7 +335,7 @@ function ModalShell({
               {description ? <div className="mt-1 text-sm text-zc-muted">{description}</div> : null}
             </div>
             <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
-              ✕
+              âœ•
             </Button>
           </div>
         </div>
@@ -528,7 +532,7 @@ function ToggleActiveConfirmDialog({
             Cancel
           </Button>
           <Button variant={nextActive ? "success" : "secondary"} onClick={onConfirm} disabled={busy}>
-            {busy ? "Updating…" : nextActive ? "Reactivate" : "Deactivate"}
+            {busy ? "Updatingâ€¦" : nextActive ? "Reactivate" : "Deactivate"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -557,6 +561,9 @@ function BranchEditorModal({
   const [busy, setBusy] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
   const [manualCode, setManualCode] = React.useState(false);
+
+  // â”€â”€â”€ AI Auto-fill â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const autoFill = useAutoFill(800);
 
   const [form, setForm] = React.useState<BranchForm>({
     code: initial?.code ?? "",
@@ -605,7 +612,10 @@ function BranchEditorModal({
   });
 
   React.useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      autoFill.reset();
+      return;
+    }
     setErr(null);
     setBusy(false);
     setManualCode(false);
@@ -665,6 +675,49 @@ function BranchEditorModal({
     const next = deriveBranchCode(form.name, form.city);
     if (next && next !== form.code) setForm((s) => ({ ...s, code: next }));
   }, [open, mode, manualCode, form.name, form.city, form.code]);
+
+  // â”€â”€â”€ AI Auto-fill trigger â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  React.useEffect(() => {
+    if (!open) return;
+    // Trigger auto-fill when city, bedCount, or name changes
+    autoFill.fetch({
+      name: form.name || undefined,
+      city: form.city || undefined,
+      bedCount: form.bedCount ? Number(form.bedCount) : undefined,
+      emergency24x7: form.emergency24x7,
+    });
+  }, [open, form.city, form.bedCount, form.name]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function applyAutoFillSuggestion(field: string, value: any) {
+    autoFill.markApplied(field);
+    switch (field) {
+      case "state":
+        setForm((s) => ({ ...s, state: String(value) }));
+        break;
+      case "timezone":
+        setForm((s) => ({ ...s, timezone: String(value) }));
+        break;
+      case "defaultCurrency":
+        setForm((s) => ({ ...s, defaultCurrency: String(value) }));
+        break;
+      case "fiscalYearStartMonth":
+        setForm((s) => ({ ...s, fiscalYearStartMonth: String(value) }));
+        break;
+      case "emergency24x7":
+        setForm((s) => ({ ...s, emergency24x7: Boolean(value) }));
+        break;
+      case "workingHours":
+        if (typeof value === "object") {
+          setForm((s) => ({ ...s, workingHoursText: JSON.stringify(value, null, 2) }));
+        }
+        break;
+      case "gstStateCode":
+        // Info-only: show as a hint, not directly applicable
+        break;
+      default:
+        break;
+    }
+  }
 
   function set<K extends keyof BranchForm>(key: K, value: BranchForm[K]) {
     setForm((s) => ({ ...s, [key]: value }));
@@ -862,7 +915,7 @@ function BranchEditorModal({
           </DialogTitle>
           <DialogDescription>
             {mode === "create"
-              ? "Create the branch master (legal, contact, compliance & settings). Then configure Facilities → Departments → Specialties."
+              ? "Create the branch master (legal, contact, compliance & settings). Then configure Facilities â†’ Departments â†’ Specialties."
               : "Update branch identity, statutory numbers, contact and settings."}
           </DialogDescription>
         </DialogHeader>
@@ -875,6 +928,16 @@ function BranchEditorModal({
             <div className="min-w-0">{err}</div>
           </div>
         ) : null}
+
+        {/* AI Suggestion Panel */}
+        <AISuggestionPanel
+          result={autoFill.result}
+          loading={autoFill.loading}
+          appliedFields={autoFill.appliedFields}
+          dismissed={autoFill.dismissed}
+          onApply={applyAutoFillSuggestion}
+          onDismiss={autoFill.dismiss}
+        />
 
         <div className="grid gap-6">
           {/* Basics */}
@@ -1067,36 +1130,36 @@ function BranchEditorModal({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Logo URL</Label>
-                <Input value={form.logoUrl} onChange={(e) => set("logoUrl", e.target.value)} placeholder="https://…" />
+                <Input value={form.logoUrl} onChange={(e) => set("logoUrl", e.target.value)} placeholder="https://â€¦" />
                 <p className="text-[11px] text-zc-muted">Used for reports and letterheads.</p>
               </div>
 
               <div className="grid gap-2">
                 <Label>Website</Label>
-                <Input value={form.website} onChange={(e) => set("website", e.target.value)} placeholder="https://…" />
+                <Input value={form.website} onChange={(e) => set("website", e.target.value)} placeholder="https://â€¦" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Facebook</Label>
-                <Input value={form.facebook} onChange={(e) => set("facebook", e.target.value)} placeholder="https://facebook.com/…" />
+                <Input value={form.facebook} onChange={(e) => set("facebook", e.target.value)} placeholder="https://facebook.com/â€¦" />
               </div>
               <div className="grid gap-2">
                 <Label>Instagram</Label>
-                <Input value={form.instagram} onChange={(e) => set("instagram", e.target.value)} placeholder="https://instagram.com/…" />
+                <Input value={form.instagram} onChange={(e) => set("instagram", e.target.value)} placeholder="https://instagram.com/â€¦" />
               </div>
               <div className="grid gap-2">
                 <Label>LinkedIn</Label>
-                <Input value={form.linkedin} onChange={(e) => set("linkedin", e.target.value)} placeholder="https://linkedin.com/…" />
+                <Input value={form.linkedin} onChange={(e) => set("linkedin", e.target.value)} placeholder="https://linkedin.com/â€¦" />
               </div>
               <div className="grid gap-2">
                 <Label>X (Twitter)</Label>
-                <Input value={form.x} onChange={(e) => set("x", e.target.value)} placeholder="https://x.com/…" />
+                <Input value={form.x} onChange={(e) => set("x", e.target.value)} placeholder="https://x.com/â€¦" />
               </div>
               <div className="grid gap-2 sm:col-span-2">
                 <Label>YouTube</Label>
-                <Input value={form.youtube} onChange={(e) => set("youtube", e.target.value)} placeholder="https://youtube.com/…" />
+                <Input value={form.youtube} onChange={(e) => set("youtube", e.target.value)} placeholder="https://youtube.com/â€¦" />
               </div>
             </div>
           </div>
@@ -1174,7 +1237,7 @@ function BranchEditorModal({
                 <Textarea
                   value={form.workingHoursText}
                   onChange={(e) => set("workingHoursText", e.target.value)}
-                  placeholder="e.g. Mon–Sat 9:00–18:00; Sunday closed"
+                  placeholder="e.g. Monâ€“Sat 9:00â€“18:00; Sunday closed"
                   className="min-h-[72px]"
                 />
               </div>
@@ -1183,7 +1246,7 @@ function BranchEditorModal({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel/20 p-3">
                 <div className="min-w-0">
-                  <div className="text-sm font-semibold text-zc-text">Emergency 24×7</div>
+                  <div className="text-sm font-semibold text-zc-text">Emergency 24Ã—7</div>
                   <div className="text-xs text-zc-muted">Marks branch as always open for emergency services.</div>
                 </div>
                 <Switch checked={form.emergency24x7} onCheckedChange={(v) => set("emergency24x7", v)} />
@@ -1260,6 +1323,9 @@ export default function BranchesPage() {
   const [toggleAction, setToggleAction] = React.useState<"deactivate" | "reactivate">("deactivate");
   const [selected, setSelected] = React.useState<BranchRow | null>(null);
 
+  // AI page-level insights
+  const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({ module: "branches" });
+
   const filtered = React.useMemo(() => {
     const s = q.trim().toLowerCase();
     if (!s) return rows;
@@ -1304,7 +1370,7 @@ export default function BranchesPage() {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("create");
     const qs = params.toString();
-    router.replace(qs ? `/branches?${qs}` : "/branches");
+    router.replace(qs ? `/branches?${qs}` : "/branches" as any);
   }, [searchParams, router, canCreate]);
 
   const totalFacilities = countSum(rows, "facilities");
@@ -1348,6 +1414,9 @@ export default function BranchesPage() {
           </div>
         </div>
 
+        {/* AI Insights */}
+        <PageInsightBanner insights={insights} loading={insightsLoading} onDismiss={dismissInsight} />
+
         {/* Overview */}
         <Card className="overflow-hidden">
           <CardHeader className="pb-4">
@@ -1363,7 +1432,7 @@ export default function BranchesPage() {
                 <div className="text-xs font-medium text-blue-600 dark:text-blue-400">Total Branches</div>
                 <div className="mt-1 text-lg font-bold text-blue-700 dark:text-blue-300">{rows.length}</div>
                 <div className="mt-1 text-[11px] text-blue-700/80 dark:text-blue-300/80">
-                  Active: <span className="font-semibold tabular-nums">{activeBranches}</span> • Inactive: <span className="font-semibold tabular-nums">{inactiveBranches}</span>
+                  Active: <span className="font-semibold tabular-nums">{activeBranches}</span> â€¢ Inactive: <span className="font-semibold tabular-nums">{inactiveBranches}</span>
                 </div>
               </div>
 
@@ -1387,7 +1456,7 @@ export default function BranchesPage() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") e.preventDefault();
                   }}
-                  placeholder="Search by code, name, legal entity, city, GSTIN, PAN…"
+                  placeholder="Search by code, name, legal entity, city, GSTIN, PANâ€¦"
                   className="pl-10"
                 />
               </div>
@@ -1411,7 +1480,7 @@ export default function BranchesPage() {
         <Card className="overflow-hidden">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Branch Registry</CardTitle>
-            <CardDescription className="text-sm">Use Facility Setup to configure Facilities → Departments → Specialties → Mapping.</CardDescription>
+            <CardDescription className="text-sm">Use Facility Setup to configure Facilities â†’ Departments â†’ Specialties â†’ Mapping.</CardDescription>
           </CardHeader>
           <Separator />
 
@@ -1432,7 +1501,7 @@ export default function BranchesPage() {
                 {!filtered.length ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-10 text-center text-sm text-zc-muted">
-                      {loading ? "Loading branches…" : "No branches found."}
+                      {loading ? "Loading branchesâ€¦" : "No branches found."}
                     </td>
                   </tr>
                 ) : null}
@@ -1482,7 +1551,7 @@ export default function BranchesPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
                         <Button asChild variant="success" size="icon">
-                          <Link href={`/branches/${b.id}`} title="View details" aria-label="View details">
+                          <Link href={`/branches/${b.id}` as any} title="View details" aria-label="View details">
                             <IconChevronRight className="h-4 w-4" />
                           </Link>
                         </Button>
@@ -1548,7 +1617,7 @@ export default function BranchesPage() {
             <div className="min-w-0">
               <div className="text-sm font-semibold text-zc-text">Recommended setup order</div>
               <div className="mt-1 text-sm text-zc-muted">
-                1) Create Branch (Legal/Contact/Compliance/Settings) → 2) Facility Setup (Facilities → Departments → Specialties → Mapping) → 3) Branch Admin config (later).
+                1) Create Branch (Legal/Contact/Compliance/Settings) â†’ 2) Facility Setup (Facilities â†’ Departments â†’ Specialties â†’ Mapping) â†’ 3) Branch Admin config (later).
               </div>
             </div>
           </div>

@@ -8,5 +8,8 @@
     "experimentalDecorators": true,
     "noEmit": false
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts"],
+  "exclude": [
+    "src/modules/infrastructure/human-resource/**"
+  ]
 }

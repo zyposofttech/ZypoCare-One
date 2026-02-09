@@ -173,7 +173,7 @@ function drawerClassName(extra?: string) {
 }
 
 function fmtDate(v?: string) {
-  if (!v) return "—";
+  if (!v) return "Ã¢â‚¬â€";
   const d = new Date(v);
   if (Number.isNaN(d.getTime())) return v;
   return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(d);
@@ -181,7 +181,7 @@ function fmtDate(v?: string) {
 
 function valOrDash(v?: string | null) {
   const s = String(v ?? "").trim();
-  return s ? s : "—";
+  return s ? s : "Ã¢â‚¬â€";
 }
 
 function safeNum(v: any) {
@@ -243,7 +243,7 @@ function readinessFlag(ok: boolean, note?: string) {
   ) : (
     <span className="inline-flex items-center gap-1 rounded-full border border-amber-200/70 bg-amber-50/70 px-2 py-0.5 text-[11px] text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200">
       <AlertTriangle className="h-3.5 w-3.5" />
-      Pending{note ? ` • ${note}` : ""}
+      Pending{note ? ` Ã¢â‚¬Â¢ ${note}` : ""}
     </span>
   );
 }
@@ -408,7 +408,7 @@ function ModuleCard({
 }) {
   return (
     <Link
-      href={href}
+      href={href as any}
       className={cn(
         "group block rounded-2xl border border-zc-border bg-zc-panel/20 p-4 transition-all",
         "hover:bg-zc-panel/35 hover:shadow-elev-2 hover:-translate-y-0.5",
@@ -466,7 +466,7 @@ function ModalShell({
               {description ? <div className="mt-1 text-sm text-zc-muted">{description}</div> : null}
             </div>
             <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
-              ✕
+              Ã¢Å“â€¢
             </Button>
           </div>
         </div>
@@ -1116,7 +1116,7 @@ function EditBranchModal({
             <div className="grid gap-3 md:grid-cols-2">
               <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel/20 px-3 py-2">
                 <div>
-                  <div className="text-sm font-semibold text-zc-text">Emergency 24×7</div>
+                  <div className="text-sm font-semibold text-zc-text">Emergency 24Ãƒâ€”7</div>
                   <div className="text-xs text-zc-muted">Branch handles emergency around the clock</div>
                 </div>
                 <Switch checked={form.emergency24x7} onCheckedChange={(v) => setForm((s) => ({ ...s, emergency24x7: Boolean(v) }))} />
@@ -1264,7 +1264,7 @@ function DeleteConfirmModal({
           disabled={busy || deps > 0 || !canDelete}
           title={!canDelete ? deniedMessage : undefined}
         >
-          {deps > 0 ? "Cannot Delete (Has Setup)" : busy ? "Deleting…" : "Hard Delete"}
+          {deps > 0 ? "Cannot Delete (Has Setup)" : busy ? "DeletingÃ¢â‚¬Â¦" : "Hard Delete"}
         </Button>
       </div>
     </ModalShell>
@@ -1367,7 +1367,7 @@ function ToggleActiveConfirmDialog({
             disabled={busy || !canUpdate}
             title={!canUpdate ? deniedMessage : undefined}
           >
-            {busy ? "Updating…" : nextActive ? "Reactivate" : "Deactivate"}
+            {busy ? "UpdatingÃ¢â‚¬Â¦" : nextActive ? "Reactivate" : "Deactivate"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1410,7 +1410,7 @@ export default function BranchDetailPage() {
   React.useEffect(() => {
     if (!permsLoaded) return;
     if (!canRead) {
-      router.replace("/welcome");
+      router.replace("/welcome" as any);
     }
   }, [permsLoaded, canRead, router]);
 
@@ -1473,7 +1473,7 @@ export default function BranchDetailPage() {
   const readyDepartments = departments > 0;
   const readySpecialties = specialties > 0;
 
-  // We can’t know mapping completeness from branch counts alone; this is a safe minimum signal.
+  // We canÃ¢â‚¬â„¢t know mapping completeness from branch counts alone; this is a safe minimum signal.
   const readyMapping = readyDepartments && readySpecialties;
 
   const accreditations = jsonStringArray(row?.accreditations);
@@ -1515,11 +1515,11 @@ export default function BranchDetailPage() {
                     <span className="rounded-md border border-zc-border bg-zc-panel/25 px-2 py-0.5 font-mono text-[12px] text-zc-text">
                       {row.code}
                     </span>
-                    <span className="text-zc-muted/60">•</span>
+                    <span className="text-zc-muted/60">Ã¢â‚¬Â¢</span>
                     <span className="inline-flex items-center gap-1">
                       <MapPin className="h-4 w-4" /> {row.city}
                     </span>
-                    <span className="text-zc-muted/60">•</span>
+                    <span className="text-zc-muted/60">Ã¢â‚¬Â¢</span>
                     <span
                       className={cn(
                         "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] border",
@@ -1528,7 +1528,7 @@ export default function BranchDetailPage() {
                     >
                       {row.isActive !== false ? "Active" : "Inactive"}
                     </span>
-                    <span className="text-zc-muted/60">•</span>
+                    <span className="text-zc-muted/60">Ã¢â‚¬Â¢</span>
                     <span
                       className={cn(
                         "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] border",
@@ -1564,7 +1564,7 @@ export default function BranchDetailPage() {
 
             {permsLoaded && !canRead ? (
               <div className="mt-4 rounded-xl border border-amber-200/70 bg-amber-50/60 px-3 py-2 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200">
-                You don’t have permission to view branch details. Request <span className="font-semibold">BRANCH_READ</span>.
+                You donÃ¢â‚¬â„¢t have permission to view branch details. Request <span className="font-semibold">BRANCH_READ</span>.
               </div>
             ) : null}
           </div>
@@ -1577,7 +1577,7 @@ export default function BranchDetailPage() {
 
             {canFacilitySetup ? (
               <Button asChild className="gap-2">
-                <Link href={facilitySetupHref}>
+                <Link href={facilitySetupHref as any}>
                   <Wand2 className="h-4 w-4" />
                   Facility Setup
                 </Link>
@@ -1705,11 +1705,11 @@ export default function BranchDetailPage() {
                     <div className="text-sm text-zc-text">
                       <div>
                         <span className="font-semibold">{valOrDash(row.defaultCurrency ?? "INR")}</span>{" "}
-                        <span className="text-zc-muted">•</span>{" "}
+                        <span className="text-zc-muted">Ã¢â‚¬Â¢</span>{" "}
                         <span className="font-semibold">{valOrDash(row.timezone ?? "Asia/Kolkata")}</span>
                       </div>
                       <div className="text-xs text-zc-muted mt-1">
-                        Fiscal start: {row.fiscalYearStartMonth ?? 4} • Emergency: {row.emergency24x7 === false ? "No" : "Yes"}
+                        Fiscal start: {row.fiscalYearStartMonth ?? 4} Ã¢â‚¬Â¢ Emergency: {row.emergency24x7 === false ? "No" : "Yes"}
                       </div>
                     </div>
                   }
@@ -1841,8 +1841,8 @@ export default function BranchDetailPage() {
                                 <div>{valOrDash(row.address)}</div>
                                 <div className="mt-1 text-xs text-zc-muted">
                                   PIN: <span className="font-mono text-zc-text">{valOrDash(row.pinCode)}</span>
-                                  {row.state?.trim() ? <span className="text-zc-muted"> • {row.state}</span> : null}
-                                  {row.country?.trim() ? <span className="text-zc-muted"> • {row.country}</span> : null}
+                                  {row.state?.trim() ? <span className="text-zc-muted"> Ã¢â‚¬Â¢ {row.state}</span> : null}
+                                  {row.country?.trim() ? <span className="text-zc-muted"> Ã¢â‚¬Â¢ {row.country}</span> : null}
                                 </div>
                               </div>
                             }
@@ -1857,7 +1857,7 @@ export default function BranchDetailPage() {
                               <div className="text-sm text-zc-text">
                                 <div>{valOrDash(row.contactPhone1)}</div>
                                 {row.contactPhone2?.trim() ? <div className="text-zc-muted">{row.contactPhone2}</div> : null}
-                                {!row.contactPhone1?.trim() && !row.contactPhone2?.trim() ? <span>—</span> : null}
+                                {!row.contactPhone1?.trim() && !row.contactPhone2?.trim() ? <span>Ã¢â‚¬â€</span> : null}
                               </div>
                             }
                             tone="cyan"
@@ -1882,7 +1882,7 @@ export default function BranchDetailPage() {
                                   {row.website}
                                 </a>
                               ) : (
-                                <span className="text-sm text-zc-text">—</span>
+                                <span className="text-sm text-zc-text">Ã¢â‚¬â€</span>
                               )
                             }
                             tone="indigo"
@@ -1896,7 +1896,7 @@ export default function BranchDetailPage() {
                                   View
                                 </a>
                               ) : (
-                                <span className="text-sm text-zc-text">—</span>
+                                <span className="text-sm text-zc-text">Ã¢â‚¬â€</span>
                               )
                             }
                             tone="zinc"
@@ -1913,15 +1913,15 @@ export default function BranchDetailPage() {
                                     .map(([k, v]) => (
                                       <div key={k} className="flex items-center justify-between gap-2">
                                         <span className="text-xs font-semibold uppercase tracking-wide text-zc-muted">{k}</span>
-                                        <a className="truncate text-indigo-600 hover:underline" href={String(v)} target="_blank" rel="noreferrer">
+                                        <a className="truncate text-indigo-600 hover:underline" href={String(v) as any} target="_blank" rel="noreferrer">
                                           {String(v)}
                                         </a>
                                       </div>
                                     ))}
-                                  {Object.entries(social).filter(([_, v]) => String(v ?? "").trim()).length === 0 ? <span>—</span> : null}
+                                  {Object.entries(social).filter(([_, v]) => String(v ?? "").trim()).length === 0 ? <span>Ã¢â‚¬â€</span> : null}
                                 </div>
                               ) : (
-                                <span className="text-sm text-zc-text">—</span>
+                                <span className="text-sm text-zc-text">Ã¢â‚¬â€</span>
                               )
                             }
                             tone="zinc"
@@ -1939,7 +1939,7 @@ export default function BranchDetailPage() {
                                   ))}
                                 </div>
                               ) : (
-                                <span className="text-sm text-zc-text">—</span>
+                                <span className="text-sm text-zc-text">Ã¢â‚¬â€</span>
                               )
                             }
                             tone="emerald"
@@ -1947,13 +1947,13 @@ export default function BranchDetailPage() {
 
                           <InfoTile
                             label="Bed Count"
-                            value={<span className="text-sm font-semibold">{row.bedCount != null ? row.bedCount : "—"}</span>}
+                            value={<span className="text-sm font-semibold">{row.bedCount != null ? row.bedCount : "Ã¢â‚¬â€"}</span>}
                             tone="zinc"
                           />
 
                           <InfoTile
                             label="Established Date"
-                            value={<span className="text-sm font-semibold">{row.establishedDate ? fmtDate(row.establishedDate) : "—"}</span>}
+                            value={<span className="text-sm font-semibold">{row.establishedDate ? fmtDate(row.establishedDate) : "Ã¢â‚¬â€"}</span>}
                             tone="zinc"
                           />
 
@@ -1982,13 +1982,13 @@ export default function BranchDetailPage() {
 
                           <InfoTile
                             label="Working Hours"
-                            value={<div className="text-sm text-zc-text whitespace-pre-wrap">{workingHoursText ? workingHoursText : "—"}</div>}
+                            value={<div className="text-sm text-zc-text whitespace-pre-wrap">{workingHoursText ? workingHoursText : "Ã¢â‚¬â€"}</div>}
                             className="md:col-span-2"
                             tone="zinc"
                           />
 
                           <InfoTile
-                            label="Emergency 24×7"
+                            label="Emergency 24Ãƒâ€”7"
                             value={<span className="text-sm font-semibold">{row.emergency24x7 === false ? "No" : "Yes"}</span>}
                             tone="emerald"
                           />
@@ -2012,7 +2012,7 @@ export default function BranchDetailPage() {
                                   ))}
                                 </div>
                               ) : (
-                                <span className="text-sm text-zc-text">—</span>
+                                <span className="text-sm text-zc-text">Ã¢â‚¬â€</span>
                               )
                             }
                             tone="sky"
@@ -2063,7 +2063,7 @@ export default function BranchDetailPage() {
               <TabsContent value="setup" className="mt-0">
                 {!canFacilitySetup ? (
                   <div className="rounded-2xl border border-amber-200/70 bg-amber-50/60 px-3 py-2 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200">
-                    You don’t have permission to manage branch setup. Request <span className="font-semibold">FACILITY/DEPARTMENT/SPECIALTY</span> permissions.
+                    You donÃ¢â‚¬â„¢t have permission to manage branch setup. Request <span className="font-semibold">FACILITY/DEPARTMENT/SPECIALTY</span> permissions.
                   </div>
                 ) : (
                 <div className="grid gap-4 lg:grid-cols-3">
@@ -2079,7 +2079,7 @@ export default function BranchDetailPage() {
                         description="Facilities -> Departments -> Specialties -> Mapping"
                         count={undefined}
                         icon={<Wand2 className="h-4 w-4 text-zc-accent" />}
-                        href={facilitySetupHref}
+                        href={facilitySetupHref as any}
                         tone="zinc"
                       />
                       <ModuleCard
@@ -2087,7 +2087,7 @@ export default function BranchDetailPage() {
                         description="Branch facility catalog (enabled)"
                         count={facilities}
                         icon={<Layers className="h-4 w-4 text-zc-accent" />}
-                        href={facilitySetupHref}
+                        href={facilitySetupHref as any}
                         tone="sky"
                       />
                       <ModuleCard
@@ -2095,7 +2095,7 @@ export default function BranchDetailPage() {
                         description="Departments created under facilities"
                         count={departments}
                         icon={<Layers className="h-4 w-4 text-zc-accent" />}
-                        href={facilitySetupHref}
+                        href={facilitySetupHref as any}
                         tone="emerald"
                       />
                       <ModuleCard
@@ -2103,7 +2103,7 @@ export default function BranchDetailPage() {
                         description="Branch-level specialties (master list)"
                         count={specialties}
                         icon={<Layers className="h-4 w-4 text-zc-accent" />}
-                        href={facilitySetupHref}
+                        href={facilitySetupHref as any}
                         tone="violet"
                       />
                     </CardContent>
@@ -2117,7 +2117,7 @@ export default function BranchDetailPage() {
                     <Separator />
                     <CardContent className="pt-6 grid gap-3">
                       <Link
-                        href={policyOverridesHref}
+                        href={policyOverridesHref as any}
                         className="group flex items-center justify-between rounded-2xl border border-zc-border bg-zc-panel/20 p-4 hover:bg-zc-panel/35 hover:shadow-elev-2 transition-all"
                       >
                         <div className="flex items-start gap-3">
@@ -2138,13 +2138,13 @@ export default function BranchDetailPage() {
                         <div className="font-semibold text-zc-text">Super Admin shortcuts</div>
                         <div className="mt-2 flex flex-wrap gap-2">
                           <Button asChild variant="outline">
-                            <Link href={policiesHref}>Policies</Link>
+                            <Link href={policiesHref as any}>Policies</Link>
                           </Button>
                           <Button asChild variant="outline">
-                            <Link href={approvalsHref}>Approvals</Link>
+                            <Link href={approvalsHref as any}>Approvals</Link>
                           </Button>
                           <Button asChild variant="outline">
-                            <Link href={auditHref}>Audit Trail</Link>
+                            <Link href={auditHref as any}>Audit Trail</Link>
                           </Button>
                         </div>
                         <div className="mt-2 text-xs">Tip: Keep definitions global; use overrides only for branch deviations.</div>
@@ -2184,7 +2184,7 @@ export default function BranchDetailPage() {
         branch={row}
         onClose={() => setDeleteOpen(false)}
         onDeleted={async () => {
-          router.replace("/branches");
+          router.replace("/branches" as any);
         }}
         canDelete={canDelete}
         deniedMessage="Missing permission: BRANCH_DELETE"

@@ -162,7 +162,7 @@ async function apiTry<T>(primary: string, fallback: string, init?: RequestInit):
 
 export default function SuperAdminChargeMasterPage() {
   const { toast } = useToast();
-  // ✅ Unified branch context
+  // âœ… Unified branch context
   const branchCtx = useBranchContext();
   const activeBranchId = useActiveBranchStore((s) => s.activeBranchId);
   const setActiveBranchId = useActiveBranchStore((s) => s.setActiveBranchId);
@@ -570,7 +570,7 @@ setQ("");
                               <TableCell>{activeBadge(r.isActive)}</TableCell>
                               <TableCell className="text-right">
                                 <Button variant="outline" size="sm" className="gap-2" asChild>
-                                  <Link href={`/infrastructure/charge-master/${encodeURIComponent(r.id)}`}>
+                                  <Link href={`/infrastructure/charge-master/${encodeURIComponent(r.id)}` as any}>
                                     <Eye className="h-4 w-4" />
                                     View
                                   </Link>

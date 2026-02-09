@@ -32,7 +32,12 @@ import {
 import { StaffService } from "./staff.service";
 
 @ApiTags("infrastructure/staff")
-@Controller(["infrastructure", "infra"])
+// NOTE: We support multiple route prefixes for backward compatibility:
+// - /infrastructure/staff/* (current)
+// - /infrastructure/human-resource/staff/* (legacy UI path)
+// - /infrastructure/hr/staff/* (short alias)
+// - /infra/* (short alias)
+@Controller(["infrastructure", "infra", "infrastructure/human-resource", "infra/human-resource", "infrastructure/hr", "infra/hr"])
 export class StaffController {
   constructor(private readonly svc: StaffService) {}
 

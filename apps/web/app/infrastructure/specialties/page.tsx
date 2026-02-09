@@ -18,6 +18,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { apiFetch, ApiError } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
+import { useFieldCopilot } from "@/lib/copilot/useFieldCopilot";
+import { usePageInsights } from "@/lib/copilot/usePageInsights";
+import { AIFieldWrapper } from "@/components/copilot/AIFieldWrapper";
+import { PageInsightBanner } from "@/components/copilot/PageInsightBanner";
 
 import {
   AlertTriangle,
@@ -106,6 +110,24 @@ export default function SpecialtiesPage() {
   const inactiveCount = allRows.filter((r) => !r.isActive).length;
   const specialtyCount = allRows.filter((r) => r.kind === "SPECIALTY").length;
   const superCount = allRows.filter((r) => r.kind === "SUPER_SPECIALTY").length;
+
+  // ── AI Copilot hooks ────────────────────────────────────────────────
+  const codeFieldAI = useFieldCopilot({
+    module: "specialty",
+    field: "code",
+    value: fCode,
+    enabled: open && !editing && fCode.length > 0,
+  });
+  const nameFieldAI = useFieldCopilot({
+    module: "specialty",
+    field: "name",
+    value: fName,
+    enabled: open && fName.length > 2,
+  });
+  const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({
+    module: "specialties",
+    enabled: !!branchId,
+  });
 
   async function loadBranch(bid: string) {
     try {
@@ -386,6 +408,9 @@ export default function SpecialtiesPage() {
             </CardContent>
           </Card>
 
+          {/* AI Insights Banner */}
+          <PageInsightBanner insights={insights} loading={insightsLoading} onDismiss={dismissInsight} />
+
           {/* Table */}
           <Card className="overflow-hidden">
             <CardHeader className="pb-3">
@@ -543,25 +568,29 @@ export default function SpecialtiesPage() {
                 <div className="grid gap-4 md:grid-cols-12">
                   <div className="md:col-span-4">
                     <Label>Code</Label>
-                    <Input
-                      value={fCode}
-                      onChange={(e) => setFCode(e.target.value)}
-                      placeholder="e.g. CARDIO"
-                      className="h-11 rounded-xl border-zc-border bg-zc-card font-mono"
-                      disabled={!!editing || busy}
-                    />
+                    <AIFieldWrapper warnings={codeFieldAI.warnings} suggestion={codeFieldAI.suggestion} validating={codeFieldAI.validating}>
+                      <Input
+                        value={fCode}
+                        onChange={(e) => setFCode(e.target.value)}
+                        placeholder="e.g. CARDIO"
+                        className="h-11 rounded-xl border-zc-border bg-zc-card font-mono"
+                        disabled={!!editing || busy}
+                      />
+                    </AIFieldWrapper>
                     <div className="mt-1 text-xs text-zc-muted">Unique within branch. Uppercase letters/numbers/_</div>
                   </div>
 
                   <div className="md:col-span-8">
                     <Label>Name</Label>
-                    <Input
-                      value={fName}
-                      onChange={(e) => setFName(e.target.value)}
-                      placeholder="e.g. Cardiology"
-                      className="h-11 rounded-xl border-zc-border bg-zc-card"
-                      disabled={busy}
-                    />
+                    <AIFieldWrapper warnings={nameFieldAI.warnings} suggestion={nameFieldAI.suggestion} validating={nameFieldAI.validating}>
+                      <Input
+                        value={fName}
+                        onChange={(e) => setFName(e.target.value)}
+                        placeholder="e.g. Cardiology"
+                        className="h-11 rounded-xl border-zc-border bg-zc-card"
+                        disabled={busy}
+                      />
+                    </AIFieldWrapper>
                   </div>
 
                   <div className="md:col-span-6">

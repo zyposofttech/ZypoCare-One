@@ -14,6 +14,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 import { useBranchContext } from "@/lib/branch/useBranchContext";
 import { useActiveBranchStore } from "@/lib/branch/active-branch";
+import { useCopilot } from "@/lib/copilot/CopilotProvider";
 
 import { IconBuilding, IconChevronRight } from "@/components/icons";
 import {
@@ -212,7 +213,7 @@ function readinessFlag(kind: "ready" | "pending" | "warn" | "block", note?: stri
     >
       <AlertTriangle className="h-3.5 w-3.5" />
       {block ? "Blocked" : warn ? "Warning" : "Pending"}
-      {note ? ` • ${note}` : ""}
+      {note ? ` â€¢ ${note}` : ""}
     </span>
   );
 }
@@ -321,7 +322,7 @@ function ModuleCard({
 
   if (disabled) return <div aria-disabled="true">{card}</div>;
   return (
-    <Link href={href} className="block">
+    <Link href={href as any} className="block">
       {card}
     </Link>
   );
@@ -342,6 +343,196 @@ function appendBranch(href: string, branchId: string) {
 
 function clamp100(n: number) {
   return Math.max(0, Math.min(100, n));
+}
+
+// ---------------- AI Health Card ----------------
+
+function ScoreGauge({ label, score, max = 100 }: { label: string; score: number; max?: number }) {
+  const pct = Math.max(0, Math.min(100, (score / max) * 100));
+  const color =
+    pct >= 80
+      ? "text-emerald-600 dark:text-emerald-400"
+      : pct >= 50
+        ? "text-amber-600 dark:text-amber-400"
+        : "text-red-600 dark:text-red-400";
+  const barColor =
+    pct >= 80
+      ? "bg-emerald-500/70"
+      : pct >= 50
+        ? "bg-amber-500/70"
+        : "bg-red-500/70";
+
+  return (
+    <div className="rounded-xl border border-zc-border bg-zc-panel/15 p-3">
+      <div className="text-[10px] font-semibold uppercase tracking-wide text-zc-muted">{label}</div>
+      <div className={cn("mt-1 text-2xl font-semibold tabular-nums", color)}>
+        {Math.round(score)}
+        <span className="text-xs font-normal text-zc-muted">/{max}</span>
+      </div>
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-zc-panel/30 border border-zc-border/50">
+        <div className={cn("h-full rounded-full transition-all", barColor)} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function AIHealthCard() {
+  const { health, healthLoading, refreshHealth } = useCopilot();
+
+  if (!health && !healthLoading) return null;
+
+  const topBlockers = health?.topIssues?.filter((i) => i.severity === "BLOCKER") ?? [];
+  const topWarnings = health?.topIssues?.filter((i) => i.severity === "WARNING") ?? [];
+
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-indigo-500" />
+            AI Health Dashboard
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 text-xs text-zc-muted"
+            onClick={refreshHealth}
+            disabled={healthLoading}
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5", healthLoading ? "animate-spin" : "")} />
+            Refresh
+          </Button>
+        </div>
+        <CardDescription>
+          AI-powered infrastructure analysis: consistency, NABH readiness, naming conventions, and go-live scoring.
+        </CardDescription>
+      </CardHeader>
+      <Separator />
+      <CardContent className="pt-6">
+        {healthLoading && !health ? (
+          <div className="grid gap-3">
+            <Skeleton className="h-20 w-full rounded-xl" />
+            <Skeleton className="h-12 w-full rounded-xl" />
+          </div>
+        ) : health ? (
+          <div className="grid gap-4">
+            {/* Overall status banner */}
+            <div
+              className={cn(
+                "flex items-center justify-between rounded-xl border p-4",
+                health.overallHealth === "EXCELLENT" || health.overallHealth === "GOOD"
+                  ? "border-emerald-200/60 bg-emerald-50/40 dark:border-emerald-900/40 dark:bg-emerald-900/15"
+                  : health.overallHealth === "NEEDS_ATTENTION"
+                    ? "border-amber-200/60 bg-amber-50/40 dark:border-amber-900/40 dark:bg-amber-900/15"
+                    : "border-red-200/60 bg-red-50/40 dark:border-red-900/40 dark:bg-red-900/15"
+              )}
+            >
+              <div className="flex items-center gap-3">
+                {health.overallHealth === "EXCELLENT" || health.overallHealth === "GOOD" ? (
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                ) : (
+                  <AlertTriangle
+                    className={cn(
+                      "h-5 w-5",
+                      health.overallHealth === "NEEDS_ATTENTION"
+                        ? "text-amber-600 dark:text-amber-400"
+                        : "text-red-600 dark:text-red-400"
+                    )}
+                  />
+                )}
+                <div>
+                  <div className="text-sm font-semibold">
+                    {health.overallHealth === "EXCELLENT"
+                      ? "Excellent"
+                      : health.overallHealth === "GOOD"
+                        ? "Good"
+                        : health.overallHealth === "NEEDS_ATTENTION"
+                          ? "Needs Attention"
+                          : "Critical Issues"}
+                  </div>
+                  <div className="text-xs text-zc-muted">{health.summary}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {health.canGoLive ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50/70 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Go-Live Ready
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-red-200/70 bg-red-50/70 px-2.5 py-1 text-[11px] font-semibold text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-200">
+                    <AlertTriangle className="h-3 w-3" />
+                    Not Ready
+                  </span>
+                )}
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-bold",
+                    health.goLiveGrade === "A"
+                      ? "border-emerald-200/70 bg-emerald-50/70 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200"
+                      : health.goLiveGrade === "B"
+                        ? "border-sky-200/70 bg-sky-50/70 text-sky-700 dark:border-sky-900/40 dark:bg-sky-900/20 dark:text-sky-200"
+                        : health.goLiveGrade === "C"
+                          ? "border-amber-200/70 bg-amber-50/70 text-amber-700 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200"
+                          : "border-red-200/70 bg-red-50/70 text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-200"
+                  )}
+                >
+                  Grade {health.goLiveGrade}
+                </span>
+              </div>
+            </div>
+
+            {/* Score gauges */}
+            <div className="grid gap-3 md:grid-cols-4">
+              <ScoreGauge label="Consistency" score={health.consistencyScore} />
+              <ScoreGauge label="NABH Readiness" score={health.nabhScore} />
+              <ScoreGauge label="Go-Live Score" score={health.goLiveScore} />
+              <ScoreGauge label="Naming Standards" score={health.namingScore} />
+            </div>
+
+            {/* Issue summary */}
+            <div className="flex items-center gap-4 text-sm text-zc-muted">
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2 w-2 rounded-full bg-red-500" />
+                {health.totalBlockers} blocker{health.totalBlockers !== 1 ? "s" : ""}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />
+                {health.totalWarnings} warning{health.totalWarnings !== 1 ? "s" : ""}
+              </span>
+            </div>
+
+            {/* Top issues */}
+            {(topBlockers.length > 0 || topWarnings.length > 0) && (
+              <div className="rounded-xl border border-zc-border bg-zc-panel/15 p-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Top Issues</div>
+                <div className="mt-2 grid gap-1.5">
+                  {topBlockers.slice(0, 3).map((issue) => (
+                    <div key={issue.id} className="flex items-start gap-2 text-sm">
+                      <span className="mt-0.5 inline-block h-2 w-2 shrink-0 rounded-full bg-red-500" />
+                      <div className="min-w-0">
+                        <span className="font-medium text-zc-text">{issue.title}</span>
+                        <span className="ml-2 text-xs text-zc-muted">{issue.fixHint}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {topWarnings.slice(0, 2).map((issue) => (
+                    <div key={issue.id} className="flex items-start gap-2 text-sm">
+                      <span className="mt-0.5 inline-block h-2 w-2 shrink-0 rounded-full bg-amber-500" />
+                      <div className="min-w-0">
+                        <span className="font-medium text-zc-text">{issue.title}</span>
+                        <span className="ml-2 text-xs text-zc-muted">{issue.fixHint}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
 }
 
 // ---------------- Page ----------------
@@ -514,8 +705,8 @@ export default function SuperAdminInfrastructureOverview() {
     const blockers: string[] = [];
     const warnings: string[] = [];
 
-    // Hard blockers (minimum “hospital reality”)
-    if (zones <= 0) blockers.push("Locations not complete: no Zones found (Campus → Building → Floor → Zone).");
+    // Hard blockers (minimum â€œhospital realityâ€)
+    if (zones <= 0) blockers.push("Locations not complete: no Zones found (Campus â†’ Building â†’ Floor â†’ Zone).");
     if (!s || safeNum(s.enabledFacilities) <= 0) blockers.push("No facilities enabled for this branch.");
     if (!s || safeNum(s.departments) <= 0) blockers.push("No departments configured.");
     if (!s || safeNum(s.specialties) <= 0) blockers.push("No specialties configured.");
@@ -523,7 +714,7 @@ export default function SuperAdminInfrastructureOverview() {
     if (!s || safeNum(s.beds) <= 0) blockers.push("No beds configured (Resources/Beds).");
     if (!s || safeNum(s.otRooms) <= 0) warnings.push("No OT rooms detected yet (OT setup pending).");
 
-    // Score: 0–100 based on the signals we do have
+    // Score: 0â€“100 based on the signals we do have
     let score = 0;
     score += zones > 0 ? 15 : 0;
     score += safeNum(s?.enabledFacilities) > 0 ? 10 : 0;
@@ -543,7 +734,7 @@ export default function SuperAdminInfrastructureOverview() {
       blockers,
       warnings,
       snapshot: {
-        // These are “best-effort” when backend Go-Live isn’t available.
+        // These are â€œbest-effortâ€ when backend Go-Live isnâ€™t available.
         enabledUnitTypes: 0,
         units: 0,
         rooms: 0,
@@ -614,7 +805,7 @@ export default function SuperAdminInfrastructureOverview() {
   return (
     <AppShell title="Infrastructure Setup">
       <RequireAnyPerm
-        perms={[
+        any={[
           "INFRA_LOCATION_READ",
           "INFRA_UNIT_READ",
           "INFRA_ROOM_READ",
@@ -651,7 +842,7 @@ export default function SuperAdminInfrastructureOverview() {
                 {fmtDate(generatedAt) ? (
                   <div className="mt-2 text-xs text-zc-muted">
                     Last signal refresh: <span className="font-mono">{fmtDate(generatedAt)}</span>
-                    {ctxBusy ? <span className="ml-2">(updating…)</span> : null}
+                    {ctxBusy ? <span className="ml-2">(updatingâ€¦)</span> : null}
                   </div>
                 ) : null}
               </div>
@@ -697,7 +888,7 @@ export default function SuperAdminInfrastructureOverview() {
 
             {selected ? (
               <Button asChild className="gap-2">
-                <Link href={branchHref}>
+                <Link href={branchHref as any}>
                   <Sparkles className="h-4 w-4" />
                   Open Branch
                 </Link>
@@ -742,13 +933,13 @@ export default function SuperAdminInfrastructureOverview() {
                       }}
                     >
                       <SelectTrigger className="h-11 rounded-xl border-zc-border bg-zc-card">
-                        <SelectValue placeholder="Select a branch…" />
+                        <SelectValue placeholder="Select a branchâ€¦" />
                       </SelectTrigger>
                       <SelectContent>
                         {branches.map((b) => (
                           <SelectItem key={b.id} value={b.id}>
                             {b.name} <span className="font-mono text-xs text-zc-muted">({b.code})</span>{" "}
-                            <span className="text-xs text-zc-muted">• {b.city}</span>
+                            <span className="text-xs text-zc-muted">â€¢ {b.city}</span>
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -833,7 +1024,7 @@ export default function SuperAdminInfrastructureOverview() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Score</div>
-                      <div className="mt-2 text-3xl font-semibold tabular-nums tracking-tight">{effectiveGoLive ? `${score}%` : "—"}</div>
+                      <div className="mt-2 text-3xl font-semibold tabular-nums tracking-tight">{effectiveGoLive ? `${score}%` : "â€”"}</div>
                       <div className="mt-2 text-sm text-zc-muted">
                         This score reflects minimum infra completeness. If backend Go-Live is unavailable, it is computed from Locations + Branch readiness.
                       </div>
@@ -909,43 +1100,46 @@ export default function SuperAdminInfrastructureOverview() {
           </Card>
         </div>
 
+        {/* AI Health Dashboard */}
+        <AIHealthCard />
+
         {/* KPI strip */}
         <div className="grid gap-4 md:grid-cols-6">
           <InfoTile
             label="Campuses"
             tone="indigo"
             icon={<MapPin className="h-4 w-4" />}
-            value={<div className="text-2xl font-semibold tabular-nums">{selected ? locCounts.campuses : "—"}</div>}
+            value={<div className="text-2xl font-semibold tabular-nums">{selected ? locCounts.campuses : "â€”"}</div>}
           />
           <InfoTile
             label="Buildings"
             tone="cyan"
             icon={<Building2 className="h-4 w-4" />}
-            value={<div className="text-2xl font-semibold tabular-nums">{selected ? locCounts.buildings : "—"}</div>}
+            value={<div className="text-2xl font-semibold tabular-nums">{selected ? locCounts.buildings : "â€”"}</div>}
           />
           <InfoTile
             label="Floors"
             tone="emerald"
             icon={<Layers className="h-4 w-4" />}
-            value={<div className="text-2xl font-semibold tabular-nums">{selected ? locCounts.floors : "—"}</div>}
+            value={<div className="text-2xl font-semibold tabular-nums">{selected ? locCounts.floors : "â€”"}</div>}
           />
           <InfoTile
             label="Zones"
             tone="indigo"
             icon={<Layers className="h-4 w-4" />}
-            value={<div className="text-2xl font-semibold tabular-nums">{selected ? locCounts.zones : "—"}</div>}
+            value={<div className="text-2xl font-semibold tabular-nums">{selected ? locCounts.zones : "â€”"}</div>}
           />
           <InfoTile
             label="Units"
             tone="emerald"
             icon={<ClipboardList className="h-4 w-4" />}
-            value={<div className="text-2xl font-semibold tabular-nums">{selected ? safeNum(snap?.units) : "—"}</div>}
+            value={<div className="text-2xl font-semibold tabular-nums">{selected ? safeNum(snap?.units) : "â€”"}</div>}
           />
           <InfoTile
             label="Beds"
             tone="zinc"
             icon={<Bed className="h-4 w-4" />}
-            value={<div className="text-2xl font-semibold tabular-nums">{selected ? safeNum(snap?.beds) : "—"}</div>}
+            value={<div className="text-2xl font-semibold tabular-nums">{selected ? safeNum(snap?.beds) : "â€”"}</div>}
           />
         </div>
 
@@ -960,9 +1154,9 @@ export default function SuperAdminInfrastructureOverview() {
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               <ModuleCard
                 title="Locations"
-                description="Campus → Building → Floor → Zone (effective-dated)"
+                description="Campus â†’ Building â†’ Floor â†’ Zone (effective-dated)"
                 icon={<MapPin className="h-4 w-4 text-zc-accent" />}
-                href={moduleHref("/infrastructure/locations")}
+                href={moduleHref("/infrastructure/locations") as any}
                 tone="indigo"
                 disabled={mustSelectBranch}
                 metricLabel="Zones"
@@ -979,7 +1173,7 @@ export default function SuperAdminInfrastructureOverview() {
                 title="Unit Types (Enablement)"
                 description="Unit types catalog + branch enable/disable"
                 icon={<Hospital className="h-4 w-4 text-zc-accent" />}
-                href={moduleHref("/infrastructure/unit-types")}
+                href={moduleHref("/infrastructure/unit-types") as any}
                 tone="violet"
                 disabled={mustSelectBranch}
                 metricLabel="Enabled"
@@ -996,7 +1190,7 @@ export default function SuperAdminInfrastructureOverview() {
                 title="Units / Wards"
                 description="Care units: Ward/ICU/OT/Diagnostics"
                 icon={<Building2 className="h-4 w-4 text-zc-accent" />}
-                href={moduleHref("/infrastructure/units")}
+                href={moduleHref("/infrastructure/units") as any}
                 tone="sky"
                 disabled={mustSelectBranch}
                 metricLabel="Units"
@@ -1013,7 +1207,7 @@ export default function SuperAdminInfrastructureOverview() {
                 title="Rooms / Bays"
                 description="Rooms and open bays"
                 icon={<Layers className="h-4 w-4 text-zc-accent" />}
-                href={moduleHref("/infrastructure/rooms")}
+                href={moduleHref("/infrastructure/rooms") as any}
                 tone="emerald"
                 disabled={mustSelectBranch}
                 metricLabel="Rooms"
@@ -1030,7 +1224,7 @@ export default function SuperAdminInfrastructureOverview() {
                 title="Resources (Beds/OT Tables/etc.)"
                 description="Beds + other resources registry"
                 icon={<Bed className="h-4 w-4 text-zc-accent" />}
-                href={moduleHref("/infrastructure/resources")}
+                href={moduleHref("/infrastructure/resources") as any}
                 tone="emerald"
                 disabled={mustSelectBranch}
                 metricLabel="Resources"
@@ -1047,7 +1241,7 @@ export default function SuperAdminInfrastructureOverview() {
                 title="OT Scheduling Readiness"
                 description="Scheduling gates + readiness checks"
                 icon={<CalendarClock className="h-4 w-4 text-zc-accent" />}
-                href={moduleHref("/infrastructure/ot")}
+                href={moduleHref("/infrastructure/ot") as any}
                 tone="indigo"
                 disabled={mustSelectBranch}
                 metricLabel="Schedulable"
@@ -1064,7 +1258,7 @@ export default function SuperAdminInfrastructureOverview() {
                 title="Diagnostics Configuration"
                 description="Orderables, modalities, worklists"
                 icon={<Stethoscope className="h-4 w-4 text-zc-accent" />}
-                href={moduleHref("/infrastructure/diagnostics")}
+                href={moduleHref("/infrastructure/diagnostics") as any}
                 tone="sky"
                 disabled={mustSelectBranch}
                 metricLabel="Planned"
@@ -1076,7 +1270,7 @@ export default function SuperAdminInfrastructureOverview() {
                 title="Equipment Register"
                 description="Assets + AMC/PM schedules"
                 icon={<Hammer className="h-4 w-4 text-zc-accent" />}
-                href={moduleHref("/infrastructure/equipment")}
+                href={moduleHref("/infrastructure/equipment") as any}
                 tone="violet"
                 disabled={mustSelectBranch}
                 metricLabel="Assets"
@@ -1091,9 +1285,9 @@ export default function SuperAdminInfrastructureOverview() {
 
               <ModuleCard
                 title="Service Items + Charge Mapping"
-                description="ServiceItem → Charge Master mapping"
+                description="ServiceItem â†’ Charge Master mapping"
                 icon={<ClipboardList className="h-4 w-4 text-zc-accent" />}
-                href={moduleHref("/infrastructure/service-items")}
+                href={moduleHref("/infrastructure/service-items") as any}
                 tone="indigo"
                 disabled={mustSelectBranch}
                 metricLabel="Fix-Its"
@@ -1110,7 +1304,7 @@ export default function SuperAdminInfrastructureOverview() {
                 title="Bulk Import (CSV/XLS)"
                 description="Templates: Units / Rooms / Resources / Assets"
                 icon={<Database className="h-4 w-4 text-zc-accent" />}
-                href={moduleHref("/infrastructure/import")}
+                href={moduleHref("/infrastructure/import") as any}
                 tone="zinc"
                 disabled={mustSelectBranch}
                 metricLabel="Planned"
@@ -1122,7 +1316,7 @@ export default function SuperAdminInfrastructureOverview() {
                 title="Go-Live Validator"
                 description="Readiness score + blockers/warnings + snapshot report"
                 icon={<Sparkles className="h-4 w-4 text-zc-accent" />}
-                href={moduleHref("/infrastructure/golive")}
+                href={moduleHref("/infrastructure/golive") as any}
                 tone="emerald"
                 disabled={mustSelectBranch}
                 metricLabel="Score"
@@ -1137,11 +1331,11 @@ export default function SuperAdminInfrastructureOverview() {
             </div>
 
             {/* <div className="mt-6 rounded-2xl border border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
-              <div className="font-semibold text-zc-text">What makes this “live” now</div>
+              <div className="font-semibold text-zc-text">What makes this â€œliveâ€ now</div>
               <ul className="mt-2 list-disc pl-5 text-sm">
                 <li>All module cards are enabled after branch selection and carry the selected branchId automatically.</li>
-                <li>Go-Live score never disappears: backend signal preferred, fallback score computed if validator isn’t ready.</li>
-                <li>Partial backend failures don’t break the page (allSettled + graceful UI state).</li>
+                <li>Go-Live score never disappears: backend signal preferred, fallback score computed if validator isnâ€™t ready.</li>
+                <li>Partial backend failures donâ€™t break the page (allSettled + graceful UI state).</li>
               </ul>
             </div> */}
           </CardContent>

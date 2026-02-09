@@ -134,16 +134,16 @@ function pill(tone: keyof typeof pillTones, text: string) {
 }
 
 function fmtDate(v?: string | null) {
-  if (!v) return "—";
+  if (!v) return "â€”";
   const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "â€”";
   return d.toLocaleDateString();
 }
 
 function fmtDateTime(v?: string | null) {
-  if (!v) return "—";
+  if (!v) return "â€”";
   const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "â€”";
   return d.toLocaleString();
 }
 
@@ -221,29 +221,29 @@ function requiresReason(s: ResourceState) {
 }
 
 function resourceTypeBadge(value?: string | null) {
-  if (!value) return <Badge variant="secondary">â€”</Badge>;
+  if (!value) return <Badge variant="secondary">Ã¢â‚¬â€</Badge>;
   return <Badge variant="neutral">{value}</Badge>;
 }
 
 function categoryBadge(value?: ResourceCategory | null) {
-  if (!value) return <Badge variant="secondary">â€”</Badge>;
+  if (!value) return <Badge variant="secondary">Ã¢â‚¬â€</Badge>;
   return <Badge variant="neutral">{value}</Badge>;
 }
 
 function activeBadge(value?: boolean | null) {
   if (value === true) return <Badge variant="success">ACTIVE</Badge>;
   if (value === false) return <Badge variant="secondary">INACTIVE</Badge>;
-  return <Badge variant="secondary">â€”</Badge>;
+  return <Badge variant="secondary">Ã¢â‚¬â€</Badge>;
 }
 
 function availabilityBadge(value?: boolean | null) {
   if (value === true) return <Badge variant="ok">AVAILABLE</Badge>;
   if (value === false) return <Badge variant="secondary">UNAVAILABLE</Badge>;
-  return <Badge variant="secondary">â€”</Badge>;
+  return <Badge variant="secondary">Ã¢â‚¬â€</Badge>;
 }
 
 function stateBadge(value?: ResourceState | null) {
-  if (!value) return <Badge variant="secondary">â€”</Badge>;
+  if (!value) return <Badge variant="secondary">Ã¢â‚¬â€</Badge>;
   if (value === "AVAILABLE") return <Badge variant="ok">AVAILABLE</Badge>;
   if (value === "RESERVED") return <Badge variant="warning">RESERVED</Badge>;
   if (value === "OCCUPIED") return <Badge variant="destructive">OCCUPIED</Badge>;
@@ -256,7 +256,7 @@ function stateBadge(value?: ResourceState | null) {
 function yesNo(v?: boolean | null) {
   if (v === true) return <Badge className="bg-emerald-600 text-white">YES</Badge>;
   if (v === false) return <Badge variant="secondary">NO</Badge>;
-  return <Badge variant="secondary">â€”</Badge>;
+  return <Badge variant="secondary">Ã¢â‚¬â€</Badge>;
 }
 
 function InfoTile({
@@ -330,7 +330,7 @@ function ModalShell({
               {description ? <div className="mt-1 text-sm text-zc-muted">{description}</div> : null}
             </div>
             <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
-              ✕
+              âœ•
             </Button>
           </div>
         </div>
@@ -647,7 +647,7 @@ function EditResourceModal({
           Cancel
         </Button>
         <Button onClick={onSubmit} disabled={busy}>
-          {busy ? "Saving…" : "Save"}
+          {busy ? "Savingâ€¦" : "Save"}
         </Button>
       </div>
       </DialogContent>
@@ -709,7 +709,7 @@ function SetStateModal({
         }),
       });
 
-      toast({ title: "State Updated", description: `${resource.code} → ${nextState}` });
+      toast({ title: "State Updated", description: `${resource.code} â†’ ${nextState}` });
       onClose();
       void Promise.resolve(onSaved()).catch(() => {});
     } catch (e: any) {
@@ -784,7 +784,7 @@ function SetStateModal({
               Cancel
             </Button>
             <Button onClick={onSubmit} disabled={busy}>
-              {busy ? "Updating…" : "Update State"}
+              {busy ? "Updatingâ€¦" : "Update State"}
             </Button>
           </div>
         </>
@@ -865,7 +865,7 @@ function DeactivateModal({
           {resource.name} <span className="text-zc-muted">({resource.code})</span>
         </div>
         <div className="mt-2 text-sm text-zc-muted">
-          Type: <span className="font-mono">{resource.resourceType}</span> • Current State:{" "}
+          Type: <span className="font-mono">{resource.resourceType}</span> â€¢ Current State:{" "}
           <span className="font-mono">{resource.currentState || resource.state}</span>
         </div>
       </div>
@@ -884,7 +884,7 @@ function DeactivateModal({
           Cancel
         </Button>
         <Button variant="destructive" onClick={onConfirm} disabled={busy}>
-          {busy ? "Deactivating…" : "Deactivate"}
+          {busy ? "Deactivatingâ€¦" : "Deactivate"}
         </Button>
       </div>
     </ModalShell>
@@ -961,7 +961,7 @@ export default function ResourceDetailPage() {
   const currentState = (resource?.currentState || resource?.state || "AVAILABLE") as ResourceState;
 
   return (
-    <AppShell title="Infrastructure â€¢ Resources">
+    <AppShell title="Infrastructure Ã¢â‚¬Â¢ Resources">
       <RequirePerm perm="INFRA_RESOURCE_READ">
         <div className="grid gap-6">
           {/* Header */}
@@ -980,7 +980,7 @@ export default function ResourceDetailPage() {
 
               <div className="min-w-0">
                 <div className="text-lg font-semibold text-zc-text">
-                  {loading ? "Resource" : resource ? `${resource.code} • ${resource.name}` : "Resource"}
+                  {loading ? "Resource" : resource ? `${resource.code} â€¢ ${resource.name}` : "Resource"}
                 </div>
                 <div className="mt-0.5 text-sm text-zc-muted">View status, capabilities, scheduling and maintenance.</div>
               </div>
@@ -1077,7 +1077,7 @@ export default function ResourceDetailPage() {
                     {availabilityBadge(resource.isAvailable)}
                   </div>
                 ) : (
-                  <div className="text-sm text-zc-muted">—</div>
+                  <div className="text-sm text-zc-muted">â€”</div>
                 )}
               </div>
             </CardHeader>
@@ -1098,8 +1098,8 @@ export default function ResourceDetailPage() {
                     tone="indigo"
                     value={
                       resource.unit ? (
-                        <Link href={`/infrastructure/units/${resource.unit.id}`} className="font-semibold hover:underline">
-                          {resource.unit.code} • {resource.unit.name}
+                        <Link href={`/infrastructure/units/${resource.unit.id}` as any} className="font-semibold hover:underline">
+                          {resource.unit.code} â€¢ {resource.unit.name}
                         </Link>
                       ) : (
                         <span className="font-semibold">{resource.unitId}</span>
@@ -1111,20 +1111,20 @@ export default function ResourceDetailPage() {
                     tone="cyan"
                     value={
                       resource.room ? (
-                        <Link href={`/infrastructure/rooms/${resource.room.id}`} className="font-semibold hover:underline">
-                          {resource.room.code} • {resource.room.name}
+                        <Link href={`/infrastructure/rooms/${resource.room.id}` as any} className="font-semibold hover:underline">
+                          {resource.room.code} â€¢ {resource.room.name}
                         </Link>
                       ) : resource.roomId ? (
                         <span className="font-semibold">{resource.roomId}</span>
                       ) : (
-                        "— (Mobile / Open-bay)"
+                        "â€” (Mobile / Open-bay)"
                       )
                     }
                   />
                   <InfoTile
                     label="Asset Tag"
                     tone="zinc"
-                    value={resource.assetTag ? <span className="font-mono">{resource.assetTag}</span> : "—"}
+                    value={resource.assetTag ? <span className="font-mono">{resource.assetTag}</span> : "â€”"}
                   />
                   <InfoTile
                     label="Scheduling"
@@ -1132,7 +1132,7 @@ export default function ResourceDetailPage() {
                     value={
                       resource.isSchedulable ? (
                         <span className="font-semibold">
-                          Yes {resource.slotDurationMinutes ? `• ${resource.slotDurationMinutes}m` : ""}
+                          Yes {resource.slotDurationMinutes ? `â€¢ ${resource.slotDurationMinutes}m` : ""}
                         </span>
                       ) : (
                         "Not schedulable"
@@ -1193,7 +1193,7 @@ export default function ResourceDetailPage() {
             <CardContent className="pb-6">
               {!resource && loading ? (
                 <div className="flex items-center gap-3 text-sm text-zc-muted">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+                  <Loader2 className="h-4 w-4 animate-spin" /> Loadingâ€¦
                 </div>
               ) : !resource ? (
                 <div className="text-sm text-zc-muted">No resource loaded.</div>
@@ -1216,9 +1216,9 @@ export default function ResourceDetailPage() {
                           <Row label="Category" value={categoryBadge(resource.resourceCategory ?? null)} />
                           <Row
                             label="Asset Tag"
-                            value={resource.assetTag ? <span className="font-mono text-xs">{resource.assetTag}</span> : "—"}
+                            value={resource.assetTag ? <span className="font-mono text-xs">{resource.assetTag}</span> : "â€”"}
                           />
-                          <Row label="Serial" value={resource.serialNumber ?? "—"} />
+                          <Row label="Serial" value={resource.serialNumber ?? "â€”"} />
                         </CardContent>
                       </Card>
 
@@ -1230,17 +1230,17 @@ export default function ResourceDetailPage() {
                         <CardContent className="grid gap-3 text-sm">
                           <Row
                             label="Unit"
-                            value={resource.unit ? `${resource.unit.name} (${resource.unit.code})` : resource.unitId || "—"}
+                            value={resource.unit ? `${resource.unit.name} (${resource.unit.code})` : resource.unitId || "â€”"}
                           />
                           <Row
                             label="Room"
-                            value={resource.room ? `${resource.room.name} (${resource.room.code})` : resource.roomId || "—"}
+                            value={resource.room ? `${resource.room.name} (${resource.room.code})` : resource.roomId || "â€”"}
                           />
-                          <Row label="Branch" value={branchLoading ? "Loading…" : branch?.name || resource.branchId || "—"} />
+                          <Row label="Branch" value={branchLoading ? "Loadingâ€¦" : branch?.name || resource.branchId || "â€”"} />
                           <Row label="State" value={stateBadge(currentState)} />
                           <Row label="Active" value={activeBadge(resource.isActive)} />
                           <Row label="Available" value={availabilityBadge(resource.isAvailable)} />
-                          <Row label="Assigned Patient" value={resource.assignedPatientId ?? "—"} />
+                          <Row label="Assigned Patient" value={resource.assignedPatientId ?? "â€”"} />
                         </CardContent>
                       </Card>
                     </div>
@@ -1275,7 +1275,7 @@ export default function ResourceDetailPage() {
                       <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-card px-4 py-3">
                         <span className="text-sm text-zc-text">Slot Duration</span>
                         <span className="font-medium">
-                          {resource.slotDurationMinutes ? `${resource.slotDurationMinutes} min` : "—"}
+                          {resource.slotDurationMinutes ? `${resource.slotDurationMinutes} min` : "â€”"}
                         </span>
                       </div>
                     </div>
@@ -1318,11 +1318,11 @@ export default function ResourceDetailPage() {
                       </div>
                       <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-card px-4 py-3">
                         <span className="text-sm text-zc-text">Reserved Reason</span>
-                        <span className="font-medium">{resource.reservedReason ?? "—"}</span>
+                        <span className="font-medium">{resource.reservedReason ?? "â€”"}</span>
                       </div>
                       <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-card px-4 py-3">
                         <span className="text-sm text-zc-text">Blocked Reason</span>
-                        <span className="font-medium">{resource.blockedReason ?? "—"}</span>
+                        <span className="font-medium">{resource.blockedReason ?? "â€”"}</span>
                       </div>
                       <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-card px-4 py-3">
                         <span className="text-sm text-zc-text">Created</span>

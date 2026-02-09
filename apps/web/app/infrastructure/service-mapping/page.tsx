@@ -182,7 +182,7 @@ async function runWithConcurrency<T>(items: T[], limit: number, fn: (item: T) =>
 
 export default function SuperAdminServiceMappingPage() {
   const { toast } = useToast();
-  // ✅ Unified branch context
+  // âœ… Unified branch context
   const branchCtx = useBranchContext();
   const activeBranchId = useActiveBranchStore((s) => s.activeBranchId);
   const setActiveBranchId = useActiveBranchStore((s) => s.setActiveBranchId);
@@ -235,7 +235,7 @@ export default function SuperAdminServiceMappingPage() {
     const params = new URLSearchParams(sp?.toString() || "");
     if (id) params.set("serviceItemId", id);
     else params.delete("serviceItemId");
-    router.replace(`/infrastructure/service-mapping?${params.toString()}`);
+    router.replace(`/infrastructure/service-mapping?${params.toString( as any)}`);
   }
 
   function currentMappingForId(serviceItemId: string) {
@@ -1180,7 +1180,7 @@ function ServiceMappingDetail({
             <div className="flex items-center justify-between gap-2">
               <div className="text-sm font-semibold text-zc-text">Mapping History</div>
               <Button variant="outline" size="sm" asChild className="gap-2">
-                <Link href={`/infrastructure/service-library?serviceItemId=${encodeURIComponent(svc?.id || "")}`}>
+                <Link href={`/infrastructure/service-library?serviceItemId=${encodeURIComponent(svc?.id || "")}` as any}>
                   Open in Service Library <ExternalLink className="h-4 w-4" />
                 </Link>
               </Button>

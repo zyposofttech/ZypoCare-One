@@ -198,7 +198,7 @@ function looksLikeWhitelistError(msg?: string) {
 
 export default function SuperAdminChargeMasterDetailPage() {
   const { toast } = useToast();
-  // ✅ Unified branch context
+  // âœ… Unified branch context
   const branchCtx = useBranchContext();
   const activeBranchId = useActiveBranchStore((s) => s.activeBranchId);
   const setActiveBranchId = useActiveBranchStore((s) => s.setActiveBranchId);
@@ -646,7 +646,7 @@ setBranchId(bid);
         onSaved={(saved) => {
           toast({ title: "Saved", description: "Charge master item saved successfully." });
           if (saved?.id && isNew) {
-            router.replace(`/infrastructure/charge-master/${encodeURIComponent(saved.id)}`);
+            router.replace(`/infrastructure/charge-master/${encodeURIComponent(saved.id as any)}`);
             return;
           }
           if (saved?.id && !isNew) {

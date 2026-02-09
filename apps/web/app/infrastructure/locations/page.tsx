@@ -22,6 +22,8 @@ import { cn } from "@/lib/cn";
 import { IconBuilding } from "@/components/icons";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
 import { useActiveBranchStore } from "@/lib/branch/active-branch";
+import { usePageInsights } from "@/lib/copilot/usePageInsights";
+import { PageInsightBanner } from "@/components/copilot/PageInsightBanner";
 
 import {
   AlertTriangle,
@@ -128,7 +130,7 @@ function typeTone(t: LocationType): keyof typeof pillTones {
 }
 
 function fmtDateTime(v?: string | null) {
-  if (!v) return "—";
+  if (!v) return "â€”";
   const d = new Date(v);
   if (Number.isNaN(d.getTime())) return v;
   return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(d);
@@ -335,6 +337,9 @@ export default function InfrastructureLocationsPage() {
   const [reviseState, setReviseState] = React.useState<ReviseState>({ open: false, node: null });
   const [retireState, setRetireState] = React.useState<RetireState>({ open: false, node: null });
 
+  // AI page-level insights
+  const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({ module: "locations", enabled: !!effectiveBranchId });
+
   const allNodes = React.useMemo(() => flattenNested(campuses), [campuses]);
   const selectedNode = React.useMemo(
     () => (selectedId ? allNodes.find((n) => n.id === selectedId) || null : null),
@@ -489,7 +494,7 @@ export default function InfrastructureLocationsPage() {
     if (n.type === "BUILDING") return { label: "Floors", count: n.floors?.length ?? 0 };
     if (n.type === "FLOOR") return { label: "Zones", count: n.zones?.length ?? 0 };
     if (n.type === "ZONE") return { label: "Areas", count: n.areas?.length ?? 0 };
-    return { label: "—", count: 0 };
+    return { label: "â€”", count: 0 };
   }
 
   function nodeChildren(n: LocationNode) {
@@ -578,7 +583,7 @@ export default function InfrastructureLocationsPage() {
               <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-zc-muted">
                 <CalendarClock className="h-4 w-4" />
                 <span>From: {fmtDateTime(node.effectiveFrom)}</span>
-                <span className="text-zc-muted/60">•</span>
+                <span className="text-zc-muted/60">â€¢</span>
                 <span>To: {fmtDateTime(node.effectiveTo)}</span>
               </div>
             </div>
@@ -647,7 +652,7 @@ export default function InfrastructureLocationsPage() {
               </Button>
 
               <Button asChild className="gap-2">
-                <Link href={branchHref}>
+                <Link href={branchHref as any}>
                   <Building2 className="h-4 w-4" />
                   Open Branch
                 </Link>
@@ -694,6 +699,9 @@ export default function InfrastructureLocationsPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* AI Insights */}
+          <PageInsightBanner insights={insights} loading={insightsLoading} onDismiss={dismissInsight} />
 
           {/* Main */}
           <Card className="overflow-hidden">
@@ -756,14 +764,14 @@ export default function InfrastructureLocationsPage() {
                               }}
                             >
                               <SelectTrigger className="h-11 rounded-xl bg-zc-card border-zc-border">
-                                <SelectValue placeholder="Select a branch…" />
+                                <SelectValue placeholder="Select a branchâ€¦" />
                               </SelectTrigger>
                               <SelectContent>
                                 {branches.map((b) => (
                                   <SelectItem key={b.id} value={b.id}>
                                     {b.name}{" "}
                                     <span className="font-mono text-xs text-zc-muted">({b.code})</span>{" "}
-                                    <span className="text-xs text-zc-muted">• {b.city}</span>
+                                    <span className="text-xs text-zc-muted">â€¢ {b.city}</span>
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -775,7 +783,7 @@ export default function InfrastructureLocationsPage() {
                             <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Quick actions</div>
                             <div className="mt-3 flex flex-wrap gap-2">
                               <Button asChild variant="outline" className="gap-2" disabled={!selectedBranch}>
-                                <Link href={branchHref}>
+                                <Link href={branchHref as any}>
                                   <Building2 className="h-4 w-4" />
                                   Open Branch
                                 </Link>
@@ -827,7 +835,7 @@ export default function InfrastructureLocationsPage() {
                         </CardTitle>
 
                         <CardDescription className="mt-2">
-                          Use “Revise” for effective-dated changes. Retire sets an end date (effectiveTo).
+                          Use â€œReviseâ€ for effective-dated changes. Retire sets an end date (effectiveTo).
                         </CardDescription>
                       </CardHeader>
 
@@ -837,7 +845,7 @@ export default function InfrastructureLocationsPage() {
                           <Input
                             value={q}
                             onChange={(e) => setQ(e.target.value)}
-                            placeholder="Search by code or name…"
+                            placeholder="Search by code or nameâ€¦"
                             className="h-9 border-0 bg-transparent px-0 focus-visible:ring-0"
                           />
                         </div>
@@ -975,7 +983,7 @@ export default function InfrastructureLocationsPage() {
                                     <span className="font-mono">
                                       {selectedNode.gpsLat != null && selectedNode.gpsLng != null
                                         ? `${selectedNode.gpsLat}, ${selectedNode.gpsLng}`
-                                        : "—"}
+                                        : "â€”"}
                                     </span>
                                   </div>
                                 ) : null}
@@ -983,7 +991,7 @@ export default function InfrastructureLocationsPage() {
                                 {selectedNode.type === "FLOOR" ? (
                                   <div className="flex items-center justify-between">
                                     <span>Floor Number</span>
-                                    <span className="font-mono">{selectedNode.floorNumber ?? "—"}</span>
+                                    <span className="font-mono">{selectedNode.floorNumber ?? "â€”"}</span>
                                   </div>
                                 ) : null}
 
@@ -1004,7 +1012,7 @@ export default function InfrastructureLocationsPage() {
 
                                 <div className="flex items-center justify-between">
                                   <span>Fire Zone</span>
-                                  <span className="font-mono">{selectedNode.fireZone || "—"}</span>
+                                  <span className="font-mono">{selectedNode.fireZone || "â€”"}</span>
                                 </div>
                               </div>
                             </div>
@@ -1385,9 +1393,9 @@ function CreateDialog({
           <div className="rounded-2xl border border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
             <div className="font-semibold text-zc-text">Code preview</div>
             <div className="mt-2">
-              Segment: <span className="font-mono text-zc-text">{code || "—"}</span>
-              <span className="mx-2 text-zc-muted/60">→</span>
-              Full: <span className="font-mono text-zc-text">{fullPreview || "—"}</span>
+              Segment: <span className="font-mono text-zc-text">{code || "â€”"}</span>
+              <span className="mx-2 text-zc-muted/60">â†’</span>
+              Full: <span className="font-mono text-zc-text">{fullPreview || "â€”"}</span>
             </div>
             <div className="mt-2 text-xs">
               You enter only the <span className="font-semibold text-zc-text">segment</span> (B01/F01/01/A01). Backend composes full code.
@@ -1596,16 +1604,16 @@ function ReviseDialog({
               <span className="text-sm font-semibold text-zc-text">{node.name}</span>
             </div>
             <div className="mt-2 text-xs text-zc-muted">
-              Effective: {fmtDateTime(node.effectiveFrom)} → {fmtDateTime(node.effectiveTo)}
+              Effective: {fmtDateTime(node.effectiveFrom)} â†’ {fmtDateTime(node.effectiveTo)}
             </div>
           </div>
 
           <div className="rounded-2xl border border-zc-border bg-zc-panel/15 p-4 text-sm text-zc-muted">
             <div className="font-semibold text-zc-text">Code preview</div>
             <div className="mt-2">
-              Segment: <span className="font-mono text-zc-text">{code || "—"}</span>
-              <span className="mx-2 text-zc-muted/60">→</span>
-              Full: <span className="font-mono text-zc-text">{fullPreview || "—"}</span>
+              Segment: <span className="font-mono text-zc-text">{code || "â€”"}</span>
+              <span className="mx-2 text-zc-muted/60">â†’</span>
+              Full: <span className="font-mono text-zc-text">{fullPreview || "â€”"}</span>
             </div>
           </div>
 

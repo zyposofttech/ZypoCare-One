@@ -31,6 +31,11 @@ import { apiFetch, ApiError } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
 
+import { useFieldCopilot } from "@/lib/copilot/useFieldCopilot";
+import { usePageInsights } from "@/lib/copilot/usePageInsights";
+import { AIFieldWrapper } from "@/components/copilot/AIFieldWrapper";
+import { PageInsightBanner } from "@/components/copilot/PageInsightBanner";
+
 import {
   AlertTriangle,
   BedDouble,
@@ -65,7 +70,7 @@ type RoomRow = {
   isActive: boolean;
 };
 
-// ✅ Matches your required interface (superset-safe)
+// âœ… Matches your required interface (superset-safe)
 export type ResourceType =
   | "GENERAL_BED"
   | "ICU_BED"
@@ -224,15 +229,15 @@ function validateResourceCode(code: string): string | null {
   const v = normalizeCode(code);
   if (!v) return "Resource code is required";
   if (!/^[A-Z0-9][A-Z0-9_-]{1,95}$/.test(v)) {
-    return "Code must be 2–96 chars, letters/numbers/underscore/hyphen";
+    return "Code must be 2â€“96 chars, letters/numbers/underscore/hyphen";
   }
   return null;
 }
 
 function fmtDateTime(value?: string | null) {
-  if (!value) return "—";
+  if (!value) return "â€”";
   const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "â€”";
   return d.toLocaleString();
 }
 
@@ -493,6 +498,23 @@ export default function ResourcesPage() {
 
     return { total, active, byState };
   }, [rows]);
+
+  const codeFieldAI = useFieldCopilot({
+    module: "resource",
+    field: "code",
+    value: formCode,
+    enabled: open && !editing && formCode.length > 0,
+  });
+  const nameFieldAI = useFieldCopilot({
+    module: "resource",
+    field: "name",
+    value: formName,
+    enabled: open && formName.length > 2,
+  });
+  const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({
+    module: "resources",
+    enabled: !!branchId,
+  });
 
   async function loadBranch(bid: string) {
     try {
@@ -841,7 +863,7 @@ export default function ResourcesPage() {
         method: "POST",
         body: { state: next, reason: reason || undefined },
       });
-      toast({ title: "State updated", description: `${r.code} → ${next}` });
+      toast({ title: "State updated", description: `${r.code} â†’ ${next}` });
       await loadResources(unitId);
     } catch (e: any) {
       const msg = e instanceof ApiError ? e.message : typeof e?.message === "string" ? e.message : "State update failed";
@@ -1007,7 +1029,7 @@ export default function ResourcesPage() {
                 <div className="rounded-xl border border-violet-200 bg-violet-50/50 p-3 dark:border-violet-900/50 dark:bg-violet-900/10">
                   <div className="text-xs font-medium text-violet-600 dark:text-violet-400">Selected Unit</div>
                   <div className="mt-1 text-lg font-bold text-violet-700 dark:text-violet-300">
-                    {selectedUnit ? selectedUnit.code : "—"}
+                    {selectedUnit ? selectedUnit.code : "â€”"}
                   </div>
                   <div className="mt-1 text-[11px] text-violet-700/80 dark:text-violet-300/80">
                     {selectedUnit ? selectedUnit.name : "Pick a unit to view resources."}
@@ -1055,15 +1077,15 @@ export default function ResourcesPage() {
                     disabled={!branchId}
                   >
                     <SelectTrigger className="h-10 rounded-xl border-zc-border bg-zc-card">
-                      <SelectValue placeholder="Select unit…" />
+                      <SelectValue placeholder="Select unitâ€¦" />
                     </SelectTrigger>
                     <SelectContent className="max-h-[340px] overflow-y-auto">
-                      <SelectItem value="NONE">Select unit…</SelectItem>
+                      <SelectItem value="NONE">Select unitâ€¦</SelectItem>
                       {units.map((u) => (
                         <SelectItem key={u.id} value={u.id}>
                           {u.name}{" "}
                           <span className="font-mono text-xs text-zc-muted">
-                            ({u.code}) {u.usesRooms ? "" : "• open-bay"}
+                            ({u.code}) {u.usesRooms ? "" : "â€¢ open-bay"}
                           </span>
                         </SelectItem>
                       ))}
@@ -1164,6 +1186,8 @@ export default function ResourcesPage() {
             </CardContent>
           </Card>
 
+          <PageInsightBanner insights={insights} loading={insightsLoading} onDismiss={dismissInsight} />
+
           {/* Table */}
           <Card className="overflow-hidden">
             <CardHeader className="pb-3">
@@ -1211,7 +1235,7 @@ export default function ResourcesPage() {
                     <tr>
                       <td colSpan={9} className="px-4 py-10">
                         <div className="flex items-center gap-3 text-sm text-zc-muted">
-                          <Loader2 className="h-4 w-4 animate-spin" /> Loading resources…
+                          <Loader2 className="h-4 w-4 animate-spin" /> Loading resourcesâ€¦
                         </div>
                       </td>
                     </tr>
@@ -1238,10 +1262,10 @@ export default function ResourcesPage() {
                             <div className="text-xs text-zc-muted">
                               {r.assetTag ? (
                                 <>
-                                  Asset: <span className="font-mono">{r.assetTag}</span> •{" "}
+                                  Asset: <span className="font-mono">{r.assetTag}</span> â€¢{" "}
                                 </>
                               ) : null}
-                              ID: {r.id.slice(0, 8)}…
+                              ID: {r.id.slice(0, 8)}â€¦
                             </div>
                           </td>
 
@@ -1253,7 +1277,7 @@ export default function ResourcesPage() {
                                   <div className="font-mono text-xs text-zc-muted">{room.code}</div>
                                 </div>
                               ) : (
-                                <span className="text-sm text-zc-muted">—</span>
+                                <span className="text-sm text-zc-muted">â€”</span>
                               )
                             ) : (
                               <span className="text-sm text-zc-muted">Open-bay</span>
@@ -1314,7 +1338,7 @@ export default function ResourcesPage() {
                                   aria-label="Go to Room"
                                   disabled={!branchId || busy}
                                 >
-                                  <Link href={`/infrastructure/resources/${encodeURIComponent(r.id)}`}>
+                                  <Link href={`/infrastructure/resources/${encodeURIComponent(r.id)}` as any}>
                                     <IconChevronRight className="h-4 w-4" />
                                   </Link>
 
@@ -1367,7 +1391,7 @@ export default function ResourcesPage() {
                 <DialogDescription>
                   {stateDlgResource ? (
                     <>
-                      {stateDlgResource.code} → <span className="font-semibold">{stateDlgNext}</span>
+                      {stateDlgResource.code} â†’ <span className="font-semibold">{stateDlgNext}</span>
                     </>
                   ) : (
                     "Provide a reason to continue."
@@ -1446,7 +1470,7 @@ export default function ResourcesPage() {
                 <Button variant="primary" onClick={() => void confirmDeactivate()} disabled={busy}>
                   {busy ? (
                     <span className="inline-flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" /> Deactivating…
+                      <Loader2 className="h-4 w-4 animate-spin" /> Deactivatingâ€¦
                     </span>
                   ) : (
                     "Deactivate"
@@ -1490,9 +1514,19 @@ export default function ResourcesPage() {
               ) : null}
 
               <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-                <TabsList className="grid w-full grid-cols-2 rounded-xl">
-                  <TabsTrigger value="basic">Basics</TabsTrigger>
-                  <TabsTrigger value="rules">Rules</TabsTrigger>
+                <TabsList className="h-10 w-full rounded-2xl border border-zc-border bg-zc-panel/20 p-1">
+                  <TabsTrigger
+                    value="basic"
+                    className="flex-1 rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm"
+                  >
+                    Basics
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="rules"
+                    className="flex-1 rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm"
+                  >
+                    Rules
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="basic" className="mt-4">
@@ -1502,15 +1536,15 @@ export default function ResourcesPage() {
                         <Label>Unit</Label>
                         <Select value={formUnitId || "NONE"} onValueChange={(v) => setFormUnitId(v === "NONE" ? "" : v)} disabled={!!editing}>
                           <SelectTrigger className="h-11 rounded-xl border-zc-border bg-zc-card">
-                            <SelectValue placeholder="Select unit…" />
+                            <SelectValue placeholder="Select unitâ€¦" />
                           </SelectTrigger>
                           <SelectContent className="max-h-[340px] overflow-y-auto">
-                            <SelectItem value="NONE">Select unit…</SelectItem>
+                            <SelectItem value="NONE">Select unitâ€¦</SelectItem>
                             {units.map((u) => (
                               <SelectItem key={u.id} value={u.id}>
                                 {u.name}{" "}
                                 <span className="font-mono text-xs text-zc-muted">
-                                  ({u.code}) {u.usesRooms ? "" : "• open-bay"}
+                                  ({u.code}) {u.usesRooms ? "" : "â€¢ open-bay"}
                                 </span>
                               </SelectItem>
                             ))}
@@ -1585,10 +1619,10 @@ export default function ResourcesPage() {
                           disabled={!!editing ? true : false}
                         >
                           <SelectTrigger className="h-11 rounded-xl border-zc-border bg-zc-card">
-                            <SelectValue placeholder="Select room…" />
+                            <SelectValue placeholder="Select roomâ€¦" />
                           </SelectTrigger>
                           <SelectContent className="max-h-[340px] overflow-y-auto">
-                            <SelectItem value="NONE">Select room…</SelectItem>
+                            <SelectItem value="NONE">Select roomâ€¦</SelectItem>
                             {rooms
                               .filter((r) => r.unitId === formUnitId)
                               .map((r) => (
@@ -1605,22 +1639,26 @@ export default function ResourcesPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="grid gap-2">
                         <Label>Resource Code</Label>
-                        <Input
-                          value={formCode}
-                          onChange={(e) => setFormCode(e.target.value.toUpperCase())}
-                          placeholder='e.g. BED-ICU-A-101-1'
-                          className={cn(
-                            "font-mono bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800 focus-visible:ring-indigo-500",
-                            editing && "opacity-80",
-                          )}
-                          disabled={!!editing}
-                        />
+                        <AIFieldWrapper warnings={codeFieldAI.warnings} suggestion={codeFieldAI.suggestion} validating={codeFieldAI.validating}>
+                          <Input
+                            value={formCode}
+                            onChange={(e) => setFormCode(e.target.value.toUpperCase())}
+                            placeholder='e.g. BED-ICU-A-101-1'
+                            className={cn(
+                              "font-mono bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800 focus-visible:ring-indigo-500",
+                              editing && "opacity-80",
+                            )}
+                            disabled={!!editing}
+                          />
+                        </AIFieldWrapper>
                         <p className="text-[11px] text-zc-muted">Code is stable. Editing is disabled after creation.</p>
                       </div>
 
                       <div className="grid gap-2">
                         <Label>Resource Name</Label>
-                        <Input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="e.g. Bed 01" />
+                        <AIFieldWrapper warnings={nameFieldAI.warnings} suggestion={nameFieldAI.suggestion} validating={nameFieldAI.validating}>
+                          <Input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="e.g. Bed 01" />
+                        </AIFieldWrapper>
                       </div>
                     </div>
 
@@ -1841,7 +1879,7 @@ export default function ResourcesPage() {
                 <Button variant="primary" onClick={() => void save()} disabled={busy || !branchId}>
                   {busy ? (
                     <span className="inline-flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" /> Saving…
+                      <Loader2 className="h-4 w-4 animate-spin" /> Savingâ€¦
                     </span>
                   ) : (
                     "Save"

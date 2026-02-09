@@ -62,7 +62,7 @@ export default function ForbiddenPage() {
               Go back
             </Button>
 
-            <Button variant="primary" className="gap-2" onClick={() => router.push("/welcome")}>
+            <Button variant="primary" className="gap-2" onClick={() => router.push("/welcome" as any)}>
               <Home className="h-4 w-4" />
               Welcome
             </Button>

@@ -648,6 +648,11 @@ export async function apiFetch<T>(url: string, init: ApiFetchOptions = {}): Prom
       });
     }
 
+    // Notify AI copilot on successful writes so health/insights refresh
+    if (isWrite && typeof window !== "undefined") {
+      try { window.dispatchEvent(new Event("zc:data-changed")); } catch { /* ignore */ }
+    }
+
     return data as T;
   } catch (e: any) {
     if (e instanceof ApiError) throw e;

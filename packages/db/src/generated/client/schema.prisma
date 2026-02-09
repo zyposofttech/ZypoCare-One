@@ -118,11 +118,31 @@ enum ResourceRequirementKind {
   SERVICE_POINT_TAG
 }
 
+model Organization {
+  id   String @id @default(cuid())
+  code String @unique @db.VarChar(32)
+  name String @db.VarChar(160)
+
+  isActive Boolean @default(true)
+
+  branches Branch[]
+  staff    Staff[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+}
+
 model Branch {
   id   String @id @default(cuid())
   code String @unique @db.VarChar(32)
   name String
   city String
+
+  // Organization (hospital group / chain)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 
   // Soft lifecycle toggle (preferred over delete)
   isActive Boolean @default(true)
@@ -180,6 +200,7 @@ model Branch {
   assets                     Asset[]
   specialties                Specialty[]
   homeStaff                  Staff[]                     @relation("StaffHomeBranch")
+  primaryStaff               Staff[]                     @relation("StaffPrimaryBranch")
   staffAssignments           StaffAssignment[]
   userRoleBindings           UserRoleBinding[]
   staffDocuments             StaffDocument[]
@@ -188,9 +209,17 @@ model Branch {
   staffOnboardingItems       StaffOnboardingItem[]
   staffCompliancePacks       StaffCompliancePack[]
   staffComplianceAssignments StaffComplianceAssignment[]
-  Encounter                  Encounter[]
-  Bed                        Bed[]
-  Admission                  Admission[]
+
+  // HR Ops / Workforce Management
+  staffRosters       StaffRoster[]
+  staffAttendances   StaffAttendance[]
+  staffLeaveRequests StaffLeaveRequest[]
+  staffTrainings     StaffTrainingRecord[]
+  staffAppraisals    StaffAppraisal[]
+  staffSeparations   StaffSeparation[]
+  Encounter          Encounter[]
+  Bed                Bed[]
+  Admission          Admission[]
 
   // Facilities enabled for this branch (multi-select from FacilityCatalog)
   branchFacilities BranchFacility[]
@@ -426,9 +455,184 @@ enum UserSource {
   SYSTEM
 }
 
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum StaffTitle {
+  DR
+  MR
+  MS
+  MRS
+  PROF
+  OTHER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum BloodGroup {
+  A_POS
+  A_NEG
+  B_POS
+  B_NEG
+  O_POS
+  O_NEG
+  AB_POS
+  AB_NEG
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  SEPARATED
+  WIDOWED
+}
+
+enum StaffType {
+  DOCTOR_CONSULTANT
+  DOCTOR_RESIDENT
+  DOCTOR_INTERN
+  NURSE_HEAD
+  NURSE_STAFF
+  NURSE_TRAINEE
+  TECHNICIAN_LAB
+  TECHNICIAN_RADIOLOGY
+  TECHNICIAN_OT
+  TECHNICIAN_DIALYSIS
+  TECHNICIAN_ANESTHESIA
+  PHARMACIST
+  PHARMACIST_ASSISTANT
+  PHYSIOTHERAPIST
+  DIETICIAN
+  COUNSELOR
+  RECEPTIONIST
+  CASHIER
+  HOUSEKEEPING
+  SECURITY
+  ADMIN_STAFF
+  OTHER
+}
+
+enum StaffEmploymentType {
+  PERMANENT
+  CONTRACT
+  CONSULTANT
+  VISITING
+  LOCUM
+  INTERN
+  TRAINEE
+  VENDOR
+  OTHER
+}
+
+enum StaffEmploymentStatus {
+  ACTIVE
+  ON_LEAVE
+  SUSPENDED
+  RESIGNED
+  TERMINATED
+  RETIRED
+  OFFBOARDED
+}
+
+enum StaffVerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum StaffShiftType {
+  MORNING
+  EVENING
+  NIGHT
+  ROTATIONAL
+  CUSTOM
+}
+
+enum StaffRosterStatus {
+  DRAFT
+  ACTIVE
+  PUBLISHED
+  CANCELLED
+}
+
+enum StaffAttendanceStatus {
+  PRESENT
+  ABSENT
+  LEAVE
+  HALF_DAY
+  LATE
+  HOLIDAY
+  WEEK_OFF
+}
+
+enum StaffLeaveStatus {
+  APPLIED
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum StaffTrainingStatus {
+  ENROLLED
+  COMPLETED
+  FAILED
+  DROPPED
+}
+
+enum StaffAppraisalStatus {
+  DRAFT
+  SUBMITTED
+  REVIEWED
+  APPROVED
+}
+
+enum StaffCredentialStatus {
+  VALID
+  EXPIRING_SOON
+  EXPIRED
+  RENEWED
+}
+
+enum StaffCredentialAlertStage {
+  D90
+  D60
+  D30
+  D15
+  D7
+  D0
+  POST_7
+  POST_30
+}
+
+enum StaffAlertDeliveryStatus {
+  PENDING
+  SENT
+  CANCELLED
+  FAILED
+}
+
 enum StaffCategory {
-  MEDICAL
-  NON_MEDICAL
+  CLINICAL     @map("MEDICAL")
+  NON_CLINICAL @map("NON_MEDICAL")
 }
 
 enum StaffStatus {
@@ -595,16 +799,81 @@ model Staff {
   // Default designation (assignment may override)
   designation String @db.VarChar(120)
 
-  category       StaffCategory       @default(NON_MEDICAL)
+  // Structured identity (workflow-aligned; source of truth for UI + validations)
+  title       StaffTitle?
+  firstName   String?     @db.VarChar(80)
+  middleName  String?     @db.VarChar(80)
+  lastName    String?     @db.VarChar(80)
+  displayName String?     @db.VarChar(160)
+
+  dateOfBirth   DateTime?
+  gender        Gender?
+  bloodGroup    BloodGroup?
+  maritalStatus MaritalStatus?
+
+  primaryPhone   String? @db.VarChar(20)
+  secondaryPhone String? @db.VarChar(20)
+  personalEmail  String? @db.VarChar(120)
+  officialEmail  String? @db.VarChar(120)
+
+  emergencyContact Json?
+  currentAddress   Json?
+  permanentAddress Json?
+  isSameAsCurrent  Boolean @default(false)
+
+  staffType        StaffType?
+  employmentType   StaffEmploymentType?
+  employmentStatus StaffEmploymentStatus?
+
+  joiningDate       DateTime?
+  confirmationDate  DateTime?
+  probationEndDate  DateTime?
+  contractStartDate DateTime?
+  contractEndDate   DateTime?
+
+  defaultShiftType    StaffShiftType?
+  isFullTime          Boolean?
+  workingHoursPerWeek Int?
+  weeklyOffDays       Json?
+
+  hasSystemAccess Boolean @default(false)
+
+  isAvailableForAppointment Boolean @default(false)
+  isAvailableForDuty        Boolean @default(true)
+  canPrescribe              Boolean @default(false)
+  canAdmitPatients          Boolean @default(false)
+  canPerformSurgery         Boolean @default(false)
+
+  hprVerificationStatus  StaffVerificationStatus?
+  hprLastVerifiedAt      DateTime?
+  hprVerificationPayload Json?
+
+  backgroundVerificationStatus  StaffVerificationStatus?
+  policeVerificationStatus      StaffVerificationStatus?
+  backgroundVerificationPayload Json?
+
+  category       StaffCategory       @default(NON_CLINICAL)
   engagementType StaffEngagementType @default(EMPLOYEE)
   status         StaffStatus         @default(ACTIVE)
 
   phone String? @db.VarChar(20)
   email String? @db.VarChar(120)
 
-  // Optional "home branch" anchor; operational branches come via StaffAssignment
+  // Organization (hospital group) + primary branch (multi-branch sharing)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  primaryBranchId String?
+  primaryBranch   Branch? @relation("StaffPrimaryBranch", fields: [primaryBranchId], references: [id], onDelete: SetNull)
+
+  // Legacy anchor (kept for back-compat; prefer primaryBranchId)
   homeBranchId String?
   homeBranch   Branch? @relation("StaffHomeBranch", fields: [homeBranchId], references: [id], onDelete: SetNull)
+
+  // Reporting line (optional)
+  reportingToStaffId String?
+  reportingTo        Staff?  @relation("StaffReportingLine", fields: [reportingToStaffId], references: [id], onDelete: SetNull)
+  directReports      Staff[] @relation("StaffReportingLine")
 
   // ABDM/HPR identifier (optional; can also be stored as identifier)
   hprId String? @unique @db.VarChar(64)
@@ -664,6 +933,16 @@ model Staff {
   providerProfiles      StaffProviderProfile[]      @relation("StaffProviderProfiles")
   complianceAssignments StaffComplianceAssignment[]
 
+  // HR Ops / Workforce Management
+  rosters           StaffRoster[]
+  attendances       StaffAttendance[]
+  leaveRequests     StaffLeaveRequest[]
+  trainings         StaffTrainingRecord[]
+  appraisals        StaffAppraisal[]
+  separations       StaffSeparation[]
+  healthRecords     StaffHealthRecord[]
+  insurancePolicies StaffInsurancePolicy[]
+
   // User linkage (preferred 1:1)
   user User? @relation("StaffUserLink")
 
@@ -677,9 +956,13 @@ model Staff {
   mergeTargetLogs StaffMergeLog[] @relation("StaffMergeTarget")
 
   @@index([name])
+  @@index([displayName])
   @@index([phone])
+  @@index([primaryPhone])
   @@index([email])
+  @@index([personalEmail])
   @@index([status, isActive])
+  @@index([primaryBranchId])
   @@index([category])
   @@index([engagementType])
   @@index([isUsgAuthorized])
@@ -715,6 +998,9 @@ model StaffAssignment {
   // Assignment-specific designation (may differ across branches)
   designation String? @db.VarChar(120)
 
+  // Assignment-local role label (may differ per branch)
+  role String? @db.VarChar(100)
+
   assignmentType StaffAssignmentType   @default(PERMANENT)
   status         StaffAssignmentStatus @default(ACTIVE)
 
@@ -722,6 +1008,31 @@ model StaffAssignment {
   effectiveTo   DateTime?
 
   isPrimary Boolean @default(false)
+
+  // Multi-branch availability & OPD configuration
+  daysAvailable              Json? // Array<DayOfWeek>
+  workingHours               Json? // { [day]: { startTime,endTime,breakStart?,breakEnd? } }
+  opdConfiguration           Json? // { slotDuration,maxSlotsPerDay,consultationRooms: string[] }
+  consultationChargeOverride Decimal? @db.Decimal(10, 2)
+
+  // Administrative / approval workflow
+  isActive         Boolean        @default(true)
+  requiresApproval Boolean        @default(false)
+  approvalStatus   ApprovalStatus @default(APPROVED)
+
+  assignedByUserId String?
+  assignedByUser   User?     @relation("StaffAssignmentAssignedBy", fields: [assignedByUserId], references: [id], onDelete: SetNull)
+  assignedAt       DateTime?
+
+  approvedByUserId String?
+  approvedByUser   User?     @relation("StaffAssignmentApprovedBy", fields: [approvedByUserId], references: [id], onDelete: SetNull)
+  approvedAt       DateTime?
+  approvalNotes    String?   @db.VarChar(240)
+
+  // Branch-level clinical privileges
+  canAdmitPatients  Boolean @default(false)
+  canPerformSurgery Boolean @default(false)
+  hasOTPrivileges   Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -731,11 +1042,15 @@ model StaffAssignment {
   staffDocuments       StaffDocument[]
   staffPrivilegeGrants StaffPrivilegeGrant[]
 
+  @@unique([staffId, branchId])
   @@index([staffId, status])
   @@index([branchId, status])
   @@index([departmentId, status])
   @@index([specialtyId, status])
   @@index([effectiveTo])
+  @@index([isPrimary])
+  @@index([requiresApproval, approvalStatus])
+  @@index([approvalStatus])
 }
 
 model UserRoleBinding {
@@ -783,6 +1098,13 @@ model StaffCredential {
   validFrom DateTime?
   validTo   DateTime?
 
+  // Computed lifecycle (kept explicit for filtering + alerts)
+  status               StaffCredentialStatus @default(VALID)
+  isCritical           Boolean               @default(false)
+  renewalRequired      Boolean               @default(false)
+  renewalWindowDays    Int?
+  lastStatusComputedAt DateTime?
+
   verificationStatus StaffCredentialVerificationStatus @default(UNVERIFIED)
   verifiedAt         DateTime?
   verifiedByUserId   String?
@@ -792,6 +1114,7 @@ model StaffCredential {
   documentUrl String?
 
   evidences StaffCredentialEvidence[]
+  alerts    StaffCredentialAlert[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -897,6 +1220,235 @@ model StaffCredentialEvidence {
   @@unique([staffCredentialId, staffDocumentId])
   @@index([staffCredentialId])
   @@index([staffDocumentId])
+}
+
+model StaffCredentialAlert {
+  id String @id @default(cuid())
+
+  staffCredentialId String
+  staffCredential   StaffCredential @relation(fields: [staffCredentialId], references: [id], onDelete: Cascade)
+
+  stage       StaffCredentialAlertStage
+  scheduledAt DateTime
+  status      StaffAlertDeliveryStatus  @default(PENDING)
+  sentAt      DateTime?
+
+  // Optional outbox integration
+  outboxEventId String?
+  outboxEvent   OutboxEvent? @relation(fields: [outboxEventId], references: [id], onDelete: SetNull)
+
+  error String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([staffCredentialId, stage])
+  @@index([status, scheduledAt])
+}
+
+model StaffRoster {
+  id String @id @default(cuid())
+
+  staffId String
+  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  periodStart DateTime
+  periodEnd   DateTime
+
+  status StaffRosterStatus @default(DRAFT)
+  meta   Json?
+
+  entries StaffRosterEntry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([branchId, periodStart])
+  @@index([staffId, periodStart])
+}
+
+model StaffRosterEntry {
+  id String @id @default(cuid())
+
+  rosterId String
+  roster   StaffRoster @relation(fields: [rosterId], references: [id], onDelete: Cascade)
+
+  startAt   DateTime
+  endAt     DateTime
+  shiftType StaffShiftType?
+  meta      Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([startAt])
+  @@index([rosterId, startAt])
+}
+
+model StaffAttendance {
+  id String @id @default(cuid())
+
+  staffId String
+  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  date   DateTime              @db.Date
+  status StaffAttendanceStatus @default(PRESENT)
+
+  checkInAt  DateTime?
+  checkOutAt DateTime?
+  source     Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([staffId, branchId, date])
+  @@index([branchId, date])
+  @@index([staffId, date])
+}
+
+model StaffLeaveRequest {
+  id String @id @default(cuid())
+
+  staffId String
+  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  leaveType String   @db.VarChar(80)
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  reason    String?  @db.VarChar(240)
+
+  status StaffLeaveStatus @default(APPLIED)
+
+  reportingManagerApproval         ApprovalStatus @default(PENDING)
+  reportingManagerApprovedByUserId String?
+  reportingManagerApprovedByUser   User?          @relation("StaffLeaveRMApprovedBy", fields: [reportingManagerApprovedByUserId], references: [id], onDelete: SetNull)
+  reportingManagerApprovedAt       DateTime?
+
+  hrApproval         ApprovalStatus @default(PENDING)
+  hrApprovedByUserId String?
+  hrApprovedByUser   User?          @relation("StaffLeaveHRApprovedBy", fields: [hrApprovedByUserId], references: [id], onDelete: SetNull)
+  hrApprovedAt       DateTime?
+
+  meta Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([branchId, startDate])
+  @@index([staffId, status])
+}
+
+model StaffTrainingRecord {
+  id String @id @default(cuid())
+
+  staffId String
+  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  branchId String?
+  branch   Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  programName String  @db.VarChar(160)
+  provider    String? @db.VarChar(160)
+
+  status      StaffTrainingStatus @default(ENROLLED)
+  completedAt DateTime?
+  score       Decimal?            @db.Decimal(5, 2)
+
+  evidenceDocumentId String? // Link to StaffDocument.id (kept as scalar to avoid strong coupling)
+  meta               Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([staffId, status])
+  @@index([branchId, status])
+}
+
+model StaffAppraisal {
+  id String @id @default(cuid())
+
+  staffId String
+  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  branchId String?
+  branch   Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  cycleLabel String               @db.VarChar(80) // e.g. "FY2025" or "2025-Q4"
+  status     StaffAppraisalStatus @default(DRAFT)
+
+  rating  Decimal? @db.Decimal(4, 2)
+  summary String?  @db.VarChar(240)
+  meta    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([staffId, cycleLabel])
+  @@index([branchId, cycleLabel])
+  @@index([status])
+}
+
+model StaffSeparation {
+  id String @id @default(cuid())
+
+  staffId String
+  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  branchId String?
+  branch   Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  separationDate DateTime @db.Date
+  reason         String?  @db.VarChar(240)
+  meta           Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([staffId, separationDate])
+  @@index([branchId, separationDate])
+}
+
+model StaffHealthRecord {
+  id String @id @default(cuid())
+
+  staffId String
+  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  recordedAt DateTime @default(now())
+  meta       Json?
+
+  @@index([staffId, recordedAt])
+}
+
+model StaffInsurancePolicy {
+  id String @id @default(cuid())
+
+  staffId String
+  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  policyType   String  @db.VarChar(80) // e.g. "Indemnity", "GroupHealth"
+  provider     String? @db.VarChar(160)
+  policyNumber String? @db.VarChar(64)
+
+  validFrom DateTime?
+  validTo   DateTime?
+
+  meta Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([staffId, policyType])
+  @@index([validTo])
 }
 
 model StaffProviderProfile {
@@ -1157,6 +1709,10 @@ model User {
   grantedStaffPrivilegeGrants        StaffPrivilegeGrant[]       @relation("StaffPrivilegeGrantedBy")
   completedStaffOnboardingItems      StaffOnboardingItem[]       @relation("StaffOnboardingItemCompletedBy")
   assignedStaffComplianceAssignments StaffComplianceAssignment[] @relation("StaffComplianceAssignedBy")
+  assignedStaffAssignments           StaffAssignment[]           @relation("StaffAssignmentAssignedBy")
+  approvedStaffAssignments           StaffAssignment[]           @relation("StaffAssignmentApprovedBy")
+  rmApprovedLeaveRequests            StaffLeaveRequest[]         @relation("StaffLeaveRMApprovedBy")
+  hrApprovedLeaveRequests            StaffLeaveRequest[]         @relation("StaffLeaveHRApprovedBy")
 
   // Multi-branch role bindings (Doctor@BranchA, Doctor@BranchB, ...)
   roleBindings UserRoleBinding[]
@@ -1656,6 +2212,9 @@ model OutboxEvent {
   error       String?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+
+  // Opposite relation(s)
+  staffCredentialAlerts StaffCredentialAlert[]
 
   @@index([status, availableAt])
 }

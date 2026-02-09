@@ -129,9 +129,9 @@ function buildQS(params: Record<string, any>) {
 }
 
 function fmtDateTime(v?: string | null) {
-  if (!v) return "—";
+  if (!v) return "â€”";
   const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "â€”";
   return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
 }
 
@@ -198,7 +198,7 @@ function safeParseJson(text: string) {
 
 export default function SuperAdminServiceLibraryPage() {
   const { toast } = useToast();
-  // ✅ Unified branch context
+  // âœ… Unified branch context
   const branchCtx = useBranchContext();
   const activeBranchId = useActiveBranchStore((s) => s.activeBranchId);
   const setActiveBranchId = useActiveBranchStore((s) => s.setActiveBranchId);
@@ -286,7 +286,7 @@ setBranchId(next || "");
         })}`,
       );
       setMappings(resp || []);
-      if (showToast) toast({ title: "Mappings loaded", description: "Service ↔ Standard code mappings updated." });
+      if (showToast) toast({ title: "Mappings loaded", description: "Service â†” Standard code mappings updated." });
     } catch (e: any) {
       throw new Error(e?.message || "Failed to load mappings");
     }
@@ -407,7 +407,7 @@ setErr(null);
   }, [filteredMappings, mapPage, mapPageSize]);
 
   return (
-    <AppShell title="Infrastructure • Service Library">
+    <AppShell title="Infrastructure â€¢ Service Library">
       <RequirePerm perm="INFRA_CODE_SET_READ">
       <div className="grid gap-6">
         {/* Header */}
@@ -622,7 +622,7 @@ setErr(null);
                               <TableCell className="font-mono text-xs">
                                 <div className="flex flex-col gap-1">
                                   <span className="font-semibold text-zc-text">{cs.code}</span>
-                                  <span className="text-[11px] text-zc-muted">{String(cs.id).slice(0, 8)}…</span>
+                                  <span className="text-[11px] text-zc-muted">{String(cs.id).slice(0, 8)}â€¦</span>
                                 </div>
                               </TableCell>
                               <TableCell className="text-sm">
@@ -632,7 +632,7 @@ setErr(null);
                                 </div>
                               </TableCell>
                               <TableCell className="text-sm text-zc-muted">
-                                <span className="line-clamp-2">{cs.description || "—"}</span>
+                                <span className="line-clamp-2">{cs.description || "â€”"}</span>
                               </TableCell>
                               <TableCell>
                                 {cs.isActive ? <Badge variant="success">Active</Badge> : <Badge variant="secondary">Inactive</Badge>}
@@ -779,7 +779,7 @@ setErr(null);
                             <SelectItem value="all">All</SelectItem>
                             {codeSets.map((cs) => (
                               <SelectItem key={cs.id} value={cs.id}>
-                                {cs.code} • {cs.name}
+                                {cs.code} â€¢ {cs.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -827,7 +827,7 @@ setErr(null);
                                     <Badge variant="secondary" className="font-mono">{m.serviceItem.code}</Badge>
                                     <span className="font-semibold text-zc-text">{m.serviceItem.name}</span>
                                   </div>
-                                  <div className="text-xs text-zc-muted">{m.serviceItem.category || "—"}</div>
+                                  <div className="text-xs text-zc-muted">{m.serviceItem.category || "â€”"}</div>
                                 </div>
                               </TableCell>
 
@@ -917,7 +917,7 @@ setErr(null);
                                     <DropdownMenuSeparator />
 
                                     <DropdownMenuItem asChild>
-                                      <Link href={`/infrastructure/service-items`}>
+                                      <Link href={`/infrastructure/service-items` as any}>
                                         <ExternalLink className="mr-2 h-4 w-4" />
                                         Open Service Items
                                       </Link>
@@ -1026,7 +1026,7 @@ setErr(null);
                       <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-4">
                         <div className="flex items-center gap-2 text-sm font-semibold text-zc-text">
                           <AlertTriangle className="h-4 w-4 text-zc-warn" />
-                          Tip: Keep mapping “Primary” meaningful
+                          Tip: Keep mapping â€œPrimaryâ€ meaningful
                         </div>
                         <div className="mt-1 text-sm text-zc-muted">
                           If a service can map to multiple standards, mark the one most important for reporting/integration as Primary.
@@ -1095,7 +1095,7 @@ setErr(null);
         branchId={branchId}
         codeSets={codeSets}
         onSaved={async () => {
-          toast({ title: "Mapping saved", description: "Service ↔ standard code mapping created." });
+          toast({ title: "Mapping saved", description: "Service â†” standard code mapping created." });
           await loadMappings(false);
         }}
       />
@@ -1358,7 +1358,7 @@ function CodeSetManageDrawer({
       <DialogContent className={drawerClassName()}>
         <ModalHeader
           title={`Manage: ${codeSet.code}`}
-          description={`${codeSet.name} • Add entries and see mapped services.`}
+          description={`${codeSet.name} â€¢ Add entries and see mapped services.`}
           icon={<BookMarked className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />}
         />
 
@@ -1433,14 +1433,14 @@ function CodeSetManageDrawer({
                           <TableCell className="font-mono text-xs">
                             <div className="flex flex-col gap-1">
                               <span className="font-semibold text-zc-text">{e.code}</span>
-                              <span className="text-[11px] text-zc-muted">{String(e.id).slice(0, 8)}…</span>
+                              <span className="text-[11px] text-zc-muted">{String(e.id).slice(0, 8)}â€¦</span>
                             </div>
                           </TableCell>
                           <TableCell className="text-sm">
                             <span className="font-semibold text-zc-text">{e.display}</span>
                           </TableCell>
                           <TableCell className="text-xs text-zc-muted">
-                            {e.attributes ? <span className="line-clamp-2">{JSON.stringify(e.attributes)}</span> : "—"}
+                            {e.attributes ? <span className="line-clamp-2">{JSON.stringify(e.attributes)}</span> : "â€”"}
                           </TableCell>
                           <TableCell className="text-sm text-zc-muted">{fmtDateTime(e.updatedAt || e.createdAt || null)}</TableCell>
                           <TableCell className="text-right">
@@ -1477,7 +1477,7 @@ function CodeSetManageDrawer({
                   <Input value={mapQ} onChange={(e) => setMapQ(e.target.value)} placeholder="Search mapped services..." className="pl-10" />
                 </div>
                 <Button variant="outline" asChild className="gap-2">
-                  <Link href={`/infrastructure/service-library`}>
+                  <Link href={`/infrastructure/service-library` as any}>
                     Open full mappings <ExternalLink className="h-4 w-4" />
                   </Link>
                 </Button>
@@ -1519,7 +1519,7 @@ function CodeSetManageDrawer({
                                 <Badge variant="secondary" className="font-mono">{m.serviceItem.code}</Badge>
                                 <span className="font-semibold text-zc-text">{m.serviceItem.name}</span>
                               </div>
-                              <div className="text-xs text-zc-muted">{m.serviceItem.category || "—"}</div>
+                              <div className="text-xs text-zc-muted">{m.serviceItem.category || "â€”"}</div>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -1890,7 +1890,7 @@ function AddMappingDialog({
                           <TableCell className="text-sm">
                             <span className="font-semibold text-zc-text">{s.name}</span>
                           </TableCell>
-                          <TableCell className="text-sm text-zc-muted">{s.category || "—"}</TableCell>
+                          <TableCell className="text-sm text-zc-muted">{s.category || "â€”"}</TableCell>
                           <TableCell>
                             <Button variant={selected ? "primary" : "outline"} size="sm" onClick={() => setServiceItemId(s.id)}>
                               {selected ? "Selected" : "Select"}
@@ -1918,7 +1918,7 @@ function AddMappingDialog({
                 <SelectContent className="max-h-[320px] overflow-y-auto">
                   {codeSets.filter((x) => x.isActive).map((cs) => (
                     <SelectItem key={cs.id} value={cs.id}>
-                      {cs.code} • {cs.name}
+                      {cs.code} â€¢ {cs.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

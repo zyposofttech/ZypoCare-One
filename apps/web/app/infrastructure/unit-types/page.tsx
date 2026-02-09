@@ -19,6 +19,11 @@ import { apiFetch, ApiError } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
 
+import { useFieldCopilot } from "@/lib/copilot/useFieldCopilot";
+import { usePageInsights } from "@/lib/copilot/usePageInsights";
+import { AIFieldWrapper } from "@/components/copilot/AIFieldWrapper";
+import { PageInsightBanner } from "@/components/copilot/PageInsightBanner";
+
 import {
   AlertTriangle,
   Filter,
@@ -189,6 +194,23 @@ export default function UnitTypesPage() {
   const enabledCount = enabledIds.size;
 
   const sysLocked = !!editing?.isSystemDefined;
+
+  const codeFieldAI = useFieldCopilot({
+    module: "unitType",
+    field: "code",
+    value: fCode,
+    enabled: open && !editing && fCode.length > 0,
+  });
+  const nameFieldAI = useFieldCopilot({
+    module: "unitType",
+    field: "name",
+    value: fName,
+    enabled: open && fName.length > 2,
+  });
+  const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({
+    module: "unit-types",
+    enabled: !!branchId,
+  });
 
   const filteredRows = React.useMemo(() => {
     let list = allRows;
@@ -571,6 +593,9 @@ export default function UnitTypesPage() {
               ) : null}
             </CardContent>
           </Card>
+
+          <PageInsightBanner insights={insights} loading={insightsLoading} onDismiss={dismissInsight} />
+
           {/* Table */}
           <Card className="overflow-hidden">
             <CardHeader className="pb-3">
@@ -743,27 +768,31 @@ export default function UnitTypesPage() {
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="grid gap-2">
                     <Label>Code</Label>
-                    <Input
-                      value={fCode}
-                      onChange={(e) => setFCode(e.target.value)}
-                      placeholder="e.g. ICU"
-                      className={cn(
-                        "font-mono",
-                        editing && "opacity-80",
-                      )}
-                      disabled={!!editing || busy}
-                    />
+                    <AIFieldWrapper warnings={codeFieldAI.warnings} suggestion={codeFieldAI.suggestion} validating={codeFieldAI.validating}>
+                      <Input
+                        value={fCode}
+                        onChange={(e) => setFCode(e.target.value)}
+                        placeholder="e.g. ICU"
+                        className={cn(
+                          "font-mono",
+                          editing && "opacity-80",
+                        )}
+                        disabled={!!editing || busy}
+                      />
+                    </AIFieldWrapper>
                     <div className="text-[11px] text-zc-muted">Unique code (A-Z, 0-9, underscore or hyphen). 2-32 chars.</div>
                   </div>
 
                   <div className="grid gap-2">
                     <Label>Name</Label>
-                    <Input
-                      value={fName}
-                      onChange={(e) => setFName(e.target.value)}
-                      placeholder="e.g. Intensive Care Unit"
-                      disabled={busy || sysLocked}
-                    />
+                    <AIFieldWrapper warnings={nameFieldAI.warnings} suggestion={nameFieldAI.suggestion} validating={nameFieldAI.validating}>
+                      <Input
+                        value={fName}
+                        onChange={(e) => setFName(e.target.value)}
+                        placeholder="e.g. Intensive Care Unit"
+                        disabled={busy || sysLocked}
+                      />
+                    </AIFieldWrapper>
                   </div>
                 </div>
 

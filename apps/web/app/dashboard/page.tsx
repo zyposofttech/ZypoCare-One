@@ -60,7 +60,7 @@ function StepCard({
       <div className="mt-3 text-sm leading-6 text-zc-muted">{body}</div>
       <div className="mt-5">
         <Button asChild variant="ghost" className="px-0 text-zc-text hover:bg-transparent">
-          <Link href={href}>
+          <Link href={href as any}>
             Continue <IconChevronRight className="h-4 w-4" />
           </Link>
         </Button>
@@ -103,7 +103,7 @@ export default function Page() {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label="Facility"
-            value="ZypoCare Hosp…"
+            value="ZypoCare Hospâ€¦"
             note="Bengaluru, Karnataka"
             icon={<IconBuilding className="h-5 w-5 text-zc-accent" />}
           />
@@ -164,7 +164,7 @@ export default function Page() {
               <StepCard
                 n="3"
                 title="Validate Integrations"
-                body="Messaging, payments, LIS/PACS — run test actions and track readiness from the dashboard."
+                body="Messaging, payments, LIS/PACS â€” run test actions and track readiness from the dashboard."
                 href="/admin/integrations"
               />
             </div>

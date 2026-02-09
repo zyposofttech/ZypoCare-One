@@ -24,6 +24,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { apiFetch, ApiError } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
+import { useFieldCopilot } from "@/lib/copilot/useFieldCopilot";
+import { usePageInsights } from "@/lib/copilot/usePageInsights";
+import { AIFieldWrapper } from "@/components/copilot/AIFieldWrapper";
+import { PageInsightBanner } from "@/components/copilot/PageInsightBanner";
 
 import {
   AlertTriangle,
@@ -169,7 +173,7 @@ function validateRoomCode(code: string): string | null {
   const v = normalizeCode(code);
   if (!v) return "Room code is required";
   if (!/^[A-Z0-9][A-Z0-9_-]{1,31}$/.test(v)) {
-    return "Code must be 2–32 chars, letters/numbers/underscore/hyphen (example: OT-1, TH01, LAB_1)";
+    return "Code must be 2Ã¢â‚¬â€œ32 chars, letters/numbers/underscore/hyphen (example: OT-1, TH01, LAB_1)";
   }
   return null;
 }
@@ -182,14 +186,14 @@ function validateRoomNumber(roomNumber: string): string | null {
   const v = normalizeRoomNumber(roomNumber);
   if (!v) return "Room number is required";
   if (v.length > 32) return "Room number must be <= 32 characters";
-  if (!/^[A-Z0-9][A-Z0-9_-]*$/.test(v)) return "Room number allowed: A–Z, 0–9, underscore (_) and hyphen (-)";
+  if (!/^[A-Z0-9][A-Z0-9_-]*$/.test(v)) return "Room number allowed: AÃ¢â‚¬â€œZ, 0Ã¢â‚¬â€œ9, underscore (_) and hyphen (-)";
   return null;
 }
 
 function fmtDateTime(value?: string | null) {
-  if (!value) return "—";
+  if (!value) return "Ã¢â‚¬â€";
   const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "Ã¢â‚¬â€";
   return d.toLocaleString();
 }
 
@@ -294,6 +298,18 @@ export default function RoomsPage() {
   const [formActive, setFormActive] = React.useState<boolean>(true);
 
   const selectedUnit = React.useMemo(() => units.find((u) => u.id === unitId) || null, [units, unitId]);
+
+  // AI field copilot Ã¢â‚¬â€ code field validation
+  const codeFieldCopilot = useFieldCopilot({
+    module: "room",
+    field: "code",
+    value: formCode,
+    enabled: open && !editing && formCode.length > 0,
+  });
+  const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({
+    module: "rooms",
+    enabled: !!branchId,
+  });
 
   const filteredRows = React.useMemo(() => {
     const v = String(q || "").trim().toLowerCase();
@@ -622,7 +638,7 @@ export default function RoomsPage() {
         if (Array.isArray(res?.warnings) && res.warnings.length) {
           toast({
             title: "Warnings",
-            description: res.warnings.join(" • "),
+            description: res.warnings.join(" Ã¢â‚¬Â¢ "),
           });
         }
 
@@ -686,7 +702,7 @@ export default function RoomsPage() {
           if (Array.isArray(res?.warnings) && res.warnings.length) {
             toast({
               title: "Warnings",
-              description: res.warnings.join(" • "),
+              description: res.warnings.join(" Ã¢â‚¬Â¢ "),
             });
           }
         }
@@ -838,7 +854,7 @@ export default function RoomsPage() {
                 <div className="rounded-xl border border-violet-200 bg-violet-50/50 p-3 dark:border-violet-900/50 dark:bg-violet-900/10">
                   <div className="text-xs font-medium text-violet-600 dark:text-violet-400">Selected Unit</div>
                   <div className="mt-1 text-lg font-bold text-violet-700 dark:text-violet-300">
-                    {selectedUnit ? selectedUnit.code : "—"}
+                    {selectedUnit ? selectedUnit.code : "Ã¢â‚¬â€"}
                   </div>
                   <div className="mt-1 text-[11px] text-violet-700/80 dark:text-violet-300/80">
                     {selectedUnit ? selectedUnit.name : "Pick a unit to view rooms."}
@@ -886,15 +902,15 @@ export default function RoomsPage() {
                     disabled={!branchId}
                   >
                     <SelectTrigger className="h-10 rounded-xl border-zc-border bg-zc-card">
-                      <SelectValue placeholder="Select unit…" />
+                      <SelectValue placeholder="Select unitÃ¢â‚¬Â¦" />
                     </SelectTrigger>
                     <SelectContent className="max-h-[340px] overflow-y-auto">
-                      <SelectItem value="NONE">Select unit…</SelectItem>
+                      <SelectItem value="NONE">Select unitÃ¢â‚¬Â¦</SelectItem>
                       {units.map((u) => (
                         <SelectItem key={u.id} value={u.id}>
                           {u.name}{" "}
                           <span className="font-mono text-xs text-zc-muted">
-                            ({u.code}) {u.usesRooms ? "" : "• open-bay"}
+                            ({u.code}) {u.usesRooms ? "" : "Ã¢â‚¬Â¢ open-bay"}
                           </span>
                         </SelectItem>
                       ))}
@@ -934,7 +950,7 @@ export default function RoomsPage() {
                     <AlertTriangle className="mt-0.5 h-4 w-4 text-[rgb(var(--zc-warn))]" />
                     <div className="min-w-0">
                       This unit is configured as <span className="font-semibold">open-bay</span> (usesRooms=false). Rooms are not allowed. Manage resources under{" "}
-                      <Link className="underline" href={`/infrastructure/resources?unitId=${encodeURIComponent(selectedUnit.id)}`}>
+                      <Link className="underline" href={`/infrastructure/resources?unitId=${encodeURIComponent(selectedUnit.id)}` as any}>
                         Resources
                       </Link>
                       .
@@ -951,6 +967,9 @@ export default function RoomsPage() {
               ) : null}
             </CardContent>
           </Card>
+
+          {/* AI Insights Banner */}
+          <PageInsightBanner insights={insights} loading={insightsLoading} onDismiss={dismissInsight} />
 
           {/* Table */}
           <Card className="overflow-hidden">
@@ -996,7 +1015,7 @@ export default function RoomsPage() {
                     <tr>
                       <td colSpan={6} className="px-4 py-10">
                         <div className="flex items-center gap-3 text-sm text-zc-muted">
-                          <Loader2 className="h-4 w-4 animate-spin" /> Loading rooms…
+                          <Loader2 className="h-4 w-4 animate-spin" /> Loading roomsÃ¢â‚¬Â¦
                         </div>
                       </td>
                     </tr>
@@ -1040,7 +1059,7 @@ export default function RoomsPage() {
                             </div>
                             <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-zc-muted">
                               <span className="rounded-full border border-zc-border bg-zc-panel/10 px-2 py-0.5">
-                                Type: <span className="font-semibold text-zc-text">{String(r.roomType ?? "—")}</span>
+                                Type: <span className="font-semibold text-zc-text">{String(r.roomType ?? "Ã¢â‚¬â€")}</span>
                               </span>
                               <span className="rounded-full border border-zc-border bg-zc-panel/10 px-2 py-0.5">
                                 Occ: <span className="font-semibold text-zc-text tabular-nums">{occ}</span> /{" "}
@@ -1081,7 +1100,7 @@ export default function RoomsPage() {
                                 size="icon"
                                 onClick={() =>
                                   router.push(
-                                    `/infrastructure/rooms/${encodeURIComponent(r.id)}`,
+                                    `/infrastructure/rooms/${encodeURIComponent(r.id)}` as any,
                                   )
                                 }
                                 title="View details"
@@ -1225,9 +1244,19 @@ export default function RoomsPage() {
               ) : null}
 
               <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-                <TabsList className="grid w-full grid-cols-2 rounded-xl">
-                  <TabsTrigger value="basic">Basics</TabsTrigger>
-                  <TabsTrigger value="rules">Rules</TabsTrigger>
+                <TabsList className="h-10 w-full rounded-2xl border border-zc-border bg-zc-panel/20 p-1">
+                  <TabsTrigger
+                    value="basic"
+                    className="flex-1 rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm"
+                  >
+                    Basics
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="rules"
+                    className="flex-1 rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm"
+                  >
+                    Rules
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="basic" className="mt-4">
@@ -1240,15 +1269,15 @@ export default function RoomsPage() {
                         disabled={!!editing}
                       >
                         <SelectTrigger className="h-11 rounded-xl border-zc-border bg-zc-card">
-                          <SelectValue placeholder="Select unit…" />
+                          <SelectValue placeholder="Select unitÃ¢â‚¬Â¦" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[340px] overflow-y-auto">
-                          <SelectItem value="NONE">Select unit…</SelectItem>
+                          <SelectItem value="NONE">Select unitÃ¢â‚¬Â¦</SelectItem>
                           {units.map((u) => (
                             <SelectItem key={u.id} value={u.id}>
                               {u.name}{" "}
                               <span className="font-mono text-xs text-zc-muted">
-                                ({u.code}) {u.usesRooms ? "" : "• open-bay"}
+                                ({u.code}) {u.usesRooms ? "" : "Ã¢â‚¬Â¢ open-bay"}
                               </span>
                             </SelectItem>
                           ))}
@@ -1260,16 +1289,22 @@ export default function RoomsPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="grid gap-2 sm:col-span-1">
                         <Label>Room Code</Label>
-                        <Input
-                          value={formCode}
-                          onChange={(e) => setFormCode(e.target.value.toUpperCase())}
-                          placeholder="e.g. RM-ICU-A-101"
-                          className={cn(
-                            "font-mono bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800 focus-visible:ring-indigo-500",
-                            editing && "opacity-80",
-                          )}
-                          disabled={!!editing}
-                        />
+                        <AIFieldWrapper
+                          warnings={codeFieldCopilot.warnings}
+                          suggestion={codeFieldCopilot.suggestion}
+                          validating={codeFieldCopilot.validating}
+                        >
+                          <Input
+                            value={formCode}
+                            onChange={(e) => setFormCode(e.target.value.toUpperCase())}
+                            placeholder="e.g. RM-ICU-A-101"
+                            className={cn(
+                              "font-mono bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800 focus-visible:ring-indigo-500",
+                              editing && "opacity-80",
+                            )}
+                            disabled={!!editing}
+                          />
+                        </AIFieldWrapper>
                         <p className="text-[11px] text-zc-muted">Code should be stable. Editing is disabled after creation.</p>
                       </div>
 
@@ -1295,7 +1330,7 @@ export default function RoomsPage() {
                         <Label>Room Type</Label>
                         <Select value={formRoomType} onValueChange={(v) => setFormRoomType(v as RoomType)}>
                           <SelectTrigger className="h-11 rounded-xl border-zc-border bg-zc-card">
-                            <SelectValue placeholder="Select type…" />
+                            <SelectValue placeholder="Select typeÃ¢â‚¬Â¦" />
                           </SelectTrigger>
                           <SelectContent className="max-h-[340px] overflow-y-auto">
                             {ROOM_TYPES.map((t) => (
@@ -1343,7 +1378,7 @@ export default function RoomsPage() {
                         <Label>Pricing Tier</Label>
                         <Select value={formPricingTier || "NONE"} onValueChange={(v) => setFormPricingTier(v === "NONE" ? "" : (v as PricingTier))}>
                           <SelectTrigger className="h-11 rounded-xl border-zc-border bg-zc-card">
-                            <SelectValue placeholder="Select tier…" />
+                            <SelectValue placeholder="Select tierÃ¢â‚¬Â¦" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="NONE">None</SelectItem>
@@ -1457,7 +1492,7 @@ export default function RoomsPage() {
                             onValueChange={(v) => setFormIsolationType(v === "NONE" ? "" : (v as IsolationType))}
                           >
                             <SelectTrigger className="h-11 rounded-xl border-zc-border bg-zc-card">
-                              <SelectValue placeholder="Select isolation type…" />
+                              <SelectValue placeholder="Select isolation typeÃ¢â‚¬Â¦" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="NONE">None</SelectItem>
@@ -1496,7 +1531,7 @@ export default function RoomsPage() {
                           <Label>Maintenance Status</Label>
                           <Select value={formMaintenanceStatus} onValueChange={(v) => setFormMaintenanceStatus(v as MaintenanceStatus)}>
                             <SelectTrigger className="h-11 rounded-xl border-zc-border bg-zc-card">
-                              <SelectValue placeholder="Select status…" />
+                              <SelectValue placeholder="Select statusÃ¢â‚¬Â¦" />
                             </SelectTrigger>
                             <SelectContent className="max-h-[340px] overflow-y-auto">
                               {MAINTENANCE_STATUSES.map((s) => (
@@ -1567,7 +1602,7 @@ export default function RoomsPage() {
                 <Button variant="primary" onClick={() => void save()} disabled={busy || !branchId}>
                   {busy ? (
                     <span className="inline-flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" /> Saving…
+                      <Loader2 className="h-4 w-4 animate-spin" /> SavingÃ¢â‚¬Â¦
                     </span>
                   ) : (
                     "Save"

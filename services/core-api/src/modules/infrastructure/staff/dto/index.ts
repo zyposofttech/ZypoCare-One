@@ -1,6 +1,7 @@
 export * from "./staff-onboard.dto";
 export * from "./staff-update.dto";
 export * from "./staff-assignment.dto";
+export * from "./staff-hpr.dto";
 export * from "./staff-provision-user.dto";
 export * from "./staff-link-user.dto";
 export * from "./staff-usg-authorization.dto";

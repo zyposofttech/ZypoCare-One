@@ -49,7 +49,7 @@ export default function SuperAdminPolicyLandingPage() {
     <AppShell title="Policy Governance">
       <RequirePerm perm="GOV_POLICY_READ">
       <div className="grid gap-6">
-        {/* ✅ MATCHED HEADER (like attached page.tsx) */}
+        {/* âœ… MATCHED HEADER (like attached page.tsx) */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-center gap-3">
             <span className="grid h-10 w-10 place-items-center rounded-2xl border border-zc-border bg-zc-panel/30">
@@ -63,7 +63,7 @@ export default function SuperAdminPolicyLandingPage() {
             </div>
           </div>
 
-          {/* ✅ MATCHED BUTTONS (px-5, no rounded-full) */}
+          {/* âœ… MATCHED BUTTONS (px-5, no rounded-full) */}
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" onClick={() => void load()} className="px-5">
               <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
@@ -87,24 +87,24 @@ export default function SuperAdminPolicyLandingPage() {
           </div>
         ) : null}
 
-        {/* ✅ STATS ROW (keeps your toned KPI cards, but in the attached layout position) */}
+        {/* âœ… STATS ROW (keeps your toned KPI cards, but in the attached layout position) */}
         <div className="grid gap-4 md:grid-cols-3">
-          <KpiCard label="Policies" value={stats?.totalPolicies ?? "—"} icon={<FileText className="h-4 w-4" />} tone="blue" />
+          <KpiCard label="Policies" value={stats?.totalPolicies ?? "â€”"} icon={<FileText className="h-4 w-4" />} tone="blue" />
           <KpiCard
             label="Pending approvals"
-            value={stats?.pendingApprovals ?? "—"}
+            value={stats?.pendingApprovals ?? "â€”"}
             icon={<CheckCircle2 className="h-4 w-4" />}
             tone="amber"
           />
           <KpiCard
             label="Recent audit events"
-            value={stats?.recentEvents ?? "—"}
+            value={stats?.recentEvents ?? "â€”"}
             icon={<History className="h-4 w-4" />}
             tone="violet"
           />
         </div>
 
-        {/* ✅ WORKBENCH CARD (same structure as attached page.tsx) */}
+        {/* âœ… WORKBENCH CARD (same structure as attached page.tsx) */}
         <Card className="overflow-hidden">
           <CardContent className="p-6">
             <div className="flex items-center gap-2 text-base font-semibold">
@@ -228,7 +228,7 @@ function QuickLink({
 
   return (
     <Link
-      href={href}
+      href={href as any}
       className={cn(
         "group relative flex flex-col gap-3 rounded-2xl border p-5 transition-all duration-300",
         "hover:-translate-y-1 hover:shadow-md",

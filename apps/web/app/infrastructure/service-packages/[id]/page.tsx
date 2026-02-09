@@ -66,9 +66,9 @@ type ServicePackageRow = {
 /* -------------------------------------------------------------------------- */
 
 function fmtDateTime(v?: string | null) {
-  if (!v) return "—";
+  if (!v) return "â€”";
   const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "â€”";
   return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
 }
 
@@ -127,11 +127,11 @@ export default function ServicePackageDetailPage() {
   const optional = items.filter((i) => i.isOptional).length;
 
   return (
-    <AppShell title="Infrastructure • Service Packages • Details">
+    <AppShell title="Infrastructure â€¢ Service Packages â€¢ Details">
       <RequirePerm perm="INFRA_SERVICE_PACKAGE_READ">
       <div className="grid gap-6">
         <div className="flex flex-wrap items-center gap-3">
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => router.push("/infrastructure/service-packages")}>
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => router.push("/infrastructure/service-packages" as any)}>
             <ArrowLeft className="h-4 w-4" />
             Back to Packages
           </Button>
@@ -154,7 +154,7 @@ export default function ServicePackageDetailPage() {
         {loading ? (
           <Card className="border-zc-border">
             <CardHeader className="py-4">
-              <CardTitle className="text-base">Loading package…</CardTitle>
+              <CardTitle className="text-base">Loading packageâ€¦</CardTitle>
               <CardDescription>Fetching details and items.</CardDescription>
             </CardHeader>
           </Card>
@@ -164,15 +164,15 @@ export default function ServicePackageDetailPage() {
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div>
                   <CardTitle className="text-base">
-                    <span className="font-mono">{row.code}</span> • {row.name}
+                    <span className="font-mono">{row.code}</span> â€¢ {row.name}
                   </CardTitle>
                   <CardDescription>
-                    {statusBadge(row.status)} <span className="mx-2 text-zc-muted">•</span>
+                    {statusBadge(row.status)} <span className="mx-2 text-zc-muted">â€¢</span>
                     Version: <span className="font-semibold text-zc-text">v{row.version ?? 1}</span>{" "}
-                    <span className="mx-2 text-zc-muted">•</span>
-                    Model: <span className="font-semibold text-zc-text">{row.pricingModel || "—"}</span>{" "}
-                    <span className="mx-2 text-zc-muted">•</span>
-                    Tax: <span className="font-semibold text-zc-text">{row.taxTreatment || "—"}</span>
+                    <span className="mx-2 text-zc-muted">â€¢</span>
+                    Model: <span className="font-semibold text-zc-text">{row.pricingModel || "â€”"}</span>{" "}
+                    <span className="mx-2 text-zc-muted">â€¢</span>
+                    Tax: <span className="font-semibold text-zc-text">{row.taxTreatment || "â€”"}</span>
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-zc-muted">
@@ -195,7 +195,7 @@ export default function ServicePackageDetailPage() {
                 <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-4">
                   <div className="text-xs font-semibold text-zc-muted">Effective window</div>
                   <div className="mt-1 text-sm text-zc-muted">
-                    {fmtDateTime(row.effectiveFrom)} → {fmtDateTime(row.effectiveTo || null)}
+                    {fmtDateTime(row.effectiveFrom)} â†’ {fmtDateTime(row.effectiveTo || null)}
                   </div>
                   <div className="mt-2 text-xs text-zc-muted">Active: {row.isActive === false ? "No" : "Yes"}</div>
                 </div>
@@ -203,9 +203,9 @@ export default function ServicePackageDetailPage() {
                 <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-4">
                   <div className="text-xs font-semibold text-zc-muted">Pricing rules</div>
                   <div className="mt-1 text-sm text-zc-muted">
-                    Cap: <span className="font-semibold text-zc-text">{row.capAmount ?? "—"}</span>{" "}
-                    <span className="mx-2 text-zc-muted">•</span>
-                    Discount%: <span className="font-semibold text-zc-text">{row.discountPercent ?? "—"}</span>
+                    Cap: <span className="font-semibold text-zc-text">{row.capAmount ?? "â€”"}</span>{" "}
+                    <span className="mx-2 text-zc-muted">â€¢</span>
+                    Discount%: <span className="font-semibold text-zc-text">{row.discountPercent ?? "â€”"}</span>
                   </div>
                   <div className="mt-2 text-xs text-zc-muted">
                     Note: enforcement happens in billing + GoLive checks (tax active, charge unit aligned, tariff coverage).
@@ -219,7 +219,7 @@ export default function ServicePackageDetailPage() {
                 <div>
                   <div className="text-sm font-semibold text-zc-text">Items</div>
                   <div className="text-sm text-zc-muted">
-                    Total: {items.length} • Included: {included} • Optional: {optional}
+                    Total: {items.length} â€¢ Included: {included} â€¢ Optional: {optional}
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -264,7 +264,7 @@ export default function ServicePackageDetailPage() {
                           <TableCell className="font-mono text-xs font-semibold">
                             {it.chargeMasterItem?.code || it.chargeMasterItemId}
                           </TableCell>
-                          <TableCell className="text-sm text-zc-muted">{it.chargeMasterItem?.name || "—"}</TableCell>
+                          <TableCell className="text-sm text-zc-muted">{it.chargeMasterItem?.name || "â€”"}</TableCell>
                           <TableCell className="text-sm text-zc-muted">{it.qty ?? 1}</TableCell>
                           <TableCell>{it.isIncluded ? <Badge variant="ok">YES</Badge> : <Badge variant="secondary">NO</Badge>}</TableCell>
                           <TableCell>{it.isOptional ? <Badge variant="warning">YES</Badge> : <Badge variant="secondary">NO</Badge>}</TableCell>
