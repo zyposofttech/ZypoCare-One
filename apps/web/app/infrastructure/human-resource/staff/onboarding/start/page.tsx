@@ -2,12 +2,18 @@
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { apiFetch } from "@/lib/api";
+
+import { AppShell } from "@/components/AppShell";
+
+function newLocalDraftId() {
+  if (typeof crypto !== "undefined" && typeof (crypto as any).randomUUID === "function") return (crypto as any).randomUUID();
+  return `draft_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
 
 /**
- * FIXED:
- * - Old code generated random UUID draftId (not a real Prisma staffId) → backend 404.
- * - Now we create a REAL draft staff record on server and redirect with its staffId.
+ * Start route should NOT render a blank app.
+ * It simply ensures draftId exists and moves user to Personal step.
+ * No DB writes here.
  */
 export default function StartPage() {
   const router = useRouter();
@@ -15,40 +21,20 @@ export default function StartPage() {
 
   React.useEffect(() => {
     const existing = sp.get("draftId");
-
-    async function boot() {
-      try {
-        // If draftId exists and server recognizes it, continue.
-        if (existing) {
-          try {
-            await apiFetch(`/api/infrastructure/staff/${encodeURIComponent(existing)}`);
-            router.replace(
-              `/infrastructure/human-resource/staff/onboarding/personal?draftId=${encodeURIComponent(existing)}` as any,
-            );
-            return;
-          } catch {
-            // fallthrough -> create a new server draft and migrate later
-          }
-        }
-
-        // Create a real server draft
-        const created = await apiFetch<{ staffId: string }>(`/api/infrastructure/staff/drafts`, {
-          method: "POST",
-          body: {},
-        });
-
-        if (!created?.staffId) throw new Error("Draft creation failed (no staffId returned)");
-
-        router.replace(
-          `/infrastructure/human-resource/staff/onboarding/personal?draftId=${encodeURIComponent(created.staffId)}` as any,
-        );
-      } catch {
-        router.replace(`/infrastructure/human-resource/staff` as any);
-      }
-    }
-
-    boot();
+    const id = existing || newLocalDraftId();
+    router.replace(
+      `/infrastructure/human-resource/staff/onboarding/personal?draftId=${encodeURIComponent(id)}` as any,
+    );
   }, [router, sp]);
 
-  return <div className="p-6 text-sm text-zc-muted">Initializing onboarding draft…</div>;
+  return (
+    <AppShell title="Staff Onboarding">
+      <div className="min-h-[60vh] w-full flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <div className="h-7 w-7 animate-spin rounded-full border-2 border-zc-border border-t-zc-accent" />
+          <div className="text-sm text-zc-muted">Starting onboarding…</div>
+        </div>
+      </div>
+    </AppShell>
+  );
 }

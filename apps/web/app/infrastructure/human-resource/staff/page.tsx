@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { AppShell } from "@/components/AppShell";
 import { AppLink as Link } from "@/components/app-link";
@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 
 import { apiFetch, ApiError } from "@/lib/api";
@@ -19,7 +20,7 @@ import { useBranchContext } from "@/lib/branch/useBranchContext";
 import { useActiveBranchStore } from "@/lib/branch/active-branch";
 
 import { IconChevronRight, IconUsers, IconPlus, IconSearch } from "@/components/icons";
-import { AlertTriangle, RefreshCw, UserPlus } from "lucide-react";
+import { AlertTriangle, RefreshCw, UserPlus,Settings2 } from "lucide-react";
 
 // ---------------- Types ----------------
 
@@ -49,6 +50,8 @@ type StaffListItem = {
   category: string;
   engagementType: string;
   status: string;
+  onboardingStatus?: string; // ✅ NEW
+  onboardingCompletedAt?: string | null; // ✅ NEW
   phone?: string | null;
   email?: string | null;
   hprId?: string | null;
@@ -69,6 +72,8 @@ type StaffListResponse = {
 // ---------------- UI helpers ----------------
 
 const ALL = "__ALL__";
+const TAB_DRAFTED = "DRAFTED";
+const TAB_BOARDED = "BOARDED";
 
 function statusBadge(status: string) {
   const s = String(status || "").toUpperCase();
@@ -80,6 +85,21 @@ function statusBadge(status: string) {
   }
   if (s === "OFFBOARDED") {
     return "border-zinc-200/70 bg-zinc-50/70 text-zinc-700 dark:border-zinc-800/60 dark:bg-zinc-900/30 dark:text-zinc-200";
+  }
+  return "border-zinc-200/70 bg-zinc-50/70 text-zinc-700 dark:border-zinc-800/60 dark:bg-zinc-900/30 dark:text-zinc-200";
+}
+
+function onboardingBadge(onboardingStatus?: string) {
+  const s = String(onboardingStatus || "").toUpperCase();
+  if (!s) return "border-zinc-200/70 bg-zinc-50/70 text-zinc-700 dark:border-zinc-800/60 dark:bg-zinc-900/30 dark:text-zinc-200";
+  if (s === "DRAFT") {
+    return "border-amber-200/70 bg-amber-50/70 text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200";
+  }
+  if (s === "IN_REVIEW") {
+    return "border-sky-200/70 bg-sky-50/70 text-sky-800 dark:border-sky-900/40 dark:bg-sky-900/20 dark:text-sky-200";
+  }
+  if (s === "ACTIVE") {
+    return "border-emerald-200/70 bg-emerald-50/70 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200";
   }
   return "border-zinc-200/70 bg-zinc-50/70 text-zinc-700 dark:border-zinc-800/60 dark:bg-zinc-900/30 dark:text-zinc-200";
 }
@@ -101,7 +121,7 @@ function pickPrimary(assignments: StaffAssignmentLite[] | undefined) {
 async function apiFetchWithFallback<T>(
   primary: string,
   fallback: string,
-  opts?: Parameters<typeof apiFetch<T>>[1]
+  opts?: Parameters<typeof apiFetch<T>>[1],
 ): Promise<T> {
   try {
     return await apiFetch<T>(primary, opts);
@@ -116,18 +136,23 @@ async function apiFetchWithFallback<T>(
 
 export default function HrStaffDirectoryPage() {
   const { toast } = useToast();
-  const user = useAuthStore((s) => s.user);
+  const router = useRouter();
   const sp = useSearchParams();
+  const user = useAuthStore((s) => s.user);
 
   const canRead = hasPerm(user, "STAFF_READ");
   const canCreate = hasPerm(user, "STAFF_CREATE");
 
-  // Branch context (same pattern as other infra pages)
+  // Branch context
   const branchCtx = useBranchContext();
   const activeBranchId = useActiveBranchStore((s) => s.activeBranchId);
   const effectiveBranchId = branchCtx.branchId ?? activeBranchId ?? "";
 
   const qpBranchId = sp.get("branchId") || undefined;
+
+  const qpTabRaw = (sp.get("tab") || TAB_BOARDED).toUpperCase();
+  const initialTab = qpTabRaw === TAB_DRAFTED ? TAB_DRAFTED : TAB_BOARDED;
+  const [tab, setTab] = React.useState<string>(initialTab);
 
   const [loading, setLoading] = React.useState(true);
   const [busy, setBusy] = React.useState(false);
@@ -152,14 +177,10 @@ export default function HrStaffDirectoryPage() {
     return map;
   }, [branches]);
 
-  const filteredCountLabel = React.useMemo(() => {
-    return `${items.length}${nextCursor ? "+" : ""}`;
-  }, [items.length, nextCursor]);
+  const filteredCountLabel = React.useMemo(() => `${items.length}${nextCursor ? "+" : ""}`, [items.length, nextCursor]);
 
   React.useEffect(() => {
-    // Default branch filter:
-    // - Global scope: allow ALL
-    // - Branch scope: lock to effective branch
+    // Default branch filter
     if (qpBranchId) {
       setBranchId(qpBranchId);
       return;
@@ -170,13 +191,28 @@ export default function HrStaffDirectoryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qpBranchId, branchCtx.scope, effectiveBranchId]);
 
+  React.useEffect(() => {
+    // keep tab synced if URL changes
+    const t = (sp.get("tab") || TAB_BOARDED).toUpperCase();
+    const v = t === TAB_DRAFTED ? TAB_DRAFTED : TAB_BOARDED;
+    setTab(v);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sp]);
+
+  function setTabAndUrl(v: string) {
+    setTab(v);
+    const params = new URLSearchParams(sp.toString());
+    params.set("tab", v);
+    router.replace(`?${params.toString()}` as any);
+  }
+
   async function loadBranches() {
     try {
       const data = (await apiFetch<BranchRow[]>("/api/branches")) || [];
       const sorted = [...data].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
       setBranches(sorted);
     } catch {
-      // Non-blocking for this page.
+      // non-blocking
     }
   }
 
@@ -187,6 +223,10 @@ export default function HrStaffDirectoryPage() {
     if (status !== ALL) params.set("status", status);
     if (category !== ALL) params.set("category", category);
     if (engagementType !== ALL) params.set("engagementType", engagementType);
+
+    // ✅ NEW: onboarding tab filter
+    params.set("onboarding", tab === TAB_DRAFTED ? "DRAFTED" : "BOARDED");
+
     if (cursor) params.set("cursor", cursor);
     params.set("take", "25");
     return `?${params.toString()}`;
@@ -199,7 +239,6 @@ export default function HrStaffDirectoryPage() {
     try {
       await loadBranches();
 
-      // Prefer new HR route; fall back to legacy infra staff route.
       const url = "/api/infrastructure/human-resource/staff" + buildListUrl(null);
       const legacy = "/api/infrastructure/staff" + buildListUrl(null);
 
@@ -207,9 +246,7 @@ export default function HrStaffDirectoryPage() {
       setItems(res?.items ?? []);
       setNextCursor(res?.nextCursor ?? null);
 
-      if (showToast) {
-        toast({ title: "Staff refreshed", description: `Loaded ${(res?.items ?? []).length} staff rows.` });
-      }
+      if (showToast) toast({ title: "Staff refreshed", description: `Loaded ${(res?.items ?? []).length} rows.` });
     } catch (e: any) {
       const msg = e?.message || "Failed to load staff";
       setErr(msg);
@@ -220,8 +257,7 @@ export default function HrStaffDirectoryPage() {
   }
 
   async function loadMore() {
-    if (!canRead) return;
-    if (!nextCursor) return;
+    if (!canRead || !nextCursor) return;
     setBusy(true);
     try {
       const url = "/api/infrastructure/human-resource/staff" + buildListUrl(nextCursor);
@@ -242,15 +278,13 @@ export default function HrStaffDirectoryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Re-fetch when filters change (debounced)
+  // Re-fetch when filters OR tab change (debounced)
   React.useEffect(() => {
     if (!canRead) return;
-    const t = setTimeout(() => {
-      void refresh(false);
-    }, 300);
+    const t = setTimeout(() => void refresh(false), 250);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, branchId, status, category, engagementType]);
+  }, [q, branchId, status, category, engagementType, tab]);
 
   const activeCount = items.filter((r) => String(r.status).toUpperCase() === "ACTIVE").length;
   const inactiveCount = Math.max(0, items.length - activeCount);
@@ -267,7 +301,7 @@ export default function HrStaffDirectoryPage() {
             <div className="min-w-0">
               <div className="text-3xl font-semibold tracking-tight">Staff Directory</div>
               <div className="mt-1 text-sm text-zc-muted">
-                Enterprise staff registry (global) with branch-scoped filters, assignments, credentials and system access linkage.
+                Enterprise staff registry with onboarding drafts and boarded staff.
               </div>
             </div>
           </div>
@@ -279,7 +313,7 @@ export default function HrStaffDirectoryPage() {
             </Button>
 
             <Button asChild variant="primary" className="px-5 gap-2" disabled={!canCreate}>
-              <Link href="/infrastructure/human-resource/staff/onboarding/start">
+              <Link href="/infrastructure/human-resource/staff/onboarding">
                 <UserPlus className="h-4 w-4" />
                 Start Onboarding
               </Link>
@@ -287,22 +321,44 @@ export default function HrStaffDirectoryPage() {
           </div>
         </div>
 
-        {/* Overview */}
+        {/* Tabs */}
         <Card className="overflow-hidden">
           <CardHeader className="pb-4">
-            <CardTitle className="text-base">Overview</CardTitle>
-            <CardDescription className="text-sm">Search staff and open profiles. Use onboarding wizard for new staff creation.</CardDescription>
+            <CardTitle className="text-base">Onboarding</CardTitle>
+            <CardDescription className="text-sm">Drafted staff can be resumed from where you left off.</CardDescription>
+
+            <div className="mt-3">
+              <Tabs value={tab} onValueChange={setTabAndUrl}>
+                <TabsList className={cn("h-10 rounded-2xl border border-zc-border bg-zc-panel/20 p-1")}>
+                  <TabsTrigger
+                    value={TAB_DRAFTED}
+                    className={cn("rounded-xl px-4", "data-[state=active]:bg-zc-accent data-[state=active]:text-white")}
+                  >
+                    Drafted
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value={TAB_BOARDED}
+                    className={cn("rounded-xl px-4", "data-[state=active]:bg-zc-accent data-[state=active]:text-white")}
+                  >
+                    Boarded
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
           </CardHeader>
+
           <CardContent className="grid gap-4">
             <div className="grid gap-3 md:grid-cols-3">
               <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-3 dark:border-blue-900/50 dark:bg-blue-900/10">
                 <div className="text-xs font-medium text-blue-600 dark:text-blue-400">Shown in table</div>
                 <div className="mt-1 text-lg font-bold text-blue-700 dark:text-blue-300">{filteredCountLabel}</div>
-                <div className="mt-1 text-[11px] text-blue-700/80 dark:text-blue-300/80">Count reflects current filters.</div>
+                <div className="mt-1 text-[11px] text-blue-700/80 dark:text-blue-300/80">
+                  {tab === TAB_DRAFTED ? "DRAFT onboarding records." : "IN_REVIEW + ACTIVE onboarding records."}
+                </div>
               </div>
 
               <div className="rounded-xl border border-sky-200 bg-sky-50/50 p-3 dark:border-sky-900/50 dark:bg-sky-900/10">
-                <div className="text-xs font-medium text-sky-600 dark:text-sky-400">Active</div>
+                <div className="text-xs font-medium text-sky-600 dark:text-sky-400">Active status</div>
                 <div className="mt-1 text-lg font-bold text-sky-700 dark:text-sky-300">{activeCount}</div>
               </div>
 
@@ -395,8 +451,12 @@ export default function HrStaffDirectoryPage() {
         {/* Table */}
         <Card className="overflow-hidden">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Staff Registry</CardTitle>
-            <CardDescription className="text-sm">Open a staff profile to manage assignments, credentials, documents and system access.</CardDescription>
+            <CardTitle className="text-base">{tab === TAB_DRAFTED ? "Drafted Staff" : "Boarded Staff"}</CardTitle>
+            <CardDescription className="text-sm">
+              {tab === TAB_DRAFTED
+                ? "Continue onboarding for drafted staff."
+                : "Open a staff profile to manage assignments, credentials, documents and system access."}
+            </CardDescription>
           </CardHeader>
           <Separator />
 
@@ -417,7 +477,7 @@ export default function HrStaffDirectoryPage() {
                 {!items.length ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-10 text-center text-sm text-zc-muted">
-                      {loading ? "Loading staff…" : canRead ? "No staff found." : "No permission to view staff."}
+                      {loading ? "Loading…" : canRead ? "No staff found." : "No permission to view staff."}
                     </td>
                   </tr>
                 ) : null}
@@ -428,10 +488,15 @@ export default function HrStaffDirectoryPage() {
                   const sysLinked = !!s.user;
                   const sysActive = !!s.user?.isActive;
 
+                  const ob = String(s.onboardingStatus || "").toUpperCase();
+                  const isDraft = ob === "DRAFT" || ob === "IN_REVIEW";
+
                   return (
                     <tr key={s.id} className="border-t border-zc-border hover:bg-zc-panel/20">
                       <td className="px-4 py-3">
-                        <span className="inline-flex rounded-lg border border-zc-border bg-zc-accent/20 px-2.5 py-1 font-mono text-xs text-zc-text">{s.empCode}</span>
+                        <span className="inline-flex rounded-lg border border-zc-border bg-zc-accent/20 px-2.5 py-1 font-mono text-xs text-zc-text">
+                          {s.empCode}
+                        </span>
                       </td>
 
                       <td className="px-4 py-3">
@@ -439,10 +504,22 @@ export default function HrStaffDirectoryPage() {
                         <div className="mt-0.5 text-xs text-zc-muted truncate" title={s.designation || ""}>
                           {s.designation || "-"}
                         </div>
+
                         <div className="mt-1 flex flex-wrap gap-2">
                           <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold", statusBadge(s.status))}>
                             {String(s.status || "-").toUpperCase()}
                           </span>
+
+                          {s.onboardingStatus ? (
+                            <span
+                              className={cn(
+                                "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                                onboardingBadge(s.onboardingStatus),
+                              )}
+                            >
+                              {String(s.onboardingStatus).replaceAll("_", " ")}
+                            </span>
+                          ) : null}
                         </div>
                       </td>
 
@@ -469,11 +546,23 @@ export default function HrStaffDirectoryPage() {
                         <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold", sysAccessBadge(sysLinked, sysActive))}>
                           {sysLinked ? (sysActive ? "Linked" : "Linked (Inactive)") : "Not linked"}
                         </span>
-                        {s.user?.email ? <div className="mt-1 text-xs text-zc-muted truncate" title={s.user.email}>{s.user.email}</div> : null}
+                        {s.user?.email ? (
+                          <div className="mt-1 text-xs text-zc-muted truncate" title={s.user.email}>
+                            {s.user.email}
+                          </div>
+                        ) : null}
                       </td>
 
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-2">
+                          {isDraft ? (
+                            <Button asChild variant="primary" size="icon">
+                              <Link href={`/infrastructure/human-resource/staff/onboarding/personal?draftId=${encodeURIComponent(s.id)}` as any} title="Continue onboarding">
+                                 <Settings2 className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                          ) : null}
+
                           <Button asChild variant="success" size="icon">
                             <Link href={`/infrastructure/human-resource/staff/${s.id}` as any} title="View profile" aria-label="View profile">
                               <IconChevronRight className="h-4 w-4" />

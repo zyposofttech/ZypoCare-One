@@ -20,7 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import { ToastHost } from "@/components/ToastHost";
+import { toast } from "@/components/ui/use-toast";
 import { CopilotProvider } from "@/lib/copilot/CopilotProvider";
 import { CopilotWidget } from "@/components/copilot/CopilotWidget";
 import { NavBadgeAI } from "@/components/copilot/NavBadgeAI";
@@ -49,7 +49,6 @@ import {
   IconRefresh,
   type IconProps,
 } from "@/components/icons";
-import { notify } from "@/lib/notify";
 import { useActiveBranchStore } from "@/lib/branch/active-branch";
 
 function IconRefreshLocal(props: IconProps) {
@@ -243,7 +242,9 @@ const NAV_WORKSPACES: NavNode[] = [
         children: [
           { label: "Overview", href: "/infrastructure/human-resource" },
            { label: "Staff Directory", href: "/infrastructure/human-resource/staff" },
-           { label: "Onboarding", href: "/infrastructure/human-resource/staff/onboarding/start" },
+           // Onboarding entry uses a server redirect that attaches a local draftId.
+           // This avoids a blank intermediate screen and keeps navigation consistent.
+           { label: "Onboarding", href: "/infrastructure/human-resource/staff/onboarding" },
           { label: "Roster", href: "/infrastructure/human-resource/roster" },
           { label: "Attendance", href: "/infrastructure/human-resource/attendance" },
           { label: "Leaves", href: "/infrastructure/human-resource/leaves" },
@@ -762,6 +763,19 @@ function isNavNodeActive(pathname: string, node: NavNode) {
   return flattenChildLinks(node.children).some(({ link }) => isActivePath(pathname, link.href));
 }
 
+function getActiveChildHref(pathname: string, children?: NavChild[], parentHref?: string): string | null {
+  const links = flattenChildLinks(children);
+  let best: { href: string; len: number } | null = null;
+  for (const { link } of links) {
+    const href = link.href;
+    const matches = href === parentHref ? pathname === href : isActivePath(pathname, href);
+    if (!matches) continue;
+    const len = href.length;
+    if (!best || len > best.len) best = { href, len };
+  }
+  return best?.href ?? null;
+}
+
 function readBool(key: string, fallback: boolean) {
   if (typeof window === "undefined") return fallback;
   try {
@@ -939,7 +953,11 @@ export function AppShell({
 
       if (!branchGateNotifiedRef.current) {
         branchGateNotifiedRef.current = true;
-        notify.warning("Active branch required", "Select a branch to continue.");
+        toast({
+          variant: "warning",
+          title: "Active branch required",
+          description: "Select a branch to continue.",
+        });
       }
 
       setBranchGateOpen(true);
@@ -1537,6 +1555,9 @@ export function AppShell({
                           const Icon = node.icon;
                           const active = isNavNodeActive(pathname, node);
                           const open = !collapsed && (openMap[node.href] ?? true);
+                          const activeChildHref = node.children?.length
+                            ? getActiveChildHref(pathname, node.children, node.href)
+                            : null;
 
                           const linkBase = cn(
                             "group flex min-w-0 items-center gap-3 rounded-lg",
@@ -1613,8 +1634,7 @@ export function AppShell({
                                             {c.label}
                                           </div>
                                           {c.children.map((child) => {
-                                            const childActive =
-                                              child.href === node.href ? pathname === child.href : isActivePath(pathname, child.href);
+                                            const childActive = activeChildHref === child.href;
                                             return (
                                               <Link
                                                 key={child.href}
@@ -1651,7 +1671,7 @@ export function AppShell({
                                       );
                                     }
 
-                                    const childActive = c.href === node.href ? pathname === c.href : isActivePath(pathname, c.href);
+                                    const childActive = activeChildHref === c.href;
                                     return (
                                       <Link
                                         key={c.href}
@@ -1902,7 +1922,6 @@ export function AppShell({
             </main>
           </div>
         </div>
-        <ToastHost />
         <CopilotWidget />
       </div>
     </CopilotProvider>

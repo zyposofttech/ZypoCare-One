@@ -1,20 +1,13 @@
 import { redirect } from "next/navigation";
+import crypto from "crypto";
 
 export default function OnboardingIndexPage({
   searchParams,
 }: {
-  searchParams?: Record<string, string | string[]>;
+  searchParams?: { draftId?: string };
 }) {
-  const draftId =
-    typeof searchParams?.draftId === "string"
-      ? searchParams.draftId
-      : Array.isArray(searchParams?.draftId)
-      ? searchParams?.draftId?.[0]
-      : null;
-
+  const draftId = searchParams?.draftId || crypto.randomUUID();
   redirect(
-    draftId
-      ? `/infrastructure/human-resource/staff/onboarding/personal?draftId=${encodeURIComponent(draftId)}`
-      : "/infrastructure/human-resource/staff/onboarding/personal"
+    `/infrastructure/human-resource/staff/onboarding/personal?draftId=${encodeURIComponent(draftId)}`
   );
 }

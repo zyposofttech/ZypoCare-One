@@ -81,7 +81,7 @@ export function EvidenceUpload({
         ref={inputRef}
         type="file"
         className="hidden"
-        accept="image/png,image/jpeg,image/webp,application/pdf"
+      accept="image/png,image/jpeg,image/webp,application/pdf,.pdf"
         multiple
         onChange={async (e) => {
           const files = Array.from(e.currentTarget.files || []);
@@ -161,3 +161,23 @@ export function EvidenceUpload({
     </div>
   );
 }
+async function openAuthedFile(url: string, token: string) {
+  const res = await fetch(url, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(txt || `Failed to load file (${res.status})`);
+  }
+
+  const blob = await res.blob();
+  const blobUrl = URL.createObjectURL(blob);
+
+  window.open(blobUrl, "_blank", "noopener,noreferrer");
+
+  // cleanup later
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+}
+

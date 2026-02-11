@@ -59,10 +59,10 @@
 */
 .dark {
   /* ChatGPT dark */
-  --zc-bg: 33 33 33;
-  --zc-panel: 23 23 23; /* sidebar */
+  --zc-bg: 38 38 38;
+  --zc-panel: 33 33 33; /* sidebar */
   --zc-card: 33 33 33;
-  --zc-border: 66 66 66; /* gray-700 */
+  --zc-border: 68 68 68; /* gray-700 */
   --zc-text: 255 254 254;   /*white */
   --zc-muted: 232 232 237;  /* gray-400 */
 

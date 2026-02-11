@@ -17,6 +17,7 @@ import { cn } from "@/lib/cn";
 import { apiFetch, ApiError } from "@/lib/api";
 
 const STAFF_API_BASE = "/api/infrastructure/staff";
+const ONB_BASE = "/infrastructure/human-resource/staff/onboarding";
 
 type Severity = "error" | "warn";
 
@@ -54,11 +55,22 @@ function normalizeDateLike(input: any): string | null {
   if (!input) return null;
   const s = String(input).trim();
   if (!s) return null;
-  // Accept ISO or YYYY-MM-DD
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
   const d = new Date(s);
   if (isNaN(d.getTime())) return null;
   return d.toISOString().slice(0, 10);
+}
+
+function getDob(pd: any): string {
+  const raw = String(pd?.dob ?? pd?.date_of_birth ?? "").trim();
+  return raw;
+}
+
+function normalizePersonal(pd: any) {
+  const dob = getDob(pd);
+  if (!dob) return pd ?? {};
+  // Keep backward compatible keys, but ensure `dob` exists
+  return { ...(pd ?? {}), dob };
 }
 
 function mapCredentialTypeToBackend(v: string): "MEDICAL_REG" | "NURSING_REG" | "PHARMACY_REG" | "TECH_CERT" | "OTHER" {
@@ -88,7 +100,6 @@ function mapAssignmentTypeToBackend(v: string):
   | "DEPUTATION"
   | "TRANSFER" {
   const raw = String(v || "").trim().toUpperCase();
-  // Common onboarding wizard synonyms
   if (raw === "EMPLOYEE" || raw === "PERMANENT") return "PERMANENT";
   if (raw === "TEMP" || raw === "TEMPORARY") return "TEMPORARY";
   if (raw === "ROTATION") return "ROTATION";
@@ -104,7 +115,6 @@ function mapAssignmentStatusToBackend(v: string): "ACTIVE" | "PLANNED" | "SUSPEN
   const raw = String(v || "").trim().toUpperCase();
   if (raw === "ACTIVE" || raw === "APPROVED") return "ACTIVE";
   if (raw === "SUSPENDED") return "SUSPENDED";
-  // REQUESTED, DRAFT, PLANNED -> PLANNED
   return "PLANNED";
 }
 
@@ -117,7 +127,9 @@ function mapCredentialDraft(c: any) {
   const validTo = normalizeDateLike(c?.valid_to ?? c?.validTo) ?? null;
   const verificationStatus = mapVerificationStatusToBackend(c?.verification_status ?? c?.verificationStatus);
 
-  const evidenceUrl = Array.isArray(c?.evidence_urls) ? String(c.evidence_urls[0] ?? "").trim() : String(c?.document_url ?? c?.documentUrl ?? "").trim();
+  const evidenceUrl = Array.isArray(c?.evidence_urls)
+    ? String(c.evidence_urls[0] ?? "").trim()
+    : String(c?.document_url ?? c?.documentUrl ?? "").trim();
   const documentUrl = evidenceUrl ? evidenceUrl : null;
 
   return {
@@ -142,7 +154,9 @@ function mapAssignmentDraft(a: any, fallbackBranchId: string | null) {
   const designation = String(a?.role_name ?? a?.designation ?? a?.role_code ?? "").trim() || null;
   const branchEmpCode = String(a?.branch_emp_code ?? a?.branchEmpCode ?? "").trim() || null;
 
-  const effectiveFrom = normalizeDateLike(a?.effective_from ?? a?.start_date ?? a?.start_date ?? a?.effectiveFrom ?? a?.startDate) ?? normalizeDateLike(new Date().toISOString())!;
+  const effectiveFrom =
+    normalizeDateLike(a?.effective_from ?? a?.start_date ?? a?.effectiveFrom ?? a?.startDate) ??
+    normalizeDateLike(new Date().toISOString())!;
   const effectiveTo = normalizeDateLike(a?.effective_to ?? a?.end_date ?? a?.effectiveTo ?? a?.endDate);
 
   const assignmentType = mapAssignmentTypeToBackend(a?.assignment_type ?? a?.assignmentType);
@@ -188,7 +202,6 @@ async function finalizeSystemAccess(staffId: string, draft: any, profile: any) {
 
   if (!enabled || mode === "NONE") return;
 
-  // If already linked, do not try to link/provision again.
   if (profile?.user?.id) return;
 
   const roleCode =
@@ -210,12 +223,7 @@ async function finalizeSystemAccess(staffId: string, draft: any, profile: any) {
 
     await apiFetch<any>(`${STAFF_API_BASE}/${encodeURIComponent(staffId)}/provision-user`, {
       method: "POST",
-      body: {
-        email,
-        name: name || undefined,
-        phone,
-        roleCode,
-      },
+      body: { email, name: name || undefined, phone, roleCode },
     });
     return;
   }
@@ -228,10 +236,7 @@ async function finalizeSystemAccess(staffId: string, draft: any, profile: any) {
 
     await apiFetch<any>(`${STAFF_API_BASE}/${encodeURIComponent(staffId)}/link-user`, {
       method: "POST",
-      body: {
-        userId,
-        ...(roleCode ? { roleCode } : {}),
-      },
+      body: { userId, ...(roleCode ? { roleCode } : {}) },
     });
   }
 }
@@ -240,7 +245,6 @@ async function ensureStaffDocument(staffId: string, profile: any, type: string, 
   const url = String(fileUrl || "").trim();
   if (!url) return;
 
-  // Dedupe: if any existing doc has same type+fileUrl, skip.
   const existing = Array.isArray(profile?.documents) ? profile.documents : [];
   const already = existing.some((d: any) => String(d?.type ?? "") === type && String(d?.fileUrl ?? "") === url);
   if (already) return;
@@ -267,6 +271,21 @@ function assignmentKey(a: any) {
     .join("|");
 }
 
+function resolveStepHref(stepKey?: string): string | null {
+  if (!stepKey) return null;
+  const s = getStepByKey(stepKey);
+  if (s?.href) return s.href;
+
+  // extra step routes that exist in your folder but are not in steps.ts
+  const extra: Record<string, string> = {
+    start: `${ONB_BASE}/start`,
+    "photo-biometric": `${ONB_BASE}/photo-biometric`,
+    background: `${ONB_BASE}/background`,
+  };
+
+  return extra[stepKey] ?? null;
+}
+
 export default function Page() {
   const router = useRouter();
   const sp = useSearchParams();
@@ -288,7 +307,6 @@ export default function Page() {
     const local = readDraft(draftId);
     setDraft(local);
 
-    // Load server draft (staff master) for guard + idempotency.
     apiFetch<any>(`${STAFF_API_BASE}/${encodeURIComponent(draftId)}`)
       .then((p) => setProfile(p))
       .catch(() => setProfile(null))
@@ -299,21 +317,27 @@ export default function Page() {
     if (!draftId) return [{ key: "no_draft", severity: "error", message: "Missing draftId in URL." }];
 
     const out: Issue[] = [];
-    const pd = draft?.personal_details ?? {};
+
+    const pdRaw = draft?.personal_details ?? {};
+    const pd = normalizePersonal(pdRaw);
     const cd = draft?.contact_details ?? {};
     const ed = draft?.employment_details ?? {};
     const md = draft?.medical_details ?? {};
 
+    // ✅ Employee ID: warn only (does NOT block finalize)
     const employeeId = String(pd?.employee_id ?? draft?.employee_id ?? "").trim();
-    if (!employeeId) out.push({ key: "employee_id", severity: "error", message: "Employee ID missing.", stepKey: "start" });
+    if (!employeeId) out.push({ key: "employee_id", severity: "warn", message: "Employee ID not set (recommended).", stepKey: "personal" });
 
     if (!String(pd?.first_name ?? "").trim()) out.push({ key: "first_name", severity: "error", message: "First name missing.", stepKey: "personal" });
     if (!String(pd?.last_name ?? "").trim()) out.push({ key: "last_name", severity: "error", message: "Last name missing.", stepKey: "personal" });
-    if (!String(pd?.dob ?? "").trim()) out.push({ key: "dob", severity: "error", message: "Date of birth missing.", stepKey: "personal" });
 
-    if (!String(cd?.mobile_primary ?? "").trim()) out.push({ key: "mobile_primary", severity: "error", message: "Primary mobile missing.", stepKey: "contact" });
-    if (!String(cd?.email_official ?? "").trim()) out.push({ key: "email_official", severity: "error", message: "Official email missing.", stepKey: "contact" });
-    if (!String(cd?.current_address ?? "").trim()) out.push({ key: "current_address", severity: "error", message: "Current address missing.", stepKey: "address" });
+    const dob = String(pd?.dob ?? "").trim();
+    if (!dob) out.push({ key: "dob", severity: "error", message: "Date of birth missing.", stepKey: "personal" });
+
+    // ✅ Contact/address live inside Personal merged page in your UI
+    if (!String(cd?.mobile_primary ?? "").trim()) out.push({ key: "mobile_primary", severity: "error", message: "Primary mobile missing.", stepKey: "personal" });
+    if (!String(cd?.email_official ?? "").trim()) out.push({ key: "email_official", severity: "error", message: "Official email missing.", stepKey: "personal" });
+    if (!String(cd?.current_address ?? "").trim()) out.push({ key: "current_address", severity: "error", message: "Current address missing.", stepKey: "personal" });
 
     const staffCategory = String(ed?.staff_category ?? "").toUpperCase();
     const isClinical = staffCategory === "DOCTOR" || staffCategory === "NURSE" || staffCategory === "PARAMEDIC";
@@ -337,8 +361,11 @@ export default function Page() {
     if (!String(pb?.photo_url ?? "").trim()) out.push({ key: "photo", severity: "warn", message: "Profile photo not provided.", stepKey: "photo-biometric" });
     if (!String(pb?.signature_url ?? "").trim()) out.push({ key: "signature", severity: "warn", message: "Signature not provided.", stepKey: "photo-biometric" });
 
+    // Server draft guard
+    if (!profile) out.push({ key: "server_draft_missing", severity: "error", message: "Server draft not found. Start again to create a server draft.", stepKey: "start" });
+
     return out;
-  }, [draft, draftId]);
+  }, [draft, draftId, profile]);
 
   const blocking = issues.some((i) => i.severity === "error");
 
@@ -347,16 +374,40 @@ export default function Page() {
 
     setSubmitting(true);
     try {
-      // 1) Guard: ensure server draft exists
+      // Ensure server staff exists
       const currentProfile = await apiFetch<any>(`${STAFF_API_BASE}/${encodeURIComponent(draftId)}`);
+      if (!currentProfile) throw new Error("Server draft not found");
 
-      // 2) Patch staff core JSON blocks (this is the authoritative sync of wizard → backend)
+      const pd = normalizePersonal(draft?.personal_details ?? {});
+      const cd = draft?.contact_details ?? {};
+      const ed = draft?.employment_details ?? {};
+      const md = draft?.medical_details ?? {};
+      const sa = draft?.system_access ?? {};
+
+      const first = String(pd?.first_name ?? "").trim();
+      const last = String(pd?.last_name ?? "").trim();
+      const display = String(pd?.display_name ?? "").trim();
+      const derivedName = display || `${first} ${last}`.trim() || "Staff";
+
+      const email = String(cd?.email_official ?? "").trim().toLowerCase();
+      const phone = String(cd?.mobile_primary ?? "").trim();
+
+      // ✅ IMPORTANT:
+      // Backend UpdateStaffDto has strict nested DTOs for `personal_details/contact_details/...`.
+      // So we store the full wizard JSON into JSON columns (personalDetails/contactDetails/etc),
+      // and send `email/phone/name` as top-level fields to satisfy backend validation rules.
       const patch: any = {
         onboardingStatus: "ACTIVE",
-        personalDetails: draft?.personal_details ?? undefined,
-        contactDetails: draft?.contact_details ?? undefined,
-        employmentDetails: draft?.employment_details ?? undefined,
-        medicalDetails: draft?.medical_details ?? undefined,
+        name: derivedName,
+        email: email || null,
+        phone: phone || null,
+        designation: String(ed?.designation ?? ed?.staff_category ?? "").trim() || undefined,
+
+        personalDetails: pd,
+        contactDetails: { ...cd, address_details: draft?.address_details ?? undefined },
+        employmentDetails: ed,
+        medicalDetails: md,
+        systemAccess: sa,
       };
 
       await apiFetch<any>(`${STAFF_API_BASE}/${encodeURIComponent(draftId)}`, {
@@ -364,16 +415,15 @@ export default function Page() {
         body: patch,
       });
 
-      // 3) Reload profile for idempotent “child record” creation
       const after = await apiFetch<any>(`${STAFF_API_BASE}/${encodeURIComponent(draftId)}`);
 
-      // 4) Photo/signature documents
-      const pb = draft?.personal_details?.photo_biometric ?? {};
+      // Photo/signature documents
+      const pb = pd?.photo_biometric ?? {};
       await ensureStaffDocument(draftId, after, "PROFILE_PHOTO", pb?.photo_url ?? "", true);
       await ensureStaffDocument(draftId, after, "SIGNATURE", pb?.signature_url ?? "", true);
       await ensureStaffDocument(draftId, after, "STAMP", pb?.stamp_url ?? "", true);
 
-      // 5) Credentials
+      // Credentials
       const draftCreds = Array.isArray(draft?.credentials)
         ? draft.credentials
         : Array.isArray(draft?.medical_details?.credentials)
@@ -381,18 +431,21 @@ export default function Page() {
           : [];
 
       const existingCreds = Array.isArray(after?.credentials) ? after.credentials : [];
-      const existingKeys = new Set(existingCreds.map((c: any) => credentialKey({
-        type: c?.type,
-        registrationNumber: c?.registrationNumber,
-        authority: c?.authority,
-        title: c?.title,
-        validFrom: c?.validFrom ? String(c.validFrom).slice(0, 10) : null,
-        validTo: c?.validTo ? String(c.validTo).slice(0, 10) : null,
-      })));
+      const existingKeys = new Set(
+        existingCreds.map((c: any) =>
+          credentialKey({
+            type: c?.type,
+            registrationNumber: c?.registrationNumber,
+            authority: c?.authority,
+            title: c?.title,
+            validFrom: c?.validFrom ? String(c.validFrom).slice(0, 10) : null,
+            validTo: c?.validTo ? String(c.validTo).slice(0, 10) : null,
+          }),
+        ),
+      );
 
       for (const c of draftCreds) {
         const mapped = mapCredentialDraft(c);
-        // Skip empty shells
         if (!mapped.registrationNumber && !mapped.documentUrl) continue;
 
         const key = credentialKey(mapped);
@@ -406,20 +459,24 @@ export default function Page() {
         existingKeys.add(key);
       }
 
-      // 6) Assignments
+      // Assignments
       const draftAssignments = Array.isArray(draft?.assignments) ? draft.assignments : [];
       const existingAssignments = Array.isArray(after?.assignments) ? after.assignments : [];
-      const existingAKeys = new Set(existingAssignments.map((a: any) => assignmentKey({
-        branchId: a?.branchId,
-        facilityId: a?.facilityId,
-        departmentId: a?.departmentId,
-        unitId: a?.unitId,
-        specialtyId: a?.specialtyId,
-        designation: a?.designation,
-        assignmentType: a?.assignmentType,
-        effectiveFrom: a?.effectiveFrom ? String(a.effectiveFrom).slice(0, 10) : null,
-        effectiveTo: a?.effectiveTo ? String(a.effectiveTo).slice(0, 10) : null,
-      })));
+      const existingAKeys = new Set(
+        existingAssignments.map((a: any) =>
+          assignmentKey({
+            branchId: a?.branchId,
+            facilityId: a?.facilityId,
+            departmentId: a?.departmentId,
+            unitId: a?.unitId,
+            specialtyId: a?.specialtyId,
+            designation: a?.designation,
+            assignmentType: a?.assignmentType,
+            effectiveFrom: a?.effectiveFrom ? String(a.effectiveFrom).slice(0, 10) : null,
+            effectiveTo: a?.effectiveTo ? String(a.effectiveTo).slice(0, 10) : null,
+          }),
+        ),
+      );
 
       const fallbackBranchId = String(draft?.employment_details?.home_branch_id ?? "").trim() || null;
 
@@ -438,15 +495,14 @@ export default function Page() {
         existingAKeys.add(key);
       }
 
-      // 7) System access
+      // System access
       const profileAfterChildren = await apiFetch<any>(`${STAFF_API_BASE}/${encodeURIComponent(draftId)}`);
       await finalizeSystemAccess(draftId, draft, profileAfterChildren);
 
-      // 8) Cleanup local cache and go to Done
       clearDraft(draftId);
 
       toast({ title: "Onboarding finalized", description: "Staff updated and onboarding child records created." });
-      router.push(`/infrastructure/human-resource/staff/onboarding/done?draftId=${encodeURIComponent(draftId)}` as any);
+      router.push(`${ONB_BASE}/done?draftId=${encodeURIComponent(draftId)}` as any);
     } catch (e: any) {
       const apiErr = e as ApiError<any>;
       const msg = apiErr?.message || e?.message || "Unexpected error";
@@ -458,20 +514,26 @@ export default function Page() {
 
   if (!draftId) {
     return (
-      <OnboardingShell
-        stepKey="review"
-        title="Review & Submit"
-        description="Finalize onboarding and persist all details to backend."
-      >
+      <OnboardingShell stepKey="review" title="Review & Submit" description="Finalize onboarding and persist all details to backend.">
         <div className="rounded-md border border-zc-border bg-zc-panel/40 p-4 text-sm text-zc-muted">
           Missing draftId in URL. Start from the Initiate step.
           <div className="mt-3">
-            <Button className="bg-zc-accent text-white hover:bg-zc-accent/90" onClick={() => router.push("/infrastructure/human-resource/staff/onboarding/start" as any)}>Go to Start</Button>
+            <Button
+              className="bg-zc-accent text-white hover:bg-zc-accent/90"
+              onClick={() => router.push(`${ONB_BASE}/start` as any)}
+            >
+              Go to Start
+            </Button>
           </div>
         </div>
       </OnboardingShell>
     );
   }
+
+  const stepButtons = [
+    ...STAFF_ONBOARDING_STEPS.filter((s) => s.id !== "done"),
+    { id: "photo-biometric", label: "Photo & Biometric", href: `${ONB_BASE}/photo-biometric` },
+  ] as any[];
 
   return (
     <OnboardingShell
@@ -483,7 +545,7 @@ export default function Page() {
           <Button
             variant="outline"
             className="border-zc-border"
-            onClick={() => router.push(`/infrastructure/human-resource/staff/onboarding/photo-biometric?draftId=${encodeURIComponent(draftId)}` as any)}
+            onClick={() => router.push(`${ONB_BASE}/photo-biometric?draftId=${encodeURIComponent(draftId)}` as any)}
             disabled={loading || submitting}
           >
             Back
@@ -539,16 +601,22 @@ export default function Page() {
             ) : (
               <div className="space-y-2">
                 {issues.map((i) => {
-                  const step = i.stepKey ? getStepByKey(i.stepKey) : null;
-                  const href = step ? `${step.href}?draftId=${encodeURIComponent(draftId)}` : null;
+                  const baseHref = resolveStepHref(i.stepKey);
+                  const href = baseHref ? `${baseHref}?draftId=${encodeURIComponent(draftId)}` : null;
+
                   return (
-                    <div key={i.key} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-zc-border bg-zc-panel/40 p-2">
+                    <div
+                      key={i.key}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-zc-border bg-zc-panel/40 p-2"
+                    >
                       <div className="flex items-center gap-2">
                         <Badge
                           variant="secondary"
                           className={cn(
                             "border",
-                            i.severity === "error" ? "border-red-500 text-red-600 dark:text-red-400" : "border-amber-500 text-amber-600 dark:text-amber-400"
+                            i.severity === "error"
+                              ? "border-red-500 text-red-600 dark:text-red-400"
+                              : "border-amber-500 text-amber-600 dark:text-amber-400",
                           )}
                         >
                           {i.severity.toUpperCase()}
@@ -585,9 +653,9 @@ export default function Page() {
             <CardDescription>Open any step to edit the local draft.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2">
-            {STAFF_ONBOARDING_STEPS.map((s) => (
+            {stepButtons.map((s) => (
               <Button
-                key={s.id}
+                key={String(s.id)}
                 variant="outline"
                 className="justify-between border-zc-border"
                 onClick={() => router.push(`${s.href}?draftId=${encodeURIComponent(draftId)}` as any)}

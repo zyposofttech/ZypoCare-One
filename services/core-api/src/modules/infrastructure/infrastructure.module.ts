@@ -60,7 +60,7 @@ import { TariffPlansService } from "./tariff-plans/tariff-plans.service";
 
 import { StaffController } from "./staff/staff.controller";
 import { StaffService } from "./staff/staff.service";
-import { InfraFilesController } from "./files/files.controller";
+import { FilesController } from "./files/files.controller";
 import { InfraFilesService } from "./files/files.service";
 
 @Module({
@@ -92,7 +92,7 @@ import { InfraFilesService } from "./files/files.service";
     ServiceAvailabilityController,
     TariffPlansController,
     StaffController,
-    InfraFilesController
+    FilesController
   ],
   providers: [
     LocationService,

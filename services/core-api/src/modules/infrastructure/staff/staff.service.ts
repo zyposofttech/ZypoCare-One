@@ -196,6 +196,14 @@ export class StaffService {
     return status !== "SUSPENDED" && status !== "ENDED";
   }
 
+  private normalizeStaffCategory(value?: string | null): "CLINICAL" | "NON_CLINICAL" | undefined {
+    const v = String(value ?? "").trim().toUpperCase();
+    if (!v) return undefined;
+    if (v === "MEDICAL" || v === "CLINICAL") return "CLINICAL";
+    if (v === "NON_MEDICAL" || v === "NON_CLINICAL") return "NON_CLINICAL";
+    return undefined;
+  }
+
   private async resolveRoleVersionIdForUser(tx: any, user: { id: string; role: string; roleVersionId?: string | null }) {
     if (user.roleVersionId) return user.roleVersionId;
 
@@ -333,6 +341,7 @@ export class StaffService {
       engagementType?: string | null;
       departmentId?: string | null;
       designation?: string | null;
+      onboarding?: string | null;
       credentialStatus?: string | null; // VALID | EXPIRED | NONE
       cursor?: string | null;
       take?: number;
@@ -343,8 +352,25 @@ export class StaffService {
 
     const where: any = {};
     if (q.status) where.status = q.status;
-    if (q.category) where.category = q.category;
+    if (q.category) {
+      const normalizedCategory = this.normalizeStaffCategory(q.category);
+      if (!normalizedCategory) throw new BadRequestException("Invalid category");
+      where.category = normalizedCategory;
+    }
     if (q.engagementType) where.engagementType = q.engagementType;
+        // ✅ Onboarding tab filter (Drafted vs Boarded)
+    if (q.onboarding) {
+      const ob = q.onboarding.trim().toUpperCase();
+      if (ob === "DRAFT" || ob === "DRAFTED") {
+        where.onboardingStatus = "DRAFT";
+      } else if (ob === "BOARDED") {
+        where.onboardingStatus = { in: ["IN_REVIEW", "ACTIVE"] };
+      } else if (ob === "IN_REVIEW") {
+        where.onboardingStatus = "IN_REVIEW";
+      } else if (ob === "ACTIVE") {
+        where.onboardingStatus = "ACTIVE";
+      }
+    }
 
     // Branch scoping / branch filter (assignment-driven)
     const assignmentsSome: any = { status: { in: ["ACTIVE", "PLANNED"] as any } };
@@ -569,7 +595,7 @@ export class StaffService {
           : dto.designation
             ? dto.designation.trim()
             : "STAFF",
-      category: (dto.category as any) ?? undefined,
+      category: this.normalizeStaffCategory(dto.category) ?? undefined,
       engagementType: (dto.engagementType as any) ?? undefined,
       email: dto.email === undefined && cd?.email_official === undefined ? undefined : nextEmail,
       phone: dto.phone === undefined && cd?.mobile_primary === undefined ? undefined : nextPhone,
@@ -605,7 +631,7 @@ export class StaffService {
       if (ed?.staff_category) {
         const sc = String(ed.staff_category).toUpperCase();
         const isMedical = sc === "DOCTOR" || sc === "NURSE" || sc === "PARAMEDIC";
-        data.category = isMedical ? ("MEDICAL" as any) : ("NON_MEDICAL" as any);
+        data.category = isMedical ? "CLINICAL" : "NON_CLINICAL";
       }
       if (ed?.designation !== undefined) data.designation = ed.designation ? String(ed.designation).trim() : "STAFF";
 
@@ -933,7 +959,7 @@ export class StaffService {
           empCode,
           name: displayName,
           designation: (ed.designation ?? ed.staff_category ?? "STAFF").toString().trim(),
-          category: (isMedical ? "MEDICAL" : "NON_MEDICAL") as any,
+          category: isMedical ? "CLINICAL" : "NON_CLINICAL",
           engagementType: engagementType as any,
           email,
           phone,
@@ -1017,7 +1043,7 @@ export class StaffService {
         empCode: tempCode,
         name: "Draft Staff",
         designation: "STAFF",
-        category: "NON_MEDICAL",
+        category: "NON_CLINICAL",
         engagementType: "EMPLOYEE",
         status: "ACTIVE",
         onboardingStatus: "DRAFT",
@@ -1281,7 +1307,7 @@ export class StaffService {
           empCode,
           name: dto.name.trim(),
           designation: dto.designation?.trim() || "STAFF",
-          category: dto.category as any,
+          category: this.normalizeStaffCategory(dto.category) ?? undefined,
           engagementType: (dto.engagementType as any) ?? undefined,
           email,
           phone,

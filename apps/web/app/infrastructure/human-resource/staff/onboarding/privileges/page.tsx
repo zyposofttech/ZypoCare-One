@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Check, ChevronDown } from "lucide-react";
 
 import { OnboardingShell } from "../_components/OnboardingShell";
 
@@ -9,19 +10,27 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
 import { cn } from "@/lib/cn";
+import { apiFetch, ApiError } from "@/lib/api";
+import { useBranchContext } from "@/lib/branch/useBranchContext";
 import { toast } from "@/components/ui/use-toast";
 
 /**
- * Workflow doc alignment (Step 9): Clinical Privileges (Doctors only)
- * We store draft payload in:
+ * Step: Clinical Privileges (Doctors only)
+ * Stored in:
  *   medical_details.clinical_privileges: ClinicalPrivilegeDraft[]
- * (snake_case keys to stay consistent with the backend DTO conventions)
+ *
+ * ✅ Updates as requested:
+ * - Department: dropdown from departments in selected branch (single-select, required per privilege record)
+ * - Specialties: based on selected department (multi-select, optional)
+ * - Granted By / Reviewed By / Supervisor / Assessor: dropdown from existing staff (ACTIVE)
+ * - Role: auto-derived from Granted By (read-only field)
  */
 
 type PrivilegeType =
@@ -53,34 +62,37 @@ type ClinicalPrivilegeDraft = {
   privilege_name: string;
   privilege_description?: string;
 
-  departments: string[]; // Department codes/names (draft as strings; can be mapped later)
-  specialties: string[]; // Specialty codes/names
-  procedures: string[]; // Procedure names/codes
+  // NOTE: we store single department as departments[0] (string id),
+  // kept as string[] to stay backward compatible with earlier draft structure.
+  departments: string[]; // [departmentId]
+  specialties: string[]; // [specialtyId] (optional multi)
+  procedures: string[]; // Procedure names/codes (comma list)
 
-  granted_by: string; // Staff name/code for grantor (draft)
+  // store staffId in these fields (string), backward compatible with older “name/code” drafts
+  granted_by: string; // staffId
   granted_by_role?: string;
-  granted_date?: string; // YYYY-MM-DD
+  granted_date?: string;
 
-  effective_date?: string; // YYYY-MM-DD
-  expiry_date?: string; // YYYY-MM-DD
+  effective_date?: string;
+  expiry_date?: string;
   is_lifetime: boolean;
 
   review_required: boolean;
   review_cycle: ReviewCycle;
   last_review_date?: string;
   next_review_date?: string;
-  reviewed_by?: string;
+  reviewed_by?: string; // staffId
   review_remarks?: string;
 
-  conditions: string[]; // e.g. "Under supervision first 10 cases"
-  restrictions: string[]; // e.g. "Not for pediatric patients"
+  conditions: string[];
+  restrictions: string[];
   supervision_required: boolean;
-  supervisor?: string;
+  supervisor?: string; // staffId
 
   competency_assessment_required: boolean;
   last_assessment_date?: string;
   assessment_score?: number | null;
-  assessor?: string;
+  assessor?: string; // staffId
 
   minimum_case_volume?: number | null;
   current_case_volume?: number | null;
@@ -88,7 +100,7 @@ type ClinicalPrivilegeDraft = {
   status: PrivilegeStatus;
   is_active: boolean;
 
-  credential_documents: string[]; // URLs / refs (one per line)
+  credential_documents: string[];
 };
 
 type StaffOnboardingDraft = {
@@ -101,6 +113,24 @@ type StaffOnboardingDraft = {
 };
 
 type FieldErrorMap = Record<string, string>;
+
+type DepartmentMini = { id: string; code?: string; name?: string; isActive?: boolean; active?: boolean };
+type SpecialtyMini = { id: string; code?: string; name?: string; kind?: string; isActive?: boolean; active?: boolean };
+
+type StaffMini = {
+  id: string;
+  empCode?: string;
+  code?: string;
+  name?: string;
+  designation?: string;
+  departmentId?: string;
+  department?: string;
+  roleName?: string;
+  roleCode?: string;
+  systemRole?: string;
+  system_access?: any;
+  systemAccess?: any;
+};
 
 const PRIVILEGE_TYPES: PrivilegeType[] = [
   "ADMITTING",
@@ -124,15 +154,179 @@ const PRIVILEGE_TYPES: PrivilegeType[] = [
 const REVIEW_CYCLES: ReviewCycle[] = ["MONTHLY", "QUARTERLY", "SEMI_ANNUAL", "ANNUAL", "BIENNIAL"];
 const PRIV_STATUS: PrivilegeStatus[] = ["ACTIVE", "PROVISIONAL", "PENDING_REVIEW", "SUSPENDED", "REVOKED", "EXPIRED"];
 
+async function apiFetchWithFallback<T>(primary: string, legacy: string): Promise<T> {
+  try {
+    return await apiFetch<T>(primary);
+  } catch (e: any) {
+    // If the route doesn't exist (or old deployments), try legacy.
+    if (e instanceof ApiError && (e.status === 404 || e.status === 405)) {
+      return await apiFetch<T>(legacy);
+    }
+    throw e;
+  }
+}
+
+function formatDeptLabel(d: DepartmentMini) {
+  const code = d.code ? String(d.code) : "";
+  const name = d.name ? String(d.name) : "";
+  return code && name ? `${code} · ${name}` : name || code || d.id;
+}
+
+function formatSpecLabel(s: SpecialtyMini) {
+  const code = s.code ? String(s.code) : "";
+  const name = s.name ? String(s.name) : "";
+  return code && name ? `${code} · ${name}` : name || code || s.id;
+}
+
+function formatStaffLabel(s: StaffMini) {
+  const code = (s.empCode || s.code || "").toString().trim();
+  const name = (s.name || "").toString().trim();
+  const des = (s.designation || "").toString().trim();
+  const left = code ? `${code} · ${name || "—"}` : name || s.id;
+  return des ? `${left} — ${des}` : left;
+}
+
+function inferStaffRole(s?: StaffMini | null): string {
+  if (!s) return "";
+  const direct =
+    s.roleName ||
+    s.roleCode ||
+    s.systemRole ||
+    s.systemAccess?.role?.name ||
+    s.systemAccess?.roleName ||
+    s.systemAccess?.role_code ||
+    s.system_access?.role?.name ||
+    s.system_access?.roleName ||
+    s.system_access?.role_code ||
+    "";
+  const d = String(direct || "").trim();
+  if (d) return d;
+  return String(s.designation || "").trim();
+}
+
+/** Lightweight MultiSelect (no Command dependency) */
+function MultiSelectPopover({
+  value,
+  options,
+  onChange,
+  placeholder,
+  disabled,
+}: {
+  value: string[];
+  options: { value: string; label: string }[];
+  onChange: (next: string[]) => void;
+  placeholder?: string;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [q, setQ] = React.useState("");
+  const set = React.useMemo(() => new Set(value ?? []), [value]);
+
+  const filtered = React.useMemo(() => {
+    const qq = q.trim().toLowerCase();
+    if (!qq) return options;
+    return options.filter((o) => o.label.toLowerCase().includes(qq));
+  }, [options, q]);
+
+  function toggle(v: string) {
+    const next = new Set(set);
+    if (next.has(v)) next.delete(v);
+    else next.add(v);
+    onChange(Array.from(next));
+  }
+
+  const summary = value?.length ? `${value.length} selected` : (placeholder ?? "Select");
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          className={cn("h-10 w-full justify-between border-zc-border bg-transparent px-3 font-normal", disabled && "opacity-50")}
+          disabled={disabled}
+        >
+          <span className={cn("truncate text-left", !value?.length && "text-zc-muted")}>{summary}</span>
+          <ChevronDown className="ml-2 h-4 w-4 shrink-0 text-zc-muted" />
+        </Button>
+      </PopoverTrigger>
+
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-2" align="start">
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search…"
+          className="h-9 border-zc-border"
+        />
+
+        <div className="mt-2 max-h-56 overflow-auto rounded-md border border-zc-border bg-transparent">
+          {filtered.length ? (
+            filtered.map((o) => {
+              const selected = set.has(o.value);
+              return (
+                <button
+                  key={o.value}
+                  type="button"
+                  onClick={() => toggle(o.value)}
+                  className={cn(
+                    "flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-zc-border/30",
+                    selected && "bg-zc-border/20"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "grid h-4 w-4 place-items-center rounded border",
+                      selected ? "border-zc-accent bg-zc-accent text-white" : "border-zc-border text-transparent"
+                    )}
+                  >
+                    <Check className="h-3 w-3" />
+                  </span>
+                  <span className="truncate">{o.label}</span>
+                </button>
+              );
+            })
+          ) : (
+            <div className="p-3 text-xs text-zc-muted">No results</div>
+          )}
+        </div>
+
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-8 px-2 text-xs"
+            onClick={() => onChange([])}
+            disabled={disabled || (value?.length ?? 0) === 0}
+          >
+            Clear
+          </Button>
+          <Button type="button" variant="outline" className="h-8 px-3 text-xs border-zc-border" onClick={() => setOpen(false)}>
+            Done
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export default function HrStaffOnboardingPrivilegesPage() {
   const router = useRouter();
   const sp = useSearchParams();
   const draftId = sp.get("draftId");
 
+  const { branchId: branchCtxId, isReady: branchReady } = useBranchContext();
+
   const [loading, setLoading] = React.useState(true);
   const [dirty, setDirty] = React.useState(false);
   const [errors, setErrors] = React.useState<FieldErrorMap>({});
   const [items, setItems] = React.useState<ClinicalPrivilegeDraft[]>([]);
+
+  const [departments, setDepartments] = React.useState<DepartmentMini[]>([]);
+  const [deptLoading, setDeptLoading] = React.useState(false);
+
+  const [specialtiesByDept, setSpecialtiesByDept] = React.useState<Record<string, SpecialtyMini[]>>({});
+  const [staffOptions, setStaffOptions] = React.useState<StaffMini[]>([]);
+  const [staffLoading, setStaffLoading] = React.useState(false);
 
   const staffCategory = React.useMemo(() => {
     if (!draftId) return "";
@@ -147,15 +341,28 @@ export default function HrStaffOnboardingPrivilegesPage() {
 
   const isDoctor = staffCategory === "DOCTOR";
 
+  // Branch id resolution: prefer current selected branch context; fallback to draft (if present)
+  const effectiveBranchId = React.useMemo(() => {
+    if (branchReady && branchCtxId) return branchCtxId;
+    if (!draftId) return "";
+    const d = readDraft(draftId);
+    const fromDraft =
+      d?.employment_details?.branchId ??
+      d?.employment_details?.branch_id ??
+      d?.system_access?.home_branch_id ??
+      d?.system_access?.branchId ??
+      "";
+    return String(fromDraft || "").trim();
+  }, [branchReady, branchCtxId, draftId]);
+
   // Ensure draftId
   React.useEffect(() => {
     if (draftId) return;
     router.replace("/infrastructure/human-resource/staff/onboarding/personal" as any);
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftId]);
 
-// Load draft
+  // Load draft
   React.useEffect(() => {
     if (!draftId) return;
 
@@ -175,7 +382,9 @@ export default function HrStaffOnboardingPrivilegesPage() {
               privilege_name: String(x.privilege_name || "").trim(),
               privilege_description: x.privilege_description ? String(x.privilege_description) : "",
 
-              departments: Array.isArray(x.departments) ? x.departments.map((v: any) => String(v).trim()).filter(Boolean) : [],
+              departments: Array.isArray(x.departments)
+                ? x.departments.map((v: any) => String(v).trim()).filter(Boolean)
+                : [],
               specialties: Array.isArray(x.specialties) ? x.specialties.map((v: any) => String(v).trim()).filter(Boolean) : [],
               procedures: Array.isArray(x.procedures) ? x.procedures.map((v: any) => String(v).trim()).filter(Boolean) : [],
 
@@ -232,6 +441,132 @@ export default function HrStaffOnboardingPrivilegesPage() {
       setLoading(false);
     }
   }, [draftId]);
+
+  // Fetch departments for selected branch
+  React.useEffect(() => {
+    if (!effectiveBranchId) {
+      setDepartments([]);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        setDeptLoading(true);
+        const params = new URLSearchParams();
+        params.set("branchId", effectiveBranchId);
+        params.set("take", "200");
+
+        // This endpoint exists in your codebase (used elsewhere):
+        const res: any = await apiFetch(`/api/departments?${params.toString()}`);
+        const rows: any[] = Array.isArray(res) ? res : Array.isArray(res?.items) ? res.items : [];
+        const cleaned: DepartmentMini[] = rows
+          .filter(Boolean)
+          .map((d) => ({
+            id: String(d.id),
+            code: d.code ? String(d.code) : undefined,
+            name: d.name ? String(d.name) : undefined,
+            isActive: d.isActive,
+            active: d.active,
+          }))
+          .filter((d) => d.id);
+
+        if (!cancelled) setDepartments(cleaned);
+      } catch {
+        if (!cancelled) setDepartments([]);
+      } finally {
+        if (!cancelled) setDeptLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [effectiveBranchId]);
+
+  async function ensureSpecialtiesLoaded(deptId: string) {
+    const did = String(deptId || "").trim();
+    if (!did) return;
+    if (Array.isArray(specialtiesByDept[did])) return;
+
+    try {
+      const q = effectiveBranchId ? `?branchId=${encodeURIComponent(effectiveBranchId)}` : "";
+      const res: any = await apiFetch(`/api/departments/${encodeURIComponent(did)}/specialties${q}`);
+      const rows: any[] = Array.isArray(res) ? res : Array.isArray(res?.items) ? res.items : [];
+      const cleaned: SpecialtyMini[] = rows
+        .filter(Boolean)
+        .map((s) => ({
+          id: String(s.id),
+          code: s.code ? String(s.code) : undefined,
+          name: s.name ? String(s.name) : undefined,
+          kind: s.kind ? String(s.kind) : undefined,
+          isActive: s.isActive,
+          active: s.active,
+        }))
+        .filter((s) => s.id);
+
+      setSpecialtiesByDept((prev) => ({ ...prev, [did]: cleaned }));
+    } catch {
+      setSpecialtiesByDept((prev) => ({ ...prev, [did]: [] }));
+    }
+  }
+
+  // Fetch staff (for Granted By / Reviewed By / Supervisor / Assessor)
+  React.useEffect(() => {
+    if (!effectiveBranchId) {
+      setStaffOptions([]);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        setStaffLoading(true);
+        const params = new URLSearchParams();
+        params.set("branchId", effectiveBranchId);
+        params.set("status", "ACTIVE");
+        params.set("onboarding", "BOARDED");
+        params.set("take", "250");
+
+        // primary + legacy, because some deployments use either
+        const res: any = await apiFetchWithFallback(
+          `/api/infrastructure/human-resource/staff?${params.toString()}`,
+          `/api/infrastructure/staff?${params.toString()}`
+        );
+
+        const rows: any[] = Array.isArray(res) ? res : Array.isArray(res?.items) ? res.items : [];
+        const cleaned: StaffMini[] = rows
+          .filter(Boolean)
+          .map((r) => ({
+            id: String(r.id),
+            empCode: r.empCode ? String(r.empCode) : r.emp_code ? String(r.emp_code) : undefined,
+            code: r.code ? String(r.code) : undefined,
+            name: r.name ? String(r.name) : undefined,
+            designation: r.designation ? String(r.designation) : undefined,
+            departmentId: r.departmentId ? String(r.departmentId) : r.department_id ? String(r.department_id) : undefined,
+            department: r.department ? String(r.department) : undefined,
+            roleName: r.roleName ? String(r.roleName) : undefined,
+            roleCode: r.roleCode ? String(r.roleCode) : undefined,
+            systemRole: r.systemRole ? String(r.systemRole) : undefined,
+            system_access: r.system_access,
+            systemAccess: r.systemAccess,
+          }))
+          .filter((s) => s.id);
+
+        cleaned.sort((a, b) => formatStaffLabel(a).localeCompare(formatStaffLabel(b)));
+
+        if (!cancelled) setStaffOptions(cleaned);
+      } catch {
+        if (!cancelled) setStaffOptions([]);
+      } finally {
+        if (!cancelled) setStaffLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [effectiveBranchId]);
 
   function setAt(idx: number, next: ClinicalPrivilegeDraft) {
     setItems((prev) => {
@@ -315,18 +650,17 @@ export default function HrStaffOnboardingPrivilegesPage() {
   function validate(): FieldErrorMap {
     const e: FieldErrorMap = {};
 
-    // Doctors: privileges are strongly recommended, but not hard-required at onboarding time.
-    // If privileges are entered, validate each record.
     items.forEach((p, idx) => {
       const pref = `items.${idx}`;
 
       const t = String(p.privilege_type || "").trim();
       const n = String(p.privilege_name || "").trim();
+      const deptId = String(p.departments?.[0] || "").trim();
 
       if (!t) e[`${pref}.privilege_type`] = "Type is required.";
       if (!n) e[`${pref}.privilege_name`] = "Privilege name is required.";
+      if (!deptId) e[`${pref}.department`] = "Department is required.";
 
-      // Core dates and authorization
       if (!String(p.effective_date || "").trim()) e[`${pref}.effective_date`] = "Effective date is required.";
       if (!p.is_lifetime && !String(p.expiry_date || "").trim()) e[`${pref}.expiry_date`] = "Expiry date is required (or set Lifetime).";
 
@@ -340,7 +674,6 @@ export default function HrStaffOnboardingPrivilegesPage() {
 
       if (!String(p.granted_by || "").trim()) e[`${pref}.granted_by`] = "Granted by is required.";
 
-      // Procedure type should have at least one procedure
       if (String(p.privilege_type || "").toUpperCase() === "PROCEDURE" && (!p.procedures || p.procedures.length === 0)) {
         e[`${pref}.procedures`] = "Add at least one procedure for PROCEDURE privileges.";
       }
@@ -461,7 +794,6 @@ export default function HrStaffOnboardingPrivilegesPage() {
 
     const existing = readDraft(draftId);
     const md: any = existing.medical_details ?? {};
-
     const normalized = items.map(normalize);
 
     const nextDraft: StaffOnboardingDraft = {
@@ -474,7 +806,6 @@ export default function HrStaffOnboardingPrivilegesPage() {
 
     writeDraft(draftId, nextDraft);
     setDirty(false);
-
     toast({ title: "Saved", description: "Clinical privileges saved to draft." });
   }
 
@@ -493,6 +824,25 @@ export default function HrStaffOnboardingPrivilegesPage() {
     } catch {
       // handled
     }
+  }
+
+  const deptOptions = React.useMemo(
+    () =>
+      departments
+        .filter((d) => d && d.id)
+        .map((d) => ({ value: d.id, label: formatDeptLabel(d) }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [departments]
+  );
+
+  function getDeptValue(p: ClinicalPrivilegeDraft) {
+    return String(p.departments?.[0] || "").trim();
+  }
+
+  function getLegacySelectItemIfMissing(currentValue: string, options: { value: string; label: string }[]) {
+    if (!currentValue) return null;
+    if (options.some((o) => o.value === currentValue)) return null;
+    return { value: currentValue, label: `Legacy: ${currentValue}` };
   }
 
   return (
@@ -527,6 +877,11 @@ export default function HrStaffOnboardingPrivilegesPage() {
             <div className="text-sm font-medium text-zc-foreground">Step 5: Clinical privileges</div>
             <div className="mt-1 text-xs text-zc-muted">
               Doctors only. You can add privileges now (recommended) or skip and finalize later in the full Privilege Management module.
+            </div>
+            <div className="mt-2 text-[11px] text-zc-muted">
+              Branch: <span className="font-mono">{effectiveBranchId || "—"}</span>{" "}
+              {deptLoading ? <span className="ml-2">• Loading departments…</span> : null}
+              {staffLoading ? <span className="ml-2">• Loading staff…</span> : null}
             </div>
           </div>
 
@@ -564,15 +919,14 @@ export default function HrStaffOnboardingPrivilegesPage() {
         </div>
 
         {items.length === 0 ? (
-          <div className="rounded-md border border-zc-border bg-zc-panel/40 p-3 text-sm text-zc-muted">
-            No privileges added yet.
-          </div>
+          <div className="rounded-md border border-zc-border bg-zc-panel/40 p-3 text-sm text-zc-muted">No privileges added yet.</div>
         ) : (
           <div className="grid gap-3">
             {items.map((p, idx) => {
               const pref = `items.${idx}`;
               const typeErr = errors[`${pref}.privilege_type`];
               const nameErr = errors[`${pref}.privilege_name`];
+              const deptErr = errors[`${pref}.department`];
               const effErr = errors[`${pref}.effective_date`];
               const expErr = errors[`${pref}.expiry_date`];
               const grantErr = errors[`${pref}.granted_by`];
@@ -581,6 +935,23 @@ export default function HrStaffOnboardingPrivilegesPage() {
               const scoreErr = errors[`${pref}.assessment_score`];
               const mvErr = errors[`${pref}.minimum_case_volume`];
               const rcErr = errors[`${pref}.review_cycle`];
+
+              const deptId = getDeptValue(p);
+              const deptLegacy = getLegacySelectItemIfMissing(deptId, deptOptions);
+
+              const specRows = deptId ? specialtiesByDept[deptId] : undefined;
+              const specOptions =
+                deptId && Array.isArray(specRows)
+                  ? specRows
+                      .filter((s) => s && s.id)
+                      .map((s) => ({ value: s.id, label: formatSpecLabel(s) }))
+                      .sort((a, b) => a.label.localeCompare(b.label))
+                  : [];
+
+              const grantedStaff = staffOptions.find((s) => s.id === p.granted_by) || null;
+              const reviewedStaff = staffOptions.find((s) => s.id === p.reviewed_by) || null;
+              const supervisorStaff = staffOptions.find((s) => s.id === p.supervisor) || null;
+              const assessorStaff = staffOptions.find((s) => s.id === p.assessor) || null;
 
               return (
                 <div key={p.id} className="rounded-md border border-zc-border bg-zc-panel/40 p-3">
@@ -615,7 +986,7 @@ export default function HrStaffOnboardingPrivilegesPage() {
                       </div>
 
                       <div className="mt-1 text-xs text-zc-muted">
-                        Type + scope + validity + grantor + review cycle (aligned to workflow doc).
+                        Type + scope + validity + grantor + department/specialty + review cycle.
                       </div>
                     </div>
 
@@ -689,22 +1060,64 @@ export default function HrStaffOnboardingPrivilegesPage() {
                       />
                     </Field>
 
-                    <Field label="Departments" help="Comma separated">
-                      <Input
-                        className="border-zc-border"
-                        value={(p.departments ?? []).join(", ")}
-                        onChange={(e) => setAt(idx, { ...p, departments: toList(e.target.value) })}
-                        placeholder="e.g., Cardiology, ICU"
-                      />
+                    <Field label="Department" required error={deptErr} help={deptLoading ? "Loading…" : "Branch-scoped"}>
+                      <Select
+                        value={deptId}
+                        onValueChange={async (v) => {
+                          const nextDeptId = String(v || "").trim();
+                          // set dept and clear specialties when dept changes
+                          setAt(idx, { ...p, departments: nextDeptId ? [nextDeptId] : [], specialties: [] });
+                          setErrors((er) => {
+                            const n = { ...er };
+                            delete n[`${pref}.department`];
+                            return n;
+                          });
+                          if (nextDeptId) await ensureSpecialtiesLoaded(nextDeptId);
+                        }}
+                      >
+                        <SelectTrigger className={cn("border-zc-border", deptErr ? "border-red-500" : "")} disabled={!effectiveBranchId}>
+                          <SelectValue placeholder={effectiveBranchId ? "Select department" : "Select branch first"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {deptLegacy ? (
+                            <SelectItem value={deptLegacy.value}>{deptLegacy.label}</SelectItem>
+                          ) : null}
+                          {deptOptions.map((d) => (
+                            <SelectItem key={d.value} value={d.value}>
+                              {d.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </Field>
 
-                    <Field label="Specialties" help="Comma separated">
-                      <Input
-                        className="border-zc-border"
-                        value={(p.specialties ?? []).join(", ")}
-                        onChange={(e) => setAt(idx, { ...p, specialties: toList(e.target.value) })}
-                        placeholder="e.g., Interventional Cardiology"
-                      />
+                    <Field label="Specialties" help={deptId ? "Optional (based on department)" : "Select department first"}>
+                      <div className="grid gap-2">
+                        <MultiSelectPopover
+                          disabled={!deptId}
+                          value={Array.isArray(p.specialties) ? p.specialties : []}
+                          options={specOptions}
+                          onChange={(next) => setAt(idx, { ...p, specialties: next })}
+                          placeholder={deptId ? (specRows ? "Select specialties" : "Loading…") : "Select department first"}
+                        />
+                        {p.specialties?.length ? (
+                          <div className="flex flex-wrap gap-1">
+                            {p.specialties.slice(0, 6).map((sid) => {
+                              const lbl = specOptions.find((x) => x.value === sid)?.label || sid;
+                              return (
+                                <Badge key={sid} variant="secondary" className="border border-zc-border">
+                                  {lbl}
+                                </Badge>
+                              );
+                            })}
+                            {p.specialties.length > 6 ? (
+                              <Badge variant="secondary" className="border border-zc-border">
+                                +{p.specialties.length - 6} more
+                              </Badge>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </div>
                     </Field>
 
                     <Field label="Procedures" help="Comma separated" error={procErr}>
@@ -728,7 +1141,7 @@ export default function HrStaffOnboardingPrivilegesPage() {
                         className="border-zc-border"
                         value={p.privilege_description ?? ""}
                         onChange={(e) => setAt(idx, { ...p, privilege_description: e.target.value })}
-                        placeholder="Optional notes about scope"
+                        placeholder="Optional notes"
                       />
                     </Field>
                   </div>
@@ -736,49 +1149,61 @@ export default function HrStaffOnboardingPrivilegesPage() {
                   <Separator className="my-3 bg-zc-border" />
 
                   <div className="grid gap-3 md:grid-cols-2">
-                    <Field label="Effective from" required error={effErr} help="YYYY-MM-DD">
-                      <Input
-                        className={cn("border-zc-border", effErr ? "border-red-500" : "")}
-                        value={p.effective_date ?? ""}
-                        onChange={(e) => {
-                          setAt(idx, { ...p, effective_date: e.target.value });
-                          setErrors((er) => {
-                            const n = { ...er };
-                            delete n[`${pref}.effective_date`];
-                            return n;
-                          });
-                        }}
-                        placeholder="YYYY-MM-DD"
-                      />
-                    </Field>
+                    <div className="rounded-md border border-zc-border bg-transparent p-3">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Validity</div>
 
-                    <div className="grid gap-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <Label className="text-xs text-zc-muted">Validity</Label>
-                        <span className="text-[10px] text-zc-muted">Lifetime or expiry date</span>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-2">
-                        <div className="flex items-center gap-2 rounded-md border border-zc-border bg-transparent px-3 py-2">
-                          <Switch
-                            checked={p.is_lifetime}
-                            onCheckedChange={(v) => {
-                              setAt(idx, { ...p, is_lifetime: v, expiry_date: v ? "" : p.expiry_date });
-                              setDirty(true);
+                      <div className="mt-3 grid gap-3 md:grid-cols-2">
+                        <div className="grid gap-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <Label className="text-xs text-zc-muted">
+                              Effective date <span className="text-red-500">*</span>
+                            </Label>
+                          </div>
+                          <Input
+                            className={cn("border-zc-border", effErr ? "border-red-500" : "")}
+                            value={p.effective_date ?? ""}
+                            onChange={(e) => {
+                              setAt(idx, { ...p, effective_date: e.target.value });
                               setErrors((er) => {
                                 const n = { ...er };
-                                delete n[`${pref}.expiry_date`];
+                                delete n[`${pref}.effective_date`];
                                 return n;
                               });
                             }}
+                            placeholder="YYYY-MM-DD"
                           />
-                          <span className="text-xs text-zc-muted">Lifetime</span>
+                          {effErr ? <div className="mt-1 text-xs text-red-500">{effErr}</div> : null}
                         </div>
 
-                        <div className="min-w-[220px] flex-1">
+                        <div className="grid gap-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <Label className="text-xs text-zc-muted">Lifetime</Label>
+                          </div>
+                          <div className="flex items-center justify-between rounded-md border border-zc-border px-3 py-2">
+                            <span className="text-xs text-zc-muted">is_lifetime</span>
+                            <Switch
+                              checked={!!p.is_lifetime}
+                              onCheckedChange={(v) => {
+                                setAt(idx, { ...p, is_lifetime: v, expiry_date: v ? "" : p.expiry_date });
+                                setErrors((er) => {
+                                  const n = { ...er };
+                                  delete n[`${pref}.expiry_date`];
+                                  return n;
+                                });
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid gap-1 md:col-span-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <Label className="text-xs text-zc-muted">
+                              Expiry date {!p.is_lifetime ? <span className="text-red-500">*</span> : null}
+                            </Label>
+                          </div>
                           <Input
                             className={cn("border-zc-border", expErr ? "border-red-500" : "")}
-                            value={p.is_lifetime ? "" : p.expiry_date ?? ""}
+                            value={p.expiry_date ?? ""}
                             onChange={(e) => {
                               setAt(idx, { ...p, expiry_date: e.target.value });
                               setErrors((er) => {
@@ -795,78 +1220,148 @@ export default function HrStaffOnboardingPrivilegesPage() {
                       </div>
                     </div>
 
-                    <Field label="Granted by" required error={grantErr} help="Name / employee code">
-                      <Input
-                        className={cn("border-zc-border", grantErr ? "border-red-500" : "")}
-                        value={p.granted_by ?? ""}
-                        onChange={(e) => {
-                          setAt(idx, { ...p, granted_by: e.target.value });
-                          setErrors((er) => {
-                            const n = { ...er };
-                            delete n[`${pref}.granted_by`];
-                            return n;
-                          });
-                        }}
-                        placeholder="e.g., Dr. Anil Kumar (HOD)"
-                      />
-                    </Field>
+                    <div className="rounded-md border border-zc-border bg-transparent p-3">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Authorization</div>
 
-                    <Field label="Grantor role" help="Optional">
-                      <Input
-                        className="border-zc-border"
-                        value={p.granted_by_role ?? ""}
-                        onChange={(e) => setAt(idx, { ...p, granted_by_role: e.target.value })}
-                        placeholder="e.g., HOD / Medical Superintendent"
-                      />
-                    </Field>
+                      <div className="mt-3 grid gap-3">
+                        <Field label="Granted by" required error={grantErr} help={staffLoading ? "Loading…" : "Staff list"}>
+                          <Select
+                            value={String(p.granted_by || "")}
+                            onValueChange={(v) => {
+                              const staffId = String(v || "").trim();
+                              const staff = staffOptions.find((s) => s.id === staffId) || null;
+                              setAt(idx, {
+                                ...p,
+                                granted_by: staffId,
+                                granted_by_role: inferStaffRole(staff),
+                              });
+                              setErrors((er) => {
+                                const n = { ...er };
+                                delete n[`${pref}.granted_by`];
+                                return n;
+                              });
+                            }}
+                          >
+                            <SelectTrigger className={cn("border-zc-border", grantErr ? "border-red-500" : "")} disabled={!staffOptions.length}>
+                              <SelectValue placeholder={staffOptions.length ? "Select grantor" : "No staff found"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {/* If legacy value exists (name/code) keep selectable */}
+                              {!staffOptions.some((s) => s.id === p.granted_by) && p.granted_by ? (
+                                <SelectItem value={p.granted_by}>Legacy: {p.granted_by}</SelectItem>
+                              ) : null}
+                              {staffOptions.map((s) => (
+                                <SelectItem key={s.id} value={s.id}>
+                                  {formatStaffLabel(s)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </Field>
 
-                    <Field label="Granted date" help="YYYY-MM-DD">
-                      <Input
-                        className={cn("border-zc-border", errors[`${pref}.granted_date`] ? "border-red-500" : "")}
-                        value={p.granted_date ?? ""}
-                        onChange={(e) => {
-                          setAt(idx, { ...p, granted_date: e.target.value });
-                          setErrors((er) => {
-                            const n = { ...er };
-                            delete n[`${pref}.granted_date`];
-                            return n;
-                          });
-                        }}
-                        placeholder="YYYY-MM-DD"
-                      />
-                      {errors[`${pref}.granted_date`] ? (
-                        <div className="text-xs text-red-500">{errors[`${pref}.granted_date`]}</div>
-                      ) : null}
-                    </Field>
+                        <Field label="Role (auto from Granted By)" help="Read-only">
+                          <Input className="border-zc-border" value={p.granted_by_role ?? inferStaffRole(grantedStaff)} disabled />
+                        </Field>
 
-                    <Field label="Status" required>
-                      <Select
-                        value={p.status}
-                        onValueChange={(v) => setAt(idx, { ...p, status: String(v).toUpperCase() as PrivilegeStatus })}
-                      >
-                        <SelectTrigger className="border-zc-border">
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {PRIV_STATUS.map((s) => (
-                            <SelectItem key={s} value={s}>
-                              {s}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </Field>
+                        <Field label="Granted date" help="YYYY-MM-DD">
+                          <Input
+                            className={cn("border-zc-border", errors[`${pref}.granted_date`] ? "border-red-500" : "")}
+                            value={p.granted_date ?? ""}
+                            onChange={(e) => {
+                              setAt(idx, { ...p, granted_date: e.target.value });
+                              setErrors((er) => {
+                                const n = { ...er };
+                                delete n[`${pref}.granted_date`];
+                                return n;
+                              });
+                            }}
+                            placeholder="YYYY-MM-DD"
+                          />
+                          {errors[`${pref}.granted_date`] ? (
+                            <div className="text-xs text-red-500">{errors[`${pref}.granted_date`]}</div>
+                          ) : null}
+                        </Field>
 
-                    <div className="grid gap-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <Label className="text-xs text-zc-muted">Active</Label>
-                      </div>
-                      <div className="flex items-center justify-between rounded-md border border-zc-border bg-transparent px-3 py-2">
-                        <span className="text-xs text-zc-muted">is_active</span>
-                        <Switch
-                          checked={!!p.is_active}
-                          onCheckedChange={(v) => setAt(idx, { ...p, is_active: v })}
-                        />
+                        <Field label="Reviewed by" help="Optional (staff)">
+                          <Select
+                            value={String(p.reviewed_by || "")}
+                            onValueChange={(v) => setAt(idx, { ...p, reviewed_by: String(v || "").trim() })}
+                          >
+                            <SelectTrigger className="border-zc-border" disabled={!staffOptions.length || !p.review_required}>
+                              <SelectValue placeholder={!p.review_required ? "Review not required" : staffOptions.length ? "Select reviewer" : "No staff"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {!staffOptions.some((s) => s.id === p.reviewed_by) && p.reviewed_by ? (
+                                <SelectItem value={p.reviewed_by}>Legacy: {p.reviewed_by}</SelectItem>
+                              ) : null}
+                              {staffOptions.map((s) => (
+                                <SelectItem key={s.id} value={s.id}>
+                                  {formatStaffLabel(s)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {reviewedStaff ? (
+                            <div className="mt-1 text-[11px] text-zc-muted">Selected: {formatStaffLabel(reviewedStaff)}</div>
+                          ) : null}
+                        </Field>
+
+                        <Field label="Supervisor" help={p.supervision_required ? "Required when supervision is ON" : "Optional"} error={supErr}>
+                          <Select
+                            value={String(p.supervisor || "")}
+                            onValueChange={(v) => {
+                              setAt(idx, { ...p, supervisor: String(v || "").trim() });
+                              setErrors((er) => {
+                                const n = { ...er };
+                                delete n[`${pref}.supervisor`];
+                                return n;
+                              });
+                            }}
+                          >
+                            <SelectTrigger className={cn("border-zc-border", supErr ? "border-red-500" : "")} disabled={!staffOptions.length}>
+                              <SelectValue placeholder={staffOptions.length ? "Select supervisor" : "No staff"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {!staffOptions.some((s) => s.id === p.supervisor) && p.supervisor ? (
+                                <SelectItem value={p.supervisor}>Legacy: {p.supervisor}</SelectItem>
+                              ) : null}
+                              {staffOptions.map((s) => (
+                                <SelectItem key={s.id} value={s.id}>
+                                  {formatStaffLabel(s)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {supervisorStaff ? (
+                            <div className="mt-1 text-[11px] text-zc-muted">Selected: {formatStaffLabel(supervisorStaff)}</div>
+                          ) : null}
+                        </Field>
+
+                        <Field label="Assessor" help="Optional (staff)">
+                          <Select
+                            value={String(p.assessor || "")}
+                            onValueChange={(v) => setAt(idx, { ...p, assessor: String(v || "").trim() })}
+                          >
+                            <SelectTrigger className="border-zc-border" disabled={!staffOptions.length || !p.competency_assessment_required}>
+                              <SelectValue
+                                placeholder={!p.competency_assessment_required ? "Assessment not required" : staffOptions.length ? "Select assessor" : "No staff"}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {!staffOptions.some((s) => s.id === p.assessor) && p.assessor ? (
+                                <SelectItem value={p.assessor}>Legacy: {p.assessor}</SelectItem>
+                              ) : null}
+                              {staffOptions.map((s) => (
+                                <SelectItem key={s.id} value={s.id}>
+                                  {formatStaffLabel(s)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {assessorStaff ? (
+                            <div className="mt-1 text-[11px] text-zc-muted">Selected: {formatStaffLabel(assessorStaff)}</div>
+                          ) : null}
+                        </Field>
                       </div>
                     </div>
                   </div>
@@ -940,16 +1435,6 @@ export default function HrStaffOnboardingPrivilegesPage() {
                           </Field>
                         </div>
 
-                        <Field label="Reviewed by" help="Name/code">
-                          <Input
-                            className="border-zc-border"
-                            value={p.reviewed_by ?? ""}
-                            onChange={(e) => setAt(idx, { ...p, reviewed_by: e.target.value })}
-                            placeholder="Optional"
-                            disabled={!p.review_required}
-                          />
-                        </Field>
-
                         <Field label="Review remarks" help="Optional">
                           <Textarea
                             className="border-zc-border"
@@ -963,9 +1448,7 @@ export default function HrStaffOnboardingPrivilegesPage() {
                     </div>
 
                     <div className="rounded-md border border-zc-border bg-transparent p-3">
-                      <div className="flex items-center justify-between">
-                        <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Conditions & checks</div>
-                      </div>
+                      <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Conditions & checks</div>
 
                       <div className="mt-3 grid gap-3">
                         <div className="grid gap-3 md:grid-cols-2">
@@ -989,22 +1472,20 @@ export default function HrStaffOnboardingPrivilegesPage() {
                             </div>
                           </div>
 
-                          <Field label="Supervisor" error={supErr} help="Required if supervision required">
-                            <Input
-                              className={cn("border-zc-border", supErr ? "border-red-500" : "")}
-                              value={p.supervisor ?? ""}
-                              onChange={(e) => {
-                                setAt(idx, { ...p, supervisor: e.target.value });
-                                setErrors((er) => {
-                                  const n = { ...er };
-                                  delete n[`${pref}.supervisor`];
-                                  return n;
-                                });
-                              }}
-                              placeholder="Name/code"
-                              disabled={!p.supervision_required}
-                            />
-                          </Field>
+                          <div className="grid gap-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <Label className="text-xs text-zc-muted">Competency assessment required</Label>
+                            </div>
+                            <div className="flex items-center justify-between rounded-md border border-zc-border px-3 py-2">
+                              <span className="text-xs text-zc-muted">competency_assessment_required</span>
+                              <Switch
+                                checked={!!p.competency_assessment_required}
+                                onCheckedChange={(v) =>
+                                  setAt(idx, { ...p, competency_assessment_required: v, assessor: v ? p.assessor : "" })
+                                }
+                              />
+                            </div>
+                          </div>
                         </div>
 
                         <Field label="Conditions" help="Comma separated">
@@ -1026,27 +1507,6 @@ export default function HrStaffOnboardingPrivilegesPage() {
                         </Field>
 
                         <div className="grid gap-3 md:grid-cols-2">
-                          <div className="grid gap-1">
-                            <div className="flex items-center justify-between gap-2">
-                              <Label className="text-xs text-zc-muted">Competency assessment required</Label>
-                            </div>
-                            <div className="flex items-center justify-between rounded-md border border-zc-border px-3 py-2">
-                              <span className="text-xs text-zc-muted">competency_assessment_required</span>
-                              <Switch
-                                checked={!!p.competency_assessment_required}
-                                onCheckedChange={(v) =>
-                                  setAt(idx, {
-                                    ...p,
-                                    competency_assessment_required: v,
-                                    last_assessment_date: v ? p.last_assessment_date : "",
-                                    assessment_score: v ? p.assessment_score : null,
-                                    assessor: v ? p.assessor : "",
-                                  })
-                                }
-                              />
-                            </div>
-                          </div>
-
                           <Field label="Last assessment" help="YYYY-MM-DD">
                             <Input
                               className="border-zc-border"
@@ -1057,7 +1517,7 @@ export default function HrStaffOnboardingPrivilegesPage() {
                             />
                           </Field>
 
-                          <Field label="Assessment score" error={scoreErr} help="0–100">
+                          <Field label="Assessment score" help="0–100" error={scoreErr}>
                             <Input
                               className={cn("border-zc-border", scoreErr ? "border-red-500" : "")}
                               value={p.assessment_score === null || p.assessment_score === undefined ? "" : String(p.assessment_score)}
@@ -1070,25 +1530,12 @@ export default function HrStaffOnboardingPrivilegesPage() {
                                   return n;
                                 });
                               }}
-                              inputMode="numeric"
-                              placeholder="Optional"
+                              placeholder="e.g., 85"
                               disabled={!p.competency_assessment_required}
                             />
                           </Field>
 
-                          <Field label="Assessor" help="Name/code">
-                            <Input
-                              className="border-zc-border"
-                              value={p.assessor ?? ""}
-                              onChange={(e) => setAt(idx, { ...p, assessor: e.target.value })}
-                              placeholder="Optional"
-                              disabled={!p.competency_assessment_required}
-                            />
-                          </Field>
-                        </div>
-
-                        <div className="grid gap-3 md:grid-cols-2">
-                          <Field label="Minimum case volume" error={mvErr} help="Per review period">
+                          <Field label="Minimum case volume" help="Optional" error={mvErr}>
                             <Input
                               className={cn("border-zc-border", mvErr ? "border-red-500" : "")}
                               value={p.minimum_case_volume === null || p.minimum_case_volume === undefined ? "" : String(p.minimum_case_volume)}
@@ -1101,8 +1548,7 @@ export default function HrStaffOnboardingPrivilegesPage() {
                                   return n;
                                 });
                               }}
-                              inputMode="numeric"
-                              placeholder="Optional"
+                              placeholder="e.g., 20"
                             />
                           </Field>
 
@@ -1114,8 +1560,7 @@ export default function HrStaffOnboardingPrivilegesPage() {
                                 const v = e.target.value;
                                 setAt(idx, { ...p, current_case_volume: v === "" ? null : Number(v) });
                               }}
-                              inputMode="numeric"
-                              placeholder="Optional"
+                              placeholder="e.g., 12"
                             />
                           </Field>
                         </div>
@@ -1131,6 +1576,48 @@ export default function HrStaffOnboardingPrivilegesPage() {
                       </div>
                     </div>
                   </div>
+
+                  <Separator className="my-3 bg-zc-border" />
+
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <Field label="Status" required>
+                      <Select value={p.status} onValueChange={(v) => setAt(idx, { ...p, status: String(v).toUpperCase() as PrivilegeStatus })}>
+                        <SelectTrigger className="border-zc-border">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PRIV_STATUS.map((s) => (
+                            <SelectItem key={s} value={s}>
+                              {s}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+
+                    <div className="grid gap-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <Label className="text-xs text-zc-muted">Active</Label>
+                      </div>
+                      <div className="flex items-center justify-between rounded-md border border-zc-border bg-transparent px-3 py-2">
+                        <span className="text-xs text-zc-muted">is_active</span>
+                        <Switch checked={!!p.is_active} onCheckedChange={(v) => setAt(idx, { ...p, is_active: v })} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* preload specialties if dept selected and not loaded yet */}
+                  {deptId && !Array.isArray(specRows) ? (
+                    <div className="mt-2 text-[11px] text-zc-muted">
+                      <button
+                        type="button"
+                        className="underline underline-offset-2"
+                        onClick={() => void ensureSpecialtiesLoaded(deptId)}
+                      >
+                        Load specialties for selected department
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
               );
             })}

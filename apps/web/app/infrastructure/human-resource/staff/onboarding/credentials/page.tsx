@@ -132,11 +132,107 @@ function labelCredentialType(t: CredentialType) {
   }
 }
 
+const CREDENTIAL_TONE: Record<string, string> = {
+  MEDICAL_REGISTRATION: "border-emerald-200/70 bg-emerald-50/70 text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200",
+  NURSING_REGISTRATION: "border-sky-200/70 bg-sky-50/70 text-sky-800 dark:border-sky-900/40 dark:bg-sky-900/20 dark:text-sky-200",
+  PHARMACY_REGISTRATION: "border-violet-200/70 bg-violet-50/70 text-violet-800 dark:border-violet-900/40 dark:bg-violet-900/20 dark:text-violet-200",
+  PARAMEDICAL_REGISTRATION: "border-cyan-200/70 bg-cyan-50/70 text-cyan-800 dark:border-cyan-900/40 dark:bg-cyan-900/20 dark:text-cyan-200",
+  EDUCATION: "border-indigo-200/70 bg-indigo-50/70 text-indigo-800 dark:border-indigo-900/40 dark:bg-indigo-900/20 dark:text-indigo-200",
+  TRAINING: "border-amber-200/70 bg-amber-50/70 text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200",
+  EXPERIENCE: "border-lime-200/70 bg-lime-50/70 text-lime-800 dark:border-lime-900/40 dark:bg-lime-900/20 dark:text-lime-200",
+  GOVT_ID: "border-fuchsia-200/70 bg-fuchsia-50/70 text-fuchsia-800 dark:border-fuchsia-900/40 dark:bg-fuchsia-900/20 dark:text-fuchsia-200",
+  IMMUNIZATION: "border-rose-200/70 bg-rose-50/70 text-rose-800 dark:border-rose-900/40 dark:bg-rose-900/20 dark:text-rose-200",
+  OTHER: "border-zc-border bg-zc-panel/30 text-zc-muted",
+};
+
+function credentialBadgeClass(t?: CredentialType) {
+  return CREDENTIAL_TONE[String(t ?? "")] ?? "border-zc-border bg-zc-panel/30 text-zc-muted";
+}
+
+function statusBadgeClass(status?: VerificationStatus) {
+  switch (status) {
+    case "VERIFIED":
+      return "border-emerald-200/70 bg-emerald-50/70 text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200";
+    case "REJECTED":
+      return "border-rose-200/70 bg-rose-50/70 text-rose-800 dark:border-rose-900/40 dark:bg-rose-900/20 dark:text-rose-200";
+    case "EXPIRED":
+      return "border-slate-200/70 bg-slate-50/70 text-slate-800 dark:border-slate-900/40 dark:bg-slate-900/20 dark:text-slate-200";
+    case "RENEWAL_DUE":
+      return "border-violet-200/70 bg-violet-50/70 text-violet-800 dark:border-violet-900/40 dark:bg-violet-900/20 dark:text-violet-200";
+    default:
+      return "border-amber-200/70 bg-amber-50/70 text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200";
+  }
+}
+
+/**
+ * ✅ Critical: draftId can change via history.replaceState inside OnboardingShell (migration).
+ * useSearchParams often doesn't re-render on replaceState.
+ * This hook reads the URL directly and reacts to changes.
+ */
+function useLiveDraftId() {
+  const sp = useSearchParams();
+  const spDraftId = sp.get("draftId");
+  const [draftId, setDraftId] = React.useState<string | null>(spDraftId);
+
+  React.useEffect(() => {
+    const readFromUrl = () => {
+      try {
+        const v = new URLSearchParams(window.location.search).get("draftId");
+        setDraftId(v);
+      } catch {
+        // ignore
+      }
+    };
+
+    // Patch history once to emit an event on replace/push
+    const w = window as any;
+    if (!w.__zypo_history_patched) {
+      w.__zypo_history_patched = true;
+
+      const origReplace = history.replaceState.bind(history);
+      history.replaceState = (...args: Parameters<History["replaceState"]>) => {
+        origReplace(...args);
+        window.dispatchEvent(new Event("zypo:urlchange"));
+      };
+
+      const origPush = history.pushState.bind(history);
+      history.pushState = (...args: Parameters<History["pushState"]>) => {
+        origPush(...args);
+        window.dispatchEvent(new Event("zypo:urlchange"));
+      };
+    }
+
+    readFromUrl();
+
+    const onChange = () => readFromUrl();
+    window.addEventListener("zypo:urlchange", onChange);
+    window.addEventListener("popstate", onChange);
+
+    // Also poll briefly (covers the initial “draftId injected” case)
+    const t = window.setInterval(readFromUrl, 250);
+    const stop = window.setTimeout(() => window.clearInterval(t), 4000);
+
+    return () => {
+      window.removeEventListener("zypo:urlchange", onChange);
+      window.removeEventListener("popstate", onChange);
+      window.clearInterval(t);
+      window.clearTimeout(stop);
+    };
+  }, []);
+
+  React.useEffect(() => {
+    if (spDraftId && spDraftId !== draftId) setDraftId(spDraftId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spDraftId]);
+
+  return draftId;
+}
+
 export default function HrStaffOnboardingCredentialsPage() {
   const router = useRouter();
-  const sp = useSearchParams();
-  const draftId = sp.get("draftId");
   const { toast } = useToast();
+
+  const draftId = useLiveDraftId(); // ✅ live draftId (handles migration)
 
   const [loading, setLoading] = React.useState(true);
   const [dirty, setDirty] = React.useState(false);
@@ -164,14 +260,10 @@ export default function HrStaffOnboardingCredentialsPage() {
 
   const [form, setForm] = React.useState<CredentialDraft>({ ...emptyForm, id: makeId() });
 
-  React.useEffect(() => {
-    if (draftId) return;
-    router.replace("/infrastructure/human-resource/staff/onboarding/personal" as any);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draftId]);
-
+  // Load from local draft when draftId becomes available / changes
   React.useEffect(() => {
     if (!draftId) return;
+
     setLoading(true);
     try {
       const d = readDraft(draftId);
@@ -229,8 +321,8 @@ export default function HrStaffOnboardingCredentialsPage() {
     setEditingId(null);
     setForm({
       ...emptyForm,
-      id: makeId(), // ✅ new key
-      evidence_urls: [], // ✅ reset
+      id: makeId(),
+      evidence_urls: [],
     });
     setErrors({});
     setDirty(true);
@@ -251,7 +343,7 @@ export default function HrStaffOnboardingCredentialsPage() {
       valid_from: existing.valid_from ? String(existing.valid_from).slice(0, 10) : "",
       valid_to: existing.valid_to ? String(existing.valid_to).slice(0, 10) : "",
       evidence_urls: Array.isArray(existing.evidence_urls) ? existing.evidence_urls : [],
-      id: existing.id, // keep stable while editing
+      id: existing.id,
     });
     setErrors({});
     setDirty(false);
@@ -303,9 +395,8 @@ export default function HrStaffOnboardingCredentialsPage() {
       return [...prev, { ...candidate, id: candidate.id || makeId() }];
     });
 
-    toast({ title: editingId ? "Updated" : "Added", description: "Credential saved in this draft step." });
+    toast({ title: editingId ? "Updated" : "Added", description: "Credential saved in this step (not yet in draft)." });
 
-    // reset to clean add form (and force remount)
     setEditingId(null);
     setForm({ ...emptyForm, id: makeId(), evidence_urls: [] });
     setErrors({});
@@ -323,56 +414,59 @@ export default function HrStaffOnboardingCredentialsPage() {
     }
   }
 
-  function saveDraftOrThrow() {
-    if (!draftId) return;
+  /**
+   * ✅ This is the missing piece:
+   * It persists this page's state into localStorage so OnboardingShell's "Save draft" includes it.
+   */
+  async function persistStepToLocalDraft() {
+    const id = draftId || (typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("draftId") : null);
+    if (!id) return;
+
     validateStepOrThrow();
 
-    const existing = readDraft(draftId);
-    writeDraft(draftId, {
-      ...existing,
+    writeDraft(id, {
       medical_details: {
-        ...(existing.medical_details ?? {}),
         credentials,
       },
     });
 
     setDirty(false);
-    toast({ title: "Saved", description: "Credentials saved to draft." });
   }
 
-  function onSaveOnly() {
+  // Footer buttons (optional) still work and now also persist properly
+  async function onSaveOnly() {
     try {
-      saveDraftOrThrow();
+      await persistStepToLocalDraft();
+      toast({ title: "Saved", description: "Credentials saved to draft." });
     } catch {}
   }
 
-  function onSaveAndNext() {
+  async function onSaveAndNext() {
     try {
-      saveDraftOrThrow();
-      router.push(
-        `/infrastructure/human-resource/staff/onboarding/assignments?draftId=${encodeURIComponent(draftId ?? "")}` as any,
-      );
+      await persistStepToLocalDraft();
+      const id = draftId || new URLSearchParams(window.location.search).get("draftId") || "";
+      router.push(`${BASE}/assignments?draftId=${encodeURIComponent(id)}` as any);
     } catch {}
   }
+
+  const BASE = "/infrastructure/human-resource/staff/onboarding";
 
   return (
     <OnboardingShell
       stepKey="credentials"
       title="Credentials"
-      description="Add registrations, certificates, ID proofs and upload evidence files (no manual links)."
+      description="Add registrations, certificates, ID proofs and upload evidence files."
+      onSaveDraft={persistStepToLocalDraft} // ✅ FIX: header Save Draft now persists credentials
       footer={
         <div className="flex flex-wrap items-center justify-between gap-2 w-full">
           <Button
             type="button"
             variant="outline"
             className="border-zc-border"
-            onClick={() =>
-              router.push(
-                `/infrastructure/human-resource/staff/onboarding/employment?draftId=${encodeURIComponent(
-                  draftId ?? "",
-                )}` as any,
-              )
-            }
+            onClick={() => {
+              const id = draftId || new URLSearchParams(window.location.search).get("draftId") || "";
+              router.push(`${BASE}/employment?draftId=${encodeURIComponent(id)}` as any);
+            }}
           >
             Back
           </Button>
@@ -403,15 +497,24 @@ export default function HrStaffOnboardingCredentialsPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="border border-zc-border">
+            <Badge
+              variant="secondary"
+              className="border border-sky-200/70 bg-sky-50/70 text-sky-800 dark:border-sky-900/40 dark:bg-sky-900/20 dark:text-sky-200"
+            >
               Count: {credentials.length}
             </Badge>
             {dirty ? (
-              <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400" variant="secondary">
+              <Badge
+                className="border border-amber-200/70 bg-amber-50/70 text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200"
+                variant="secondary"
+              >
                 Unsaved changes
               </Badge>
             ) : (
-              <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" variant="secondary">
+              <Badge
+                className="border border-emerald-200/70 bg-emerald-50/70 text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200"
+                variant="secondary"
+              >
                 Saved
               </Badge>
             )}
@@ -436,24 +539,30 @@ export default function HrStaffOnboardingCredentialsPage() {
           </div>
 
           {credentials.length === 0 ? (
-            <div className="rounded-md border border-zc-border bg-zc-panel/40 p-4 text-sm text-zc-muted">
+            <div className="rounded-md border border-zc-border bg-zc-card/40 p-4 text-sm text-zc-muted">
               No credentials added yet.
             </div>
           ) : (
             <div className="grid gap-3">
               {credentials.map((c) => (
-                <div key={c.id} className="rounded-md border border-zc-border bg-zc-panel/40 p-4">
+                <div key={c.id} className="rounded-md border border-zc-border bg-zc-card/40 p-4">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant="secondary" className="border border-zc-border">
+                        <Badge variant="secondary" className={cn("border", credentialBadgeClass(c.credential_type))}>
                           {labelCredentialType(c.credential_type)}
                         </Badge>
-                        <Badge variant="secondary" className="border border-zc-border">
+                        <Badge
+                          variant="secondary"
+                          className={cn("border", statusBadgeClass(c.verification_status ?? "PENDING"))}
+                        >
                           {String(c.verification_status ?? "PENDING")}
                         </Badge>
                         {Array.isArray(c.evidence_urls) && c.evidence_urls.length ? (
-                          <Badge variant="secondary" className="border border-zc-border">
+                          <Badge
+                            variant="secondary"
+                            className="border border-indigo-200/70 bg-indigo-50/70 text-indigo-800 dark:border-indigo-900/40 dark:bg-indigo-900/20 dark:text-indigo-200"
+                          >
                             Evidence: {c.evidence_urls.length}
                           </Badge>
                         ) : null}
@@ -473,7 +582,7 @@ export default function HrStaffOnboardingCredentialsPage() {
                     <div className="flex items-center gap-2">
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="secondary"
                         className="h-8 border-zc-border px-3 text-xs"
                         onClick={() => startEdit(c.id)}
                       >
@@ -481,8 +590,8 @@ export default function HrStaffOnboardingCredentialsPage() {
                       </Button>
                       <Button
                         type="button"
-                        variant="outline"
-                        className="h-8 border-zc-border px-3 text-xs text-red-600 hover:text-red-600"
+                        variant="warning"
+                        className="h-8 border-zc-border px-3 text-xs text-white-600 hover:text-white-400"
                         onClick={() => removeCredential(c.id)}
                       >
                         Remove
@@ -500,9 +609,9 @@ export default function HrStaffOnboardingCredentialsPage() {
         {/* Add/Edit Form */}
         <div
           id="credential-form"
-          key={form.id} // ✅ remount to reset Selects properly
+          key={form.id}
           className={cn(
-            "rounded-md border border-zc-border bg-zc-panel/40 p-4",
+            "rounded-md border border-zc-border bg-zc-card/40 p-4",
             loading ? "opacity-60" : "opacity-100",
           )}
         >
@@ -511,12 +620,7 @@ export default function HrStaffOnboardingCredentialsPage() {
               {editingId ? "Edit credential" : "Add credential"}
             </div>
             {editingId ? (
-              <Button
-                type="button"
-                variant="outline"
-                className="h-8 border-zc-border px-3 text-xs"
-                onClick={startAdd}
-              >
+              <Button type="button" variant="outline" className="h-8 border-zc-border px-3 text-xs" onClick={startAdd}>
                 Cancel edit
               </Button>
             ) : null}
@@ -525,7 +629,10 @@ export default function HrStaffOnboardingCredentialsPage() {
           <div className="mt-3 grid gap-3">
             <div className="grid gap-3 md:grid-cols-4">
               <Field label="Credential type" required error={errors.credential_type}>
-                <Select value={String(form.credential_type)} onValueChange={(v) => update("credential_type", v as CredentialType)}>
+                <Select
+                  value={String(form.credential_type)}
+                  onValueChange={(v) => update("credential_type", v as CredentialType)}
+                >
                   <SelectTrigger className={cn("border-zc-border", errors.credential_type ? "border-red-500" : "")}>
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
@@ -562,11 +669,7 @@ export default function HrStaffOnboardingCredentialsPage() {
                 />
               </Field>
 
-              <Field
-                label="Credential / Reg. number"
-                required={needsNumber(form.credential_type)}
-                error={errors.credential_number}
-              >
+              <Field label="Credential / Reg. number" required={needsNumber(form.credential_type)} error={errors.credential_number}>
                 <Input
                   className={cn("border-zc-border", errors.credential_number ? "border-red-500" : "")}
                   value={String(form.credential_number ?? "")}
@@ -621,19 +724,22 @@ export default function HrStaffOnboardingCredentialsPage() {
             </div>
 
             <div className="grid gap-3 md:grid-cols-2">
-              <Field label="Verification notes" help={form.verification_status === "REJECTED" ? "Recommended when rejected" : "Optional"}>
+              <Field
+                label="Verification notes"
+                help={form.verification_status === "REJECTED" ? "Recommended when rejected" : "Optional"}
+              >
                 <Textarea
                   className="border-zc-border"
                   value={String(form.verification_notes ?? "")}
                   onChange={(e) => update("verification_notes", e.target.value)}
-                  placeholder="Optional notes for verifier…"
+                  placeholder="Optional notes for verifier..."
                 />
               </Field>
 
               <div className="grid gap-2">
                 <Label className="text-xs text-zc-muted">Evidence files</Label>
                 <EvidenceUpload
-                  draftId={draftId}
+                  draftId={draftId ?? null}
                   kind="IDENTITY_DOC"
                   value={Array.isArray(form.evidence_urls) ? form.evidence_urls : []}
                   onChange={(next) => setForm((p) => ({ ...p, evidence_urls: next }))}
@@ -642,11 +748,7 @@ export default function HrStaffOnboardingCredentialsPage() {
             </div>
 
             <div className="flex justify-end">
-              <Button
-                type="button"
-                className="bg-zc-accent text-white hover:bg-zc-accent/90"
-                onClick={upsertCredential}
-              >
+              <Button type="button" className="bg-zc-accent text-white hover:bg-zc-accent/90" onClick={upsertCredential}>
                 {editingId ? "Update credential" : "Add credential"}
               </Button>
             </div>

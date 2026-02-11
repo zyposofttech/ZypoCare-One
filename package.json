@@ -25,7 +25,7 @@
     "@biomejs/biome": "^1.9.4",
     "dotenv-cli": "^11.0.0",
     "prisma": "^5.22.0",
-    "turbo": "^2.8.3"
+    "turbo": "^2.8.4"
   },
   "dependencies": {
     "next": "^16.1.6"

@@ -18,7 +18,6 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 
 import { apiFetch, ApiError } from "@/lib/api";
@@ -188,11 +187,21 @@ function typeLabel(t: FacilityType) {
   return "Support";
 }
 
+function typeBadgeClass(t: FacilityType) {
+  if (t === "CLINICAL") {
+    return "border-emerald-200/70 bg-emerald-50/70 text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200";
+  }
+  if (t === "SERVICE") {
+    return "border-sky-200/70 bg-sky-50/70 text-sky-800 dark:border-sky-900/40 dark:bg-sky-900/20 dark:text-sky-200";
+  }
+  return "border-violet-200/70 bg-violet-50/70 text-violet-800 dark:border-violet-900/40 dark:bg-violet-900/20 dark:text-violet-200";
+}
+
 function hoursLabel(h: any): string {
   if (!h) return "-";
-  if (h.is24x7 || h.mode === "24X7") return "24Ã—7";
+  if (h.is24x7 || h.mode === "24X7") return "24x7";
   if (h.mode === "WEEKLY" && h.days) return "Weekly";
-  if (h.mode === "SHIFT" && (h.start || h.end)) return `${h.start ?? ""}${h.end ? `â€“${h.end}` : ""}`;
+  if (h.mode === "SHIFT" && (h.start || h.end)) return `${h.start ?? ""}${h.end ? `-${h.end}` : ""}`;
   return "Custom";
 }
 
@@ -301,7 +310,7 @@ export default function DepartmentsPage() {
   const supportCount = rows.filter((r) => r.facilityType === "SUPPORT").length;
   const nonClinicalCount = serviceCount + supportCount;
 
-  // â”€â”€ AI Copilot hooks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- AI Copilot hooks -----------------------------------------------------
   const codeFieldAI = useFieldCopilot({
     module: "department",
     field: "code",
@@ -460,16 +469,14 @@ export default function DepartmentsPage() {
     setBusy(true);
     try {
       let full: DepartmentRow = r;
-      // Some list endpoints may not return nested specialties/locations; fetch detail defensively.
-      if (!Array.isArray((r as any)?.specialties) || !Array.isArray((r as any)?.locations)) {
-        try {
-          const params = new URLSearchParams();
-          params.set("branchId", branchId);
-          full = await apiFetch<DepartmentRow>(`/api/departments/${encodeURIComponent(r.id)}?${params.toString()}`);
-        } catch {
-          // fall back to the row we have
-          full = r;
-        }
+      // Fetch detail defensively to ensure locations/specialties are hydrated for editing.
+      try {
+        const params = new URLSearchParams();
+        params.set("branchId", branchId);
+        full = await apiFetch<DepartmentRow>(`/api/departments/${encodeURIComponent(r.id)}?${params.toString()}`);
+      } catch {
+        // fall back to the row we have
+        full = r;
       }
 
       setEditing(full);
@@ -490,8 +497,9 @@ export default function DepartmentsPage() {
 
       // Locations: enforce allowed levels (FLOOR/ZONE/AREA). If legacy data has CAMPUS/BUILDING, strip them.
       const locAll = (full.locations ?? []).map((x) => x.locationNodeId);
+      const resolveLocKind = (x: any) => String(x?.node?.kind ?? x?.node?.type ?? x?.kind ?? x?.type ?? "");
       const locAllowed = (full.locations ?? [])
-        .filter((x) => ALLOWED_LOCATION_TYPES.has(String(x.node?.kind ?? x.kind ?? "")))
+        .filter((x) => ALLOWED_LOCATION_TYPES.has(resolveLocKind(x)))
         .map((x) => x.locationNodeId);
 
       if (locAll.length !== locAllowed.length) {
@@ -504,14 +512,14 @@ export default function DepartmentsPage() {
 
       setPickedLocationIds(locAllowed);
       let primary =
-        (full.locations ?? []).find((x) => x.isPrimary && ALLOWED_LOCATION_TYPES.has(String(x.node?.kind ?? x.kind ?? "")))?.locationNodeId ?? null;
+        (full.locations ?? []).find((x) => x.isPrimary && ALLOWED_LOCATION_TYPES.has(resolveLocKind(x)))?.locationNodeId ?? null;
       if (primary && !locAllowed.includes(primary)) primary = locAllowed[0] ?? null;
       if (!primary && locAllowed.length) primary = locAllowed[0];
       setPrimaryLocationId(primary);
 
       const hod = full.headStaff ?? null;
       setHodId(hod?.id ?? null);
-      setHodLabel(hod ? `${hod.name}${hod.designation ? ` â€” ${hod.designation}` : ""}` : "");
+      setHodLabel(hod ? `${hod.name}${hod.designation ? ` - ${hod.designation}` : ""}` : "");
       setHodSearch(hod?.name ?? "");
 
       let specIds = (full.specialties ?? []).map((x) => x.specialtyId);
@@ -520,9 +528,10 @@ export default function DepartmentsPage() {
       if (specIds.length === 0 && full.facilityType === "CLINICAL") {
         try {
           const s = await apiFetch<any>(`/api/departments/${encodeURIComponent(full.id)}/specialties?branchId=${encodeURIComponent(branchId)}`);
-          if (Array.isArray(s)) {
-            specIds = s.map((x: any) => x.specialtyId ?? x.specialty?.id ?? x.id).filter(Boolean);
-            primarySpec = (s.find((x: any) => x.isPrimary)?.specialtyId ?? s.find((x: any) => x.isPrimary)?.specialty?.id ?? null) as any;
+          const items = Array.isArray(s) ? s : Array.isArray(s?.items) ? s.items : [];
+          if (items.length) {
+            specIds = items.map((x: any) => x.specialtyId ?? x.specialty?.id ?? x.id).filter(Boolean);
+            primarySpec = (items.find((x: any) => x.isPrimary)?.specialtyId ?? items.find((x: any) => x.isPrimary)?.specialty?.id ?? null) as any;
           }
         } catch {
           // ignore
@@ -718,6 +727,16 @@ export default function DepartmentsPage() {
     try {
       let departmentId: string | null = editing?.id ?? null;
       if (editing) {
+        const preTagSpecialties = formType === "CLINICAL" && pickedSpecialtyIds.length > 0;
+        if (preTagSpecialties) {
+          await apiFetch(`/api/departments/${encodeURIComponent(editing.id)}/specialties`, {
+            method: "PUT",
+            body: {
+              specialtyIds: pickedSpecialtyIds,
+              primarySpecialtyId: primarySpecId,
+            },
+          });
+        }
         await apiFetch(`/api/departments/${encodeURIComponent(editing.id)}`, { method: "PATCH", body: payload });
         toast({ title: "Department updated", description: "Changes saved successfully.", duration: 1600 });
       } else {
@@ -727,7 +746,7 @@ export default function DepartmentsPage() {
       }
 
       // Specialty tagging lives on Department
-      if (departmentId) {
+      if (departmentId && !(editing && formType === "CLINICAL" && pickedSpecialtyIds.length > 0)) {
         await apiFetch(`/api/departments/${encodeURIComponent(departmentId)}/specialties`, {
           method: "PUT",
           body: {
@@ -1068,7 +1087,12 @@ export default function DepartmentsPage() {
                           </td>
 
                           <td className="px-4 py-3">
-                            <span className="inline-flex items-center rounded-full border border-zc-border bg-zc-panel/20 px-2 py-0.5 text-[11px] font-semibold text-zc-muted">
+                            <span
+                              className={cn(
+                                "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                                typeBadgeClass(r.facilityType)
+                              )}
+                            >
                               {typeLabel(r.facilityType)}
                             </span>
                           </td>
@@ -1261,605 +1285,349 @@ export default function DepartmentsPage() {
                 </div>
               ) : null}
 
-              <div className="grid gap-6">
-                <Tabs defaultValue="core">
-                  <TabsList className={cn("h-10 rounded-2xl border border-zc-border bg-zc-panel/20 p-1")}>
-                    <TabsTrigger
-                      value="core"
-                      className={cn("rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm")}
-                    >
-                      Core
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="spec"
-                      className={cn("rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm")}
-                    >
-                      Specialties
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="ops"
-                      className={cn("rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm")}
-                    >
-                      Operating hours
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="loc"
-                      className={cn("rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm")}
-                    >
-                      Locations
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="hod"
-                      className={cn("rounded-xl px-3 data-[state=active]:bg-zc-accent data-[state=active]:text-white data-[state=active]:shadow-sm")}
-                    >
-                      HOD
-                    </TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="core" className="mt-4">
-                    <div className="grid gap-4 md:grid-cols-12">
-                      <div className="md:col-span-4">
-                        <Label>Code</Label>
-                        <AIFieldWrapper warnings={codeFieldAI.warnings} suggestion={codeFieldAI.suggestion} validating={codeFieldAI.validating}>
-                          <Input
-                            value={formCode}
-                            onChange={(e) => setFormCode(e.target.value)}
-                            placeholder="e.g. OPD"
-                            className="h-11 rounded-xl border-zc-border bg-zc-card font-mono"
-                            disabled={!!editing || busy}
-                          />
-                        </AIFieldWrapper>
-                        <div className="mt-1 text-xs text-zc-muted">Unique within branch. Uppercase letters/numbers/_</div>
-                      </div>
-
-                      <div className="md:col-span-8">
-                        <Label>Name</Label>
-                        <AIFieldWrapper warnings={nameFieldAI.warnings} suggestion={nameFieldAI.suggestion} validating={nameFieldAI.validating}>
-                          <Input
-                            value={formName}
-                            onChange={(e) => setFormName(e.target.value)}
-                            placeholder="Department name"
-                            className="h-11 rounded-xl border-zc-border bg-zc-card"
-                            disabled={busy}
-                          />
-                        </AIFieldWrapper>
-                      </div>
-
-                      <div className="md:col-span-4">
-                        <Label>Type</Label>
-                        <Select value={formType} onValueChange={(v) => setFormType(v as FacilityType)} disabled={busy}>
-                          <SelectTrigger className="h-11 rounded-xl border-zc-border bg-zc-card">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {FACILITY_TYPES.map((t) => (
-                              <SelectItem key={t} value={t}>
-                                {typeLabel(t)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="md:col-span-4">
-                        <Label>Cost Center Code</Label>
-                        <AIFieldWrapper warnings={costCenterAI.warnings} suggestion={costCenterAI.suggestion} validating={costCenterAI.validating}>
-                          <Input
-                            value={formCostCenter}
-                            onChange={(e) => setFormCostCenter(e.target.value)}
-                            placeholder="Optional"
-                            className="h-11 rounded-xl border-zc-border bg-zc-card"
-                            disabled={busy}
-                          />
-                        </AIFieldWrapper>
-                      </div>
-
-                      <div className="md:col-span-4">
-                        <Label>Extensions</Label>
+              <div className="grid gap-8">
+                <div className="grid gap-4">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Core</div>
+                  <div className="grid gap-4 md:grid-cols-12">
+                    <div className="md:col-span-4">
+                      <Label>Code</Label>
+                      <AIFieldWrapper warnings={codeFieldAI.warnings} suggestion={codeFieldAI.suggestion} validating={codeFieldAI.validating}>
                         <Input
-                          value={formExtensions}
-                          onChange={(e) => setFormExtensions(e.target.value)}
-                          placeholder="e.g. 123, 124"
+                          value={formCode}
+                          onChange={(e) => setFormCode(e.target.value)}
+                          placeholder="e.g. OPD"
+                          className="h-11 rounded-xl border-zc-border bg-zc-card font-mono"
+                          disabled={!!editing || busy}
+                        />
+                      </AIFieldWrapper>
+                      <div className="mt-1 text-xs text-zc-muted">Unique within branch. Uppercase letters/numbers/_</div>
+                    </div>
+
+                    <div className="md:col-span-8">
+                      <Label>Name</Label>
+                      <AIFieldWrapper warnings={nameFieldAI.warnings} suggestion={nameFieldAI.suggestion} validating={nameFieldAI.validating}>
+                        <Input
+                          value={formName}
+                          onChange={(e) => setFormName(e.target.value)}
+                          placeholder="Department name"
                           className="h-11 rounded-xl border-zc-border bg-zc-card"
                           disabled={busy}
                         />
-                        <div className="mt-1 text-xs text-zc-muted">Comma-separated phone extensions</div>
-                      </div>
+                      </AIFieldWrapper>
+                    </div>
 
-                      <div className="md:col-span-12 rounded-xl border border-zc-border bg-zc-panel/10 p-3 text-sm text-zc-muted">
-                        Tag specialties in the <span className="font-semibold text-zc-text">Specialties</span> tab above. Master list is under{" "}
-                        <span className="font-semibold text-zc-text">Infrastructure â†’ Specialties</span>.
+                    <div className="md:col-span-4">
+                      <Label>Type</Label>
+                      <Select value={formType} onValueChange={(v) => setFormType(v as FacilityType)} disabled={busy}>
+                        <SelectTrigger className="h-11 rounded-xl border-zc-border bg-zc-card">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {FACILITY_TYPES.map((t) => (
+                            <SelectItem key={t} value={t}>
+                              {typeLabel(t)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="md:col-span-4">
+                      <Label>Cost Center Code</Label>
+                      <AIFieldWrapper warnings={costCenterAI.warnings} suggestion={costCenterAI.suggestion} validating={costCenterAI.validating}>
+                        <Input
+                          value={formCostCenter}
+                          onChange={(e) => setFormCostCenter(e.target.value)}
+                          placeholder="Optional"
+                          className="h-11 rounded-xl border-zc-border bg-zc-card"
+                          disabled={busy}
+                        />
+                      </AIFieldWrapper>
+                    </div>
+
+                    <div className="md:col-span-4">
+                      <Label>Extensions</Label>
+                      <Input
+                        value={formExtensions}
+                        onChange={(e) => setFormExtensions(e.target.value)}
+                        placeholder="e.g. 123, 124"
+                        className="h-11 rounded-xl border-zc-border bg-zc-card"
+                        disabled={busy}
+                      />
+                      <div className="mt-1 text-xs text-zc-muted">Comma-separated phone extensions</div>
+                    </div>
+
+                    <div className="md:col-span-12 rounded-xl border border-zc-border bg-zc-panel/10 p-3 text-sm text-zc-muted">
+                      Tag specialties in the <span className="font-semibold text-zc-text">Specialties</span> section below. Master list is under{" "}
+                      <span className="font-semibold text-zc-text">Infrastructure {"->"} Specialties</span>.
+                    </div>
+                  </div>
+                </div>
+                <Separator className="bg-zc-border/60" />
+                <div className="grid gap-4">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Locations</div>
+                  <div className="grid gap-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <div className="font-semibold text-zc-text">Selected locations</div>
+                        <div className="text-sm text-zc-muted">Pick one or more location nodes for the department (Floor / Zone / Area only)</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={locationSearch}
+                          onChange={(e) => setLocationSearch(e.target.value)}
+                          placeholder="Search locations..."
+                          className="h-10 w-[260px] rounded-xl border-zc-border bg-zc-card"
+                          disabled={busy}
+                        />
                       </div>
                     </div>
-                  </TabsContent>
 
-                  <TabsContent value="spec" className="mt-4">
-                    <div className="grid gap-4">
-                      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-                        <div className="min-w-0">
-                          <div className="text-sm font-semibold text-zc-text">Department Specialties</div>
-                          <div className="mt-1 text-xs text-zc-muted">
-                            Select one or more specialties to tag this department. Optionally mark one as primary.
-                          </div>
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Button asChild variant="outline" size="sm" className="gap-2">
-                            <Link href="/infrastructure/specialties">
-                              <ChevronDown className="h-4 w-4" />
-                              Open Specialty Master
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Selected chips */}
-                      <div className="rounded-2xl border border-zc-border bg-zc-panel/10 p-4">
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                          <div className="text-sm text-zc-muted">
-                            Selected: <span className="font-mono text-xs">{pickedSpecialtyIds.length}</span>
-                          </div>
-                          <div className="w-full md:w-72">
-                            <Label>Primary specialty</Label>
-                            <Select
-                              value={primarySpecialtyId ?? ""}
-                              onValueChange={(v) => setPrimarySpecialtyId(v || null)}
-                              disabled={busy || pickedSpecialtyIds.length === 0}
-                            >
-                              <SelectTrigger className="mt-1 h-11 rounded-xl border-zc-border bg-zc-card">
-                                <SelectValue placeholder="(optional)" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {pickedSpecialtyIds.map((id) => {
-                                  const s = specialties.find((x) => x.id === id);
-                                  return (
-                                    <SelectItem key={id} value={id}>
-                                      {s ? `${s.name} (${s.code})` : id}
-                                    </SelectItem>
-                                  );
-                                })}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-
-                        {selectedSpecialtyChips.length ? (
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {selectedSpecialtyChips.map((s) => (
-                              <span
-                                key={s.id}
-                                className={cn(
-                                  "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs",
-                                  s.isActive ? "border-zc-border bg-zc-card" : "border-amber-200/60 bg-amber-50/40 dark:border-amber-900/40 dark:bg-amber-900/15"
-                                )}
-                              >
-                                <span className="font-medium text-zc-text">{s.label}</span>
-                                <span className="text-[11px] text-zc-muted">{(s.kind || "").replace(/_/g, " ")}</span>
-                                {primarySpecialtyId === s.id ? <Badge variant="ok">Primary</Badge> : null}
-                                <button
-                                  type="button"
-                                  className="grid h-6 w-6 place-items-center rounded-full text-zc-muted hover:bg-zc-panel/30"
-                                  onClick={() => togglePickSpecialty(s.id)}
-                                  disabled={busy}
-                                  title="Remove"
-                                >
-                                  <X className="h-3.5 w-3.5" />
-                                </button>
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="mt-3 text-sm text-zc-muted">No specialties selected yet.</div>
-                        )}
-                      </div>
-
-                      {/* Picker */}
-                      <div className="rounded-2xl border border-zc-border">
-                        <div className="flex flex-col gap-2 border-b border-zc-border bg-zc-panel/10 p-4 md:flex-row md:items-center md:justify-between">
-                          <div className="relative w-full md:w-96">
-                            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zc-muted" />
-                            <Input
-                              value={specSearch}
-                              onChange={(e) => setSpecSearch(e.target.value)}
-                              placeholder="Search specialties (name/code/kind)â€¦"
-                              className="h-11 rounded-xl border-zc-border bg-zc-card pl-9"
+                    {pickedLocationIds.length ? (
+                      <div className="flex flex-wrap gap-2">
+                        {selectedLocationChips.map((c) => (
+                          <span
+                            key={c.id}
+                            className={cn(
+                              "inline-flex items-center gap-2 rounded-full border border-zc-border bg-zc-panel/10 px-3 py-1 text-xs",
+                              primaryLocationId === c.id ? "ring-2 ring-zc-accent/40" : "",
+                            )}
+                          >
+                            <MapPin className="h-3 w-3 text-zc-muted" />
+                            <span className="max-w-[280px] truncate">{c.label}</span>
+                            {primaryLocationId === c.id ? <Badge variant="ok">PRIMARY</Badge> : null}
+                            <button
+                              className="ml-1 rounded-full p-1 hover:bg-zc-panel/30"
+                              onClick={() => togglePickLocation(c.id)}
+                              type="button"
                               disabled={busy}
-                            />
-                          </div>
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-4 text-sm text-zc-muted">No locations selected.</div>
+                    )}
 
-                          <div className="flex items-center gap-2 text-xs text-zc-muted">
-                            {specLoading ? (
-                              <span className="inline-flex items-center gap-2">
-                                <RefreshCw className="h-3.5 w-3.5 animate-spin" /> loading
-                              </span>
-                            ) : null}
-                            <span className="font-mono">{filteredSpecialties.length}</span> available
-                          </div>
-                        </div>
+                    <div className="grid gap-2">
+                      <Label>Primary location</Label>
+                      <Select value={primaryLocationId ?? ""} onValueChange={(v) => setPrimaryLocationId(v || null)} disabled={busy || pickedLocationIds.length === 0}>
+                        <SelectTrigger className="h-11 rounded-xl border-zc-border bg-zc-card">
+                          <SelectValue placeholder={pickedLocationIds.length ? "Select primary..." : "Select locations first"} />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[320px] overflow-y-auto">
+                          {selectedLocationChips.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <div className="text-xs text-zc-muted">Backend rule: primaryLocationNodeId must be included in locationNodeIds.</div>
+                    </div>
 
-                        <div className="max-h-[320px] overflow-auto">
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead className="w-[90px]">Pick</TableHead>
-                                <TableHead>Specialty</TableHead>
-                                <TableHead>Kind</TableHead>
-                                <TableHead>Status</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {!filteredSpecialties.length ? (
-                                <TableRow>
-                                  <TableCell colSpan={4} className="py-10 text-center text-sm text-zc-muted">
-                                    No specialties match your search.
+                    <div className="rounded-xl border border-zc-border overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[120px]">Type</TableHead>
+                            <TableHead>Name</TableHead>
+                            <TableHead className="w-[120px]">Pick</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredFlatLocations.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={3}>
+                                <div className="flex items-center justify-center gap-2 py-10 text-sm text-zc-muted">
+                                  <AlertTriangle className="h-4 w-4 text-zc-warn" />
+                                  No locations found.
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            filteredFlatLocations.map((n) => {
+                              const checked = pickedLocationIds.includes(n.id);
+                              return (
+                                <TableRow key={n.id} className={checked ? "bg-zc-panel/10" : ""}>
+                                  <TableCell className="text-sm text-zc-muted">{n.type}</TableCell>
+                                  <TableCell className="text-sm text-zc-text">
+                                    {n.name ?? "(unnamed)"} {n.code ? <span className="font-mono text-xs text-zc-muted">({n.code})</span> : null}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant={checked ? "secondary" : "outline"}
+                                      className="gap-2"
+                                      onClick={() => togglePickLocation(n.id)}
+                                      disabled={busy}
+                                    >
+                                      {checked ? "Picked" : "Pick"}
+                                    </Button>
                                   </TableCell>
                                 </TableRow>
-                              ) : (
-                                filteredSpecialties.map((s) => {
-                                  const picked = pickedSpecialtyIds.includes(s.id);
-                                  return (
-                                    <TableRow key={s.id} className={picked ? "bg-zc-panel/10" : ""}>
-                                      <TableCell>
-                                        <Button
-                                          type="button"
-                                          variant={picked ? "primary" : "outline"}
-                                          size="sm"
-                                          className="gap-2"
-                                          onClick={() => togglePickSpecialty(s.id)}
-                                          disabled={busy}
-                                        >
-                                          {picked ? <Check className="h-4 w-4" /> : null}
-                                          {picked ? "Selected" : "Select"}
-                                        </Button>
-                                      </TableCell>
-                                      <TableCell>
-                                        <div className="min-w-0">
-                                          <div className="font-semibold text-zc-text">{s.name}</div>
-                                          <div className="mt-0.5 font-mono text-xs text-zc-muted">{s.code}</div>
-                                        </div>
-                                      </TableCell>
-                                      <TableCell>
-                                        <Badge variant="secondary">{(s.kind || "").replace(/_/g, " ")}</Badge>
-                                      </TableCell>
-                                      <TableCell>{s.isActive ? <Badge variant="ok">Active</Badge> : <Badge variant="warning">Inactive</Badge>}</TableCell>
-                                    </TableRow>
-                                  );
-                                })
-                              )}
-                            </TableBody>
-                          </Table>
+                              );
+                            })
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                </div>
+                <Separator className="bg-zc-border/60" />
+                <div className="grid gap-4">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Specialties</div>
+                  <div className="grid gap-4">
+                    <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-zc-text">Department Specialties</div>
+                        <div className="mt-1 text-xs text-zc-muted">
+                          Select one or more specialties to tag this department. Optionally mark one as primary.
                         </div>
                       </div>
-                    </div>
-                  </TabsContent>
 
-                  <TabsContent value="ops" className="mt-4">
-                    <div className="grid gap-4">
-                      <div className="grid gap-2 md:grid-cols-2">
-                        <div>
-                          <Label>Operating hours</Label>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button asChild variant="outline" size="sm" className="gap-2">
+                          <Link href="/infrastructure/specialties">
+                            <ChevronDown className="h-4 w-4" />
+                            Open Specialty Master
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Selected chips */}
+                    <div className="rounded-2xl border border-zc-border bg-zc-panel/10 p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="text-sm text-zc-muted">
+                          Selected: <span className="font-mono text-xs">{pickedSpecialtyIds.length}</span>
+                        </div>
+                        <div className="w-full md:w-72">
+                          <Label>Primary specialty</Label>
                           <Select
-                            value={formOperatingMode}
-                            onValueChange={(v) => {
-                              const m = v as any;
-                              setFormOperatingMode(m);
-                              setShowOperatingAdvanced(m === "CUSTOM");
-                              if (m === "24X7") {
-                                setOperatingPreset("24X7");
-                                setWeeklyDays({});
-                              }
-                              if (m === "WEEKLY" && Object.keys(weeklyDays ?? {}).length === 0) {
-                                // default to a sensible preset when switching from 24x7
-                                setOperatingPreset("MON_SAT_9_5");
-                                setWeeklyDays(buildPresetWeekly("MON_SAT_9_5"));
-                              }
-                            }}
-                            disabled={busy}
+                            value={primarySpecialtyId ?? ""}
+                            onValueChange={(v) => setPrimarySpecialtyId(v || null)}
+                            disabled={busy || pickedSpecialtyIds.length === 0}
                           >
-                            <SelectTrigger className="h-11 rounded-xl border-zc-border bg-zc-card">
-                              <SelectValue />
+                            <SelectTrigger className="mt-1 h-11 rounded-xl border-zc-border bg-zc-card">
+                              <SelectValue placeholder="(optional)" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="24X7">24Ã—7</SelectItem>
-                              <SelectItem value="WEEKLY">Weekly schedule</SelectItem>
-                              <SelectItem value="CUSTOM">Advanced (JSON)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <div className="mt-1 text-xs text-zc-muted">No JSON required for 24Ã—7 or weekly schedules.</div>
-                        </div>
-
-                        <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3 text-sm">
-                          <div className="font-semibold text-zc-text">Preview</div>
-                          <div className="mt-1 text-zc-muted">
-                            {(() => {
-                              try {
-                                return hoursLabel(resolveOperatingHours());
-                              } catch (e: any) {
-                                return e?.message ? `âš  ${e.message}` : "âš  Invalid";
-                              }
-                            })()}
-                          </div>
-                        </div>
-                      </div>
-
-                      {formOperatingMode === "24X7" ? (
-                        <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-4 text-sm text-zc-muted">
-                          This department is marked as <span className="font-semibold text-zc-text">24Ã—7</span>. No additional configuration needed.
-                        </div>
-                      ) : null}
-
-                      {formOperatingMode === "WEEKLY" ? (
-                        <div className="grid gap-4">
-                          <div className="grid gap-2 md:grid-cols-2">
-                            <div>
-                              <Label>Quick preset</Label>
-                              <Select
-                                value={operatingPreset}
-                                onValueChange={(v) => {
-                                  setOperatingPreset(v);
-                                  if (v === "CUSTOM") return;
-                                  if (v === "24X7") {
-                                    setFormOperatingMode("24X7");
-                                    setShowOperatingAdvanced(false);
-                                    setWeeklyDays({});
-                                    return;
-                                  }
-                                  setWeeklyDays(buildPresetWeekly(v));
-                                }}
-                                disabled={busy}
-                              >
-                                <SelectTrigger className="mt-1 h-11 rounded-xl border-zc-border bg-zc-card">
-                                  <SelectValue placeholder="Select a preset" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="CUSTOM">(keep current)</SelectItem>
-                                  <SelectItem value="MON_FRI_9_5">Weekdays (Monâ€“Fri) 09:00â€“17:00</SelectItem>
-                                  <SelectItem value="MON_SAT_9_5">OPD (Monâ€“Sat) 09:00â€“17:00</SelectItem>
-                                  <SelectItem value="ALL_9_9">All days 09:00â€“21:00</SelectItem>
-                                  <SelectItem value="MON_SAT_TWO_SHIFTS">Two shifts (Monâ€“Sat) 09:00â€“13:00 & 14:00â€“18:00</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <div className="mt-1 text-xs text-zc-muted">Pick a preset, then tweak per day if needed.</div>
-                            </div>
-
-                            <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3 text-sm">
-                              <div className="font-semibold text-zc-text">Timezone</div>
-                              <div className="mt-1 text-zc-muted">{formOperatingTimezone || "-"}</div>
-                            </div>
-                          </div>
-
-                          <div className="rounded-2xl border border-zc-border overflow-hidden">
-                            <div className="border-b border-zc-border bg-zc-panel/10 p-4">
-                              <div className="text-sm font-semibold text-zc-text">Weekly schedule</div>
-                              <div className="mt-1 text-xs text-zc-muted">Turn days on/off and set start/end time. (HH:MM, 24-hour)</div>
-                            </div>
-
-                            <div className="grid gap-3 p-4">
-                              {WEEK_DAYS.map((d) => {
-                                const shifts = weeklyDays[d.key] ?? [];
-                                const enabled = Array.isArray(shifts) && shifts.length > 0;
-
-                                const setShift = (idx: number, patch: Partial<ShiftUI>) => {
-                                  setWeeklyDays((prev) => {
-                                    const next = { ...(prev || {}) } as any;
-                                    const cur = Array.isArray(next[d.key]) ? [...next[d.key]] : [];
-                                    const s = { ...(cur[idx] ?? { start: "09:00", end: "17:00" }), ...patch };
-                                    cur[idx] = s;
-                                    next[d.key] = cur;
-                                    return next;
-                                  });
-                                };
-
-                                const addShift = () => {
-                                  setWeeklyDays((prev) => {
-                                    const next = { ...(prev || {}) } as any;
-                                    const cur = Array.isArray(next[d.key]) ? [...next[d.key]] : [];
-                                    cur.push({ start: "09:00", end: "17:00" });
-                                    next[d.key] = cur;
-                                    return next;
-                                  });
-                                };
-
-                                const removeShift = (idx: number) => {
-                                  setWeeklyDays((prev) => {
-                                    const next = { ...(prev || {}) } as any;
-                                    const cur = Array.isArray(next[d.key]) ? [...next[d.key]] : [];
-                                    const out = cur.filter((_: any, i: number) => i !== idx);
-                                    if (out.length === 0) delete next[d.key];
-                                    else next[d.key] = out;
-                                    return next;
-                                  });
-                                };
-
-                                const toggleDay = (on: boolean) => {
-                                  setWeeklyDays((prev) => {
-                                    const next = { ...(prev || {}) } as any;
-                                    if (on) next[d.key] = Array.isArray(next[d.key]) && next[d.key].length ? next[d.key] : [{ start: "09:00", end: "17:00" }];
-                                    else delete next[d.key];
-                                    return next;
-                                  });
-                                };
-
+                              {pickedSpecialtyIds.map((id) => {
+                                const s = specialties.find((x) => x.id === id);
                                 return (
-                                  <div key={d.key} className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-                                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                                      <div className="flex items-center gap-3">
-                                        <Switch checked={enabled} onCheckedChange={(v) => toggleDay(!!v)} disabled={busy} />
-                                        <div>
-                                          <div className="text-sm font-semibold text-zc-text">{d.label}</div>
-                                          <div className="text-xs text-zc-muted">{enabled ? `${shifts.length} shift${shifts.length > 1 ? "s" : ""}` : "Closed"}</div>
-                                        </div>
-                                      </div>
-
-                                      {enabled ? (
-                                        <div className="flex flex-col gap-2 md:flex-row md:items-center md:flex-wrap">
-                                          {shifts.map((s, idx) => (
-                                            <div key={`${d.key}-${idx}`} className="flex items-center gap-2">
-                                              <Input
-                                                type="time"
-                                                value={s.start}
-                                                onChange={(e) => setShift(idx, { start: e.target.value })}
-                                                className="h-10 w-[140px] rounded-xl border-zc-border bg-zc-card"
-                                                disabled={busy}
-                                              />
-                                              <span className="text-xs text-zc-muted">to</span>
-                                              <Input
-                                                type="time"
-                                                value={s.end}
-                                                onChange={(e) => setShift(idx, { end: e.target.value })}
-                                                className="h-10 w-[140px] rounded-xl border-zc-border bg-zc-card"
-                                                disabled={busy}
-                                              />
-                                              <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                className="gap-2"
-                                                onClick={() => removeShift(idx)}
-                                                disabled={busy}
-                                              >
-                                                <X className="h-4 w-4" />
-                                                Remove
-                                              </Button>
-                                            </div>
-                                          ))}
-                                          <Button type="button" variant="outline" size="sm" className="gap-2" onClick={addShift} disabled={busy}>
-                                            <Plus className="h-4 w-4" />
-                                            Add shift
-                                          </Button>
-                                        </div>
-                                      ) : null}
-                                    </div>
-                                  </div>
+                                  <SelectItem key={id} value={id}>
+                                    {s ? `${s.name} (${s.code})` : id}
+                                  </SelectItem>
                                 );
                               })}
-                            </div>
-                          </div>
-                        </div>
-                      ) : null}
-
-                      {formOperatingMode === "CUSTOM" || showOperatingAdvanced ? (
-                        <div className="grid gap-2">
-                          <Label>Operating hours JSON (advanced)</Label>
-                          <textarea
-                            value={formOperatingJson}
-                            onChange={(e) => setFormOperatingJson(e.target.value)}
-                            className="min-h-[200px] w-full rounded-xl border border-zc-border bg-zc-card p-3 font-mono text-xs text-zc-text"
-                            spellCheck={false}
-                            disabled={busy}
-                          />
-                          <div className="text-xs text-zc-muted">
-                            Only use this if you need a non-standard schedule. Format:{" "}
-                            <code>{'{"mode":"WEEKLY","days":{"MON":[{"start":"09:00","end":"17:00"}]}}'}</code>.
-                          </div>
-                        </div>
-                      ) : null}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="loc" className="mt-4">
-                    <div className="grid gap-4">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div>
-                          <div className="font-semibold text-zc-text">Selected locations</div>
-                          <div className="text-sm text-zc-muted">Pick one or more location nodes for the department (Floor / Zone / Area only)</div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            value={locationSearch}
-                            onChange={(e) => setLocationSearch(e.target.value)}
-                            placeholder="Search locations..."
-                            className="h-10 w-[260px] rounded-xl border-zc-border bg-zc-card"
-                            disabled={busy}
-                          />
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
 
-                      {pickedLocationIds.length ? (
-                        <div className="flex flex-wrap gap-2">
-                          {selectedLocationChips.map((c) => (
+                      {selectedSpecialtyChips.length ? (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {selectedSpecialtyChips.map((s) => (
                             <span
-                              key={c.id}
+                              key={s.id}
                               className={cn(
-                                "inline-flex items-center gap-2 rounded-full border border-zc-border bg-zc-panel/10 px-3 py-1 text-xs",
-                                primaryLocationId === c.id ? "ring-2 ring-zc-accent/40" : "",
+                                "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs",
+                                s.isActive ? "border-zc-border bg-zc-card" : "border-amber-200/60 bg-amber-50/40 dark:border-amber-900/40 dark:bg-amber-900/15"
                               )}
                             >
-                              <MapPin className="h-3 w-3 text-zc-muted" />
-                              <span className="max-w-[280px] truncate">{c.label}</span>
-                              {primaryLocationId === c.id ? <Badge variant="ok">PRIMARY</Badge> : null}
+                              <span className="font-medium text-zc-text">{s.label}</span>
+                              <span className="text-[11px] text-zc-muted">{(s.kind || "").replace(/_/g, " ")}</span>
+                              {primarySpecialtyId === s.id ? <Badge variant="ok">Primary</Badge> : null}
                               <button
-                                className="ml-1 rounded-full p-1 hover:bg-zc-panel/30"
-                                onClick={() => togglePickLocation(c.id)}
                                 type="button"
+                                className="grid h-6 w-6 place-items-center rounded-full text-zc-muted hover:bg-zc-panel/30"
+                                onClick={() => togglePickSpecialty(s.id)}
                                 disabled={busy}
+                                title="Remove"
                               >
-                                <X className="h-3 w-3" />
+                                <X className="h-3.5 w-3.5" />
                               </button>
                             </span>
                           ))}
                         </div>
                       ) : (
-                        <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-4 text-sm text-zc-muted">No locations selected.</div>
+                        <div className="mt-3 text-sm text-zc-muted">No specialties selected yet.</div>
                       )}
+                    </div>
 
-                      <div className="grid gap-2">
-                        <Label>Primary location</Label>
-                        <Select value={primaryLocationId ?? ""} onValueChange={(v) => setPrimaryLocationId(v || null)} disabled={busy || pickedLocationIds.length === 0}>
-                          <SelectTrigger className="h-11 rounded-xl border-zc-border bg-zc-card">
-                            <SelectValue placeholder={pickedLocationIds.length ? "Select primary..." : "Select locations first"} />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[320px] overflow-y-auto">
-                            {selectedLocationChips.map((c) => (
-                              <SelectItem key={c.id} value={c.id}>
-                                {c.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <div className="text-xs text-zc-muted">Backend rule: primaryLocationNodeId must be included in locationNodeIds.</div>
+                    {/* Picker */}
+                    <div className="rounded-2xl border border-zc-border">
+                      <div className="flex flex-col gap-2 border-b border-zc-border bg-zc-panel/10 p-4 md:flex-row md:items-center md:justify-between">
+                        <div className="relative w-full md:w-96">
+                          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zc-muted" />
+                          <Input
+                            value={specSearch}
+                            onChange={(e) => setSpecSearch(e.target.value)}
+                            placeholder="Search specialties (name/code/kind)..."
+                            className="h-11 rounded-xl border-zc-border bg-zc-card pl-9"
+                            disabled={busy}
+                          />
+                        </div>
+
+                        <div className="flex items-center gap-2 text-xs text-zc-muted">
+                          {specLoading ? (
+                            <span className="inline-flex items-center gap-2">
+                              <RefreshCw className="h-3.5 w-3.5 animate-spin" /> loading
+                            </span>
+                          ) : null}
+                          <span className="font-mono">{filteredSpecialties.length}</span> available
+                        </div>
                       </div>
 
-                      <div className="rounded-xl border border-zc-border overflow-hidden">
+                      <div className="max-h-[320px] overflow-auto">
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead className="w-[120px]">Type</TableHead>
-                              <TableHead>Name</TableHead>
-                              <TableHead className="w-[120px]">Pick</TableHead>
+                              <TableHead className="w-[90px]">Pick</TableHead>
+                              <TableHead>Specialty</TableHead>
+                              <TableHead>Kind</TableHead>
+                              <TableHead>Status</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {filteredFlatLocations.length === 0 ? (
+                            {!filteredSpecialties.length ? (
                               <TableRow>
-                                <TableCell colSpan={3}>
-                                  <div className="flex items-center justify-center gap-2 py-10 text-sm text-zc-muted">
-                                    <AlertTriangle className="h-4 w-4 text-zc-warn" />
-                                    No locations found.
-                                  </div>
+                                <TableCell colSpan={4} className="py-10 text-center text-sm text-zc-muted">
+                                  No specialties match your search.
                                 </TableCell>
                               </TableRow>
                             ) : (
-                              filteredFlatLocations.map((n) => {
-                                const checked = pickedLocationIds.includes(n.id);
+                              filteredSpecialties.map((s) => {
+                                const picked = pickedSpecialtyIds.includes(s.id);
                                 return (
-                                  <TableRow key={n.id} className={checked ? "bg-zc-panel/10" : ""}>
-                                    <TableCell className="text-sm text-zc-muted">{n.type}</TableCell>
-                                    <TableCell className="text-sm text-zc-text">
-                                      {n.name ?? "(unnamed)"} {n.code ? <span className="font-mono text-xs text-zc-muted">({n.code})</span> : null}
-                                    </TableCell>
+                                  <TableRow key={s.id} className={picked ? "bg-zc-panel/10" : ""}>
                                     <TableCell>
                                       <Button
                                         type="button"
+                                        variant={picked ? "primary" : "outline"}
                                         size="sm"
-                                        variant={checked ? "secondary" : "outline"}
                                         className="gap-2"
-                                        onClick={() => togglePickLocation(n.id)}
+                                        onClick={() => togglePickSpecialty(s.id)}
                                         disabled={busy}
                                       >
-                                        {checked ? "Picked" : "Pick"}
+                                        {picked ? <Check className="h-4 w-4" /> : null}
+                                        {picked ? "Selected" : "Select"}
                                       </Button>
                                     </TableCell>
+                                    <TableCell>
+                                      <div className="min-w-0">
+                                        <div className="font-semibold text-zc-text">{s.name}</div>
+                                        <div className="mt-0.5 font-mono text-xs text-zc-muted">{s.code}</div>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell>
+                                      <Badge variant="secondary">{(s.kind || "").replace(/_/g, " ")}</Badge>
+                                    </TableCell>
+                                    <TableCell>{s.isActive ? <Badge variant="ok">Active</Badge> : <Badge variant="warning">Inactive</Badge>}</TableCell>
                                   </TableRow>
                                 );
                               })
@@ -1868,101 +1636,327 @@ export default function DepartmentsPage() {
                         </Table>
                       </div>
                     </div>
-                  </TabsContent>
-
-                  <TabsContent value="hod" className="mt-4">
-                    <div className="grid gap-4">
-                      <div className="flex flex-col gap-1">
-                        <div className="font-semibold text-zc-text">Head of Department</div>
-                        <div className="text-sm text-zc-muted">Search staff and set HOD (optional)</div>
+                  </div>
+                </div>
+                <Separator className="bg-zc-border/60" />
+                <div className="grid gap-4">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Operating hours</div>
+                  <div className="grid gap-4">
+                    <div className="grid gap-2 md:grid-cols-2">
+                      <div>
+                        <Label>Operating hours</Label>
+                        <Select
+                          value={formOperatingMode}
+                          onValueChange={(v) => {
+                            const m = v as any;
+                            setFormOperatingMode(m);
+                            setShowOperatingAdvanced(m === "CUSTOM");
+                            if (m === "24X7") {
+                              setOperatingPreset("24X7");
+                              setWeeklyDays({});
+                            }
+                            if (m === "WEEKLY" && Object.keys(weeklyDays ?? {}).length === 0) {
+                              // default to a sensible preset when switching from 24x7
+                              setOperatingPreset("MON_SAT_9_5");
+                              setWeeklyDays(buildPresetWeekly("MON_SAT_9_5"));
+                            }
+                          }}
+                          disabled={busy}
+                        >
+                          <SelectTrigger className="h-11 rounded-xl border-zc-border bg-zc-card">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="24X7">24x7</SelectItem>
+                            <SelectItem value="WEEKLY">Weekly schedule</SelectItem>
+                            <SelectItem value="CUSTOM">Advanced (JSON)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <div className="mt-1 text-xs text-zc-muted">No JSON required for 24x7 or weekly schedules.</div>
                       </div>
 
-                      <div className="grid gap-2">
-                        <Label>Search staff</Label>
-                        <Input
-                          value={hodSearch}
-                          onChange={(e) => setHodSearch(e.target.value)}
-                          placeholder="Search by name/emp code/designation/email/phone"
-                          className="h-11 rounded-xl border-zc-border bg-zc-card"
-                          disabled={busy}
-                        />
-                        {hodId ? (
-                          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-                            <div className="text-sm">
-                              <span className="text-zc-muted">Selected:</span>{" "}
-                              <span className="font-semibold text-zc-text">{hodLabel || hodId}</span>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="gap-2"
-                              onClick={() => {
-                                setHodId(null);
-                                setHodLabel("");
+                      <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3 text-sm">
+                        <div className="font-semibold text-zc-text">Preview</div>
+                        <div className="mt-1 text-zc-muted">
+                          {(() => {
+                            try {
+                              return hoursLabel(resolveOperatingHours());
+                            } catch (e: any) {
+                              return e?.message ? `Warning: ${e.message}` : "Warning: Invalid";
+                            }
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+
+                    {formOperatingMode === "24X7" ? (
+                      <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-4 text-sm text-zc-muted">
+                        This department is marked as <span className="font-semibold text-zc-text">24x7</span>. No additional configuration needed.
+                      </div>
+                    ) : null}
+
+                    {formOperatingMode === "WEEKLY" ? (
+                      <div className="grid gap-4">
+                        <div className="grid gap-2 md:grid-cols-2">
+                          <div>
+                            <Label>Quick preset</Label>
+                            <Select
+                              value={operatingPreset}
+                              onValueChange={(v) => {
+                                setOperatingPreset(v);
+                                if (v === "CUSTOM") return;
+                                if (v === "24X7") {
+                                  setFormOperatingMode("24X7");
+                                  setShowOperatingAdvanced(false);
+                                  setWeeklyDays({});
+                                  return;
+                                }
+                                setWeeklyDays(buildPresetWeekly(v));
                               }}
                               disabled={busy}
                             >
-                              <X className="h-4 w-4" />
-                              Clear
-                            </Button>
+                              <SelectTrigger className="mt-1 h-11 rounded-xl border-zc-border bg-zc-card">
+                                <SelectValue placeholder="Select a preset" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="CUSTOM">(keep current)</SelectItem>
+                                <SelectItem value="MON_FRI_9_5">Weekdays (Mon-Fri) 09:00-17:00</SelectItem>
+                                <SelectItem value="MON_SAT_9_5">OPD (Mon-Sat) 09:00-17:00</SelectItem>
+                                <SelectItem value="ALL_9_9">All days 09:00-21:00</SelectItem>
+                                <SelectItem value="MON_SAT_TWO_SHIFTS">Two shifts (Mon-Sat) 09:00-13:00 & 14:00-18:00</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <div className="mt-1 text-xs text-zc-muted">Pick a preset, then tweak per day if needed.</div>
                           </div>
-                        ) : null}
-                      </div>
 
-                      <div className="rounded-xl border border-zc-border overflow-hidden">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Name</TableHead>
-                              <TableHead className="w-[220px]">Designation</TableHead>
-                              <TableHead className="w-[140px]">Emp Code</TableHead>
-                              <TableHead className="w-[120px]">Select</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {hodResults.length === 0 ? (
-                              <TableRow>
-                                <TableCell colSpan={4}>
-                                  <div className="flex items-center justify-center gap-2 py-10 text-sm text-zc-muted">
-                                    <AlertTriangle className="h-4 w-4 text-zc-warn" />
-                                    No staff results.
+                          <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3 text-sm">
+                            <div className="font-semibold text-zc-text">Timezone</div>
+                            <div className="mt-1 text-zc-muted">{formOperatingTimezone || "-"}</div>
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-zc-border overflow-hidden">
+                          <div className="border-b border-zc-border bg-zc-panel/10 p-4">
+                            <div className="text-sm font-semibold text-zc-text">Weekly schedule</div>
+                            <div className="mt-1 text-xs text-zc-muted">Turn days on/off and set start/end time. (HH:MM, 24-hour)</div>
+                          </div>
+
+                          <div className="grid gap-3 p-4">
+                            {WEEK_DAYS.map((d) => {
+                              const shifts = weeklyDays[d.key] ?? [];
+                              const enabled = Array.isArray(shifts) && shifts.length > 0;
+
+                              const setShift = (idx: number, patch: Partial<ShiftUI>) => {
+                                setWeeklyDays((prev) => {
+                                  const next = { ...(prev || {}) } as any;
+                                  const cur = Array.isArray(next[d.key]) ? [...next[d.key]] : [];
+                                  const s = { ...(cur[idx] ?? { start: "09:00", end: "17:00" }), ...patch };
+                                  cur[idx] = s;
+                                  next[d.key] = cur;
+                                  return next;
+                                });
+                              };
+
+                              const addShift = () => {
+                                setWeeklyDays((prev) => {
+                                  const next = { ...(prev || {}) } as any;
+                                  const cur = Array.isArray(next[d.key]) ? [...next[d.key]] : [];
+                                  cur.push({ start: "09:00", end: "17:00" });
+                                  next[d.key] = cur;
+                                  return next;
+                                });
+                              };
+
+                              const removeShift = (idx: number) => {
+                                setWeeklyDays((prev) => {
+                                  const next = { ...(prev || {}) } as any;
+                                  const cur = Array.isArray(next[d.key]) ? [...next[d.key]] : [];
+                                  const out = cur.filter((_: any, i: number) => i !== idx);
+                                  if (out.length === 0) delete next[d.key];
+                                  else next[d.key] = out;
+                                  return next;
+                                });
+                              };
+
+                              const toggleDay = (on: boolean) => {
+                                setWeeklyDays((prev) => {
+                                  const next = { ...(prev || {}) } as any;
+                                  if (on) next[d.key] = Array.isArray(next[d.key]) && next[d.key].length ? next[d.key] : [{ start: "09:00", end: "17:00" }];
+                                  else delete next[d.key];
+                                  return next;
+                                });
+                              };
+
+                              return (
+                                <div key={d.key} className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+                                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                                    <div className="flex items-center gap-3">
+                                      <Switch checked={enabled} onCheckedChange={(v) => toggleDay(!!v)} disabled={busy} />
+                                      <div>
+                                        <div className="text-sm font-semibold text-zc-text">{d.label}</div>
+                                        <div className="text-xs text-zc-muted">{enabled ? `${shifts.length} shift${shifts.length > 1 ? "s" : ""}` : "Closed"}</div>
+                                      </div>
+                                    </div>
+
+                                    {enabled ? (
+                                      <div className="flex flex-col gap-2 md:flex-row md:items-center md:flex-wrap">
+                                        {shifts.map((s, idx) => (
+                                          <div key={`${d.key}-${idx}`} className="flex items-center gap-2">
+                                            <Input
+                                              type="time"
+                                              value={s.start}
+                                              onChange={(e) => setShift(idx, { start: e.target.value })}
+                                              className="h-10 w-[140px] rounded-xl border-zc-border bg-zc-card"
+                                              disabled={busy}
+                                            />
+                                            <span className="text-xs text-zc-muted">to</span>
+                                            <Input
+                                              type="time"
+                                              value={s.end}
+                                              onChange={(e) => setShift(idx, { end: e.target.value })}
+                                              className="h-10 w-[140px] rounded-xl border-zc-border bg-zc-card"
+                                              disabled={busy}
+                                            />
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              size="sm"
+                                              className="gap-2"
+                                              onClick={() => removeShift(idx)}
+                                              disabled={busy}
+                                            >
+                                              <X className="h-4 w-4" />
+                                              Remove
+                                            </Button>
+                                          </div>
+                                        ))}
+                                        <Button type="button" variant="outline" size="sm" className="gap-2" onClick={addShift} disabled={busy}>
+                                          <Plus className="h-4 w-4" />
+                                          Add shift
+                                        </Button>
+                                      </div>
+                                    ) : null}
                                   </div>
-                                </TableCell>
-                              </TableRow>
-                            ) : (
-                              hodResults.slice(0, 80).map((s) => {
-                                const selected = hodId === s.id;
-                                return (
-                                  <TableRow key={s.id} className={selected ? "bg-zc-panel/10" : ""}>
-                                    <TableCell className="text-sm text-zc-text">{s.name}</TableCell>
-                                    <TableCell className="text-sm text-zc-muted">{s.designation ?? "-"}</TableCell>
-                                    <TableCell className="text-sm text-zc-muted font-mono">{(s as any).empCode ?? "-"}</TableCell>
-                                    <TableCell>
-                                      <Button
-                                        type="button"
-                                        size="sm"
-                                        variant={selected ? "secondary" : "outline"}
-                                        className="gap-2"
-                                        onClick={() => {
-                                          setHodId(s.id);
-                                          setHodLabel(`${s.name}${s.designation ? ` â€” ${s.designation}` : ""}`);
-                                        }}
-                                        disabled={busy}
-                                      >
-                                        {selected ? "Selected" : "Select"}
-                                      </Button>
-                                    </TableCell>
-                                  </TableRow>
-                                );
-                              })
-                            )}
-                          </TableBody>
-                        </Table>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
+                    ) : null}
+
+                    {formOperatingMode === "CUSTOM" || showOperatingAdvanced ? (
+                      <div className="grid gap-2">
+                        <Label>Operating hours JSON (advanced)</Label>
+                        <textarea
+                          value={formOperatingJson}
+                          onChange={(e) => setFormOperatingJson(e.target.value)}
+                          className="min-h-[200px] w-full rounded-xl border border-zc-border bg-zc-card p-3 font-mono text-xs text-zc-text"
+                          spellCheck={false}
+                          disabled={busy}
+                        />
+                        <div className="text-xs text-zc-muted">
+                          Only use this if you need a non-standard schedule. Format:{" "}
+                          <code>{'{"mode":"WEEKLY","days":{"MON":[{"start":"09:00","end":"17:00"}]}}'}</code>.
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+                <Separator className="bg-zc-border/60" />
+                <div className="grid gap-4">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">HOD</div>
+                  <div className="grid gap-4">
+                    <div className="flex flex-col gap-1">
+                      <div className="font-semibold text-zc-text">Head of Department</div>
+                      <div className="text-sm text-zc-muted">Search staff and set HOD (optional)</div>
                     </div>
-                  </TabsContent>
-                </Tabs>
+
+                    <div className="grid gap-2">
+                      <Label>Search staff</Label>
+                      <Input
+                        value={hodSearch}
+                        onChange={(e) => setHodSearch(e.target.value)}
+                        placeholder="Search by name/emp code/designation/email/phone"
+                        className="h-11 rounded-xl border-zc-border bg-zc-card"
+                        disabled={busy}
+                      />
+                      {hodId ? (
+                        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+                          <div className="text-sm">
+                            <span className="text-zc-muted">Selected:</span>{" "}
+                            <span className="font-semibold text-zc-text">{hodLabel || hodId}</span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="gap-2"
+                            onClick={() => {
+                              setHodId(null);
+                              setHodLabel("");
+                            }}
+                            disabled={busy}
+                          >
+                            <X className="h-4 w-4" />
+                            Clear
+                          </Button>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div className="rounded-xl border border-zc-border overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead className="w-[220px]">Designation</TableHead>
+                            <TableHead className="w-[140px]">Emp Code</TableHead>
+                            <TableHead className="w-[120px]">Select</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {hodResults.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={4}>
+                                <div className="flex items-center justify-center gap-2 py-10 text-sm text-zc-muted">
+                                  <AlertTriangle className="h-4 w-4 text-zc-warn" />
+                                  No staff results.
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            hodResults.slice(0, 80).map((s) => {
+                              const selected = hodId === s.id;
+                              return (
+                                <TableRow key={s.id} className={selected ? "bg-zc-panel/10" : ""}>
+                                  <TableCell className="text-sm text-zc-text">{s.name}</TableCell>
+                                  <TableCell className="text-sm text-zc-muted">{s.designation ?? "-"}</TableCell>
+                                  <TableCell className="text-sm text-zc-muted font-mono">{(s as any).empCode ?? "-"}</TableCell>
+                                  <TableCell>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant={selected ? "secondary" : "outline"}
+                                      className="gap-2"
+                                      onClick={() => {
+                                        setHodId(s.id);
+                                        setHodLabel(`${s.name}${s.designation ? ` - ${s.designation}` : ""}`);
+                                      }}
+                                      disabled={busy}
+                                    >
+                                      {selected ? "Selected" : "Select"}
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <DialogFooter>

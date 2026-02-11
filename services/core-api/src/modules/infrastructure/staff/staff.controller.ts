@@ -57,6 +57,7 @@ export class StaffController {
     @Query("departmentId") departmentId?: string,
     @Query("designation") designation?: string,
     @Query("credentialStatus") credentialStatus?: string,
+    @Query("onboarding") onboarding?: string,              // ✅ ADD THIS
     @Query("cursor") cursor?: string,
     @Query("take") take?: string,
   ) {
@@ -69,10 +70,12 @@ export class StaffController {
       departmentId: departmentId ?? null,
       designation: designation ?? null,
       credentialStatus: credentialStatus ?? null,
+      onboarding: onboarding ?? null,                      // ✅ ADD THIS
       cursor: cursor ?? null,
       take: take ? Number(take) : undefined,
     });
   }
+
 
   // ✅ Staff Master creation using the provided (nested) onboarding schema
   // This creates the enterprise Staff record + DPDP-safe identifier + (optional) initial credential.

@@ -412,8 +412,14 @@ export default function IdentityPage() {
     const max = 5 * 1024 * 1024;
     const mime = (file.type || "").toLowerCase();
 
-    if (!["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(mime)) {
-      throw new Error("Only JPG/PNG/WEBP images are allowed.");
+    // ✅ Allow PDF only for ID document scans (Aadhaar/PAN etc.)
+    const allowPdf = kind === "IDENTITY_DOC";
+    const allowedMimes = allowPdf
+      ? ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"]
+      : ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
+    if (!allowedMimes.includes(mime)) {
+      throw new Error(allowPdf ? "Only JPG/PNG/WEBP/PDF files are allowed." : "Only JPG/PNG/WEBP images are allowed.");
     }
     if (file.size > max) throw new Error("Max file size is 5MB.");
 
@@ -552,7 +558,7 @@ export default function IdentityPage() {
     <OnboardingShell
       stepKey="identity"
       title="Identity details"
-      description="Capture KYC + upload photo/signature + upload Aadhaar/PAN scans (URL generated automatically)."
+      description="Capture KYC + upload photo/signature + upload Aadhaar/PAN scans."
       footer={
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Button
@@ -609,7 +615,7 @@ export default function IdentityPage() {
         <Separator className="bg-zc-border" />
 
         {/* Consent */}
-        <div className="rounded-md border border-zc-border bg-zc-panel/40 p-3">
+        <div className="rounded-md border border-zc-border bg-zc-card/40 p-3">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="text-sm font-medium text-zc-foreground">Consent acknowledgement</div>
@@ -635,7 +641,7 @@ export default function IdentityPage() {
         </div>
 
         {/* Uploads (fixed UI: no default file input) */}
-        <Card className={cn("border-zc-border bg-zc-panel", loading ? "opacity-60" : "opacity-100")}>
+        <Card className={cn("border-zc-border bg-zc-card", loading ? "opacity-60" : "opacity-100")}>
           <CardHeader>
             <CardTitle className="text-sm">Profile photo & signature upload</CardTitle>
             <CardDescription>Use the Upload buttons (no browser “Choose File” UI).</CardDescription>
@@ -647,16 +653,16 @@ export default function IdentityPage() {
               <Label className="text-xs text-zc-muted">Profile photo</Label>
 
               {photo.photo_url ? (
-                <div className="rounded-md border border-zc-border bg-zc-panel/40 p-2">
+                <div className="rounded-md border border-zc-border bg-zc-card/40 p-2">
                   {/* ✅ use object URL preview so Bearer is not required by <img> */}
                   {preview.photoObjUrl ? (
                     <img src={preview.photoObjUrl} alt="Profile" className="h-28 w-28 rounded-md object-cover" />
                   ) : (
-                    <div className="h-28 w-28 rounded-md border border-zc-border bg-zc-panel/40" />
+                    <div className="h-28 w-28 rounded-md border border-zc-border bg-zc-card/40" />
                   )}
 
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <Button type="button" variant="outline" className="h-8 border-zc-border" onClick={() => updatePhoto("photo_url", "")}>
+                    <Button type="button" variant="warning" className="h-8 border-zc-border" onClick={() => updatePhoto("photo_url", "")}>
                       Remove
                     </Button>
                     <button
@@ -669,11 +675,12 @@ export default function IdentityPage() {
                   </div>
                 </div>
               ) : (
-                <div className="rounded-md border border-zc-border bg-zc-panel/40 p-3 text-xs text-zc-muted">No photo uploaded.</div>
+                <div className="rounded-md border border-zc-border bg-zc-card/40 p-3 text-xs text-zc-muted">No photo uploaded.</div>
               )}
 
               <UploadButton
                 label={uploading.photo ? "Uploading…" : "Upload photo"}
+                
                 disabled={!draftId || uploading.photo}
                 onPick={async (file) => {
                   try {
@@ -695,7 +702,7 @@ export default function IdentityPage() {
               <Label className="text-xs text-zc-muted">Signature</Label>
 
               {photo.signature_url ? (
-                <div className="rounded-md border border-zc-border bg-zc-panel/40 p-2">
+                <div className="rounded-md border border-zc-border bg-zc-card/40 p-2">
                   {preview.signatureObjUrl ? (
                     <img
                       src={preview.signatureObjUrl}
@@ -707,7 +714,7 @@ export default function IdentityPage() {
                   )}
 
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <Button type="button" variant="outline" className="h-8 border-zc-border" onClick={() => updatePhoto("signature_url", "")}>
+                    <Button type="button" variant="warning" className="h-8 border-zc-border" onClick={() => updatePhoto("signature_url", "")}>
                       Remove
                     </Button>
                     <button
@@ -720,7 +727,7 @@ export default function IdentityPage() {
                   </div>
                 </div>
               ) : (
-                <div className="rounded-md border border-zc-border bg-zc-panel/40 p-3 text-xs text-zc-muted">No signature uploaded.</div>
+                <div className="rounded-md border border-zc-border bg-zc-card/40 p-3 text-xs text-zc-muted">No signature uploaded.</div>
               )}
 
               <UploadButton
@@ -765,7 +772,7 @@ export default function IdentityPage() {
           {errors["docs.primary"] ? <div className="text-xs text-red-500">{errors["docs.primary"]}</div> : null}
 
           {docs.length === 0 ? (
-            <div className="rounded-md border border-zc-border bg-zc-panel/40 p-3 text-sm text-zc-muted">
+            <div className="rounded-md border border-zc-border bg-zc-card/40 p-3 text-sm text-zc-muted">
               No identity documents added yet.
             </div>
           ) : (
@@ -784,7 +791,7 @@ export default function IdentityPage() {
                 const evidences = Array.isArray(d.evidence_urls) ? d.evidence_urls : [];
 
                 return (
-                  <div key={d.id} className="rounded-md border border-zc-border bg-zc-panel/40 p-3">
+                  <div key={d.id} className="rounded-md border border-zc-border bg-zc-card/40 p-3">
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
@@ -825,19 +832,21 @@ export default function IdentityPage() {
                             Make primary
                           </Button>
                         ) : null}
-                        <Button type="button" variant="outline" className="h-8 border-zc-border px-3 text-xs" onClick={() => removeDoc(d.id)}>
+                        <Button type="button" variant="warning" className="h-8 border-zc-border px-3 text-xs" onClick={() => removeDoc(d.id)}>
                           Remove
                         </Button>
                       </div>
                     </div>
 
                     {/* ✅ Upload Aadhaar/PAN scan */}
-                    <div className="mt-3 rounded-md border border-zc-border bg-zc-panel p-3">
+                    <div className="mt-3 rounded-md border border-zc-border bg-zc-card p-3">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="text-xs font-medium text-zc-foreground">Upload document scan</div>
                         <UploadButton
                           label={docUploading ? "Uploading…" : "Upload scan"}
                           disabled={!draftId || docUploading}
+                          accept="image/png,image/jpeg,image/webp,application/pdf,.pdf"
+                          hint="JPG / PNG / WEBP / PDF - max 5MB"
                           onPick={async (file) => {
                             try {
                               setUploading((p) => ({ ...p, doc: { ...p.doc, [d.id]: true } }));
@@ -856,7 +865,7 @@ export default function IdentityPage() {
                       {evidences.length ? (
                         <div className="mt-3 grid gap-2">
                           {evidences.map((url) => (
-                            <div key={url} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-zc-border bg-zc-panel/40 px-3 py-2">
+                            <div key={url} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-zc-border bg-zc-card/40 px-3 py-2">
                               <div className="min-w-0 text-xs text-zc-muted truncate">{url}</div>
                               <div className="flex items-center gap-2">
                                 <button
@@ -868,7 +877,7 @@ export default function IdentityPage() {
                                 </button>
                                 <Button
                                   type="button"
-                                  variant="outline"
+                                  variant="warning"
                                   className="h-7 border-zc-border px-2 text-xs"
                                   onClick={() => removeEvidenceFromDoc(d.id, url)}
                                 >
@@ -1045,10 +1054,14 @@ function Field({
 function UploadButton({
   label,
   disabled,
+  accept,
+  hint,
   onPick,
 }: {
   label: string;
   disabled?: boolean;
+  accept?: string;
+  hint?: string;
   onPick: (file: File) => Promise<void> | void;
 }) {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
@@ -1059,7 +1072,7 @@ function UploadButton({
         ref={inputRef}
         type="file"
         className="hidden"
-        accept="image/png,image/jpeg,image/webp"
+        accept={accept ?? "image/png,image/jpeg,image/webp"}
         onChange={async (e) => {
           const f = e.currentTarget.files?.[0];
           if (!f) return;
@@ -1079,7 +1092,7 @@ function UploadButton({
       >
         {label}
       </Button>
-      <span className="text-xs text-zc-muted">JPG / PNG / WEBP · max 5MB</span>
+      <span className="text-xs text-zc-muted">{hint ?? "JPG / PNG / WEBP · max 5MB"}</span>
     </div>
   );
 }

@@ -32,6 +32,22 @@ type GenderCode = "MALE" | "FEMALE" | "OTHER";
 type BloodGroup = "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
 type MaritalStatus = "SINGLE" | "MARRIED" | "DIVORCED" | "WIDOWED" | "SEPARATED";
 
+
+type ProfessionalTrack = "CLINICAL" | "NON_CLINICAL";
+
+type StaffCategory =
+  | "DOCTOR"
+  | "NURSE"
+  | "PARAMEDIC"
+  | "PHARMACIST"
+  | "TECHNICIAN"
+  | "ADMIN"
+  | "STAFF"
+  | "SECURITY"
+  | "HOUSEKEEPING";
+
+const CLINICAL_STAFF_CATEGORIES = new Set<StaffCategory>(["DOCTOR", "NURSE", "PARAMEDIC", "PHARMACIST", "TECHNICIAN"]);
+
 type PersonalDetailsDraft = {
   title?: TitleCode;
   first_name?: string;
@@ -145,8 +161,14 @@ export default function HrStaffOnboardingPersonalMergedPage() {
   const [dirty, setDirty] = React.useState(false);
   const [errors, setErrors] = React.useState<FieldErrorMap>({});
 
+  // PROFESSIONAL IDENTITY (captured early)
+  const [staffCategory, setStaffCategory] = React.useState<StaffCategory>("STAFF");
+
+
   // PERSONAL
   const [personal, setPersonal] = React.useState<PersonalDetailsDraft>({
+    staff_category: "NON_MEDICAL",
+    employee_id: "",
     title: undefined,
     first_name: "",
     middle_name: "",
@@ -191,13 +213,6 @@ export default function HrStaffOnboardingPersonalMergedPage() {
 
   const age = React.useMemo(() => computeAge(personal.date_of_birth), [personal.date_of_birth]);
 
-  // Require draftId
-  React.useEffect(() => {
-    if (draftId) return;
-    router.replace(`${BASE}/start` as any);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draftId]);
-
   // Load draft
   React.useEffect(() => {
     const id = draftId;
@@ -211,9 +226,17 @@ export default function HrStaffOnboardingPersonalMergedPage() {
       const cd = (draft.contact_details ?? {}) as ContactDetailsDraft;
       const ad = (draft.address_details ?? {}) as AddressDetailsDraft;
 
+      const edAny: any = (draft.employment_details ?? {}) as any;
+      const sc = String(edAny?.staff_category ?? edAny?.professional_details?.staff_category ?? "STAFF").toUpperCase();
+      const staffCat = (sc as StaffCategory) || "STAFF";
+      setStaffCategory(staffCat);
+
+
       // Personal
       setPersonal({
         ...pd,
+        employee_id: String((pd as any).employee_id ?? "").trim(),
+        staff_category: (pd.staff_category ?? (CLINICAL_STAFF_CATEGORIES.has(staffCat) ? "MEDICAL" : "NON_MEDICAL")) as any,
         title: pd.title,
         first_name: pd.first_name ?? "",
         middle_name: pd.middle_name ?? "",
@@ -274,6 +297,20 @@ export default function HrStaffOnboardingPersonalMergedPage() {
   }, [draftId]);
 
   // ----- update helpers -----
+  function updateStaffCategory(next: StaffCategory) {
+    setStaffCategory(next);
+    // Auto-derive track from category (clinical roles default to Clinical)
+    const isClinical = CLINICAL_STAFF_CATEGORIES.has(next);
+    setPersonal((prev) => ({ ...prev, staff_category: isClinical ? "MEDICAL" : (prev.staff_category ?? "NON_MEDICAL") }));
+    markDirtyClearError("staff_category");
+    markDirtyClearError("staff_track");
+  }
+
+  function updateTrack(next: "MEDICAL" | "NON_MEDICAL") {
+    setPersonal((prev) => ({ ...prev, staff_category: next }));
+    markDirtyClearError("staff_track");
+  }
+
   function markDirtyClearError(key: string) {
     setDirty(true);
     setErrors((e) => {
@@ -334,6 +371,18 @@ export default function HrStaffOnboardingPersonalMergedPage() {
     }
   }
 
+  React.useEffect(() => {
+    if (!sameAsCurrent) return;
+    setPermanentAddr({
+      address_line1: currentAddr.address_line1 ?? "",
+      address_line2: currentAddr.address_line2 ?? "",
+      city: currentAddr.city ?? "",
+      state: currentAddr.state ?? "",
+      country: currentAddr.country ?? "India",
+      pincode: currentAddr.pincode ?? "",
+    });
+  }, [sameAsCurrent, currentAddr]);
+
   function setFieldError(key: string, message?: string | null) {
     setErrors((prev) => {
       const next = { ...prev };
@@ -378,6 +427,19 @@ export default function HrStaffOnboardingPersonalMergedPage() {
   // ----- validation -----
   function validateAll(): FieldErrorMap {
     const e: FieldErrorMap = {};
+
+    // Professional identity required
+    const sc = String(staffCategory ?? "").trim();
+    if (!sc) e.staff_category = "Staff category is required.";
+
+    const track = String(personal.staff_category ?? "").trim();
+    if (!track) e.staff_track = "Track is required.";
+
+    // Employee ID required (org policy)
+    const emp = String(personal.employee_id ?? "").trim();
+    if (!emp) e.employee_id = "Employee ID is required.";
+    else if (emp.length > 32) e.employee_id = "Employee ID must be <= 32 characters.";
+    else if (!/^[A-Za-z0-9._-]+$/.test(emp)) e.employee_id = "Only letters, numbers, dot (.), dash (-), underscore (_) allowed.";
 
     // Personal required
     if (!personal.title) e.title = "Title is required.";
@@ -501,6 +563,16 @@ export default function HrStaffOnboardingPersonalMergedPage() {
         permanent_address: normalizedPermanent,
         is_same_as_current: sameAsCurrent,
       },
+      employment_details: {
+        ...(existing.employment_details ?? {}),
+        staff_category: String(staffCategory ?? "STAFF").toUpperCase(),
+        category: (personal.staff_category ?? "NON_MEDICAL"),
+        professional_details: {
+          ...(((existing.employment_details as any) ?? {})?.professional_details ?? {}),
+          track: (personal.staff_category === "MEDICAL" ? "CLINICAL" : "NON_CLINICAL"),
+          staff_category: String(staffCategory ?? "STAFF").toUpperCase(),
+        },
+      },
       contact_details: {
         ...(existing.contact_details ?? {}),
         mobile_primary: normalizePhone(contact.mobile_primary),
@@ -554,22 +626,15 @@ export default function HrStaffOnboardingPersonalMergedPage() {
   return (
     <OnboardingShell
       stepKey="personal"
+      onSaveDraft={async () => {
+        saveDraftOrThrow();
+      }}
       title="Personal details"
       description="Add Personal, Contact and Address Details for the staff member. This is the first step of the onboarding process."
       footer={
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <Button
-            variant="ghost"
-            className="text-zc-muted hover:text-zc-foreground"
-            onClick={() => router.push("/infrastructure/human-resource/staff" as any)}
-          >
-            Back
-          </Button>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" className="border-zc-border" onClick={onSaveOnly} disabled={loading}>
-              Save
-            </Button>
             <Button className="bg-zc-accent text-white hover:bg-zc-accent/90" onClick={onSaveAndNext} disabled={loading}>
               Save &amp; Next
             </Button>
@@ -582,7 +647,7 @@ export default function HrStaffOnboardingPersonalMergedPage() {
           <div className="min-w-0">
             <div className="text-sm font-medium text-zc-foreground">Step 1: Personal Details</div>
             <div className="mt-1 text-xs text-zc-muted">
-              Required: title + name + DOB + gender + primary mobile + official email + current address.
+              Required: staff category + track + employee ID + title + name + DOB + gender + primary mobile + official email + current address.
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -613,6 +678,48 @@ export default function HrStaffOnboardingPersonalMergedPage() {
           {/* PERSONAL */}
           <div className="grid gap-3">
             <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Basic details</div>
+
+            <div className="grid gap-3 md:grid-cols-3">
+              <Field label="Staff category" required error={errors.staff_category}>
+                <Select value={staffCategory ?? ""} onValueChange={(v) => updateStaffCategory((v || "STAFF") as StaffCategory)}>
+                  <SelectTrigger className={cn("border-zc-border", errors.staff_category ? "border-red-500" : "")}>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DOCTOR">Doctor</SelectItem>
+                    <SelectItem value="NURSE">Nurse</SelectItem>
+                    <SelectItem value="PARAMEDIC">Paramedic</SelectItem>
+                    <SelectItem value="PHARMACIST">Pharmacist</SelectItem>
+                    <SelectItem value="TECHNICIAN">Technician</SelectItem>
+                    <SelectItem value="ADMIN">Admin</SelectItem>
+                    <SelectItem value="STAFF">Staff</SelectItem>
+                    <SelectItem value="SECURITY">Security</SelectItem>
+                    <SelectItem value="HOUSEKEEPING">Housekeeping</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+
+              <Field label="Track" required help="Clinical vs Non-clinical" error={errors.staff_track}>
+                <Select value={(personal.staff_category ?? "") as any} onValueChange={(v) => updateTrack((v || "NON_MEDICAL") as any)}>
+                  <SelectTrigger className={cn("border-zc-border", errors.staff_track ? "border-red-500" : "")}>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MEDICAL">Clinical</SelectItem>
+                    <SelectItem value="NON_MEDICAL">Non-clinical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+
+             <Field label="Employee ID" required error={errors.employee_id}>
+                <Input
+                  className={cn("border-zc-border", errors.employee_id ? "border-red-500" : "")}
+                  value={personal.employee_id ?? ""}
+                  onChange={(e) => updatePersonal("employee_id", e.target.value)}
+                  placeholder="e.g., EMP-000123"
+                />
+              </Field>
+            </div>
 
             <div className="grid gap-3 md:grid-cols-4">
               <Field label="Title" required error={errors.title}>
@@ -659,7 +766,8 @@ export default function HrStaffOnboardingPersonalMergedPage() {
               </Field>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-[1fr_180px]">
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_180px]">
+              
               <Field label="Display name" required help="Auto-computed, but editable" error={errors.display_name}>
                 <Input
                   className={cn("border-zc-border", errors.display_name ? "border-red-500" : "")}
@@ -668,12 +776,13 @@ export default function HrStaffOnboardingPersonalMergedPage() {
                   placeholder="e.g., Dr. Rajesh Kumar Sharma"
                 />
               </Field>
-              <div className="grid gap-2">
+              <div className="grid gap-2 md:self-end">
                 <Label className="text-xs text-zc-muted">&nbsp;</Label>
                 <Button
                   type="button"
-                  variant="outline"
-                  className="border-zc-border"
+                  variant="secondary"
+                  size="sm"
+                  className="w-full border-zc-border"
                   onClick={autoComputeDisplayName}
                   disabled={loading}
                 >
@@ -826,10 +935,7 @@ export default function HrStaffOnboardingPersonalMergedPage() {
                   {currentPostalOk ? "Current pincode valid" : "Current pincode invalid"}
                 </Badge>
 
-                <div className="flex items-center gap-2">
-                  <Switch checked={sameAsCurrent} onCheckedChange={toggleSame} />
-                  <Label className="text-xs text-zc-muted">Permanent same as current</Label>
-                </div>
+                
 
                 {!sameAsCurrent ? (
                   <Badge
@@ -915,86 +1021,129 @@ export default function HrStaffOnboardingPersonalMergedPage() {
               </div>
             </div>
 
-            {!sameAsCurrent ? (
-              <div className="grid gap-3">
-                <Separator className="bg-zc-border" />
+            <div className="grid gap-3">
+              <Separator className="bg-zc-border" />
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">
                   Permanent address (required)
                 </div>
-
-                <Field label="Address line 1" required error={errors["permanent.address_line1"]}>
-                  <Textarea
-                    className={cn("border-zc-border", errors["permanent.address_line1"] ? "border-red-500" : "")}
-                    value={permanentAddr.address_line1 ?? ""}
-                    onChange={(e) => updatePermanent("address_line1", e.target.value)}
-                    placeholder="House/Flat, Street, Area..."
-                  />
-                </Field>
-
-                <Field
-                  label="Address line 2"
-                  help="Optional (landmark, locality)"
-                  error={errors["permanent.address_line2"]}
-                >
-                  <Textarea
-                    className={cn("border-zc-border", errors["permanent.address_line2"] ? "border-red-500" : "")}
-                    value={permanentAddr.address_line2 ?? ""}
-                    onChange={(e) => updatePermanent("address_line2", e.target.value)}
-                    placeholder="Optional"
-                  />
-                </Field>
-
-                <div className="grid gap-3 md:grid-cols-4">
-                  <Field label="City" required error={errors["permanent.city"]}>
-                  <Input
-                    className={cn("border-zc-border", errors["permanent.city"] ? "border-red-500" : "")}
-                    value={permanentAddr.city ?? ""}
-                    onChange={(e) => updatePermanent("city", normalizeCityInput(e.target.value))}
-                    placeholder="City"
-                  />
-                </Field>
-
-                  <Field label="State" required error={errors["permanent.state"]}>
-                    <Select value={permanentAddr.state ?? ""} onValueChange={(v) => updatePermanent("state", v)}>
-                      <SelectTrigger className={cn("border-zc-border", errors["permanent.state"] ? "border-red-500" : "")}>
-                        <SelectValue placeholder="Select state" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-64 overflow-y-auto">
-                        {INDIAN_STATES.map((state) => (
-                          <SelectItem key={state} value={state}>
-                            {state}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-
-                  <Field label="Country" required error={errors["permanent.country"]}>
-                    <Input
-                      className={cn("border-zc-border", errors["permanent.country"] ? "border-red-500" : "")}
-                      value={permanentAddr.country ?? ""}
-                      onChange={(e) => updatePermanent("country", e.target.value)}
-                      placeholder="Country"
-                    />
-                  </Field>
-
-                  <Field label="Pincode" required error={errors["permanent.pincode"]}>
-                  <Input
-                    className={cn("border-zc-border", errors["permanent.pincode"] ? "border-red-500" : "")}
-                    value={permanentAddr.pincode ?? ""}
-                    onChange={(e) => updatePermanent("pincode", normalizePincodeInput(e.target.value))}
-                    placeholder="6 digits"
-                    inputMode="numeric"
-                    maxLength={6}
-                  />
-                </Field>
+                <div className="flex items-center gap-2">
+                  <Switch checked={sameAsCurrent} onCheckedChange={toggleSame} />
+                  <Label className="text-xs text-zc-muted">Permanent same as current</Label>
                 </div>
               </div>
-            ) : (
-              <div className="rounded-md border border-zc-border bg-zc-panel/40 p-3 text-xs text-zc-muted">
-                Permanent address will be stored identical to the current address.
+              {sameAsCurrent ? (
+                <div className="rounded-md border border-zc-border bg-zc-card/40 p-3 text-xs text-zc-muted">
+                  Permanent address will be stored identical to the current address.
+                </div>
+              ) : null}
+              <Field
+                label="Address line 1"
+                required
+                error={sameAsCurrent ? undefined : errors["permanent.address_line1"]}
+              >
+                <Textarea
+                  className={cn(
+                    "border-zc-border",
+                    sameAsCurrent ? "bg-zc-card/30 text-zc-muted" : "",
+                    !sameAsCurrent && errors["permanent.address_line1"] ? "border-red-500" : ""
+                  )}
+                  value={permanentAddr.address_line1 ?? ""}
+                  onChange={(e) => updatePermanent("address_line1", e.target.value)}
+                  placeholder="House/Flat, Street, Area..."
+                  readOnly={sameAsCurrent}
+                />
+              </Field>
+
+              <Field
+                label="Address line 2"
+                help="Optional (landmark, locality)"
+                error={sameAsCurrent ? undefined : errors["permanent.address_line2"]}
+              >
+                <Textarea
+                  className={cn(
+                    "border-zc-border",
+                    sameAsCurrent ? "bg-zc-card/30 text-zc-muted" : "",
+                    !sameAsCurrent && errors["permanent.address_line2"] ? "border-red-500" : ""
+                  )}
+                  value={permanentAddr.address_line2 ?? ""}
+                  onChange={(e) => updatePermanent("address_line2", e.target.value)}
+                  placeholder="Optional"
+                  readOnly={sameAsCurrent}
+                />
+              </Field>
+
+              <div className="grid gap-3 md:grid-cols-4">
+                <Field label="City" required error={sameAsCurrent ? undefined : errors["permanent.city"]}>
+                <Input
+                  className={cn(
+                    "border-zc-border",
+                    sameAsCurrent ? "bg-zc-card/30 text-zc-muted" : "",
+                    !sameAsCurrent && errors["permanent.city"] ? "border-red-500" : ""
+                  )}
+                  value={permanentAddr.city ?? ""}
+                  onChange={(e) => updatePermanent("city", normalizeCityInput(e.target.value))}
+                  placeholder="City"
+                  readOnly={sameAsCurrent}
+                />
+              </Field>
+
+                <Field label="State" required error={sameAsCurrent ? undefined : errors["permanent.state"]}>
+                  <Select
+                    value={permanentAddr.state ?? ""}
+                    onValueChange={(v) => updatePermanent("state", v)}
+                    disabled={sameAsCurrent}
+                  >
+                    <SelectTrigger
+                      className={cn(
+                        "border-zc-border",
+                        sameAsCurrent ? "bg-zc-card/30 text-zc-muted" : "",
+                        !sameAsCurrent && errors["permanent.state"] ? "border-red-500" : ""
+                      )}
+                    >
+                      <SelectValue placeholder="Select state" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-64 overflow-y-auto">
+                      {INDIAN_STATES.map((state) => (
+                        <SelectItem key={state} value={state}>
+                          {state}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+
+                <Field label="Country" required error={sameAsCurrent ? undefined : errors["permanent.country"]}>
+                  <Input
+                    className={cn(
+                      "border-zc-border",
+                      sameAsCurrent ? "bg-zc-card/30 text-zc-muted" : "",
+                      !sameAsCurrent && errors["permanent.country"] ? "border-red-500" : ""
+                    )}
+                    value={permanentAddr.country ?? ""}
+                    onChange={(e) => updatePermanent("country", e.target.value)}
+                    placeholder="Country"
+                    readOnly={sameAsCurrent}
+                  />
+                </Field>
+
+                <Field label="Pincode" required error={sameAsCurrent ? undefined : errors["permanent.pincode"]}>
+                <Input
+                  className={cn(
+                    "border-zc-border",
+                    sameAsCurrent ? "bg-zc-card/30 text-zc-muted" : "",
+                    !sameAsCurrent && errors["permanent.pincode"] ? "border-red-500" : ""
+                  )}
+                  value={permanentAddr.pincode ?? ""}
+                  onChange={(e) => updatePermanent("pincode", normalizePincodeInput(e.target.value))}
+                  placeholder="6 digits"
+                  inputMode="numeric"
+                  maxLength={6}
+                  readOnly={sameAsCurrent}
+                />
+              </Field>
               </div>
-            )}
+            </div>
           </div>
 
           <Separator className="bg-zc-border" />
@@ -1048,7 +1197,7 @@ export default function HrStaffOnboardingPersonalMergedPage() {
             </div>
           </div>
 
-          <div className="rounded-md border border-zc-border bg-zc-panel/40 p-3 text-xs text-zc-muted">
+          <div className="rounded-md border border-zc-border bg-zc-card/40 p-3 text-xs text-zc-muted">
             <div className="font-medium text-zc-foreground">Next step</div>
             <div className="mt-1">
               Identity documents: <span className="font-mono">{BASE}/identity</span>
@@ -1245,7 +1394,7 @@ function normalizePersonalDraft(d: PersonalDetailsDraft): PersonalDetailsDraft {
 
   return {
     // keep start step fields if present
-    employee_id: d.employee_id,
+    employee_id: String(d.employee_id ?? "").trim() || undefined,
     full_name: d.full_name,
     staff_category: d.staff_category,
 
