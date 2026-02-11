@@ -21,7 +21,7 @@ export class IamPrincipalService {
   constructor(
     @Inject("PRISMA") private prisma: PrismaClient,
     private readonly redis: RedisService,
-  ) { }
+  ) {}
 
   private now() {
     return Date.now();
@@ -159,13 +159,13 @@ export class IamPrincipalService {
 
     const activeBindings = Array.isArray(rawBindings)
       ? rawBindings.filter((b: any) => {
-        if (!b?.branchId) return false;
-        if (b.isActive === false) return false;
+          if (!b?.branchId) return false;
+          if (b.isActive === false) return false;
 
-        const fromOk = !b.effectiveFrom || new Date(b.effectiveFrom).getTime() <= now.getTime();
-        const toOk = !b.effectiveTo || new Date(b.effectiveTo).getTime() >= now.getTime();
-        return fromOk && toOk;
-      })
+          const fromOk = !b.effectiveFrom || new Date(b.effectiveFrom).getTime() <= now.getTime();
+          const toOk = !b.effectiveTo || new Date(b.effectiveTo).getTime() >= now.getTime();
+          return fromOk && toOk;
+        })
       : [];
 
     const branchIds = Array.from(new Set(activeBindings.map((b: any) => b.branchId)));
@@ -173,9 +173,9 @@ export class IamPrincipalService {
 
     const effectiveBranchId = primaryBinding?.branchId ?? (fullUser.branchId ?? null);
 
-
     return {
       userId: fullUser.id,
+      staffId: fullUser.staffId ?? null, // ✅ critical: propagate staffId into Principal
       email: fullUser.email,
       name: fullUser.name,
       branchId: effectiveBranchId,
@@ -204,6 +204,7 @@ export class IamPrincipalService {
         email: true,
         name: true,
         branchId: true,
+        staffId: true, // ✅ add staffId
         role: true,
         roleVersionId: true,
         isActive: true,
@@ -227,15 +228,25 @@ export class IamPrincipalService {
       }
     }
 
+    const expectedStaffId = (u0 as any).staffId ?? null;
     const key = this.cacheKey(u0.id, authzVersion);
+
+    // L1 cache
     const cached = this.getCached(key);
-    if (cached) return cached;
+    if (cached) {
+      // ✅ cache safety: if staff link changed but authzVersion wasn't bumped, bypass stale cache
+      const cachedStaffId = (cached as any).staffId ?? null;
+      if (cachedStaffId === expectedStaffId) return cached;
+    }
 
     // L2 redis cache
     const fromRedis = await this.getRedisPrincipal(key);
     if (fromRedis) {
-      this.setCached(key, fromRedis);
-      return fromRedis;
+      const redisStaffId = (fromRedis as any).staffId ?? null;
+      if (redisStaffId === expectedStaffId) {
+        this.setCached(key, fromRedis);
+        return fromRedis;
+      }
     }
 
     const full = await this.prisma.user.findUnique({
@@ -257,8 +268,6 @@ export class IamPrincipalService {
             effectiveTo: true,
           },
         },
-
-
       },
     });
 
@@ -315,5 +324,4 @@ export class IamPrincipalService {
     const authzVersion = Number((u as any).authzVersion ?? 1);
     return this.buildPrincipalFromUser(u, authzVersion);
   }
-
 }

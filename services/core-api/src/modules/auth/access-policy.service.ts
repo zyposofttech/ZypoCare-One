@@ -5,6 +5,15 @@ export type Principal = {
   userId: string;
   email: string;
   name: string;
+
+  /**
+   * Linked Staff directory identity (HR).
+   *
+   * - null for purely system users (e.g., GLOBAL SUPER_ADMIN not represented as Staff)
+   * - non-null for staff-managed accounts
+   */
+  staffId?: string | null;
+
   branchId: string | null;
   // Optional multi-branch allowance (derived from UserRoleBinding)
   branchIds?: string[];
@@ -59,15 +68,19 @@ export class AccessPolicyService {
   canAccessBranch(principal: Principal, branchId: string | null | undefined) {
     if (principal.roleScope === "GLOBAL") return true;
     if (principal.roleScope === "BRANCH") {
-      const allowed = Array.isArray((principal as any).branchIds) && (principal as any).branchIds.length
-        ? (principal as any).branchIds
-        : (principal.branchId ? [principal.branchId] : []);
+      const allowed =
+        Array.isArray((principal as any).branchIds) && (principal as any).branchIds.length
+          ? (principal as any).branchIds
+          : principal.branchId
+            ? [principal.branchId]
+            : [];
       if (!allowed.length) return false;
       if (!branchId) return false;
       return allowed.includes(branchId);
     }
     return false;
   }
+
   resolveBranchId(
     principal: Principal,
     requestedBranchId: string | null | undefined,
@@ -77,9 +90,12 @@ export class AccessPolicyService {
     const requested = req.length ? req : null;
 
     if (principal.roleScope === "BRANCH") {
-      const allowed = Array.isArray((principal as any).branchIds) && (principal as any).branchIds.length
-        ? (principal as any).branchIds
-        : (principal.branchId ? [principal.branchId] : []);
+      const allowed =
+        Array.isArray((principal as any).branchIds) && (principal as any).branchIds.length
+          ? (principal as any).branchIds
+          : principal.branchId
+            ? [principal.branchId]
+            : [];
 
       if (!allowed.length) {
         throw new ForbiddenException("Branch-scoped principal missing branchId");
@@ -113,14 +129,16 @@ export class AccessPolicyService {
   assertBranchAccess(principal: Principal, branchId: string | null | undefined) {
     if (principal.roleScope === "GLOBAL") return;
     if (principal.roleScope === "BRANCH") {
-      const allowed = Array.isArray((principal as any).branchIds) && (principal as any).branchIds.length
-        ? (principal as any).branchIds
-        : (principal.branchId ? [principal.branchId] : []);
+      const allowed =
+        Array.isArray((principal as any).branchIds) && (principal as any).branchIds.length
+          ? (principal as any).branchIds
+          : principal.branchId
+            ? [principal.branchId]
+            : [];
       if (!allowed.length) throw new ForbiddenException("Branch-scoped principal missing branchId");
       if (!branchId || !allowed.includes(branchId)) {
         throw new ForbiddenException("Forbidden: cross-branch access");
       }
-      return;
     }
   }
 }

@@ -1,10 +1,13 @@
 import {
+  BadRequestException,
   Body,
   Controller,
+  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
   Post,
+  Query,
   Req,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
@@ -12,16 +15,26 @@ import { AuthService } from "./auth.service";
 import { Public } from "./public.decorator";
 import { hashPassword } from "../iam/password.util";
 
+/**
+ * NOTE:
+ * - login is public
+ * - change-password requires Bearer token
+ * - force-seed endpoints are DEV/BOOTSTRAP only (blocked in production by default)
+ */
 @ApiTags("Auth/Login")
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  // -------------------------------
+  // Auth endpoints
+  // -------------------------------
+
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post("login")
   async login(@Body() dto: Record<string, any>) {
-    // AuthService.login already returns:
+    // AuthService.login returns:
     // { access_token, user { roleCode, roleScope, branchId, ... } }
     return this.authService.login(dto);
   }
@@ -49,17 +62,45 @@ export class AuthController {
   async logout(@Req() req: any) {
     const jti = req.user?.jti;
     const exp = req.user?.exp;
-    await this.authService.revokeJti(String(jti || ""), typeof exp === "number" ? exp : undefined);
+    await this.authService.revokeJti(
+      String(jti || ""),
+      typeof exp === "number" ? exp : undefined
+    );
     return { ok: true };
   }
 
+  /**
+   * Helpful for debugging what guards put on the request.
+   * If you later add staffId into JWT + principal, you’ll see it here immediately.
+   */
+  @HttpCode(HttpStatus.OK)
+  @Get("me")
+  async me(@Req() req: any) {
+    return {
+      jwt: req.user ?? null,
+      principal: req.principal ?? null,
+    };
+  }
+
   // -------------------------------
-  // Force seed helpers (dev only)
+  // Force seed helpers (DEV only)
   // -------------------------------
 
   private prisma() {
-    // Access prisma from AuthService (as in your original code)
+    // Access prisma from AuthService (current pattern in your repo)
     return (this.authService as any).prisma;
+  }
+
+  private assertForceSeedAllowed() {
+    const nodeEnv = (process.env.NODE_ENV || "").toLowerCase();
+    const allow = process.env.ALLOW_AUTH_FORCE_SEED === "true";
+
+    // Block in production unless explicitly enabled
+    if (nodeEnv === "production" && !allow) {
+      throw new ForbiddenException(
+        "force-seed is disabled in production. Set ALLOW_AUTH_FORCE_SEED=true to enable."
+      );
+    }
   }
 
   private async ensureActiveRoleVersion(args: {
@@ -110,28 +151,42 @@ export class AuthController {
     return roleVersion;
   }
 
-  // ✅ Keeps your original endpoint but makes it deterministic (always SUPER_ADMIN)
+  /**
+   * ✅ Seeds SUPER_ADMIN user (GLOBAL).
+   * Does NOT create a Staff row (by design) — SUPER_ADMIN is an IAM principal.
+   *
+   * You can override defaults via query params for convenience:
+   * /auth/force-seed?email=...&password=...&name=...
+   */
   @Public()
   @Get("force-seed")
-  async forceSeed() {
+  async forceSeed(
+    @Query("email") emailQ?: string,
+    @Query("password") passwordQ?: string,
+    @Query("name") nameQ?: string
+  ) {
+    this.assertForceSeedAllowed();
+
     const prisma = this.prisma();
 
-    const email = "superadmin@zypocare.com";
-    const password = "ChangeMe@123";
+    const email = (emailQ?.trim() || "superadmin@zypocare.com").toLowerCase();
+    const password = passwordQ?.trim() || "ChangeMe@123";
+    const name = nameQ?.trim() || "ZypoCare Super Admin";
+
     const hash = hashPassword(password);
 
     const roleVersion = await this.ensureActiveRoleVersion({
       code: "SUPER_ADMIN",
       name: "Super Admin",
       scope: "GLOBAL",
-      description: "Emergency Seed",
+      description: "Bootstrap Super Admin",
     });
 
     const user = await prisma.user.upsert({
       where: { email },
       update: {
         passwordHash: hash,
-        mustChangePassword: false,
+        mustChangePassword: true,
         isActive: true,
         role: "SUPER_ADMIN",
         roleVersionId: roleVersion.id,
@@ -139,11 +194,11 @@ export class AuthController {
       },
       create: {
         email,
-        name: "ZypoCare Super Admin",
+        name,
         role: "SUPER_ADMIN",
         roleVersionId: roleVersion.id,
         passwordHash: hash,
-        mustChangePassword: false,
+        mustChangePassword: true,
         isActive: true,
         branchId: null,
       },
@@ -151,18 +206,28 @@ export class AuthController {
 
     return {
       message: "✅ SUCCESS: Super Admin seeded!",
-      user: { email: user.email, password },
+      user: { email: user.email, password, mustChangePassword: true },
     };
   }
 
-  // ✅ NEW: seed a Corporate Admin (GLOBAL) to manage branches
+  /**
+   * ✅ Seeds Corporate Admin (GLOBAL) — useful for multi-branch setup.
+   */
   @Public()
   @Get("force-seed-corporate")
-  async forceSeedCorporate() {
+  async forceSeedCorporate(
+    @Query("email") emailQ?: string,
+    @Query("password") passwordQ?: string,
+    @Query("name") nameQ?: string
+  ) {
+    this.assertForceSeedAllowed();
+
     const prisma = this.prisma();
 
-    const email = "corporateadmin@zypocare.com";
-    const password = "ChangeMe@123";
+    const email = (emailQ?.trim() || "corporateadmin@zypocare.com").toLowerCase();
+    const password = passwordQ?.trim() || "ChangeMe@123";
+    const name = nameQ?.trim() || "ZypoCare Corporate Admin";
+
     const hash = hashPassword(password);
 
     const roleVersion = await this.ensureActiveRoleVersion({
@@ -176,7 +241,7 @@ export class AuthController {
       where: { email },
       update: {
         passwordHash: hash,
-        mustChangePassword: false,
+        mustChangePassword: true,
         isActive: true,
         role: "CORPORATE_ADMIN",
         roleVersionId: roleVersion.id,
@@ -184,11 +249,11 @@ export class AuthController {
       },
       create: {
         email,
-        name: "ZypoCare Corporate Admin",
+        name,
         role: "CORPORATE_ADMIN",
         roleVersionId: roleVersion.id,
         passwordHash: hash,
-        mustChangePassword: false,
+        mustChangePassword: true,
         isActive: true,
         branchId: null,
       },
@@ -196,7 +261,70 @@ export class AuthController {
 
     return {
       message: "✅ SUCCESS: Corporate Admin seeded!",
-      user: { email: user.email, password },
+      user: { email: user.email, password, mustChangePassword: true },
+    };
+  }
+
+  /**
+   * ✅ Seeds Branch Admin (BRANCH).
+   * Needs branchId.
+   *
+   * Example:
+   * /auth/force-seed-branch-admin?branchId=xxx&email=...&password=...
+   */
+  @Public()
+  @Get("force-seed-branch-admin")
+  async forceSeedBranchAdmin(
+    @Query("branchId") branchId?: string,
+    @Query("email") emailQ?: string,
+    @Query("password") passwordQ?: string,
+    @Query("name") nameQ?: string
+  ) {
+    this.assertForceSeedAllowed();
+
+    const prisma = this.prisma();
+
+    const b = (branchId || "").trim();
+    if (!b) throw new BadRequestException("branchId is required");
+
+    const email = (emailQ?.trim() || `branchadmin.${b}@zypocare.com`).toLowerCase();
+    const password = passwordQ?.trim() || "ChangeMe@123";
+    const name = nameQ?.trim() || "ZypoCare Branch Admin";
+
+    const hash = hashPassword(password);
+
+    const roleVersion = await this.ensureActiveRoleVersion({
+      code: "BRANCH_ADMIN",
+      name: "Branch Admin",
+      scope: "BRANCH",
+      description: "Branch administrator",
+    });
+
+    const user = await prisma.user.upsert({
+      where: { email },
+      update: {
+        passwordHash: hash,
+        mustChangePassword: true,
+        isActive: true,
+        role: "BRANCH_ADMIN",
+        roleVersionId: roleVersion.id,
+        branchId: b,
+      },
+      create: {
+        email,
+        name,
+        role: "BRANCH_ADMIN",
+        roleVersionId: roleVersion.id,
+        passwordHash: hash,
+        mustChangePassword: true,
+        isActive: true,
+        branchId: b,
+      },
+    });
+
+    return {
+      message: "✅ SUCCESS: Branch Admin seeded!",
+      user: { email: user.email, password, branchId: b, mustChangePassword: true },
     };
   }
 }

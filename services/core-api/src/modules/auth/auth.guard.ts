@@ -42,11 +42,31 @@ export class JwtAuthGuard implements CanActivate {
         }
       }
 
-      request.user = payload;
+      // ✅ Normalize/ensure stable claim shape (prevents later runtime surprises)
+      request.user = {
+        ...payload,
+        sub: payload?.sub ?? payload?.userId ?? payload?.id,
+        email:
+          payload?.email ??
+          payload?.preferred_username ??
+          payload?.upn ??
+          payload?.unique_name ??
+          null,
+
+        // ✅ critical: staff identity must be available from login token
+        staffId: payload?.staffId ?? null,
+
+        branchId: payload?.branchId ?? null,
+        authzVersion: Number(payload?.authzVersion ?? 0),
+        mustChangePassword: payload?.mustChangePassword === true,
+      };
+
+      // Keep token available if you ever need it for debugging
+      request.accessToken = token;
 
       // ✅ Enforce mustChangePassword, but allow minimal endpoints needed
       // IMPORTANT: allow /iam/me so frontend bootstrap doesn't get stuck/log-out loops
-      const mustChangePassword = payload?.mustChangePassword === true;
+      const mustChangePassword = request.user.mustChangePassword === true;
       if (mustChangePassword) {
         const url = String(request.originalUrl || request.url || "");
         const method = String(request.method || "GET").toUpperCase();
@@ -56,7 +76,7 @@ export class JwtAuthGuard implements CanActivate {
           url.includes("/auth/change-password") ||
           // allow principal bootstrap & UI role detection
           (method === "GET" && url.includes("/iam/me")) ||
-          // allow logout endpoint if you later add it in core-api
+          // logout if implemented
           url.includes("/auth/logout");
 
         if (!allow) {
@@ -69,13 +89,19 @@ export class JwtAuthGuard implements CanActivate {
 
       return true;
     } catch (e: any) {
+      // Preserve MUST_CHANGE_PASSWORD enforcement errors
       if (e instanceof ForbiddenException) throw e;
+
+      // Preserve explicit UnauthorizedExceptions we throw (e.g., revoked)
+      if (e instanceof UnauthorizedException) throw e;
+
       throw new UnauthorizedException("Invalid or Expired Token");
     }
   }
 
   private extractTokenFromHeader(request: any): string | undefined {
-    const [type, token] = request.headers.authorization?.split(" ") ?? [];
+    const header = request?.headers?.authorization || request?.headers?.Authorization;
+    const [type, token] = String(header || "").split(" ");
     return type === "Bearer" ? token : undefined;
   }
 }

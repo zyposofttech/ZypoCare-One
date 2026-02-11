@@ -8,26 +8,39 @@ export class PermissionsGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(ctx: ExecutionContext): boolean {
-    const required = this.reflector.getAllAndOverride<string[]>(PERMISSIONS_KEY, [
+    const requiredRaw = this.reflector.getAllAndOverride<any>(PERMISSIONS_KEY, [
       ctx.getHandler(),
       ctx.getClass(),
     ]);
 
-    if (!required?.length) return true;
+    const required: string[] = Array.isArray(requiredRaw)
+      ? requiredRaw.filter(Boolean).map(String)
+      : requiredRaw
+        ? [String(requiredRaw)]
+        : [];
+
+    if (!required.length) return true;
 
     const req = ctx.switchToHttp().getRequest();
     const principal = req.principal as Principal | undefined;
-    if (!principal) throw new ForbiddenException("Missing principal");
-
-    // ✅ SUPER_ADMIN safety: never block system-level access due to permission catalog drift.
-    // Backend services also enforce SUPER_ADMIN bypass in several places, but this guard sits
-    // in front of controllers — so it must honor the same rule.
-    const roleCode = String((principal as any).roleCode ?? "").trim().toUpperCase();
-    if (roleCode === "SUPER_ADMIN") return true;
+    if (!principal) {
+      throw new ForbiddenException({
+        message: "Missing principal",
+        code: "MISSING_PRINCIPAL",
+      });
+    }
 
     const set = new Set(principal.permissions || []);
-    const ok = required.every((p) => set.has(p));
-    if (!ok) throw new ForbiddenException("Insufficient permissions");
+    const missing = required.filter((p) => !set.has(p));
+
+    if (missing.length) {
+      throw new ForbiddenException({
+        message: "Insufficient permissions",
+        code: "INSUFFICIENT_PERMISSIONS",
+        missing,
+      });
+    }
+
     return true;
   }
 }

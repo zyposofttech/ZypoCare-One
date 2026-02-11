@@ -209,13 +209,14 @@ model Branch {
   staffOnboardingItems       StaffOnboardingItem[]
   staffCompliancePacks       StaffCompliancePack[]
   staffComplianceAssignments StaffComplianceAssignment[]
+  // Approvals (opposite relations)
+  approvalRequests           ApprovalRequest[]
 
   // HR Ops / Workforce Management
   staffRosters       StaffRoster[]
   staffAttendances   StaffAttendance[]
   staffLeaveRequests StaffLeaveRequest[]
   staffTrainings     StaffTrainingRecord[]
-  staffAppraisals    StaffAppraisal[]
   staffSeparations   StaffSeparation[]
   Encounter          Encounter[]
   Bed                Bed[]
@@ -585,9 +586,41 @@ enum StaffAttendanceStatus {
 }
 
 enum StaffLeaveStatus {
-  APPLIED
+  DRAFT
+  SUBMITTED
   APPROVED
   REJECTED
+  CANCELLED
+  WITHDRAWN
+}
+
+enum ApprovalRequestStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum ApprovalEntityType {
+  STAFF_LEAVE
+  STAFF_ATTENDANCE_CORRECTION
+  STAFF_ROSTER_PUBLISH
+  STAFF_ONBOARDING_SUBMIT
+}
+
+enum ApprovalApproverKind {
+  DEPARTMENT_HEAD
+  BRANCH_ROLE
+  GLOBAL_ROLE
+  SPECIFIC_USER
+}
+
+enum ApprovalStepStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SKIPPED
   CANCELLED
 }
 
@@ -848,10 +881,6 @@ model Staff {
   hprLastVerifiedAt      DateTime?
   hprVerificationPayload Json?
 
-  backgroundVerificationStatus  StaffVerificationStatus?
-  policeVerificationStatus      StaffVerificationStatus?
-  backgroundVerificationPayload Json?
-
   category       StaffCategory       @default(NON_CLINICAL)
   engagementType StaffEngagementType @default(EMPLOYEE)
   status         StaffStatus         @default(ACTIVE)
@@ -934,14 +963,12 @@ model Staff {
   complianceAssignments StaffComplianceAssignment[]
 
   // HR Ops / Workforce Management
-  rosters           StaffRoster[]
-  attendances       StaffAttendance[]
-  leaveRequests     StaffLeaveRequest[]
-  trainings         StaffTrainingRecord[]
-  appraisals        StaffAppraisal[]
-  separations       StaffSeparation[]
-  healthRecords     StaffHealthRecord[]
-  insurancePolicies StaffInsurancePolicy[]
+  rosters       StaffRoster[]
+  attendances   StaffAttendance[]
+  leaveRequests StaffLeaveRequest[]
+  trainings     StaffTrainingRecord[]
+  separations   StaffSeparation[]
+  healthRecords StaffHealthRecord[]
 
   // User linkage (preferred 1:1)
   user User? @relation("StaffUserLink")
@@ -1246,6 +1273,63 @@ model StaffCredentialAlert {
   @@index([status, scheduledAt])
 }
 
+model ApprovalRequest {
+  id String @id @default(cuid())
+
+  entityType ApprovalEntityType
+  entityId   String
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  status      ApprovalRequestStatus @default(PENDING)
+  currentStep Int                   @default(1)
+
+  createdByUserId String?
+  createdByUser   User?   @relation("ApprovalRequestCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  steps ApprovalStep[]
+
+  meta              Json?
+  // Opposite relation for leave approvals (optional 1:1)
+  staffLeaveRequest StaffLeaveRequest? @relation("LeaveRequestApproval")
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@unique([entityType, entityId])
+  @@index([branchId, status])
+  @@index([createdByUserId])
+}
+
+model ApprovalStep {
+  id String @id @default(cuid())
+
+  approvalRequestId String
+  approvalRequest   ApprovalRequest @relation(fields: [approvalRequestId], references: [id], onDelete: Cascade)
+
+  stepOrder Int
+
+  approverKind     ApprovalApproverKind
+  approverRoleCode String?              @db.VarChar(64) // for BRANCH_ROLE/GLOBAL_ROLE
+  approverUserId   String? // for SPECIFIC_USER
+  approverUser     User?                @relation("ApprovalStepApproverUser", fields: [approverUserId], references: [id], onDelete: SetNull)
+
+  status ApprovalStepStatus @default(PENDING)
+
+  actedAt       DateTime?
+  actedByUserId String?
+  actedByUser   User?     @relation("ApprovalStepActedByUser", fields: [actedByUserId], references: [id], onDelete: SetNull)
+
+  remarks String? @db.VarChar(240)
+  meta    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([approvalRequestId, stepOrder])
+  @@index([approvalRequestId, status])
+}
+
 model StaffRoster {
   id String @id @default(cuid())
 
@@ -1326,7 +1410,7 @@ model StaffLeaveRequest {
   endDate   DateTime @db.Date
   reason    String?  @db.VarChar(240)
 
-  status StaffLeaveStatus @default(APPLIED)
+  status StaffLeaveStatus @default(DRAFT)
 
   reportingManagerApproval         ApprovalStatus @default(PENDING)
   reportingManagerApprovedByUserId String?
@@ -1338,7 +1422,12 @@ model StaffLeaveRequest {
   hrApprovedByUser   User?          @relation("StaffLeaveHRApprovedBy", fields: [hrApprovedByUserId], references: [id], onDelete: SetNull)
   hrApprovedAt       DateTime?
 
-  meta Json?
+  meta              Json?
+  approvalRequestId String?          @unique
+  approvalRequest   ApprovalRequest? @relation("LeaveRequestApproval", fields: [approvalRequestId], references: [id], onDelete: SetNull)
+
+  submittedAt DateTime?
+  decidedAt   DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1373,30 +1462,6 @@ model StaffTrainingRecord {
   @@index([branchId, status])
 }
 
-model StaffAppraisal {
-  id String @id @default(cuid())
-
-  staffId String
-  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
-
-  branchId String?
-  branch   Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
-
-  cycleLabel String               @db.VarChar(80) // e.g. "FY2025" or "2025-Q4"
-  status     StaffAppraisalStatus @default(DRAFT)
-
-  rating  Decimal? @db.Decimal(4, 2)
-  summary String?  @db.VarChar(240)
-  meta    Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([staffId, cycleLabel])
-  @@index([branchId, cycleLabel])
-  @@index([status])
-}
-
 model StaffSeparation {
   id String @id @default(cuid())
 
@@ -1427,28 +1492,6 @@ model StaffHealthRecord {
   meta       Json?
 
   @@index([staffId, recordedAt])
-}
-
-model StaffInsurancePolicy {
-  id String @id @default(cuid())
-
-  staffId String
-  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
-
-  policyType   String  @db.VarChar(80) // e.g. "Indemnity", "GroupHealth"
-  provider     String? @db.VarChar(160)
-  policyNumber String? @db.VarChar(64)
-
-  validFrom DateTime?
-  validTo   DateTime?
-
-  meta Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([staffId, policyType])
-  @@index([validTo])
 }
 
 model StaffProviderProfile {
@@ -1736,6 +1779,11 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Approvals (opposite relations)
+  createdApprovalRequests ApprovalRequest[] @relation("ApprovalRequestCreatedBy")
+  approvalStepsAsApprover ApprovalStep[]    @relation("ApprovalStepApproverUser")
+  approvalStepsAsActor    ApprovalStep[]    @relation("ApprovalStepActedByUser")
 
   // ---------------- Infrastructure (Setup Studio) ----------------
   createdLocationRevisions        LocationNodeRevision[]    @relation("LocationRevisionCreatedBy")

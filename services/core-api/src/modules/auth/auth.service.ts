@@ -20,11 +20,16 @@ type AuthUserPayload = {
   id: string;
   email: string;
   name: string;
+
+  // ✅ Staff link (required for onboarding/privileges/leave routing)
+  staffId: string | null;
+
   // Legacy string role (kept for backward compatibility)
   role: string;
   // Canonical role code sourced from RoleTemplate (preferred)
   roleCode: string;
   roleScope: "GLOBAL" | "BRANCH" | null;
+
   branchId: string | null;
   mustChangePassword: boolean;
   isActive: boolean;
@@ -43,10 +48,15 @@ export class AuthService {
   private toAuthUser(u: any): AuthUserPayload {
     const roleCode = u?.roleVersion?.roleTemplate?.code ?? u.role;
     const roleScope = (u?.roleVersion?.roleTemplate?.scope as any) ?? null;
+
     return {
       id: u.id,
       email: u.email,
       name: u.name,
+
+      // ✅ comes from User.staffId (unique FK)
+      staffId: u.staffId ?? null,
+
       role: u.role,
       roleCode,
       roleScope,
@@ -59,10 +69,15 @@ export class AuthService {
 
   private signToken(user: AuthUserPayload) {
     const jti = randomUUID();
+
     return this.jwtService.sign({
       sub: user.id,
       jti,
       email: user.email,
+
+      // ✅ include staffId in token so frontend + downstream services can use it
+      staffId: user.staffId,
+
       role: user.role,
       roleCode: user.roleCode,
       roleScope: user.roleScope,
@@ -82,10 +97,10 @@ export class AuthService {
   async revokeJti(jtiRaw: string, expUnixSeconds?: number) {
     if (process.env.AUTH_JTI_ENFORCE !== "true") return;
     if (!this.redis.isEnabled()) return;
+
     const jti = String(jtiRaw || "").trim();
     if (!jti) return;
 
-    // Determine remaining TTL based on token exp; fallback to 1 day
     const nowSec = Math.floor(Date.now() / 1000);
     const exp = Number(expUnixSeconds || 0);
     const ttl = exp > nowSec ? exp - nowSec : 24 * 60 * 60;
@@ -118,7 +133,7 @@ export class AuthService {
 
     return {
       access_token: this.signToken(user),
-      user,
+      user, // ✅ now includes staffId
     };
   }
 
@@ -148,7 +163,6 @@ export class AuthService {
       data: {
         passwordHash: hashPassword(newPassword),
         mustChangePassword: false,
-        // Security-sensitive change: bump authzVersion so cached principals/sessions can be invalidated.
         authzVersion: { increment: 1 },
       },
       include: { roleVersion: { include: { roleTemplate: true } } },

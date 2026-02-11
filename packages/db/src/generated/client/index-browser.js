@@ -293,9 +293,6 @@ exports.Prisma.StaffScalarFieldEnum = {
   hprVerificationStatus: 'hprVerificationStatus',
   hprLastVerifiedAt: 'hprLastVerifiedAt',
   hprVerificationPayload: 'hprVerificationPayload',
-  backgroundVerificationStatus: 'backgroundVerificationStatus',
-  policeVerificationStatus: 'policeVerificationStatus',
-  backgroundVerificationPayload: 'backgroundVerificationPayload',
   category: 'category',
   engagementType: 'engagementType',
   status: 'status',
@@ -461,6 +458,35 @@ exports.Prisma.StaffCredentialAlertScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ApprovalRequestScalarFieldEnum = {
+  id: 'id',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  branchId: 'branchId',
+  status: 'status',
+  currentStep: 'currentStep',
+  createdByUserId: 'createdByUserId',
+  meta: 'meta',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ApprovalStepScalarFieldEnum = {
+  id: 'id',
+  approvalRequestId: 'approvalRequestId',
+  stepOrder: 'stepOrder',
+  approverKind: 'approverKind',
+  approverRoleCode: 'approverRoleCode',
+  approverUserId: 'approverUserId',
+  status: 'status',
+  actedAt: 'actedAt',
+  actedByUserId: 'actedByUserId',
+  remarks: 'remarks',
+  meta: 'meta',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.StaffRosterScalarFieldEnum = {
   id: 'id',
   staffId: 'staffId',
@@ -513,6 +539,9 @@ exports.Prisma.StaffLeaveRequestScalarFieldEnum = {
   hrApprovedByUserId: 'hrApprovedByUserId',
   hrApprovedAt: 'hrApprovedAt',
   meta: 'meta',
+  approvalRequestId: 'approvalRequestId',
+  submittedAt: 'submittedAt',
+  decidedAt: 'decidedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -527,19 +556,6 @@ exports.Prisma.StaffTrainingRecordScalarFieldEnum = {
   completedAt: 'completedAt',
   score: 'score',
   evidenceDocumentId: 'evidenceDocumentId',
-  meta: 'meta',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.StaffAppraisalScalarFieldEnum = {
-  id: 'id',
-  staffId: 'staffId',
-  branchId: 'branchId',
-  cycleLabel: 'cycleLabel',
-  status: 'status',
-  rating: 'rating',
-  summary: 'summary',
   meta: 'meta',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -561,19 +577,6 @@ exports.Prisma.StaffHealthRecordScalarFieldEnum = {
   staffId: 'staffId',
   recordedAt: 'recordedAt',
   meta: 'meta'
-};
-
-exports.Prisma.StaffInsurancePolicyScalarFieldEnum = {
-  id: 'id',
-  staffId: 'staffId',
-  policyType: 'policyType',
-  provider: 'provider',
-  policyNumber: 'policyNumber',
-  validFrom: 'validFrom',
-  validTo: 'validTo',
-  meta: 'meta',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.StaffProviderProfileScalarFieldEnum = {
@@ -2418,6 +2421,36 @@ exports.StaffAlertDeliveryStatus = exports.$Enums.StaffAlertDeliveryStatus = {
   FAILED: 'FAILED'
 };
 
+exports.ApprovalEntityType = exports.$Enums.ApprovalEntityType = {
+  STAFF_LEAVE: 'STAFF_LEAVE',
+  STAFF_ATTENDANCE_CORRECTION: 'STAFF_ATTENDANCE_CORRECTION',
+  STAFF_ROSTER_PUBLISH: 'STAFF_ROSTER_PUBLISH',
+  STAFF_ONBOARDING_SUBMIT: 'STAFF_ONBOARDING_SUBMIT'
+};
+
+exports.ApprovalRequestStatus = exports.$Enums.ApprovalRequestStatus = {
+  DRAFT: 'DRAFT',
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.ApprovalApproverKind = exports.$Enums.ApprovalApproverKind = {
+  DEPARTMENT_HEAD: 'DEPARTMENT_HEAD',
+  BRANCH_ROLE: 'BRANCH_ROLE',
+  GLOBAL_ROLE: 'GLOBAL_ROLE',
+  SPECIFIC_USER: 'SPECIFIC_USER'
+};
+
+exports.ApprovalStepStatus = exports.$Enums.ApprovalStepStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  SKIPPED: 'SKIPPED',
+  CANCELLED: 'CANCELLED'
+};
+
 exports.StaffRosterStatus = exports.$Enums.StaffRosterStatus = {
   DRAFT: 'DRAFT',
   ACTIVE: 'ACTIVE',
@@ -2436,10 +2469,12 @@ exports.StaffAttendanceStatus = exports.$Enums.StaffAttendanceStatus = {
 };
 
 exports.StaffLeaveStatus = exports.$Enums.StaffLeaveStatus = {
-  APPLIED: 'APPLIED',
+  DRAFT: 'DRAFT',
+  SUBMITTED: 'SUBMITTED',
   APPROVED: 'APPROVED',
   REJECTED: 'REJECTED',
-  CANCELLED: 'CANCELLED'
+  CANCELLED: 'CANCELLED',
+  WITHDRAWN: 'WITHDRAWN'
 };
 
 exports.StaffTrainingStatus = exports.$Enums.StaffTrainingStatus = {
@@ -2447,13 +2482,6 @@ exports.StaffTrainingStatus = exports.$Enums.StaffTrainingStatus = {
   COMPLETED: 'COMPLETED',
   FAILED: 'FAILED',
   DROPPED: 'DROPPED'
-};
-
-exports.StaffAppraisalStatus = exports.$Enums.StaffAppraisalStatus = {
-  DRAFT: 'DRAFT',
-  SUBMITTED: 'SUBMITTED',
-  REVIEWED: 'REVIEWED',
-  APPROVED: 'APPROVED'
 };
 
 exports.StaffPrivilegeArea = exports.$Enums.StaffPrivilegeArea = {
@@ -3143,15 +3171,15 @@ exports.Prisma.ModelName = {
   StaffDocument: 'StaffDocument',
   StaffCredentialEvidence: 'StaffCredentialEvidence',
   StaffCredentialAlert: 'StaffCredentialAlert',
+  ApprovalRequest: 'ApprovalRequest',
+  ApprovalStep: 'ApprovalStep',
   StaffRoster: 'StaffRoster',
   StaffRosterEntry: 'StaffRosterEntry',
   StaffAttendance: 'StaffAttendance',
   StaffLeaveRequest: 'StaffLeaveRequest',
   StaffTrainingRecord: 'StaffTrainingRecord',
-  StaffAppraisal: 'StaffAppraisal',
   StaffSeparation: 'StaffSeparation',
   StaffHealthRecord: 'StaffHealthRecord',
-  StaffInsurancePolicy: 'StaffInsurancePolicy',
   StaffProviderProfile: 'StaffProviderProfile',
   StaffPrivilegeGrant: 'StaffPrivilegeGrant',
   StaffOnboardingItem: 'StaffOnboardingItem',

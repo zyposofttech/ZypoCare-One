@@ -40,10 +40,12 @@ enum FacilityCategory {
   CLINICAL
   SUPPORT
 }
+
 enum SpecialtyKind {
   SPECIALTY
   SUPER_SPECIALTY
 }
+
 enum BedState {
   VACANT
   OCCUPIED
@@ -207,17 +209,18 @@ model Branch {
   staffOnboardingItems       StaffOnboardingItem[]
   staffCompliancePacks       StaffCompliancePack[]
   staffComplianceAssignments StaffComplianceAssignment[]
+  // Approvals (opposite relations)
+  approvalRequests           ApprovalRequest[]
 
   // HR Ops / Workforce Management
   staffRosters       StaffRoster[]
   staffAttendances   StaffAttendance[]
   staffLeaveRequests StaffLeaveRequest[]
   staffTrainings     StaffTrainingRecord[]
-  staffAppraisals    StaffAppraisal[]
   staffSeparations   StaffSeparation[]
-  Encounter                  Encounter[]
-  Bed                        Bed[]
-  Admission                  Admission[]
+  Encounter          Encounter[]
+  Bed                Bed[]
+  Admission          Admission[]
 
   // Facilities enabled for this branch (multi-select from FacilityCatalog)
   branchFacilities BranchFacility[]
@@ -326,24 +329,24 @@ model Department {
   parentDepartment   Department?  @relation("DepartmentHierarchy", fields: [parentDepartmentId], references: [id], onDelete: SetNull)
   childDepartments   Department[] @relation("DepartmentHierarchy")
 
-  isActive  Boolean  @default(true)
+  isActive Boolean @default(true)
 
   // Soft deactivation metadata (required by deactivation flows)
   deactivatedAt       DateTime?
-  deactivationReason  String?  @db.VarChar(500)
+  deactivationReason  String?   @db.VarChar(500)
   deactivatedByUserId String?
-  deactivatedByUser   User?    @relation("DepartmentDeactivatedBy", fields: [deactivatedByUserId], references: [id], onDelete: SetNull)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  deactivatedByUser   User?     @relation("DepartmentDeactivatedBy", fields: [deactivatedByUserId], references: [id], onDelete: SetNull)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   doctorAssignments DepartmentDoctor[]
 
   staffAssignments      StaffAssignment[]
   staffProviderProfiles StaffProviderProfile[]
-  facilityType   FacilityCategory @default(CLINICAL)
-  costCenterCode String?          @db.VarChar(64)
-  extensions     Json?
-  operatingHours Json?
+  facilityType          FacilityCategory       @default(CLINICAL)
+  costCenterCode        String?                @db.VarChar(64)
+  extensions            Json?
+  operatingHours        Json?
 
   locations DepartmentLocation[]
 
@@ -435,8 +438,8 @@ model Specialty {
 
   isActive Boolean @default(true)
 
-  departmentLinks DepartmentSpecialty[]
-  staffAssignments StaffAssignment[]
+  departmentLinks       DepartmentSpecialty[]
+  staffAssignments      StaffAssignment[]
   staffProviderProfiles StaffProviderProfile[]
 
   createdAt DateTime @default(now())
@@ -583,9 +586,41 @@ enum StaffAttendanceStatus {
 }
 
 enum StaffLeaveStatus {
-  APPLIED
+  DRAFT
+  SUBMITTED
   APPROVED
   REJECTED
+  CANCELLED
+  WITHDRAWN
+}
+
+enum ApprovalRequestStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum ApprovalEntityType {
+  STAFF_LEAVE
+  STAFF_ATTENDANCE_CORRECTION
+  STAFF_ROSTER_PUBLISH
+  STAFF_ONBOARDING_SUBMIT
+}
+
+enum ApprovalApproverKind {
+  DEPARTMENT_HEAD
+  BRANCH_ROLE
+  GLOBAL_ROLE
+  SPECIFIC_USER
+}
+
+enum ApprovalStepStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SKIPPED
   CANCELLED
 }
 
@@ -797,18 +832,17 @@ model Staff {
   // Default designation (assignment may override)
   designation String @db.VarChar(120)
 
-
   // Structured identity (workflow-aligned; source of truth for UI + validations)
-  title       StaffTitle?   
-  firstName   String?       @db.VarChar(80)
-  middleName  String?       @db.VarChar(80)
-  lastName    String?       @db.VarChar(80)
-  displayName String?       @db.VarChar(160)
+  title       StaffTitle?
+  firstName   String?     @db.VarChar(80)
+  middleName  String?     @db.VarChar(80)
+  lastName    String?     @db.VarChar(80)
+  displayName String?     @db.VarChar(160)
 
-  dateOfBirth    DateTime?
-  gender         Gender?
-  bloodGroup     BloodGroup?
-  maritalStatus  MaritalStatus?
+  dateOfBirth   DateTime?
+  gender        Gender?
+  bloodGroup    BloodGroup?
+  maritalStatus MaritalStatus?
 
   primaryPhone   String? @db.VarChar(20)
   secondaryPhone String? @db.VarChar(20)
@@ -830,10 +864,10 @@ model Staff {
   contractStartDate DateTime?
   contractEndDate   DateTime?
 
-  defaultShiftType     StaffShiftType?
-  isFullTime           Boolean?
-  workingHoursPerWeek  Int?
-  weeklyOffDays        Json?
+  defaultShiftType    StaffShiftType?
+  isFullTime          Boolean?
+  workingHoursPerWeek Int?
+  weeklyOffDays       Json?
 
   hasSystemAccess Boolean @default(false)
 
@@ -846,10 +880,6 @@ model Staff {
   hprVerificationStatus  StaffVerificationStatus?
   hprLastVerifiedAt      DateTime?
   hprVerificationPayload Json?
-
-  backgroundVerificationStatus  StaffVerificationStatus?
-  policeVerificationStatus      StaffVerificationStatus?
-  backgroundVerificationPayload Json?
 
   category       StaffCategory       @default(NON_CLINICAL)
   engagementType StaffEngagementType @default(EMPLOYEE)
@@ -933,14 +963,12 @@ model Staff {
   complianceAssignments StaffComplianceAssignment[]
 
   // HR Ops / Workforce Management
-  rosters        StaffRoster[]
-  attendances    StaffAttendance[]
-  leaveRequests  StaffLeaveRequest[]
-  trainings      StaffTrainingRecord[]
-  appraisals     StaffAppraisal[]
-  separations    StaffSeparation[]
-  healthRecords  StaffHealthRecord[]
-  insurancePolicies StaffInsurancePolicy[]
+  rosters       StaffRoster[]
+  attendances   StaffAttendance[]
+  leaveRequests StaffLeaveRequest[]
+  trainings     StaffTrainingRecord[]
+  separations   StaffSeparation[]
+  healthRecords StaffHealthRecord[]
 
   // User linkage (preferred 1:1)
   user User? @relation("StaffUserLink")
@@ -1009,24 +1037,24 @@ model StaffAssignment {
   isPrimary Boolean @default(false)
 
   // Multi-branch availability & OPD configuration
-  daysAvailable            Json? // Array<DayOfWeek>
-  workingHours             Json? // { [day]: { startTime,endTime,breakStart?,breakEnd? } }
-  opdConfiguration         Json? // { slotDuration,maxSlotsPerDay,consultationRooms: string[] }
-  consultationChargeOverride Decimal? @db.Decimal(10,2)
+  daysAvailable              Json? // Array<DayOfWeek>
+  workingHours               Json? // { [day]: { startTime,endTime,breakStart?,breakEnd? } }
+  opdConfiguration           Json? // { slotDuration,maxSlotsPerDay,consultationRooms: string[] }
+  consultationChargeOverride Decimal? @db.Decimal(10, 2)
 
   // Administrative / approval workflow
-  isActive         Boolean       @default(true)
-  requiresApproval Boolean       @default(false)
+  isActive         Boolean        @default(true)
+  requiresApproval Boolean        @default(false)
   approvalStatus   ApprovalStatus @default(APPROVED)
 
   assignedByUserId String?
-  assignedByUser   User? @relation("StaffAssignmentAssignedBy", fields: [assignedByUserId], references: [id], onDelete: SetNull)
+  assignedByUser   User?     @relation("StaffAssignmentAssignedBy", fields: [assignedByUserId], references: [id], onDelete: SetNull)
   assignedAt       DateTime?
 
   approvedByUserId String?
-  approvedByUser   User? @relation("StaffAssignmentApprovedBy", fields: [approvedByUserId], references: [id], onDelete: SetNull)
+  approvedByUser   User?     @relation("StaffAssignmentApprovedBy", fields: [approvedByUserId], references: [id], onDelete: SetNull)
   approvedAt       DateTime?
-  approvalNotes    String? @db.VarChar(240)
+  approvalNotes    String?   @db.VarChar(240)
 
   // Branch-level clinical privileges
   canAdmitPatients  Boolean @default(false)
@@ -1041,12 +1069,12 @@ model StaffAssignment {
   staffDocuments       StaffDocument[]
   staffPrivilegeGrants StaffPrivilegeGrant[]
 
+  @@unique([staffId, branchId])
   @@index([staffId, status])
   @@index([branchId, status])
   @@index([departmentId, status])
   @@index([specialtyId, status])
   @@index([effectiveTo])
-  @@unique([staffId, branchId])
   @@index([isPrimary])
   @@index([requiresApproval, approvalStatus])
   @@index([approvalStatus])
@@ -1098,10 +1126,10 @@ model StaffCredential {
   validTo   DateTime?
 
   // Computed lifecycle (kept explicit for filtering + alerts)
-  status          StaffCredentialStatus @default(VALID)
-  isCritical      Boolean              @default(false)
-  renewalRequired Boolean              @default(false)
-  renewalWindowDays Int?
+  status               StaffCredentialStatus @default(VALID)
+  isCritical           Boolean               @default(false)
+  renewalRequired      Boolean               @default(false)
+  renewalWindowDays    Int?
   lastStatusComputedAt DateTime?
 
   verificationStatus StaffCredentialVerificationStatus @default(UNVERIFIED)
@@ -1221,7 +1249,6 @@ model StaffCredentialEvidence {
   @@index([staffDocumentId])
 }
 
-
 model StaffCredentialAlert {
   id String @id @default(cuid())
 
@@ -1230,7 +1257,7 @@ model StaffCredentialAlert {
 
   stage       StaffCredentialAlertStage
   scheduledAt DateTime
-  status      StaffAlertDeliveryStatus @default(PENDING)
+  status      StaffAlertDeliveryStatus  @default(PENDING)
   sentAt      DateTime?
 
   // Optional outbox integration
@@ -1244,6 +1271,63 @@ model StaffCredentialAlert {
 
   @@unique([staffCredentialId, stage])
   @@index([status, scheduledAt])
+}
+
+model ApprovalRequest {
+  id String @id @default(cuid())
+
+  entityType ApprovalEntityType
+  entityId   String
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  status      ApprovalRequestStatus @default(PENDING)
+  currentStep Int                   @default(1)
+
+  createdByUserId String?
+  createdByUser   User?   @relation("ApprovalRequestCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  steps ApprovalStep[]
+
+  meta              Json?
+  // Opposite relation for leave approvals (optional 1:1)
+  staffLeaveRequest StaffLeaveRequest? @relation("LeaveRequestApproval")
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@unique([entityType, entityId])
+  @@index([branchId, status])
+  @@index([createdByUserId])
+}
+
+model ApprovalStep {
+  id String @id @default(cuid())
+
+  approvalRequestId String
+  approvalRequest   ApprovalRequest @relation(fields: [approvalRequestId], references: [id], onDelete: Cascade)
+
+  stepOrder Int
+
+  approverKind     ApprovalApproverKind
+  approverRoleCode String?              @db.VarChar(64) // for BRANCH_ROLE/GLOBAL_ROLE
+  approverUserId   String? // for SPECIFIC_USER
+  approverUser     User?                @relation("ApprovalStepApproverUser", fields: [approverUserId], references: [id], onDelete: SetNull)
+
+  status ApprovalStepStatus @default(PENDING)
+
+  actedAt       DateTime?
+  actedByUserId String?
+  actedByUser   User?     @relation("ApprovalStepActedByUser", fields: [actedByUserId], references: [id], onDelete: SetNull)
+
+  remarks String? @db.VarChar(240)
+  meta    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([approvalRequestId, stepOrder])
+  @@index([approvalRequestId, status])
 }
 
 model StaffRoster {
@@ -1297,7 +1381,7 @@ model StaffAttendance {
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  date   DateTime @db.Date
+  date   DateTime              @db.Date
   status StaffAttendanceStatus @default(PRESENT)
 
   checkInAt  DateTime?
@@ -1321,24 +1405,29 @@ model StaffLeaveRequest {
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  leaveType String @db.VarChar(80)
+  leaveType String   @db.VarChar(80)
   startDate DateTime @db.Date
   endDate   DateTime @db.Date
   reason    String?  @db.VarChar(240)
 
-  status StaffLeaveStatus @default(APPLIED)
+  status StaffLeaveStatus @default(DRAFT)
 
-  reportingManagerApproval        ApprovalStatus @default(PENDING)
+  reportingManagerApproval         ApprovalStatus @default(PENDING)
   reportingManagerApprovedByUserId String?
-  reportingManagerApprovedByUser   User?         @relation("StaffLeaveRMApprovedBy", fields: [reportingManagerApprovedByUserId], references: [id], onDelete: SetNull)
+  reportingManagerApprovedByUser   User?          @relation("StaffLeaveRMApprovedBy", fields: [reportingManagerApprovedByUserId], references: [id], onDelete: SetNull)
   reportingManagerApprovedAt       DateTime?
 
-  hrApproval        ApprovalStatus @default(PENDING)
+  hrApproval         ApprovalStatus @default(PENDING)
   hrApprovedByUserId String?
-  hrApprovedByUser   User?         @relation("StaffLeaveHRApprovedBy", fields: [hrApprovedByUserId], references: [id], onDelete: SetNull)
+  hrApprovedByUser   User?          @relation("StaffLeaveHRApprovedBy", fields: [hrApprovedByUserId], references: [id], onDelete: SetNull)
   hrApprovedAt       DateTime?
 
-  meta Json?
+  meta              Json?
+  approvalRequestId String?          @unique
+  approvalRequest   ApprovalRequest? @relation("LeaveRequestApproval", fields: [approvalRequestId], references: [id], onDelete: SetNull)
+
+  submittedAt DateTime?
+  decidedAt   DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1356,12 +1445,12 @@ model StaffTrainingRecord {
   branchId String?
   branch   Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
 
-  programName String @db.VarChar(160)
+  programName String  @db.VarChar(160)
   provider    String? @db.VarChar(160)
 
   status      StaffTrainingStatus @default(ENROLLED)
   completedAt DateTime?
-  score       Decimal? @db.Decimal(5,2)
+  score       Decimal?            @db.Decimal(5, 2)
 
   evidenceDocumentId String? // Link to StaffDocument.id (kept as scalar to avoid strong coupling)
   meta               Json?
@@ -1371,30 +1460,6 @@ model StaffTrainingRecord {
 
   @@index([staffId, status])
   @@index([branchId, status])
-}
-
-model StaffAppraisal {
-  id String @id @default(cuid())
-
-  staffId String
-  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
-
-  branchId String?
-  branch   Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
-
-  cycleLabel String @db.VarChar(80) // e.g. "FY2025" or "2025-Q4"
-  status     StaffAppraisalStatus @default(DRAFT)
-
-  rating     Decimal? @db.Decimal(4,2)
-  summary    String?  @db.VarChar(240)
-  meta       Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([staffId, cycleLabel])
-  @@index([branchId, cycleLabel])
-  @@index([status])
 }
 
 model StaffSeparation {
@@ -1428,29 +1493,6 @@ model StaffHealthRecord {
 
   @@index([staffId, recordedAt])
 }
-
-model StaffInsurancePolicy {
-  id String @id @default(cuid())
-
-  staffId String
-  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
-
-  policyType String @db.VarChar(80) // e.g. "Indemnity", "GroupHealth"
-  provider   String? @db.VarChar(160)
-  policyNumber String? @db.VarChar(64)
-
-  validFrom DateTime?
-  validTo   DateTime?
-
-  meta Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([staffId, policyType])
-  @@index([validTo])
-}
-
 
 model StaffProviderProfile {
   id String @id @default(cuid())
@@ -1710,10 +1752,10 @@ model User {
   grantedStaffPrivilegeGrants        StaffPrivilegeGrant[]       @relation("StaffPrivilegeGrantedBy")
   completedStaffOnboardingItems      StaffOnboardingItem[]       @relation("StaffOnboardingItemCompletedBy")
   assignedStaffComplianceAssignments StaffComplianceAssignment[] @relation("StaffComplianceAssignedBy")
-  assignedStaffAssignments           StaffAssignment[]         @relation("StaffAssignmentAssignedBy")
-  approvedStaffAssignments           StaffAssignment[]         @relation("StaffAssignmentApprovedBy")
-  rmApprovedLeaveRequests            StaffLeaveRequest[]        @relation("StaffLeaveRMApprovedBy")
-  hrApprovedLeaveRequests            StaffLeaveRequest[]        @relation("StaffLeaveHRApprovedBy")
+  assignedStaffAssignments           StaffAssignment[]           @relation("StaffAssignmentAssignedBy")
+  approvedStaffAssignments           StaffAssignment[]           @relation("StaffAssignmentApprovedBy")
+  rmApprovedLeaveRequests            StaffLeaveRequest[]         @relation("StaffLeaveRMApprovedBy")
+  hrApprovedLeaveRequests            StaffLeaveRequest[]         @relation("StaffLeaveHRApprovedBy")
 
   // Multi-branch role bindings (Doctor@BranchA, Doctor@BranchB, ...)
   roleBindings UserRoleBinding[]
@@ -1722,10 +1764,10 @@ model User {
   auditEventsAsActor  AuditEvent[]          @relation("AuditActor")
 
   // Opposite relation for department deactivation metadata
-  deactivatedDepartments Department[] @relation("DepartmentDeactivatedBy")
+  deactivatedDepartments   Department[]   @relation("DepartmentDeactivatedBy")
   // ---- Deactivation actor back-relations (infra) ----
-  deactivatedUnits         Unit[]        @relation("UnitDeactivatedBy")
-  deactivatedUnitRooms     UnitRoom[]    @relation("UnitRoomDeactivatedBy")
+  deactivatedUnits         Unit[]         @relation("UnitDeactivatedBy")
+  deactivatedUnitRooms     UnitRoom[]     @relation("UnitRoomDeactivatedBy")
   deactivatedUnitResources UnitResource[] @relation("UnitResourceDeactivatedBy")
 
   // Policy governance opposite relations
@@ -1737,6 +1779,11 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Approvals (opposite relations)
+  createdApprovalRequests ApprovalRequest[] @relation("ApprovalRequestCreatedBy")
+  approvalStepsAsApprover ApprovalStep[]    @relation("ApprovalStepApproverUser")
+  approvalStepsAsActor    ApprovalStep[]    @relation("ApprovalStepActedByUser")
 
   // ---------------- Infrastructure (Setup Studio) ----------------
   createdLocationRevisions        LocationNodeRevision[]    @relation("LocationRevisionCreatedBy")
@@ -2428,7 +2475,7 @@ model LocationNode {
   // Diagnostics setup mappings
   diagnosticServicePoints DiagnosticServicePoint[]
   EquipmentPlacement      EquipmentPlacement[]
-  departmentLocations DepartmentLocation[]
+  departmentLocations     DepartmentLocation[]
 
   @@index([branchId, kind])
   @@index([branchId, parentId])
@@ -2481,6 +2528,7 @@ enum UnitRoomType {
   UTILITY
   RECOVERY
 }
+
 enum IsolationType {
   CONTACT
   DROPLET
@@ -2504,6 +2552,7 @@ enum UnitCategory {
   DIAGNOSTIC
   SUPPORT
 }
+
 enum PricingTier {
   ECONOMY
   STANDARD
@@ -2512,18 +2561,17 @@ enum PricingTier {
   VIP
 }
 
-
 model UnitTypeCatalog {
   id   String @id @default(cuid())
   code String @unique @db.VarChar(32)
   name String @db.VarChar(120)
-  
+
   category UnitCategory @default(OUTPATIENT)
-  
-  usesRoomsDefault         Boolean @default(true)
-  schedulableByDefault     Boolean @default(false)
-  bedBasedDefault          Boolean @default(false)
-  requiresPreAuthDefault   Boolean @default(false)
+
+  usesRoomsDefault       Boolean @default(true)
+  schedulableByDefault   Boolean @default(false)
+  bedBasedDefault        Boolean @default(false)
+  requiresPreAuthDefault Boolean @default(false)
 
   isActive  Boolean @default(true)
   sortOrder Int     @default(0)
@@ -2637,10 +2685,10 @@ model Unit {
   unitTypeId String
   unitType   UnitTypeCatalog @relation(fields: [unitTypeId], references: [id], onDelete: Restrict)
 
-  code String @db.VarChar(32)
-  name String @db.VarChar(160)
+  code              String    @db.VarChar(32)
+  name              String    @db.VarChar(160)
   // Physical / capacity metadata (captured during onboarding; optional)
-  totalRoomCount    Int      @default(0)
+  totalRoomCount    Int       @default(0)
   totalBedCapacity  Int?
   commissioningDate DateTime?
 
@@ -2649,17 +2697,17 @@ model Unit {
   wingZone        String? @db.VarChar(120)
   inchargeStaffId String? @db.VarChar(64)
   nursingStation  String? @db.VarChar(160)
-  
+
   usesRooms Boolean @default(true)
   isActive  Boolean @default(true)
-  
+
   // Soft deactivation metadata (future-proof; aligns with BRD reason-required flows)
   deactivatedAt       DateTime?
-  deactivationReason  String?  @db.VarChar(500)
+  deactivationReason  String?   @db.VarChar(500)
   deactivatedByUserId String?
-  deactivatedByUser   User?    @relation("UnitDeactivatedBy", fields: [deactivatedByUserId], references: [id], onDelete: SetNull)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  deactivatedByUser   User?     @relation("UnitDeactivatedBy", fields: [deactivatedByUserId], references: [id], onDelete: SetNull)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   rooms                   UnitRoom[]
   resources               UnitResource[]
@@ -2704,24 +2752,24 @@ model UnitRoom {
   currentOccupancy Int @default(0)
 
   // Pricing
-  pricingTier       PricingTier?
-  baseChargePerDay  Decimal? @db.Decimal(12, 2)
+  pricingTier      PricingTier?
+  baseChargePerDay Decimal?     @db.Decimal(12, 2)
 
   // Isolation/Special
-  isIsolation   Boolean       @default(false)
+  isIsolation   Boolean        @default(false)
   isolationType IsolationType?
 
   // Status
-  isActive           Boolean           @default(true)
-  isAvailable        Boolean           @default(true)
-  maintenanceStatus  MaintenanceStatus @default(OPERATIONAL)
-  lastCleanedAt      DateTime?
+  isActive          Boolean           @default(true)
+  isAvailable       Boolean           @default(true)
+  maintenanceStatus MaintenanceStatus @default(OPERATIONAL)
+  lastCleanedAt     DateTime?
 
   // Soft deactivation metadata (future-proof)
   deactivatedAt       DateTime?
-  deactivationReason  String?  @db.VarChar(500)
+  deactivationReason  String?   @db.VarChar(500)
   deactivatedByUserId String?
-  deactivatedByUser   User?    @relation("UnitRoomDeactivatedBy", fields: [deactivatedByUserId], references: [id], onDelete: SetNull)
+  deactivatedByUser   User?     @relation("UnitRoomDeactivatedBy", fields: [deactivatedByUserId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2736,7 +2784,6 @@ model UnitRoom {
   @@index([branchId, unitId, isActive])
   @@index([deactivatedByUserId])
 }
-
 
 model UnitResource {
   id       String @id @default(cuid())
@@ -2789,12 +2836,12 @@ model UnitResource {
   reservedReason String? @db.VarChar(500)
   blockedReason  String? @db.VarChar(500)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deactivatedAt       DateTime?
-  deactivationReason  String?  @db.VarChar(500)
-  deactivatedByUserId String?
-  deactivatedByUser   User?    @relation("UnitResourceDeactivatedBy", fields: [deactivatedByUserId], references: [id], onDelete: SetNull)
+  createdAt                       DateTime                         @default(now())
+  updatedAt                       DateTime                         @updatedAt
+  deactivatedAt                   DateTime?
+  deactivationReason              String?                          @db.VarChar(500)
+  deactivatedByUserId             String?
+  deactivatedByUser               User?                            @relation("UnitResourceDeactivatedBy", fields: [deactivatedByUserId], references: [id], onDelete: SetNull)
   bookings                        ProcedureBooking[]
   // Diagnostics mappings
   diagnosticServicePointResources DiagnosticServicePointResource[]
