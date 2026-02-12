@@ -75,4 +75,25 @@ export class PharmacyController {
   ) {
     return this.svc.updateStoreStatus(this.principal(req), id, body.status);
   }
+
+  @Get("pharmacy/stores/:id/license-history")
+  @Permissions(PERM.INFRA_PHARMACY_STORE_READ)
+  async listLicenseHistory(
+    @Req() req: any,
+    @Param("id") id: string,
+    @Query("page") page?: string,
+    @Query("pageSize") pageSize?: string,
+  ) {
+    return this.svc.listLicenseHistory(this.principal(req), id, { page, pageSize });
+  }
+
+  @Post("pharmacy/stores/:id/license-history")
+  @Permissions(PERM.INFRA_PHARMACY_STORE_UPDATE)
+  async addLicenseHistory(
+    @Req() req: any,
+    @Param("id") id: string,
+    @Body() body: { licenseNumber: string; validFrom: string; validTo: string; documentUrl?: string },
+  ) {
+    return this.svc.addLicenseHistory(this.principal(req), id, body);
+  }
 }

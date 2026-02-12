@@ -76,6 +76,7 @@ export function useFieldCopilot({
           signal: abortRef.current.signal,
           showLoader: false,
           branch: "none",
+          skipNotify: true,
         });
 
         // Only keep server warnings that aren't already caught client-side

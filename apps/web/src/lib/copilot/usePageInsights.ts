@@ -47,6 +47,7 @@ export function usePageInsights({
         body: { module, branchId },
         showLoader: false,
         branch: "none",
+        skipNotify: true,
       });
       if (mountedRef.current) {
         setInsights(res.insights ?? []);

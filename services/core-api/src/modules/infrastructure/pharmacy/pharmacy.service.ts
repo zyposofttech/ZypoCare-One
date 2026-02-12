@@ -256,6 +256,97 @@ export class PharmacyService {
     return updated;
   }
 
+  async listLicenseHistory(
+    principal: Principal,
+    storeId: string,
+    q: { page?: string; pageSize?: string },
+  ) {
+    const store = await this.ctx.prisma.pharmacyStore.findUnique({
+      where: { id: storeId },
+      select: { id: true, branchId: true },
+    });
+    if (!store) throw new NotFoundException("Pharmacy store not found");
+    this.ctx.resolveBranchId(principal, store.branchId);
+
+    const page = Math.max(1, Number(q.page ?? 1));
+    const pageSize = Math.min(200, Math.max(1, Number(q.pageSize ?? 50)));
+    const skip = (page - 1) * pageSize;
+
+    const [rows, total] = await this.ctx.prisma.$transaction([
+      this.ctx.prisma.drugLicenseHistory.findMany({
+        where: { pharmacyStoreId: storeId },
+        orderBy: [{ validFrom: "desc" }],
+        skip,
+        take: pageSize,
+        include: {
+          uploadedByUser: { select: { id: true, name: true } },
+        },
+      }),
+      this.ctx.prisma.drugLicenseHistory.count({
+        where: { pharmacyStoreId: storeId },
+      }),
+    ]);
+
+    return { page, pageSize, total, rows };
+  }
+
+  async addLicenseHistory(
+    principal: Principal,
+    storeId: string,
+    dto: { licenseNumber: string; validFrom: string; validTo: string; documentUrl?: string },
+  ) {
+    const store = await this.ctx.prisma.pharmacyStore.findUnique({
+      where: { id: storeId },
+      select: { id: true, branchId: true, drugLicenseExpiry: true },
+    });
+    if (!store) throw new NotFoundException("Pharmacy store not found");
+    const branchId = this.ctx.resolveBranchId(principal, store.branchId);
+
+    const validFrom = new Date(dto.validFrom);
+    const validTo = new Date(dto.validTo);
+
+    if (isNaN(validFrom.getTime()) || isNaN(validTo.getTime())) {
+      throw new BadRequestException("Invalid date format for validFrom or validTo");
+    }
+    if (validTo <= validFrom) {
+      throw new BadRequestException("validTo must be after validFrom");
+    }
+
+    const record = await this.ctx.prisma.drugLicenseHistory.create({
+      data: {
+        pharmacyStoreId: storeId,
+        licenseNumber: dto.licenseNumber.trim(),
+        validFrom,
+        validTo,
+        documentUrl: dto.documentUrl ?? null,
+        uploadedByUserId: principal.userId,
+      },
+    });
+
+    // Update store license fields if new validTo is later than current expiry
+    const shouldUpdate = !store.drugLicenseExpiry || validTo > store.drugLicenseExpiry;
+    if (shouldUpdate) {
+      await this.ctx.prisma.pharmacyStore.update({
+        where: { id: storeId },
+        data: {
+          drugLicenseNumber: dto.licenseNumber.trim(),
+          drugLicenseExpiry: validTo,
+        },
+      });
+    }
+
+    await this.ctx.audit.log({
+      branchId,
+      actorUserId: principal.userId,
+      action: "PHARMACY_STORE_LICENSE_RENEW",
+      entity: "DrugLicenseHistory",
+      entityId: record.id,
+      meta: { ...dto, pharmacyStoreId: storeId, storeUpdated: shouldUpdate },
+    });
+
+    return record;
+  }
+
   async storeSummary(principal: Principal, branchIdParam?: string) {
     const branchId = this.ctx.resolveBranchId(principal, branchIdParam ?? null);
 

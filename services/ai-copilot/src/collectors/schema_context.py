@@ -93,7 +93,9 @@ async def _collect_branch(session: AsyncSession, branch_id: str) -> BranchSnapsh
     result = await session.execute(
         select(Branch).where(Branch.id == branch_id)
     )
-    b = result.scalar_one()
+    b = result.scalar_one_or_none()
+    if b is None:
+        raise ValueError(f"Branch {branch_id} not found")
     return BranchSnapshot(
         id=b.id,
         code=b.code,
@@ -406,7 +408,6 @@ async def _collect_pharmacy(
             drugLicenseExpiry=s.drugLicenseExpiry,
             is24x7=s.is24x7,
             canDispense=s.canDispense,
-            isActive=s.isActive,
         )
         for s in stores
     ]
@@ -446,7 +447,7 @@ async def _collect_pharmacy(
             antibiotic_count += 1
         if d.isLasa:
             lasa_count += 1
-        if d.isActive:
+        if str(d.status) == "ACTIVE":
             active_drugs += 1
 
         drug_snapshots.append(

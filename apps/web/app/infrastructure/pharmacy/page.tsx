@@ -29,11 +29,14 @@ import {
   CheckCircle2,
   ClipboardList,
   FileText,
+  FolderTree,
   Package,
   Pill,
   RefreshCw,
+  Repeat2,
   ShieldCheck,
   Truck,
+  Upload,
 } from "lucide-react";
 
 // Types
@@ -169,6 +172,34 @@ const tiles: Tile[] = [
     href: "/infrastructure/pharmacy/indent-mapping",
     badge: "Planned",
     icon: <ClipboardList className="h-4 w-4 text-zc-accent" />,
+  },
+  {
+    title: "Drug Interactions",
+    desc: "Manage drug-drug interaction alerts.",
+    href: "/infrastructure/pharmacy/interactions",
+    badge: "Planned",
+    icon: <AlertTriangle className="h-4 w-4 text-zc-accent" />,
+  },
+  {
+    title: "Therapeutic Substitutions",
+    desc: "Define drug equivalents.",
+    href: "/infrastructure/pharmacy/substitutions",
+    badge: "Planned",
+    icon: <Repeat2 className="h-4 w-4 text-zc-accent" />,
+  },
+  {
+    title: "Drug Categories",
+    desc: "Hierarchical drug classification.",
+    href: "/infrastructure/pharmacy/categories",
+    badge: "Planned",
+    icon: <FolderTree className="h-4 w-4 text-zc-accent" />,
+  },
+  {
+    title: "Bulk Import",
+    desc: "Import drugs and suppliers in bulk.",
+    href: "/infrastructure/pharmacy/bulk-import",
+    badge: "Planned",
+    icon: <Upload className="h-4 w-4 text-zc-accent" />,
   },
 ];
 
@@ -417,7 +448,7 @@ export default function PharmacyOverviewPage() {
                   </div>
                 </div>
                 <div className="mt-1 text-sm text-zc-muted">
-                  Configure pharmacy stores, drug master data, formulary management, suppliers, inventory policies, and controlled substance tracking.
+                  Configure pharmacy stores, drug master data, formulary management, supplier.
                 </div>
               </div>
             </div>

@@ -274,6 +274,10 @@ const NAV_WORKSPACES: NavNode[] = [
           { label: "Inventory Config", href: "/infrastructure/pharmacy/inventory" },
           { label: "Narcotics Vault", href: "/infrastructure/pharmacy/narcotics" },
           { label: "Indent Mapping", href: "/infrastructure/pharmacy/indent-mapping" },
+          { label: "Drug Interactions", href: "/infrastructure/pharmacy/interactions" },
+          { label: "Substitutions", href: "/infrastructure/pharmacy/substitutions" },
+          { label: "Drug Categories", href: "/infrastructure/pharmacy/categories" },
+          { label: "Bulk Import", href: "/infrastructure/pharmacy/bulk-import" },
         ],
       },
       {

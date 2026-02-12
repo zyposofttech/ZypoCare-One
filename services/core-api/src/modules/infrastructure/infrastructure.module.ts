@@ -75,6 +75,12 @@ import { SupplierService } from "./pharmacy/supplier.service";
 import { InventoryConfigController } from "./pharmacy/inventory-config.controller";
 import { InventoryConfigService } from "./pharmacy/inventory-config.service";
 import { PharmacyGoLiveService } from "./pharmacy/pharmacy-golive.service";
+import { DrugInteractionController } from "./pharmacy/drug-interaction.controller";
+import { DrugInteractionService } from "./pharmacy/drug-interaction.service";
+import { TherapeuticSubstitutionController } from "./pharmacy/therapeutic-substitution.controller";
+import { TherapeuticSubstitutionService } from "./pharmacy/therapeutic-substitution.service";
+import { DrugCategoryController } from "./pharmacy/drug-category.controller";
+import { DrugCategoryService } from "./pharmacy/drug-category.service";
 
 @Module({
   imports: [
@@ -111,6 +117,9 @@ import { PharmacyGoLiveService } from "./pharmacy/pharmacy-golive.service";
     FormularyController,
     SupplierController,
     InventoryConfigController,
+    DrugInteractionController,
+    TherapeuticSubstitutionController,
+    DrugCategoryController,
   ],
   providers: [
     LocationService,
@@ -138,6 +147,9 @@ import { PharmacyGoLiveService } from "./pharmacy/pharmacy-golive.service";
     SupplierService,
     InventoryConfigService,
     PharmacyGoLiveService,
+    DrugInteractionService,
+    TherapeuticSubstitutionService,
+    DrugCategoryService,
   ],
 })
 export class InfrastructureModule {}

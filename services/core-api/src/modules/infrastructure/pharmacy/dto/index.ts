@@ -7,3 +7,8 @@ export { UpdateSupplierDto } from "./update-supplier.dto";
 export { CreateFormularyDto, FormularyItemDto } from "./create-formulary.dto";
 export { SetInventoryConfigDto } from "./set-inventory-config.dto";
 export { CreateIndentMappingDto } from "./create-indent-mapping.dto";
+export { UpsertDrugMappingsDto, DrugMappingItemDto } from "./upsert-drug-mapping.dto";
+export { BulkImportSuppliersDto } from "./bulk-import-suppliers.dto";
+export { CreateDrugInteractionDto, UpdateDrugInteractionDto } from "./create-drug-interaction.dto";
+export { CreateTherapeuticSubstitutionDto, UpdateTherapeuticSubstitutionDto } from "./create-therapeutic-substitution.dto";
+export { CreateDrugCategoryDto, UpdateDrugCategoryDto } from "./create-drug-category.dto";

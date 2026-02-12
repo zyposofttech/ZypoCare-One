@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Literal, Optional
 
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from .config import CORS_ORIGIN
@@ -376,7 +377,14 @@ async def ai_health_check(branchId: str = Query(...), bust: str = Query(None)):
     from .engines.naming_enforcer import run_naming_check
     from .engines.pharmacy_checker import run_pharmacy_checks
 
-    ctx = await collect_branch_context(branchId)
+    try:
+        ctx = await collect_branch_context(branchId)
+    except ValueError as exc:
+        return JSONResponse(status_code=404, content={"error": str(exc)})
+    except Exception as exc:
+        logger.warning("health-check context failed for branch=%s: %s", branchId, exc)
+        return JSONResponse(status_code=500, content={"error": "Failed to collect branch context"})
+
     consistency = run_consistency_checks(ctx)
     nabh = run_nabh_checks(ctx)
     naming = run_naming_check(ctx)

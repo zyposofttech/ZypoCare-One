@@ -148,7 +148,6 @@ class PharmStoreSnapshot(BaseModel):
     drugLicenseExpiry: datetime | None = None
     is24x7: bool = False
     canDispense: bool = False
-    isActive: bool = True
 
 
 class DrugSnapshot(BaseModel):

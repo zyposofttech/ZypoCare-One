@@ -269,10 +269,11 @@ model Branch {
   ExternalDirectoryMapping    ExternalDirectoryMapping[]
 
   // Pharmacy Infrastructure
-  pharmacyStores PharmacyStore[]
-  drugMasters    DrugMaster[]
-  formularies    Formulary[]
-  pharmSuppliers PharmSupplier[]
+  pharmacyStores     PharmacyStore[]
+  drugMasters        DrugMaster[]
+  formularies        Formulary[]
+  pharmSuppliers     PharmSupplier[]
+  drugCategoryNodes  DrugCategoryNode[]
 }
 
 model FacilityCatalog {
@@ -5331,14 +5332,19 @@ model DrugMaster {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Optional hierarchical category
+  drugCategoryNodeId String?
+  drugCategoryNode   DrugCategoryNode? @relation(fields: [drugCategoryNodeId], references: [id], onDelete: SetNull)
+
   // Reverse relations
-  interactionsA      DrugInteraction[]         @relation("DrugInteractionA")
-  interactionsB      DrugInteraction[]         @relation("DrugInteractionB")
-  formularyItems     FormularyItem[]
-  substitutionsFrom  TherapeuticSubstitution[] @relation("SubstitutionSource")
-  substitutionsTo    TherapeuticSubstitution[] @relation("SubstitutionTarget")
-  inventoryConfigs   InventoryConfig[]
-  narcoticsRegisters NarcoticsRegister[]
+  interactionsA          DrugInteraction[]         @relation("DrugInteractionA")
+  interactionsB          DrugInteraction[]         @relation("DrugInteractionB")
+  formularyItems         FormularyItem[]
+  substitutionsFrom      TherapeuticSubstitution[] @relation("SubstitutionSource")
+  substitutionsTo        TherapeuticSubstitution[] @relation("SubstitutionTarget")
+  inventoryConfigs       InventoryConfig[]
+  narcoticsRegisters     NarcoticsRegister[]
+  supplierDrugMappings   SupplierDrugMapping[]
 
   @@unique([branchId, drugCode])
   @@index([branchId, genericName])
@@ -5460,7 +5466,8 @@ model PharmSupplier {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  storeMappings SupplierStoreMapping[]
+  storeMappings     SupplierStoreMapping[]
+  drugMappings      SupplierDrugMapping[]
 
   @@unique([branchId, supplierCode])
   @@index([branchId, status])
@@ -5479,6 +5486,27 @@ model SupplierStoreMapping {
   createdAt DateTime @default(now())
 
   @@unique([supplierId, pharmacyStoreId])
+}
+
+// ---- Supplier ↔ Drug Mapping (which supplier provides which drugs) ----
+model SupplierDrugMapping {
+  id String @id @default(cuid())
+
+  supplierId String
+  supplier   PharmSupplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  drugMasterId String
+  drugMaster   DrugMaster @relation(fields: [drugMasterId], references: [id], onDelete: Cascade)
+
+  supplierPrice Decimal? @db.Decimal(12, 2)
+  leadTimeDays  Int?
+  isPreferred   Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([supplierId, drugMasterId])
+  @@index([drugMasterId])
 }
 
 // ---- Inventory Config (per store-drug) ----
@@ -5573,4 +5601,28 @@ model DrugLicenseHistory {
   createdAt DateTime @default(now())
 
   @@index([pharmacyStoreId, validTo])
+}
+
+// ---- Drug Category Hierarchy (ATC-based classification) ----
+model DrugCategoryNode {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  code String @db.VarChar(32)
+  name String @db.VarChar(160)
+
+  parentId String?
+  parent   DrugCategoryNode?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children DrugCategoryNode[] @relation("CategoryTree")
+
+  sortOrder Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  drugs DrugMaster[]
+
+  @@unique([branchId, code])
+  @@index([branchId, parentId])
 }

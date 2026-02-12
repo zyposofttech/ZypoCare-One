@@ -45,7 +45,9 @@ import {
   GitBranch,
   FileText,
   Loader2,
+  Plus,
 } from "lucide-react";
+import { useAuthStore, hasPerm } from "@/lib/auth/store";
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */
@@ -183,6 +185,19 @@ export default function PharmacyStoreDetailPage() {
   const [saving, setSaving] = useState(false);
   const [statusChanging, setStatusChanging] = useState(false);
 
+  /* -- Renewal dialog state -- */
+  const [renewalOpen, setRenewalOpen] = useState(false);
+  const [renewalSaving, setRenewalSaving] = useState(false);
+  const [renewalForm, setRenewalForm] = useState({
+    licenseNumber: "",
+    validFrom: "",
+    validTo: "",
+    documentUrl: "",
+  });
+
+  const authUser = useAuthStore((s) => s.user);
+  const canUpdate = hasPerm(authUser, "INFRA_PHARMACY_STORE_UPDATE");
+
   /* -- Edit form state -- */
   const [editForm, setEditForm] = useState({
     storeName: "",
@@ -308,6 +323,45 @@ export default function PharmacyStoreDetailPage() {
       });
     } finally {
       setStatusChanging(false);
+    }
+  }
+
+  /* -- Save license renewal -- */
+  async function handleSaveRenewal() {
+    if (!renewalForm.licenseNumber || !renewalForm.validFrom || !renewalForm.validTo) {
+      toast({
+        title: "Validation error",
+        description: "License Number, Valid From, and Valid To are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setRenewalSaving(true);
+    try {
+      const body: Record<string, unknown> = {
+        licenseNumber: renewalForm.licenseNumber,
+        validFrom: renewalForm.validFrom,
+        validTo: renewalForm.validTo,
+      };
+      if (renewalForm.documentUrl) body.documentUrl = renewalForm.documentUrl;
+
+      await apiFetch(`/infrastructure/pharmacy/stores/${id}/license-history`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+
+      toast({ title: "Renewal added", description: "License renewal saved successfully." });
+      setRenewalOpen(false);
+      setRenewalForm({ licenseNumber: "", validFrom: "", validTo: "", documentUrl: "" });
+      fetchStore();
+    } catch (err: any) {
+      toast({
+        title: "Failed to add renewal",
+        description: err?.message || "Could not save license renewal.",
+        variant: "destructive",
+      });
+    } finally {
+      setRenewalSaving(false);
     }
   }
 
@@ -647,12 +701,26 @@ export default function PharmacyStoreDetailPage() {
               <TabsContent value="license" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">
-                      Drug License History
-                    </CardTitle>
-                    <CardDescription>
-                      Historical record of drug licenses for this store
-                    </CardDescription>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <CardTitle className="text-base">
+                          Drug License History
+                        </CardTitle>
+                        <CardDescription>
+                          Historical record of drug licenses for this store
+                        </CardDescription>
+                      </div>
+                      {canUpdate && (
+                        <Button
+                          size="sm"
+                          className="gap-2"
+                          onClick={() => setRenewalOpen(true)}
+                        >
+                          <Plus className="h-4 w-4" />
+                          Add Renewal
+                        </Button>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent>
                     {store.drugLicenseHistory.length === 0 ? (
@@ -902,6 +970,86 @@ export default function PharmacyStoreDetailPage() {
                 <Button onClick={handleSave} disabled={saving}>
                   {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Save Changes
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* ================================================================ */}
+          {/*  Renewal Dialog                                                  */}
+          {/* ================================================================ */}
+          <Dialog open={renewalOpen} onOpenChange={setRenewalOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Add License Renewal</DialogTitle>
+                <DialogDescription>
+                  Record a new drug license renewal for this store.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="renewal-licenseNumber">License Number</Label>
+                  <Input
+                    id="renewal-licenseNumber"
+                    value={renewalForm.licenseNumber}
+                    onChange={(e) =>
+                      setRenewalForm((f) => ({ ...f, licenseNumber: e.target.value }))
+                    }
+                    placeholder="e.g. DL-2025-67890"
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="renewal-validFrom">Valid From</Label>
+                  <Input
+                    id="renewal-validFrom"
+                    type="date"
+                    value={renewalForm.validFrom}
+                    onChange={(e) =>
+                      setRenewalForm((f) => ({ ...f, validFrom: e.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="renewal-validTo">Valid To</Label>
+                  <Input
+                    id="renewal-validTo"
+                    type="date"
+                    value={renewalForm.validTo}
+                    onChange={(e) =>
+                      setRenewalForm((f) => ({ ...f, validTo: e.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="renewal-documentUrl">
+                    Document URL (optional)
+                  </Label>
+                  <Input
+                    id="renewal-documentUrl"
+                    value={renewalForm.documentUrl}
+                    onChange={(e) =>
+                      setRenewalForm((f) => ({ ...f, documentUrl: e.target.value }))
+                    }
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setRenewalOpen(false)}
+                  disabled={renewalSaving}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveRenewal} disabled={renewalSaving}>
+                  {renewalSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Save
                 </Button>
               </DialogFooter>
             </DialogContent>

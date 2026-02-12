@@ -102,6 +102,9 @@ type ApiFetchOptions = Omit<RequestInit, "body"> & {
   branch?: "auto" | "require" | "none";
   /** Optional explicit branch override (rare; mostly for special flows/tests). */
   branchId?: string | null;
+  /** If true, skip dispatching `zc:data-changed` after a successful write.
+   *  Use for AI/copilot read-style POSTs that should not trigger refresh loops. */
+  skipNotify?: boolean;
 };
 
 /* ------------------------- Frontend permission gate ------------------------- */
@@ -493,6 +496,7 @@ export async function apiFetch<T>(url: string, init: ApiFetchOptions = {}): Prom
     noAutoLogout = false,
     branch = "auto",
     branchId: branchOverride = null,
+    skipNotify = false,
     ...fetchInit
   } = init;
 
@@ -649,7 +653,7 @@ export async function apiFetch<T>(url: string, init: ApiFetchOptions = {}): Prom
     }
 
     // Notify AI copilot on successful writes so health/insights refresh
-    if (isWrite && typeof window !== "undefined") {
+    if (isWrite && !skipNotify && typeof window !== "undefined") {
       try { window.dispatchEvent(new Event("zc:data-changed")); } catch { /* ignore */ }
     }
 

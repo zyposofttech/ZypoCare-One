@@ -19,6 +19,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { Package, Star, Trash2, Plus } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -93,6 +101,30 @@ interface EditForm {
   rating: string;
 }
 
+interface DrugMaster {
+  id: string;
+  drugCode: string;
+  genericName: string;
+  brandName: string;
+  strength: string;
+  dosageForm: string;
+}
+
+interface DrugMapping {
+  id: string;
+  supplierPrice: number;
+  leadTimeDays: number;
+  isPreferred: boolean;
+  drug: DrugMaster;
+}
+
+interface DrugMappingForm {
+  drugMasterId: string;
+  supplierPrice: string;
+  leadTimeDays: string;
+  isPreferred: boolean;
+}
+
 function statusBadgeVariant(status: string) {
   switch (status) {
     case "ACTIVE":
@@ -153,6 +185,102 @@ export default function SupplierDetailPage() {
     rating: "",
   });
 
+  // Drug Mappings state
+  const [drugMappings, setDrugMappings] = useState<DrugMapping[]>([]);
+  const [drugMappingsLoading, setDrugMappingsLoading] = useState(false);
+  const [addDrugOpen, setAddDrugOpen] = useState(false);
+  const [addingDrug, setAddingDrug] = useState(false);
+  const [deletingDrugId, setDeletingDrugId] = useState<string | null>(null);
+  const [drugForm, setDrugForm] = useState<DrugMappingForm>({
+    drugMasterId: "",
+    supplierPrice: "",
+    leadTimeDays: "",
+    isPreferred: false,
+  });
+
+  const fetchDrugMappings = async () => {
+    try {
+      setDrugMappingsLoading(true);
+      const data = await apiFetch(
+        `/infrastructure/pharmacy/suppliers/${id}/drugs`
+      );
+      setDrugMappings(data.mappings || []);
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err?.message || "Failed to load drug mappings.",
+        variant: "destructive",
+      });
+    } finally {
+      setDrugMappingsLoading(false);
+    }
+  };
+
+  const handleAddDrugMapping = async () => {
+    try {
+      setAddingDrug(true);
+      await apiFetch(
+        `/infrastructure/pharmacy/suppliers/${id}/drug-mappings`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            mappings: [
+              {
+                drugMasterId: drugForm.drugMasterId,
+                supplierPrice: parseFloat(drugForm.supplierPrice),
+                leadTimeDays: parseInt(drugForm.leadTimeDays, 10),
+                isPreferred: drugForm.isPreferred,
+              },
+            ],
+          }),
+        }
+      );
+      setAddDrugOpen(false);
+      setDrugForm({
+        drugMasterId: "",
+        supplierPrice: "",
+        leadTimeDays: "",
+        isPreferred: false,
+      });
+      toast({
+        title: "Success",
+        description: "Drug mapping added successfully.",
+      });
+      fetchDrugMappings();
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err?.message || "Failed to add drug mapping.",
+        variant: "destructive",
+      });
+    } finally {
+      setAddingDrug(false);
+    }
+  };
+
+  const handleDeleteDrugMapping = async (mappingId: string) => {
+    try {
+      setDeletingDrugId(mappingId);
+      await apiFetch(
+        `/infrastructure/pharmacy/suppliers/${id}/drug-mappings/${mappingId}`,
+        { method: "DELETE" }
+      );
+      toast({
+        title: "Success",
+        description: "Drug mapping removed successfully.",
+      });
+      fetchDrugMappings();
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err?.message || "Failed to delete drug mapping.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingDrugId(null);
+    }
+  };
+
   const fetchSupplier = async () => {
     try {
       setLoading(true);
@@ -172,6 +300,7 @@ export default function SupplierDetailPage() {
   useEffect(() => {
     if (id && branch?.id) {
       fetchSupplier();
+      fetchDrugMappings();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, branch?.id]);
@@ -299,6 +428,16 @@ export default function SupplierDetailPage() {
           )}
 
           {!loading && supplier && (
+            <Tabs defaultValue="details" className="w-full">
+              <TabsList>
+                <TabsTrigger value="details">Details</TabsTrigger>
+                <TabsTrigger value="drug-mappings" className="gap-1.5">
+                  <Package className="h-4 w-4" />
+                  Drug Mappings
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="details">
             <div className="grid gap-6 md:grid-cols-2">
               {/* Basic Info */}
               <Card>
@@ -552,6 +691,107 @@ export default function SupplierDetailPage() {
                 </CardContent>
               </Card>
             </div>
+              </TabsContent>
+
+              <TabsContent value="drug-mappings">
+                <Card className="md:col-span-2">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                    <div>
+                      <CardTitle>Drug Mappings</CardTitle>
+                      <CardDescription>
+                        Drugs supplied by this vendor with pricing and lead times
+                      </CardDescription>
+                    </div>
+                    <RequirePerm perm="INFRA_PHARMACY_SUPPLIER_WRITE">
+                      <Button
+                        size="sm"
+                        onClick={() => setAddDrugOpen(true)}
+                        className="gap-1.5"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Add Mapping
+                      </Button>
+                    </RequirePerm>
+                  </CardHeader>
+                  <CardContent>
+                    {drugMappingsLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <p className="text-muted-foreground">
+                          Loading drug mappings...
+                        </p>
+                      </div>
+                    ) : drugMappings.length > 0 ? (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Drug Code</TableHead>
+                            <TableHead>Generic Name</TableHead>
+                            <TableHead>Brand Name</TableHead>
+                            <TableHead className="text-right">
+                              Supplier Price
+                            </TableHead>
+                            <TableHead className="text-right">
+                              Lead Time (days)
+                            </TableHead>
+                            <TableHead className="text-center">
+                              Preferred
+                            </TableHead>
+                            <TableHead className="text-right">
+                              Actions
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {drugMappings.map((mapping) => (
+                            <TableRow key={mapping.id}>
+                              <TableCell className="font-mono text-sm">
+                                {mapping.drug.drugCode}
+                              </TableCell>
+                              <TableCell>{mapping.drug.genericName}</TableCell>
+                              <TableCell>{mapping.drug.brandName}</TableCell>
+                              <TableCell className="text-right">
+                                {mapping.supplierPrice != null
+                                  ? `₹${Number(mapping.supplierPrice).toFixed(2)}`
+                                  : "—"}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {mapping.leadTimeDays ?? "—"}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {mapping.isPreferred ? (
+                                  <Star className="h-4 w-4 inline-block fill-yellow-400 text-yellow-400" />
+                                ) : (
+                                  <Star className="h-4 w-4 inline-block text-muted-foreground/30" />
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <RequirePerm perm="INFRA_PHARMACY_SUPPLIER_WRITE">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-destructive hover:text-destructive"
+                                    disabled={deletingDrugId === mapping.id}
+                                    onClick={() =>
+                                      handleDeleteDrugMapping(mapping.id)
+                                    }
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </RequirePerm>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <p className="text-sm text-muted-foreground py-4 text-center">
+                        No drug mappings found for this supplier.
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           )}
 
           {/* Edit Dialog */}
@@ -733,6 +973,98 @@ export default function SupplierDetailPage() {
                 </Button>
                 <Button onClick={handleSave} disabled={saving}>
                   {saving ? "Saving..." : "Save Changes"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Add Drug Mapping Dialog */}
+          <Dialog open={addDrugOpen} onOpenChange={setAddDrugOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Add Drug Mapping</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="drug-drugMasterId">Drug ID</Label>
+                  <Input
+                    id="drug-drugMasterId"
+                    placeholder="Enter Drug Master ID"
+                    value={drugForm.drugMasterId}
+                    onChange={(e) =>
+                      setDrugForm((prev) => ({
+                        ...prev,
+                        drugMasterId: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="drug-supplierPrice">Supplier Price</Label>
+                  <Input
+                    id="drug-supplierPrice"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={drugForm.supplierPrice}
+                    onChange={(e) =>
+                      setDrugForm((prev) => ({
+                        ...prev,
+                        supplierPrice: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="drug-leadTimeDays">Lead Time (days)</Label>
+                  <Input
+                    id="drug-leadTimeDays"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={drugForm.leadTimeDays}
+                    onChange={(e) =>
+                      setDrugForm((prev) => ({
+                        ...prev,
+                        leadTimeDays: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="drug-isPreferred"
+                    checked={drugForm.isPreferred}
+                    onCheckedChange={(checked) =>
+                      setDrugForm((prev) => ({
+                        ...prev,
+                        isPreferred: checked === true,
+                      }))
+                    }
+                  />
+                  <Label htmlFor="drug-isPreferred" className="cursor-pointer">
+                    Mark as preferred supplier for this drug
+                  </Label>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setAddDrugOpen(false)}
+                  disabled={addingDrug}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleAddDrugMapping}
+                  disabled={
+                    addingDrug ||
+                    !drugForm.drugMasterId ||
+                    !drugForm.supplierPrice
+                  }
+                >
+                  {addingDrug ? "Adding..." : "Add Mapping"}
                 </Button>
               </DialogFooter>
             </DialogContent>

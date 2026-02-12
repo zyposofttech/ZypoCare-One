@@ -5,7 +5,7 @@ import {
 } from "@nestjs/common";
 import type { Principal } from "../../auth/access-policy.service";
 import { InfraContextService } from "../shared/infra-context.service";
-import type { CreateSupplierDto, UpdateSupplierDto } from "./dto";
+import type { BulkImportSuppliersDto, CreateSupplierDto, DrugMappingItemDto, UpdateSupplierDto } from "./dto";
 
 /** GSTIN regex: 2-digit state code + 5 alpha + 4 digit + 1 alpha + 1 digit + Z + 1 alphanum */
 const GSTIN_RE = /^\d{2}[A-Z]{5}\d{4}[A-Z]\d[Z][A-Z\d]$/i;
@@ -308,6 +308,232 @@ export class SupplierService {
     });
 
     return result;
+  }
+
+  // ----------------------------------------------------------------
+  // List drugs supplied by this supplier (with drug details)
+  // ----------------------------------------------------------------
+  async listSupplierDrugs(principal: Principal, supplierId: string) {
+    const supplier = await this.ctx.prisma.pharmSupplier.findUnique({
+      where: { id: supplierId },
+      select: { id: true, branchId: true, supplierCode: true, supplierName: true },
+    });
+    if (!supplier) throw new NotFoundException("Supplier not found");
+
+    this.ctx.resolveBranchId(principal, supplier.branchId);
+
+    const mappings = await this.ctx.prisma.supplierDrugMapping.findMany({
+      where: { supplierId },
+      include: {
+        drugMaster: {
+          select: {
+            id: true,
+            drugCode: true,
+            genericName: true,
+            brandName: true,
+            strength: true,
+            dosageForm: true,
+          },
+        },
+      },
+      orderBy: [{ createdAt: "desc" }],
+    });
+
+    return {
+      supplierId: supplier.id,
+      supplierCode: supplier.supplierCode,
+      supplierName: supplier.supplierName,
+      mappings: mappings.map((m) => ({
+        id: m.id,
+        drugMasterId: m.drugMasterId,
+        supplierPrice: m.supplierPrice,
+        leadTimeDays: m.leadTimeDays,
+        isPreferred: m.isPreferred,
+        drug: m.drugMaster,
+      })),
+    };
+  }
+
+  // ----------------------------------------------------------------
+  // Bulk upsert supplier-drug mappings
+  // ----------------------------------------------------------------
+  async upsertDrugMappings(
+    principal: Principal,
+    supplierId: string,
+    mappings: DrugMappingItemDto[],
+  ) {
+    const supplier = await this.ctx.prisma.pharmSupplier.findUnique({
+      where: { id: supplierId },
+      select: { id: true, branchId: true, supplierCode: true },
+    });
+    if (!supplier) throw new NotFoundException("Supplier not found");
+
+    this.ctx.resolveBranchId(principal, supplier.branchId);
+
+    // Deduplicate by drugMasterId (last occurrence wins)
+    const uniqueDrugIds = this.ctx.uniq(mappings.map((m) => m.drugMasterId));
+
+    // Validate all drug IDs belong to the same branch as the supplier
+    if (uniqueDrugIds.length) {
+      const drugs = await this.ctx.prisma.drugMaster.findMany({
+        where: {
+          id: { in: uniqueDrugIds },
+          branchId: supplier.branchId,
+        },
+        select: { id: true },
+      });
+
+      const foundIds = new Set(drugs.map((d) => d.id));
+      const missing = uniqueDrugIds.filter((did) => !foundIds.has(did));
+      if (missing.length) {
+        throw new BadRequestException(
+          `Invalid drug IDs (not found or different branch): ${missing.join(", ")}`,
+        );
+      }
+    }
+
+    // Build a map of drugMasterId -> last mapping item for dedup
+    const mappingMap = new Map<string, DrugMappingItemDto>();
+    for (const m of mappings) {
+      mappingMap.set(m.drugMasterId, m);
+    }
+
+    // Upsert each mapping inside a transaction
+    const result = await this.ctx.prisma.$transaction(async (tx) => {
+      const upserted = [];
+
+      for (const [drugMasterId, item] of mappingMap.entries()) {
+        const row = await tx.supplierDrugMapping.upsert({
+          where: {
+            supplierId_drugMasterId: {
+              supplierId,
+              drugMasterId,
+            },
+          },
+          create: {
+            supplierId,
+            drugMasterId,
+            supplierPrice: item.supplierPrice ?? null,
+            leadTimeDays: item.leadTimeDays ?? null,
+            isPreferred: item.isPreferred ?? false,
+          },
+          update: {
+            supplierPrice: item.supplierPrice ?? null,
+            leadTimeDays: item.leadTimeDays ?? null,
+            isPreferred: item.isPreferred ?? false,
+          },
+          include: {
+            drugMaster: {
+              select: {
+                id: true,
+                drugCode: true,
+                genericName: true,
+                brandName: true,
+                strength: true,
+                dosageForm: true,
+              },
+            },
+          },
+        });
+        upserted.push(row);
+      }
+
+      return upserted;
+    });
+
+    await this.ctx.audit.log({
+      branchId: supplier.branchId,
+      actorUserId: principal.userId,
+      action: "PHARMACY_SUPPLIER_DRUG_MAP",
+      entity: "PharmSupplier",
+      entityId: supplierId,
+      meta: {
+        supplierCode: supplier.supplierCode,
+        drugMasterIds: [...mappingMap.keys()],
+        count: result.length,
+      },
+    });
+
+    return { supplierId, upserted: result.length, mappings: result };
+  }
+
+  // ----------------------------------------------------------------
+  // Remove a single supplier-drug mapping
+  // ----------------------------------------------------------------
+  async removeDrugMapping(
+    principal: Principal,
+    supplierId: string,
+    mappingId: string,
+  ) {
+    const supplier = await this.ctx.prisma.pharmSupplier.findUnique({
+      where: { id: supplierId },
+      select: { id: true, branchId: true, supplierCode: true },
+    });
+    if (!supplier) throw new NotFoundException("Supplier not found");
+
+    this.ctx.resolveBranchId(principal, supplier.branchId);
+
+    // Validate the mapping belongs to this supplier
+    const mapping = await this.ctx.prisma.supplierDrugMapping.findUnique({
+      where: { id: mappingId },
+      select: { id: true, supplierId: true, drugMasterId: true },
+    });
+
+    if (!mapping) throw new NotFoundException("Drug mapping not found");
+    if (mapping.supplierId !== supplierId) {
+      throw new BadRequestException(
+        "Drug mapping does not belong to this supplier",
+      );
+    }
+
+    await this.ctx.prisma.supplierDrugMapping.delete({
+      where: { id: mappingId },
+    });
+
+    await this.ctx.audit.log({
+      branchId: supplier.branchId,
+      actorUserId: principal.userId,
+      action: "PHARMACY_SUPPLIER_DRUG_UNMAP",
+      entity: "PharmSupplier",
+      entityId: supplierId,
+      meta: {
+        supplierCode: supplier.supplierCode,
+        mappingId,
+        drugMasterId: mapping.drugMasterId,
+      },
+    });
+
+    return { deleted: true, mappingId };
+  }
+
+  // ----------------------------------------------------------------
+  // Bulk import suppliers from JSON array
+  // ----------------------------------------------------------------
+  async bulkImportSuppliers(
+    principal: Principal,
+    dto: BulkImportSuppliersDto,
+  ) {
+    const bid = this.ctx.resolveBranchId(principal, dto.branchId ?? null);
+
+    const results: { created: number; errors: Array<{ index: number; error: string }> } = {
+      created: 0,
+      errors: [],
+    };
+
+    for (let i = 0; i < dto.suppliers.length; i++) {
+      const supplierDto = dto.suppliers[i];
+      try {
+        await this.createSupplier(principal, supplierDto, bid);
+        results.created++;
+      } catch (err: any) {
+        results.errors.push({
+          index: i,
+          error: err?.message ?? String(err),
+        });
+      }
+    }
+
+    return results;
   }
 
   // ----------------------------------------------------------------

@@ -2220,7 +2220,8 @@ exports.Prisma.DrugMasterScalarFieldEnum = {
   formularyStatus: 'formularyStatus',
   status: 'status',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  drugCategoryNodeId: 'drugCategoryNodeId'
 };
 
 exports.Prisma.DrugInteractionScalarFieldEnum = {
@@ -2298,6 +2299,17 @@ exports.Prisma.SupplierStoreMappingScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.SupplierDrugMappingScalarFieldEnum = {
+  id: 'id',
+  supplierId: 'supplierId',
+  drugMasterId: 'drugMasterId',
+  supplierPrice: 'supplierPrice',
+  leadTimeDays: 'leadTimeDays',
+  isPreferred: 'isPreferred',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.InventoryConfigScalarFieldEnum = {
   id: 'id',
   pharmacyStoreId: 'pharmacyStoreId',
@@ -2349,6 +2361,17 @@ exports.Prisma.DrugLicenseHistoryScalarFieldEnum = {
   documentUrl: 'documentUrl',
   uploadedByUserId: 'uploadedByUserId',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.DrugCategoryNodeScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  code: 'code',
+  name: 'name',
+  parentId: 'parentId',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -3575,10 +3598,12 @@ exports.Prisma.ModelName = {
   TherapeuticSubstitution: 'TherapeuticSubstitution',
   PharmSupplier: 'PharmSupplier',
   SupplierStoreMapping: 'SupplierStoreMapping',
+  SupplierDrugMapping: 'SupplierDrugMapping',
   InventoryConfig: 'InventoryConfig',
   StoreIndentMapping: 'StoreIndentMapping',
   NarcoticsRegister: 'NarcoticsRegister',
-  DrugLicenseHistory: 'DrugLicenseHistory'
+  DrugLicenseHistory: 'DrugLicenseHistory',
+  DrugCategoryNode: 'DrugCategoryNode'
 };
 
 /**

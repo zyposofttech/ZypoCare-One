@@ -391,7 +391,8 @@ class PharmacyStore(Base):
     canDispense: Mapped[bool] = mapped_column(Boolean, default=False)
     canIndent: Mapped[bool] = mapped_column(Boolean, default=True)
     canReceiveStock: Mapped[bool] = mapped_column(Boolean, default=False)
-    isActive: Mapped[bool] = mapped_column(Boolean, default=True)
+    canReturnVendor: Mapped[bool] = mapped_column(Boolean, default=False)
+    autoIndentEnabled: Mapped[bool] = mapped_column(Boolean, default=False)
     createdAt: Mapped[datetime] = mapped_column(DateTime)
     updatedAt: Mapped[datetime] = mapped_column(DateTime)
 
@@ -420,9 +421,8 @@ class DrugMaster(Base):
     purchasePrice: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     hsnCode: Mapped[Optional[str]] = mapped_column(String(16), nullable=True)
     gstRate: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    formularyStatus: Mapped[str] = mapped_column(String, default="NON_FORMULARY")
+    formularyStatus: Mapped[str] = mapped_column(String, default="APPROVED")
     status: Mapped[str] = mapped_column(String, default="ACTIVE")
-    isActive: Mapped[bool] = mapped_column(Boolean, default=True)
     createdAt: Mapped[datetime] = mapped_column(DateTime)
     updatedAt: Mapped[datetime] = mapped_column(DateTime)
 

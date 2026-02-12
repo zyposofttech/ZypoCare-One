@@ -147,6 +147,7 @@ export function CopilotProvider({ children }: { children: React.ReactNode }) {
           },
           showLoader: false,
           branch: "none",
+          skipNotify: true,
         });
 
         // Update session ID from server
