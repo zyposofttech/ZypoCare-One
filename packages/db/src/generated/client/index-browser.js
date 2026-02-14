@@ -2862,6 +2862,274 @@ exports.Prisma.PayerDocumentRuleScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ComplianceWorkspaceScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  branchId: 'branchId',
+  type: 'type',
+  name: 'name',
+  status: 'status',
+  readinessScore: 'readinessScore',
+  lastComputedAt: 'lastComputedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AbdmConfigScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  environment: 'environment',
+  clientId: 'clientId',
+  clientSecretEnc: 'clientSecretEnc',
+  callbackUrls: 'callbackUrls',
+  featureTogglesJson: 'featureTogglesJson',
+  status: 'status',
+  lastTestedAt: 'lastTestedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.HfrFacilityProfileScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  facilityName: 'facilityName',
+  ownershipType: 'ownershipType',
+  facilityType: 'facilityType',
+  systemsOfMedicine: 'systemsOfMedicine',
+  servicesOffered: 'servicesOffered',
+  addressLine1: 'addressLine1',
+  addressLine2: 'addressLine2',
+  city: 'city',
+  state: 'state',
+  pincode: 'pincode',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  contactPhone: 'contactPhone',
+  contactEmail: 'contactEmail',
+  hfrId: 'hfrId',
+  verificationStatus: 'verificationStatus',
+  verificationNotes: 'verificationNotes',
+  lastSyncedAt: 'lastSyncedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.HprProfessionalLinkScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  staffId: 'staffId',
+  hprId: 'hprId',
+  category: 'category',
+  registrationStatus: 'registrationStatus',
+  verifiedAt: 'verifiedAt',
+  verifiedByStaffId: 'verifiedByStaffId',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SchemeEmpanelmentScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  scheme: 'scheme',
+  empanelmentNumber: 'empanelmentNumber',
+  shaCode: 'shaCode',
+  state: 'state',
+  cityCategory: 'cityCategory',
+  status: 'status',
+  govSchemeConfigId: 'govSchemeConfigId',
+  lastSyncedAt: 'lastSyncedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SchemeRateCardScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  scheme: 'scheme',
+  version: 'version',
+  effectiveFrom: 'effectiveFrom',
+  effectiveTo: 'effectiveTo',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SchemeRateCardItemScalarFieldEnum = {
+  id: 'id',
+  rateCardId: 'rateCardId',
+  code: 'code',
+  name: 'name',
+  rate: 'rate',
+  inclusions: 'inclusions',
+  exclusions: 'exclusions',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SchemeMappingScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  scheme: 'scheme',
+  externalCode: 'externalCode',
+  externalName: 'externalName',
+  internalServiceId: 'internalServiceId',
+  internalTariffItemId: 'internalTariffItemId',
+  rules: 'rules',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SchemeApiCredentialScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  scheme: 'scheme',
+  apiKeyEnc: 'apiKeyEnc',
+  apiSecretEnc: 'apiSecretEnc',
+  baseUrl: 'baseUrl',
+  environment: 'environment',
+  status: 'status',
+  lastTestedAt: 'lastTestedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.NabhTemplateScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  name: 'name',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.NabhTemplateItemScalarFieldEnum = {
+  id: 'id',
+  templateId: 'templateId',
+  chapter: 'chapter',
+  standardCode: 'standardCode',
+  meCode: 'meCode',
+  title: 'title',
+  description: 'description',
+  evidenceRequired: 'evidenceRequired',
+  riskLevel: 'riskLevel',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.NabhWorkspaceItemScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  chapter: 'chapter',
+  standardCode: 'standardCode',
+  meCode: 'meCode',
+  title: 'title',
+  description: 'description',
+  status: 'status',
+  riskLevel: 'riskLevel',
+  evidenceRequired: 'evidenceRequired',
+  ownerStaffId: 'ownerStaffId',
+  dueDate: 'dueDate',
+  notes: 'notes',
+  verifiedAt: 'verifiedAt',
+  verifiedByStaffId: 'verifiedByStaffId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EvidenceArtifactScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  title: 'title',
+  tags: 'tags',
+  status: 'status',
+  fileKey: 'fileKey',
+  fileName: 'fileName',
+  mimeType: 'mimeType',
+  sizeBytes: 'sizeBytes',
+  expiresAt: 'expiresAt',
+  uploadedByStaffId: 'uploadedByStaffId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EvidenceLinkScalarFieldEnum = {
+  id: 'id',
+  evidenceId: 'evidenceId',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.AuditCycleScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  name: 'name',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  status: 'status',
+  auditorStaffIds: 'auditorStaffIds',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AuditFindingScalarFieldEnum = {
+  id: 'id',
+  auditId: 'auditId',
+  itemId: 'itemId',
+  severity: 'severity',
+  description: 'description',
+  recommendedAction: 'recommendedAction',
+  dueDate: 'dueDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CapaActionScalarFieldEnum = {
+  id: 'id',
+  findingId: 'findingId',
+  ownerStaffId: 'ownerStaffId',
+  dueDate: 'dueDate',
+  actionPlan: 'actionPlan',
+  status: 'status',
+  closureNotes: 'closureNotes',
+  closedAt: 'closedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ComplianceApprovalScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  status: 'status',
+  changeType: 'changeType',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  payloadDraft: 'payloadDraft',
+  notes: 'notes',
+  requestedByStaffId: 'requestedByStaffId',
+  decidedByStaffId: 'decidedByStaffId',
+  decidedAt: 'decidedAt',
+  decisionNotes: 'decisionNotes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ComplianceAuditLogScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  action: 'action',
+  before: 'before',
+  after: 'after',
+  actorStaffId: 'actorStaffId',
+  actorIp: 'actorIp',
+  userAgent: 'userAgent',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -4152,6 +4420,119 @@ exports.DocChecklistScope = exports.$Enums.DocChecklistScope = {
   PACKAGE_ONLY: 'PACKAGE_ONLY'
 };
 
+exports.ComplianceWorkspaceType = exports.$Enums.ComplianceWorkspaceType = {
+  ORG_TEMPLATE: 'ORG_TEMPLATE',
+  BRANCH: 'BRANCH'
+};
+
+exports.ComplianceWorkspaceStatus = exports.$Enums.ComplianceWorkspaceStatus = {
+  DRAFT: 'DRAFT',
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED'
+};
+
+exports.EnvironmentType = exports.$Enums.EnvironmentType = {
+  SANDBOX: 'SANDBOX',
+  PRODUCTION: 'PRODUCTION'
+};
+
+exports.VerificationStatus = exports.$Enums.VerificationStatus = {
+  NOT_SUBMITTED: 'NOT_SUBMITTED',
+  PENDING: 'PENDING',
+  VERIFIED: 'VERIFIED',
+  REJECTED: 'REJECTED'
+};
+
+exports.RegistrationStatus = exports.$Enums.RegistrationStatus = {
+  UNVERIFIED: 'UNVERIFIED',
+  VERIFIED: 'VERIFIED',
+  EXPIRED: 'EXPIRED',
+  MISMATCH: 'MISMATCH'
+};
+
+exports.CityCategory = exports.$Enums.CityCategory = {
+  A: 'A',
+  B: 'B',
+  C: 'C'
+};
+
+exports.EmpanelmentStatus = exports.$Enums.EmpanelmentStatus = {
+  DRAFT: 'DRAFT',
+  ACTIVE: 'ACTIVE',
+  SUSPENDED: 'SUSPENDED'
+};
+
+exports.RateCardStatus = exports.$Enums.RateCardStatus = {
+  DRAFT: 'DRAFT',
+  ACTIVE: 'ACTIVE',
+  FROZEN: 'FROZEN',
+  ARCHIVED: 'ARCHIVED'
+};
+
+exports.RiskLevel = exports.$Enums.RiskLevel = {
+  CRITICAL: 'CRITICAL',
+  MAJOR: 'MAJOR',
+  MINOR: 'MINOR'
+};
+
+exports.NabhItemStatus = exports.$Enums.NabhItemStatus = {
+  NOT_STARTED: 'NOT_STARTED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  IMPLEMENTED: 'IMPLEMENTED',
+  VERIFIED: 'VERIFIED',
+  NON_COMPLIANT: 'NON_COMPLIANT'
+};
+
+exports.EvidenceStatus = exports.$Enums.EvidenceStatus = {
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED'
+};
+
+exports.ComplianceEntityType = exports.$Enums.ComplianceEntityType = {
+  COMPLIANCE_WORKSPACE: 'COMPLIANCE_WORKSPACE',
+  ABDM_CONFIG: 'ABDM_CONFIG',
+  HFR_PROFILE: 'HFR_PROFILE',
+  HPR_LINK: 'HPR_LINK',
+  SCHEME_EMPANELMENT: 'SCHEME_EMPANELMENT',
+  SCHEME_RATE_CARD: 'SCHEME_RATE_CARD',
+  SCHEME_MAPPING: 'SCHEME_MAPPING',
+  NABH_TEMPLATE: 'NABH_TEMPLATE',
+  NABH_ITEM: 'NABH_ITEM',
+  EVIDENCE: 'EVIDENCE',
+  AUDIT_CYCLE: 'AUDIT_CYCLE',
+  FINDING: 'FINDING',
+  CAPA: 'CAPA',
+  APPROVAL: 'APPROVAL',
+  SCHEME_API_CREDENTIAL: 'SCHEME_API_CREDENTIAL',
+  SCHEME_SYNC: 'SCHEME_SYNC'
+};
+
+exports.AuditCycleStatus = exports.$Enums.AuditCycleStatus = {
+  PLANNED: 'PLANNED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  CLOSED: 'CLOSED'
+};
+
+exports.FindingSeverity = exports.$Enums.FindingSeverity = {
+  CRITICAL: 'CRITICAL',
+  MAJOR: 'MAJOR',
+  MINOR: 'MINOR'
+};
+
+exports.CapaStatus = exports.$Enums.CapaStatus = {
+  OPEN: 'OPEN',
+  IN_PROGRESS: 'IN_PROGRESS',
+  CLOSED: 'CLOSED'
+};
+
+exports.ComplianceApprovalStatus = exports.$Enums.ComplianceApprovalStatus = {
+  DRAFT: 'DRAFT',
+  SUBMITTED: 'SUBMITTED',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  CANCELLED: 'CANCELLED'
+};
+
 exports.Prisma.ModelName = {
   Organization: 'Organization',
   Branch: 'Branch',
@@ -4318,7 +4699,26 @@ exports.Prisma.ModelName = {
   PaymentAdvice: 'PaymentAdvice',
   GatewayTransaction: 'GatewayTransaction',
   PayerDocumentTemplate: 'PayerDocumentTemplate',
-  PayerDocumentRule: 'PayerDocumentRule'
+  PayerDocumentRule: 'PayerDocumentRule',
+  ComplianceWorkspace: 'ComplianceWorkspace',
+  AbdmConfig: 'AbdmConfig',
+  HfrFacilityProfile: 'HfrFacilityProfile',
+  HprProfessionalLink: 'HprProfessionalLink',
+  SchemeEmpanelment: 'SchemeEmpanelment',
+  SchemeRateCard: 'SchemeRateCard',
+  SchemeRateCardItem: 'SchemeRateCardItem',
+  SchemeMapping: 'SchemeMapping',
+  SchemeApiCredential: 'SchemeApiCredential',
+  NabhTemplate: 'NabhTemplate',
+  NabhTemplateItem: 'NabhTemplateItem',
+  NabhWorkspaceItem: 'NabhWorkspaceItem',
+  EvidenceArtifact: 'EvidenceArtifact',
+  EvidenceLink: 'EvidenceLink',
+  AuditCycle: 'AuditCycle',
+  AuditFinding: 'AuditFinding',
+  CapaAction: 'CapaAction',
+  ComplianceApproval: 'ComplianceApproval',
+  ComplianceAuditLog: 'ComplianceAuditLog'
 };
 
 /**

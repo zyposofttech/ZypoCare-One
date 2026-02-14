@@ -73,11 +73,23 @@ export class GovSchemeService {
       where,
       orderBy: [{ schemeName: "asc" }],
       take: q.take && Number.isFinite(q.take) ? Math.min(Math.max(q.take, 1), 500) : 200,
+      include: {
+        empanelment: {
+          select: { id: true, scheme: true, status: true, lastSyncedAt: true },
+        },
+      },
     });
   }
 
   async getScheme(principal: Principal, id: string) {
-    const row = await this.ctx.prisma.governmentSchemeConfig.findUnique({ where: { id } });
+    const row = await this.ctx.prisma.governmentSchemeConfig.findUnique({
+      where: { id },
+      include: {
+        empanelment: {
+          select: { id: true, scheme: true, empanelmentNumber: true, status: true, lastSyncedAt: true, workspaceId: true },
+        },
+      },
+    });
     if (!row) throw new NotFoundException("Government scheme not found");
 
     this.ctx.resolveBranchId(principal, row.branchId);

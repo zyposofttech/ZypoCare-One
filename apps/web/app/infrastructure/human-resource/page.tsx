@@ -69,9 +69,9 @@ const tiles: Tile[] = [
     icon: <ClipboardList className="h-4 w-4 text-zc-accent" />,
   },
   {
-    title: "Training",
-    desc: "Mandatory training (NABH), certifications, and competency tracking.",
-    href: "/infrastructure/human-resource/training",
+    title: "Separation",
+    desc: "Offboarding processes and access revocation.",
+    href: "/infrastructure/human-resource/separation",
     badge: "Planned",
     icon: <ShieldCheck className="h-4 w-4 text-zc-accent" />,
   },
@@ -133,7 +133,7 @@ export default function HumanResourceOverviewPage() {
                  
                 </div>
                 <div className="mt-1 text-sm text-zc-muted">
-                 Manage Etire Hospital staff, onboarding, roster, attendance, leaves, training, appraisals, and separation processes.
+                 Manage Etire Hospital staff, onboarding, roster, attendance, leaves and separation processes.
                 </div>
               </div>
             </div>

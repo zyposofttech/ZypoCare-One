@@ -12,6 +12,7 @@ import { HealthController } from "./health.controller";
 import { IamModule } from "../iam/iam.module";
 import { BranchModule } from "../branch/branch.module";
 import { GovernanceModule } from "../governance/governance.module";
+import { ComplianceModule } from "../compliance/compliance.module";
 import { FacilitySetupModule } from "../facility-setup/facility-setup.module";
 import { InfrastructureModule } from "../infrastructure/infrastructure.module";
 import { OtModule } from "../infrastructure/ot/ot.module";
@@ -31,6 +32,7 @@ import { OtModule } from "../infrastructure/ot/ot.module";
     IamModule,
     BranchModule,
     GovernanceModule,
+    ComplianceModule,
     FacilitySetupModule,
     InfrastructureModule,
     OtModule,

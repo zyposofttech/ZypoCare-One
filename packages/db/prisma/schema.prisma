@@ -128,6 +128,10 @@ model Organization {
   branches Branch[]
   staff    Staff[]
 
+  // Compliance Infrastructure
+  nabhTemplates        NabhTemplate[]
+  complianceWorkspaces ComplianceWorkspace[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -287,8 +291,11 @@ model Branch {
   insuranceDocuments      InsuranceDocument[]
   payerIntegrationConfigs PayerIntegrationConfig[]
   paymentAdvices          PaymentAdvice[]
-  gatewayTransactions       GatewayTransaction[]
-  payerDocumentTemplates    PayerDocumentTemplate[]
+  gatewayTransactions     GatewayTransaction[]
+  payerDocumentTemplates  PayerDocumentTemplate[]
+
+  // Compliance Infrastructure
+  complianceWorkspaces ComplianceWorkspace[]
 }
 
 model FacilityCatalog {
@@ -1010,6 +1017,17 @@ model Staff {
 
   // Insurance relations
   treatingCases InsuranceCase[] @relation("InsuranceCase_TreatingDoctor")
+
+  // Compliance Infrastructure relations
+  hprLinks                     HprProfessionalLink[] @relation("HprStaffLink")
+  hprVerifications             HprProfessionalLink[] @relation("HprVerifiedBy")
+  nabhOwnedItems               NabhWorkspaceItem[]   @relation("NabhOwner")
+  nabhVerifiedItems            NabhWorkspaceItem[]   @relation("NabhVerifiedBy")
+  evidenceUploads              EvidenceArtifact[]    @relation("EvidenceUploader")
+  capaOwned                    CapaAction[]          @relation("CapaOwner")
+  complianceApprovalsRequested ComplianceApproval[]  @relation("ComplianceApprovalRequestedBy")
+  complianceApprovalsDecided   ComplianceApproval[]  @relation("ComplianceApprovalDecidedBy")
+  complianceAuditLogs          ComplianceAuditLog[]  @relation("ComplianceAuditActor")
 
   @@index([name])
   @@index([displayName])
@@ -4036,6 +4054,9 @@ model GovernmentSchemeConfig {
 
   insuranceCases InsuranceCase[]
 
+  // --- Linking to Compliance SchemeEmpanelment ---
+  empanelment SchemeEmpanelment? @relation("EmpanelmentToGovScheme")
+
   @@unique([branchId, schemeCode])
   @@index([branchId, schemeType, isActive])
 }
@@ -6318,14 +6339,14 @@ model PreauthRequest {
   clinicalNotes    String?
 
   // Clinical coding (structured, for NHCX/FHIR submission)
-  primaryDiagnosisCode  String? @db.VarChar(16) // ICD-10
-  primaryDiagnosisDesc  String? @db.VarChar(240)
+  primaryDiagnosisCode    String?  @db.VarChar(16) // ICD-10
+  primaryDiagnosisDesc    String?  @db.VarChar(240)
   secondaryDiagnosisCodes String[] @default([]) // additional ICD-10 codes
-  procedureCodes        String[] @default([]) // ICD-10-PCS / CPT / internal
-  hbpPackageCode        String? @db.VarChar(48) // PM-JAY HBP code
-  implantDetails        String? // implant description if applicable
-  investigationSummary  String? // summary of investigations
-  otNotes               String? // OT/surgical notes summary
+  procedureCodes          String[] @default([]) // ICD-10-PCS / CPT / internal
+  hbpPackageCode          String?  @db.VarChar(48) // PM-JAY HBP code
+  implantDetails          String? // implant description if applicable
+  investigationSummary    String? // summary of investigations
+  otNotes                 String? // OT/surgical notes summary
 
   submittedAt       DateTime?
   submittedByUserId String?
@@ -6461,14 +6482,14 @@ model ClaimLineItem {
   totalPrice  Decimal @db.Decimal(12, 2)
 
   // Clinical coding (structured, for NHCX/FHIR compliant submissions)
-  icdCode        String? @db.VarChar(16) // ICD-10-CM diagnosis code
-  icdDescription String? @db.VarChar(240)
-  cptCode        String? @db.VarChar(16) // CPT / ASHA / local procedure code
-  cptDescription String? @db.VarChar(240)
-  snomedCode     String? @db.VarChar(24) // SNOMED CT concept id
+  icdCode        String?  @db.VarChar(16) // ICD-10-CM diagnosis code
+  icdDescription String?  @db.VarChar(240)
+  cptCode        String?  @db.VarChar(16) // CPT / ASHA / local procedure code
+  cptDescription String?  @db.VarChar(240)
+  snomedCode     String?  @db.VarChar(24) // SNOMED CT concept id
   modifiers      String[] @default([]) // up to 4 HCPCS/CPT modifiers
-  placeOfService String? @db.VarChar(4) // "IP" | "OP" | "ER" | "DC" (day-care)
-  diagnosisRef   String? @db.VarChar(64) // reference to clinical diagnosis (encounter-level)
+  placeOfService String?  @db.VarChar(4) // "IP" | "OP" | "ER" | "DC" (day-care)
+  diagnosisRef   String?  @db.VarChar(64) // reference to clinical diagnosis (encounter-level)
 
   approvedQuantity  Int?
   approvedUnitPrice Decimal? @db.Decimal(12, 2)
@@ -6751,19 +6772,624 @@ model PayerDocumentTemplate {
 
 // ---- PayerDocumentRule — individual required doc within a template ----
 model PayerDocumentRule {
-  id         String                  @id @default(cuid())
+  id         String                @id @default(cuid())
   templateId String
-  template   PayerDocumentTemplate   @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  template   PayerDocumentTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
 
-  docRole       InsuranceDocRole // which document role is required
-  label         String           @db.VarChar(160) // human-readable name
-  description   String?          // instructions / help text for upload
-  isRequired    Boolean          @default(true) // required vs recommended
-  requiredAt    String?          @db.VarChar(48) // stage: "PREAUTH_SUBMIT" | "CLAIM_SUBMIT" | "DISCHARGE"
-  sortOrder     Int              @default(0)
+  docRole     InsuranceDocRole // which document role is required
+  label       String           @db.VarChar(160) // human-readable name
+  description String? // instructions / help text for upload
+  isRequired  Boolean          @default(true) // required vs recommended
+  requiredAt  String?          @db.VarChar(48) // stage: "PREAUTH_SUBMIT" | "CLAIM_SUBMIT" | "DISCHARGE"
+  sortOrder   Int              @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([templateId])
+}
+
+// ================== COMPLIANCE INFRASTRUCTURE ==================
+
+enum ComplianceWorkspaceType {
+  ORG_TEMPLATE
+  BRANCH
+}
+
+enum ComplianceWorkspaceStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum EnvironmentType {
+  SANDBOX
+  PRODUCTION
+}
+
+enum VerificationStatus {
+  NOT_SUBMITTED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum RegistrationStatus {
+  UNVERIFIED
+  VERIFIED
+  EXPIRED
+  MISMATCH
+}
+
+// SchemeType reused from existing enum at line ~5425
+
+enum EmpanelmentStatus {
+  DRAFT
+  ACTIVE
+  SUSPENDED
+}
+
+enum CityCategory {
+  A
+  B
+  C
+}
+
+enum RateCardStatus {
+  DRAFT
+  ACTIVE
+  FROZEN
+  ARCHIVED
+}
+
+enum NabhItemStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  IMPLEMENTED
+  VERIFIED
+  NON_COMPLIANT
+}
+
+enum RiskLevel {
+  CRITICAL
+  MAJOR
+  MINOR
+}
+
+enum EvidenceStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum ComplianceApprovalStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum AuditCycleStatus {
+  PLANNED
+  IN_PROGRESS
+  CLOSED
+}
+
+enum FindingSeverity {
+  CRITICAL
+  MAJOR
+  MINOR
+}
+
+enum CapaStatus {
+  OPEN
+  IN_PROGRESS
+  CLOSED
+}
+
+enum ComplianceEntityType {
+  COMPLIANCE_WORKSPACE
+  ABDM_CONFIG
+  HFR_PROFILE
+  HPR_LINK
+  SCHEME_EMPANELMENT
+  SCHEME_RATE_CARD
+  SCHEME_MAPPING
+  NABH_TEMPLATE
+  NABH_ITEM
+  EVIDENCE
+  AUDIT_CYCLE
+  FINDING
+  CAPA
+  APPROVAL
+  SCHEME_API_CREDENTIAL
+  SCHEME_SYNC
+}
+
+// ---- ComplianceWorkspace ----
+model ComplianceWorkspace {
+  id       String                    @id @default(cuid())
+  orgId    String
+  branchId String?
+  type     ComplianceWorkspaceType
+  name     String
+  status   ComplianceWorkspaceStatus @default(DRAFT)
+
+  readinessScore Float?
+  lastComputedAt DateTime?
+
+  org    Organization @relation(fields: [orgId], references: [id])
+  branch Branch?      @relation(fields: [branchId], references: [id])
+
+  abdmConfigs          AbdmConfig[]
+  hfrProfile           HfrFacilityProfile?
+  hprLinks             HprProfessionalLink[]
+  empanelments         SchemeEmpanelment[]
+  rateCards            SchemeRateCard[]
+  schemeMappings       SchemeMapping[]
+  nabhItems            NabhWorkspaceItem[]
+  evidenceArtifacts    EvidenceArtifact[]
+  approvals            ComplianceApproval[]
+  schemeApiCredentials SchemeApiCredential[]
+  auditCycles          AuditCycle[]
+  auditLogs            ComplianceAuditLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orgId, branchId])
+  @@index([status, type])
+  @@map("compliance_workspaces")
+}
+
+// ---- AbdmConfig ----
+model AbdmConfig {
+  id          String @id @default(cuid())
+  workspaceId String
+
+  environment EnvironmentType @default(SANDBOX)
+
+  clientId           String?
+  clientSecretEnc    String?
+  callbackUrls       String[]
+  featureTogglesJson Json?
+
+  status       String    @default("NOT_CONFIGURED")
+  lastTestedAt DateTime?
+
+  workspace ComplianceWorkspace @relation(fields: [workspaceId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, environment])
+  @@map("abdm_configs")
+}
+
+// ---- HfrFacilityProfile ----
+model HfrFacilityProfile {
+  id          String @id @default(cuid())
+  workspaceId String @unique
+
+  facilityName      String
+  ownershipType     String
+  facilityType      String
+  systemsOfMedicine String[]
+  servicesOffered   String[]
+
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String
+  pincode      String
+  latitude     Float?
+  longitude    Float?
+  contactPhone String?
+  contactEmail String?
+
+  hfrId              String?
+  verificationStatus VerificationStatus @default(NOT_SUBMITTED)
+  verificationNotes  String?
+  lastSyncedAt       DateTime?
+
+  workspace ComplianceWorkspace @relation(fields: [workspaceId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("hfr_facility_profiles")
+}
+
+// ---- HprProfessionalLink ----
+model HprProfessionalLink {
+  id          String @id @default(cuid())
+  workspaceId String
+  staffId     String
+
+  hprId              String
+  category           String
+  registrationStatus RegistrationStatus @default(UNVERIFIED)
+
+  verifiedAt        DateTime?
+  verifiedByStaffId String?
+  notes             String?
+
+  workspace  ComplianceWorkspace @relation(fields: [workspaceId], references: [id])
+  staff      Staff               @relation("HprStaffLink", fields: [staffId], references: [id])
+  verifiedBy Staff?              @relation("HprVerifiedBy", fields: [verifiedByStaffId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, staffId])
+  @@unique([workspaceId, hprId])
+  @@index([workspaceId, registrationStatus])
+  @@map("hpr_professional_links")
+}
+
+// ---- SchemeEmpanelment ----
+model SchemeEmpanelment {
+  id          String @id @default(cuid())
+  workspaceId String
+
+  scheme            SchemeType
+  empanelmentNumber String
+
+  shaCode      String?
+  state        String?
+  cityCategory CityCategory?
+
+  status EmpanelmentStatus @default(DRAFT)
+
+  // --- Linking to Infrastructure GovernmentSchemeConfig ---
+  govSchemeConfigId String?                 @unique
+  govSchemeConfig   GovernmentSchemeConfig? @relation("EmpanelmentToGovScheme", fields: [govSchemeConfigId], references: [id])
+  lastSyncedAt      DateTime?
+
+  workspace ComplianceWorkspace @relation(fields: [workspaceId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, scheme])
+  @@index([workspaceId, scheme, status])
+  @@map("scheme_empanelments")
+}
+
+// ---- SchemeRateCard ----
+model SchemeRateCard {
+  id          String     @id @default(cuid())
+  workspaceId String
+  scheme      SchemeType
+
+  version       String
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+
+  status RateCardStatus @default(DRAFT)
+
+  items     SchemeRateCardItem[]
+  workspace ComplianceWorkspace  @relation(fields: [workspaceId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, scheme, version])
+  @@index([workspaceId, scheme, status])
+  @@map("scheme_rate_cards")
+}
+
+// ---- SchemeRateCardItem ----
+model SchemeRateCardItem {
+  id         String @id @default(cuid())
+  rateCardId String
+
+  code String
+  name String
+  rate Decimal @db.Decimal(12, 2)
+
+  inclusions String?
+  exclusions String?
+  metadata   Json?
+
+  rateCard SchemeRateCard @relation(fields: [rateCardId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([rateCardId, code])
+  @@index([rateCardId, name])
+  @@map("scheme_rate_card_items")
+}
+
+// ---- SchemeMapping ----
+model SchemeMapping {
+  id          String     @id @default(cuid())
+  workspaceId String
+  scheme      SchemeType
+
+  externalCode String
+  externalName String?
+
+  internalServiceId    String?
+  internalTariffItemId String?
+
+  rules Json?
+
+  workspace ComplianceWorkspace @relation(fields: [workspaceId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, scheme, externalCode])
+  @@index([workspaceId, scheme])
+  @@map("scheme_mappings")
+}
+
+// ---- SchemeApiCredential ----
+model SchemeApiCredential {
+  id          String     @id @default(cuid())
+  workspaceId String
+  scheme      SchemeType
+
+  apiKeyEnc    String?
+  apiSecretEnc String?
+  baseUrl      String?
+  environment  EnvironmentType @default(SANDBOX)
+
+  status       String    @default("NOT_CONFIGURED")
+  lastTestedAt DateTime?
+
+  workspace ComplianceWorkspace @relation(fields: [workspaceId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, scheme, environment])
+  @@map("scheme_api_credentials")
+}
+
+// ---- NabhTemplate ----
+model NabhTemplate {
+  id    String @id @default(cuid())
+  orgId String
+  name  String
+
+  isActive Boolean @default(true)
+
+  items NabhTemplateItem[]
+  org   Organization       @relation(fields: [orgId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orgId, isActive])
+  @@map("nabh_templates")
+}
+
+// ---- NabhTemplateItem ----
+model NabhTemplateItem {
+  id         String @id @default(cuid())
+  templateId String
+
+  chapter      String
+  standardCode String
+  meCode       String
+
+  title       String
+  description String?
+
+  evidenceRequired Boolean   @default(true)
+  riskLevel        RiskLevel @default(MAJOR)
+
+  template NabhTemplate @relation(fields: [templateId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([templateId, standardCode, meCode])
+  @@index([templateId, chapter])
+  @@map("nabh_template_items")
+}
+
+// ---- NabhWorkspaceItem ----
+model NabhWorkspaceItem {
+  id          String @id @default(cuid())
+  workspaceId String
+
+  chapter      String
+  standardCode String
+  meCode       String
+
+  title       String
+  description String?
+
+  status           NabhItemStatus @default(NOT_STARTED)
+  riskLevel        RiskLevel      @default(MAJOR)
+  evidenceRequired Boolean        @default(true)
+
+  ownerStaffId String?
+  dueDate      DateTime?
+  notes        String?
+
+  verifiedAt        DateTime?
+  verifiedByStaffId String?
+
+  workspace  ComplianceWorkspace @relation(fields: [workspaceId], references: [id])
+  owner      Staff?              @relation("NabhOwner", fields: [ownerStaffId], references: [id])
+  verifiedBy Staff?              @relation("NabhVerifiedBy", fields: [verifiedByStaffId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, standardCode, meCode])
+  @@index([workspaceId, chapter, status])
+  @@map("nabh_workspace_items")
+}
+
+// ---- EvidenceArtifact ----
+model EvidenceArtifact {
+  id          String @id @default(cuid())
+  workspaceId String
+
+  title  String
+  tags   String[]
+  status EvidenceStatus @default(ACTIVE)
+
+  fileKey   String
+  fileName  String
+  mimeType  String
+  sizeBytes Int
+
+  expiresAt         DateTime?
+  uploadedByStaffId String?
+
+  workspace  ComplianceWorkspace @relation(fields: [workspaceId], references: [id])
+  uploadedBy Staff?              @relation("EvidenceUploader", fields: [uploadedByStaffId], references: [id])
+
+  links EvidenceLink[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId, expiresAt])
+  @@map("evidence_artifacts")
+}
+
+// ---- EvidenceLink ----
+model EvidenceLink {
+  id         String @id @default(cuid())
+  evidenceId String
+
+  targetType ComplianceEntityType
+  targetId   String
+
+  evidence EvidenceArtifact @relation(fields: [evidenceId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([evidenceId, targetType, targetId])
+  @@index([targetType, targetId])
+  @@map("evidence_links")
+}
+
+// ---- AuditCycle ----
+model AuditCycle {
+  id          String @id @default(cuid())
+  workspaceId String
+
+  name      String
+  startDate DateTime
+  endDate   DateTime
+
+  status          AuditCycleStatus @default(PLANNED)
+  auditorStaffIds String[]
+
+  findings  AuditFinding[]
+  workspace ComplianceWorkspace @relation(fields: [workspaceId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId, status])
+  @@map("audit_cycles")
+}
+
+// ---- AuditFinding ----
+model AuditFinding {
+  id      String  @id @default(cuid())
+  auditId String
+  itemId  String?
+
+  severity          FindingSeverity
+  description       String
+  recommendedAction String?
+  dueDate           DateTime?
+
+  capa  CapaAction?
+  audit AuditCycle  @relation(fields: [auditId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([auditId, severity])
+  @@map("audit_findings")
+}
+
+// ---- CapaAction ----
+model CapaAction {
+  id        String @id @default(cuid())
+  findingId String @unique
+
+  ownerStaffId String
+  dueDate      DateTime
+  actionPlan   String
+
+  status       CapaStatus @default(OPEN)
+  closureNotes String?
+  closedAt     DateTime?
+
+  finding AuditFinding @relation(fields: [findingId], references: [id])
+  owner   Staff        @relation("CapaOwner", fields: [ownerStaffId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerStaffId, status])
+  @@map("capa_actions")
+}
+
+// ---- ComplianceApproval ----
+model ComplianceApproval {
+  id          String @id @default(cuid())
+  workspaceId String
+
+  status ComplianceApprovalStatus @default(DRAFT)
+
+  changeType String
+  entityType ComplianceEntityType
+  entityId   String
+
+  payloadDraft Json
+  notes        String?
+
+  requestedByStaffId String
+  decidedByStaffId   String?
+  decidedAt          DateTime?
+  decisionNotes      String?
+
+  workspace   ComplianceWorkspace @relation(fields: [workspaceId], references: [id])
+  requestedBy Staff               @relation("ComplianceApprovalRequestedBy", fields: [requestedByStaffId], references: [id])
+  decidedBy   Staff?              @relation("ComplianceApprovalDecidedBy", fields: [decidedByStaffId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId, status])
+  @@map("compliance_approvals")
+}
+
+// ---- ComplianceAuditLog ----
+model ComplianceAuditLog {
+  id          String @id @default(cuid())
+  workspaceId String
+
+  entityType ComplianceEntityType
+  entityId   String
+
+  action String
+  before Json?
+  after  Json?
+
+  actorStaffId String?
+  actorIp      String?
+  userAgent    String?
+
+  workspace ComplianceWorkspace @relation(fields: [workspaceId], references: [id])
+  actor     Staff?              @relation("ComplianceAuditActor", fields: [actorStaffId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([workspaceId, entityType, entityId])
+  @@map("compliance_audit_logs")
 }

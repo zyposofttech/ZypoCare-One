@@ -21,6 +21,15 @@ const config: NextConfig = {
         source: "/api/infrastructure/ai/:path*",
         destination: `${AI_COPILOT_URL}/v1/infra/:path*`,
       },
+      // ── Governance/Compliance route aliases → /compliance/* ────────
+      {
+        source: "/governance/compliance/:path*",
+        destination: "/compliance/:path*",
+      },
+      {
+        source: "/governance/compliance",
+        destination: "/compliance",
+      },
       // ── Everything else → NestJS core-api ─────────────────────────
       { source: "/api/:path*", destination: `${CORE_API_URL}/api/:path*` },
     ];

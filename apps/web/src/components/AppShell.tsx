@@ -192,11 +192,11 @@ function buildAllNavItems(groups: NavGroup[]) {
 }
 
 const NAV_WORKSPACES: NavNode[] = [
-  {
-    label: "Welcome",
-    href: "/welcome",
-    icon: IconZypoCare,
-  },
+  // {
+  //   label: "Welcome",
+  //   href: "/welcome",
+  //   icon: IconZypoCare,
+  // },
   {
     label: "Dashboard",
     href: "/dashboard",
@@ -248,8 +248,6 @@ const NAV_WORKSPACES: NavNode[] = [
           { label: "Roster", href: "/infrastructure/human-resource/roster" },
           { label: "Attendance", href: "/infrastructure/human-resource/attendance" },
           { label: "Leaves", href: "/infrastructure/human-resource/leaves" },
-          { label: "Training", href: "/infrastructure/human-resource/training" },
-          { label: "Appraisals", href: "/infrastructure/human-resource/appraisals" },
           { label: "Separation", href: "/infrastructure/human-resource/separation" },
         ],
       },
@@ -322,7 +320,7 @@ const NAV_WORKSPACES: NavNode[] = [
     ],
   },
   {
-    label: "Central Console",
+    label: "Policy Governance",
     href: "/dashboard/global",
     icon: IconDashboard,
     children: [
@@ -336,7 +334,35 @@ const NAV_WORKSPACES: NavNode[] = [
       { label: "Access Control", href: "/access" },
     ],
   },
- 
+ {
+    label: "Regulatory Compliances",
+    href: "/compliance",
+    icon: IconShield,
+    children: [
+      { label: "Overview", href: "/compliance" },
+      { label: "Workspaces", href: "/compliance/workspaces" },
+      { label: "Evidence Vault", href: "/compliance/evidence" },
+      { label: "Approvals", href: "/compliance/approvals" },
+      { label: "ABDM", href: "/compliance/abdm" },
+      { label: "ABHA Config", href: "/compliance/abdm/abha" },
+      { label: "HFR Profile", href: "/compliance/abdm/hfr" },
+      { label: "HPR Linkage", href: "/compliance/abdm/hpr" },
+      { label: "Schemes", href: "/compliance/schemes" },
+      { label: "PMJAY", href: "/compliance/schemes/pmjay" },
+      { label: "CGHS", href: "/compliance/schemes/cghs" },
+      { label: "ECHS", href: "/compliance/schemes/echs" },
+      { label: "Mappings", href: "/compliance/schemes/mapping" },
+      { label: "NABH", href: "/compliance/nabh" },
+      { label: "Checklist", href: "/compliance/nabh/checklist" },
+      { label: "Audits", href: "/compliance/nabh/audits" },
+      { label: "Validator", href: "/compliance/validator" },
+      { label: "Audit Log", href: "/compliance/audit-log" },
+      { label: "Consent Manager", href: "/compliance/consent" },
+      { label: "Rights (RTBF)", href: "/compliance/rights" },
+      { label: "Records Governance", href: "/compliance/records" },
+      { label: "Break Glass", href: "/compliance/break-glass" },
+    ],
+  },
 
 ];
 
@@ -433,18 +459,7 @@ const NAV_GOVERN: NavNode[] = [
       { label: "Maintenance", href: "/ops/maintenance" },
     ],
   },
-  {
-    label: "Compliance & Governance",
-    href: "/compliance",
-    icon: IconShield,
-    children: [
-      { label: "Consent Manager", href: "/compliance/consent" },
-      { label: "Rights (RTBF)", href: "/compliance/rights" },
-      { label: "Audit Ledger", href: "/compliance/audit-ledger" },
-      { label: "Records Governance", href: "/compliance/records" },
-      { label: "Break Glass", href: "/compliance/break-glass" },
-    ],
-  },
+  
   {
     label: "Statutory Reporting",
     href: "/statutory",
@@ -853,6 +868,8 @@ function writeBool(key: string, value: boolean) {
   }
 }
 
+const SIDEBAR_SCROLL_KEY = "zc.sidebarScrollTop";
+
 function NavBadge({ badge }: { badge?: NavBadgeDef }) {
   if (!badge) return null;
   const tone = badge.tone ?? "neutral";
@@ -1072,6 +1089,8 @@ export function AppShell({
   const [openMap, setOpenMap] = React.useState<Record<string, boolean>>({});
   const [groupOpenMap, setGroupOpenMap] = React.useState<Record<string, boolean>>({});
   const [navQuery, setNavQuery] = React.useState("");
+  const sidebarNavRef = React.useRef<HTMLElement | null>(null);
+  const sidebarScrollRafRef = React.useRef<number | null>(null);
 
   // Command Center State
   const [commandOpen, setCommandOpen] = React.useState(false);
@@ -1135,6 +1154,41 @@ export function AppShell({
       return next;
     });
   }
+
+  const persistSidebarScroll = React.useCallback(() => {
+    if (typeof window === "undefined") return;
+    if (sidebarScrollRafRef.current !== null) return;
+
+    sidebarScrollRafRef.current = window.requestAnimationFrame(() => {
+      sidebarScrollRafRef.current = null;
+      const el = sidebarNavRef.current;
+      if (!el) return;
+      writeJSON(SIDEBAR_SCROLL_KEY, el.scrollTop);
+    });
+  }, []);
+
+  React.useEffect(() => {
+    return () => {
+      if (typeof window === "undefined") return;
+      if (sidebarScrollRafRef.current !== null) {
+        window.cancelAnimationFrame(sidebarScrollRafRef.current);
+        sidebarScrollRafRef.current = null;
+      }
+      const el = sidebarNavRef.current;
+      if (!el) return;
+      writeJSON(SIDEBAR_SCROLL_KEY, el.scrollTop);
+    };
+  }, []);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const id = window.requestAnimationFrame(() => {
+      const savedTop = readJSON<number>(SIDEBAR_SCROLL_KEY, 0);
+      if (!Number.isFinite(savedTop) || savedTop <= 0) return;
+      if (sidebarNavRef.current) sidebarNavRef.current.scrollTop = savedTop;
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [pathname, collapsed]);
 
   const roleCommandActions = React.useMemo<CommandItem[]>(() => {
     const scope = inferScopeFromUser(user);
@@ -1554,6 +1608,8 @@ export function AppShell({
 
             {/* Navigation Items */}
             <nav
+              ref={sidebarNavRef}
+              onScroll={persistSidebarScroll}
               className={cn(
                 "flex-1 min-h-0 overflow-y-auto overflow-x-hidden",
                 collapsed ? "px-2 pb-4" : "px-3 pb-4",

@@ -35,6 +35,7 @@ import {
   AlertTriangle,
   Eye,
   Landmark,
+  Link2,
   Loader2,
   Pencil,
   Plus,
@@ -50,6 +51,13 @@ import {
 type BranchRow = { id: string; code: string; name: string; city: string };
 
 type SchemeType = "PMJAY" | "CGHS" | "ECHS" | "STATE_SCHEME" | "OTHER";
+
+type EmpanelmentLink = {
+  id: string;
+  scheme: string;
+  status: string;
+  lastSyncedAt: string | null;
+};
 
 type GovSchemeRow = {
   id: string;
@@ -73,6 +81,7 @@ type GovSchemeRow = {
   isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
+  empanelment?: EmpanelmentLink | null;
 };
 
 type SchemeFormData = {
@@ -650,6 +659,7 @@ export default function GovSchemesPage() {
                     <TableHead className="w-[110px]">Valid Till</TableHead>
                     <TableHead className="w-[120px]">Preauth</TableHead>
                     <TableHead className="w-[100px]">Status</TableHead>
+                    <TableHead className="w-[110px]">Compliance</TableHead>
                     <TableHead className="w-[140px]" />
                   </TableRow>
                 </TableHeader>
@@ -657,14 +667,14 @@ export default function GovSchemesPage() {
                   {loading ? (
                     Array.from({ length: 8 }).map((_, i) => (
                       <TableRow key={i}>
-                        <TableCell colSpan={8}>
+                        <TableCell colSpan={9}>
                           <Skeleton className="h-6 w-full" />
                         </TableCell>
                       </TableRow>
                     ))
                   ) : rows.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8}>
+                      <TableCell colSpan={9}>
                         <div className="flex flex-col items-center justify-center gap-3 py-10 text-sm text-zc-muted">
                           <div className="flex items-center gap-2">
                             <Landmark className="h-4 w-4" />
@@ -707,6 +717,15 @@ export default function GovSchemesPage() {
                           </TableCell>
                           <TableCell>{preauthBadge(r.preauthRequired)}</TableCell>
                           <TableCell>{activeBadge(r.isActive)}</TableCell>
+                          <TableCell>
+                            {r.empanelment ? (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50/70 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200">
+                                <Link2 className="h-3 w-3" />Linked
+                              </span>
+                            ) : (
+                              <span className="text-xs text-zc-muted">-</span>
+                            )}
+                          </TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-1">
                               <Button variant="outline" size="sm" className="gap-1.5" onClick={() => openEdit(r)}>
