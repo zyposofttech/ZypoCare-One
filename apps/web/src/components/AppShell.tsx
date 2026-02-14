@@ -263,6 +263,17 @@ const NAV_WORKSPACES: NavNode[] = [
       },
       {
         type: "group",
+        label: "Blood Bank Setup",
+        children: [
+          { label: "BB Facility Setup", href: "/infrastructure/blood-bank/facility" },
+          { label: "BB Component Types", href: "/infrastructure/blood-bank/components" },
+          { label: "BB Equipment", href: "/infrastructure/blood-bank/equipment" },
+          { label: "BB Reagents", href: "/infrastructure/blood-bank/reagents" },
+          { label: "BB Tariff Config", href: "/infrastructure/blood-bank/tariff" },
+        ],
+      },
+      {
+        type: "group",
         label: "Pharmacy Infrastructure",
         children: [
           { label: "Pharmacy Overview", href: "/infrastructure/pharmacy" },
@@ -432,17 +443,6 @@ const NAV_CARE: NavNode[] = [
     icon: IconDroplet,
     children: [
       { label: "Overview", href: "/blood-bank" },
-      {
-        type: "group",
-        label: "Setup & Config",
-        children: [
-          { label: "Facility Setup", href: "/blood-bank/facility" },
-          { label: "Component Types", href: "/blood-bank/components" },
-          { label: "Equipment", href: "/blood-bank/equipment" },
-          { label: "Reagents", href: "/blood-bank/reagents" },
-          { label: "Tariff Config", href: "/blood-bank/tariff" },
-        ],
-      },
       {
         type: "group",
         label: "Donor & Collection",
@@ -634,6 +634,7 @@ const ROUTE_RULES: Array<{ root: string; anyPrefixes: string[] }> = [
       "TAX_",
       "BILLING_SETUP_",
       "BILLING_",
+      "BB_",
     ],
   },
 
