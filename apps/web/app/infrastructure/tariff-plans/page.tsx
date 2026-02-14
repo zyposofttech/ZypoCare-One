@@ -299,7 +299,7 @@ function approvalStatusBadge(status?: string | null) {
   switch (status?.toUpperCase()) {
     case "APPROVED": return <Badge variant="ok">APPROVED</Badge>;
     case "PENDING": return <Badge variant="secondary" className="border-amber-500/30 bg-amber-500/15 text-amber-700 dark:text-amber-200">PENDING</Badge>;
-    case "REJECTED": return <Badge variant="destructive" as any>REJECTED</Badge>;
+    case "REJECTED": return <Badge variant="destructive">REJECTED</Badge>;
     default: return null;
   }
 }

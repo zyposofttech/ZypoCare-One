@@ -154,7 +154,7 @@ export default function PharmacyStoresPage() {
       params.set("pageSize", String(pageSize));
       if (q) params.set("q", q);
 
-      const data = await apiFetch(`/infrastructure/pharmacy/stores?${params}`);
+      const data: any = await apiFetch(`/infrastructure/pharmacy/stores?${params}`);
       setStores(data.rows ?? []);
       setTotal(data.total ?? 0);
 
@@ -173,7 +173,7 @@ export default function PharmacyStoresPage() {
   const loadAllStores = React.useCallback(async () => {
     if (!branchId) return;
     try {
-      const data = await apiFetch(`/infrastructure/pharmacy/stores?pageSize=200`);
+      const data: any = await apiFetch(`/infrastructure/pharmacy/stores?pageSize=200`);
       setAllStores(data.rows ?? []);
     } catch {}
   }, [branchId]);
@@ -181,7 +181,7 @@ export default function PharmacyStoresPage() {
   const loadStaff = React.useCallback(async () => {
     if (!branchId) return;
     try {
-      const data = await apiFetch(`/infrastructure/staff?take=200`);
+      const data: any = await apiFetch(`/infrastructure/staff?take=200`);
       const list = Array.isArray(data) ? data : data?.items ?? data?.rows ?? [];
       setStaffList(Array.isArray(list) ? list : []);
     } catch {}

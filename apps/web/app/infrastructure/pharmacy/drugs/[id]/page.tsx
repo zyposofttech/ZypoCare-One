@@ -224,7 +224,7 @@ export default function DrugDetailPage() {
   const fetchDrug = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await apiFetch(`/infrastructure/pharmacy/drugs/${id}`);
+      const data: any = await apiFetch(`/infrastructure/pharmacy/drugs/${id}`);
       setDrug(data);
       setForm(data);
     } catch (err: unknown) {
@@ -276,7 +276,7 @@ export default function DrugDetailPage() {
         formularyStatus: form.formularyStatus,
         status: form.status,
       };
-      const updated = await apiFetch(
+      const updated: any = await apiFetch(
         `/infrastructure/pharmacy/drugs/${id}`,
         { method: "PATCH", body: JSON.stringify(payload) }
       );
@@ -329,7 +329,7 @@ export default function DrugDetailPage() {
 
   if (loading) {
     return (
-      <AppShell>
+      <AppShell title="Drug Details">
         <RequirePerm perm="INFRA_PHARMACY_DRUG_READ">
           <div className="flex items-center justify-center h-96">
             <p className="text-muted-foreground">Loading drug details...</p>
@@ -341,7 +341,7 @@ export default function DrugDetailPage() {
 
   if (!drug) {
     return (
-      <AppShell>
+      <AppShell title="Drug Details">
         <RequirePerm perm="INFRA_PHARMACY_DRUG_READ">
           <div className="flex flex-col items-center justify-center h-96 gap-4">
             <p className="text-muted-foreground">Drug not found.</p>
@@ -355,7 +355,7 @@ export default function DrugDetailPage() {
   }
 
   return (
-    <AppShell>
+    <AppShell title="Drug Details">
       <RequirePerm perm="INFRA_PHARMACY_DRUG_READ">
         <div className="space-y-6 p-6">
           {/* ---- Header ---- */}

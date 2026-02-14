@@ -138,7 +138,7 @@ export default function InventoryConfigPage() {
       if (!selectedStore) return;
       setLoading(true);
       try {
-        const data = await apiFetch(
+        const data: any = await apiFetch(
           `/infrastructure/pharmacy/inventory-config?storeId=${selectedStore}`,
         );
         setConfigs(data.rows ?? []);

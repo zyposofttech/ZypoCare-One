@@ -142,7 +142,7 @@ export default function SubstitutionsPage() {
         params.set("page", String(page));
         params.set("pageSize", String(pageSize));
 
-        const data = await apiFetch(
+        const data: any = await apiFetch(
           `/infrastructure/pharmacy/substitutions?${params}`,
         );
         setRows(data.rows ?? []);

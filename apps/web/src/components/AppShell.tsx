@@ -47,6 +47,7 @@ import {
   IconStethoscope,
   IconUsers,
   IconRefresh,
+  IconDroplet,
   type IconProps,
 } from "@/components/icons";
 import { useActiveBranchStore } from "@/lib/branch/active-branch";
@@ -426,6 +427,65 @@ const NAV_CARE: NavNode[] = [
     ],
   },
   {
+    label: "Blood Bank",
+    href: "/blood-bank",
+    icon: IconDroplet,
+    children: [
+      { label: "Overview", href: "/blood-bank" },
+      {
+        type: "group",
+        label: "Setup & Config",
+        children: [
+          { label: "Facility Setup", href: "/blood-bank/facility" },
+          { label: "Component Types", href: "/blood-bank/components" },
+          { label: "Equipment", href: "/blood-bank/equipment" },
+          { label: "Reagents", href: "/blood-bank/reagents" },
+          { label: "Tariff Config", href: "/blood-bank/tariff" },
+        ],
+      },
+      {
+        type: "group",
+        label: "Donor & Collection",
+        children: [
+          { label: "Donor Registry", href: "/blood-bank/donors" },
+          { label: "Blood Collection", href: "/blood-bank/collection" },
+          { label: "Component Separation", href: "/blood-bank/separation" },
+          { label: "Donation Camps", href: "/blood-bank/camps" },
+        ],
+      },
+      {
+        type: "group",
+        label: "Testing & Inventory",
+        children: [
+          { label: "Testing Lab", href: "/blood-bank/testing" },
+          { label: "Inventory Dashboard", href: "/blood-bank/inventory" },
+          { label: "Expiring Units", href: "/blood-bank/inventory/expiring" },
+        ],
+      },
+      {
+        type: "group",
+        label: "Cross-Match & Issue",
+        children: [
+          { label: "Blood Requests", href: "/blood-bank/requests" },
+          { label: "Cross-Match Workbench", href: "/blood-bank/cross-match" },
+          { label: "Issue Desk", href: "/blood-bank/issue" },
+          { label: "Transfusion Monitor", href: "/blood-bank/transfusion" },
+          { label: "MTP Dashboard", href: "/blood-bank/mtp" },
+        ],
+      },
+      {
+        type: "group",
+        label: "QC & Reports",
+        children: [
+          { label: "Quality Control", href: "/blood-bank/qc" },
+          { label: "Reports", href: "/blood-bank/reports" },
+          { label: "Adverse Reactions", href: "/blood-bank/reactions" },
+          { label: "Audit Trail", href: "/blood-bank/audit" },
+        ],
+      },
+    ],
+  },
+  {
     label: "Billing, Finance & TPA",
     href: "/billing",
     icon: IconReceipt,
@@ -584,6 +644,7 @@ const ROUTE_RULES: Array<{ root: string; anyPrefixes: string[] }> = [
   { root: "/diagnostics", anyPrefixes: ["DIAG_", "LAB_", "IMAGING_", "ACCESS_", "IAM_"] },
   { root: "/pharmacy", anyPrefixes: ["PHARM_", "INVENTORY_", "STOCK_", "PURCHASE_", "ACCESS_", "IAM_"] },
   { root: "/billing", anyPrefixes: ["BILLING_", "FIN_", "TPA_", "ACCESS_", "IAM_"] },
+  { root: "/blood-bank", anyPrefixes: ["BB_", "ACCESS_", "IAM_"] },
 
   // Ops / compliance / AI
   { root: "/ops", anyPrefixes: ["OPS_", "FACILITY_", "MAINT_", "IT_", "HOUSEKEEP_", "ACCESS_", "IAM_"] },
@@ -991,6 +1052,7 @@ export function AppShell({
       "/diagnostics",
       "/pharmacy",
       "/billing",
+      "/blood-bank",
       "/ops",
       "/compliance",
       "/statutory",

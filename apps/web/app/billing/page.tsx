@@ -72,7 +72,7 @@ export default function BillingOverviewPage() {
                 return (
                   <Link
                     key={link.href}
-                    href={link.href}
+                    href={link.href as any}
                     className="group rounded-xl border border-zc-border bg-zc-card p-4 transition-colors hover:border-indigo-300 hover:bg-indigo-50/30 dark:hover:border-indigo-700 dark:hover:bg-indigo-900/10"
                   >
                     <div className="flex items-center gap-3">
@@ -108,7 +108,7 @@ export default function BillingOverviewPage() {
                 { label: "Government Schemes", href: "/infrastructure/gov-schemes" },
                 { label: "Pricing Tiers", href: "/infrastructure/pricing-tiers" },
               ].map((link) => (
-                <Link key={link.href} href={link.href}>
+                <Link key={link.href} href={link.href as any}>
                   <Badge variant="secondary" className="cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-900/30">
                     {link.label}
                   </Badge>

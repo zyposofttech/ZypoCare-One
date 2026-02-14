@@ -258,7 +258,7 @@ export default function BulkImportPage() {
   const handleDrugImport = React.useCallback(
     async (json: string): Promise<ImportResult> => {
       const drugs = JSON.parse(json);
-      const res = await apiFetch("/infrastructure/pharmacy/drugs/bulk-import", {
+      const res: any = await apiFetch("/infrastructure/pharmacy/drugs/bulk-import", {
         method: "POST",
         body: JSON.stringify({ drugs }),
       });
@@ -274,7 +274,7 @@ export default function BulkImportPage() {
   const handleSupplierImport = React.useCallback(
     async (json: string): Promise<ImportResult> => {
       const suppliers = JSON.parse(json);
-      const res = await apiFetch("/infrastructure/pharmacy/suppliers/bulk-import", {
+      const res: any = await apiFetch("/infrastructure/pharmacy/suppliers/bulk-import", {
         method: "POST",
         body: JSON.stringify({ suppliers }),
       });
@@ -290,7 +290,7 @@ export default function BulkImportPage() {
   const handleInteractionImport = React.useCallback(
     async (json: string): Promise<ImportResult> => {
       const interactions = JSON.parse(json);
-      const res = await apiFetch("/infrastructure/pharmacy/interactions/bulk-import", {
+      const res: any = await apiFetch("/infrastructure/pharmacy/interactions/bulk-import", {
         method: "POST",
         body: JSON.stringify({ interactions }),
       });
@@ -306,7 +306,7 @@ export default function BulkImportPage() {
   /* -------------------------------- View -------------------------------- */
 
   return (
-    <AppShell>
+    <AppShell title="Pharmacy Bulk Import">
       <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex items-center gap-3">

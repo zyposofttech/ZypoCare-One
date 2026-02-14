@@ -122,7 +122,7 @@ export default function SuppliersPage() {
       params.set("page", String(page));
       params.set("pageSize", String(pageSize));
 
-      const data = await apiFetch(`/infrastructure/pharmacy/suppliers?${params}`);
+      const data: any = await apiFetch(`/infrastructure/pharmacy/suppliers?${params}`);
       setRows(data.rows ?? []);
       setTotal(data.total ?? 0);
 

@@ -162,7 +162,7 @@ function formatDate(dateStr: string | null) {
 export default function SupplierDetailPage() {
   const params = useParams();
   const id = params.id as string;
-  const { branch } = useBranchContext();
+  const { branchId } = useBranchContext();
   const { toast } = useToast();
 
   const [supplier, setSupplier] = useState<Supplier | null>(null);
@@ -201,7 +201,7 @@ export default function SupplierDetailPage() {
   const fetchDrugMappings = async () => {
     try {
       setDrugMappingsLoading(true);
-      const data = await apiFetch(
+      const data: any = await apiFetch(
         `/infrastructure/pharmacy/suppliers/${id}/drugs`
       );
       setDrugMappings(data.mappings || []);
@@ -284,7 +284,7 @@ export default function SupplierDetailPage() {
   const fetchSupplier = async () => {
     try {
       setLoading(true);
-      const data = await apiFetch(`/infrastructure/pharmacy/suppliers/${id}`);
+      const data: any = await apiFetch(`/infrastructure/pharmacy/suppliers/${id}`);
       setSupplier(data);
     } catch (err: any) {
       toast({
@@ -298,12 +298,12 @@ export default function SupplierDetailPage() {
   };
 
   useEffect(() => {
-    if (id && branch?.id) {
+    if (id && branchId) {
       fetchSupplier();
       fetchDrugMappings();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, branch?.id]);
+  }, [id, branchId]);
 
   const openEditDialog = () => {
     if (!supplier) return;
@@ -356,7 +356,7 @@ export default function SupplierDetailPage() {
         rating: editForm.rating ? parseFloat(editForm.rating) : null,
       };
 
-      const updated = await apiFetch(
+      const updated: any = await apiFetch(
         `/infrastructure/pharmacy/suppliers/${id}`,
         {
           method: "PATCH",
@@ -386,7 +386,7 @@ export default function SupplierDetailPage() {
   };
 
   return (
-    <AppShell>
+    <AppShell title="Supplier Details">
       <RequirePerm perm="INFRA_PHARMACY_SUPPLIER_READ">
         <div className="space-y-6 p-6">
           {/* Header */}

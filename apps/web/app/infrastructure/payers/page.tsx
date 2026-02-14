@@ -1099,6 +1099,7 @@ export default function PayerManagementPage() {
                     financial: "Financial",
                     operational: "Operational",
                     integration: "Integration",
+                    documents: "Documents",
                   }[tab]}
                 </TabsTrigger>
               ))}

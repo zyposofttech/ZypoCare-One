@@ -231,7 +231,7 @@ export default function DrugCategoriesPage() {
   const loadFlatList = React.useCallback(async () => {
     if (!branchId) return;
     try {
-      const data = await apiFetch(
+      const data: any = await apiFetch(
         `/infrastructure/pharmacy/drug-categories?branchId=${branchId}`,
       );
       setFlatList(data.rows ?? []);

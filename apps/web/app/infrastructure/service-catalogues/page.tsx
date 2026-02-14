@@ -1262,9 +1262,9 @@ function CatalogueEditModal({
         departmentId: editing.departmentId || "",
         context: editing.context || "",
         payerGroup: editing.payerGroup || "",
-        filterCategory: Array.isArray(editing.filterRules?.category) ? editing.filterRules.category.join(", ") : (editing.filterRules?.category || ""),
-        filterMinPrice: editing.filterRules?.minPrice != null ? String(editing.filterRules.minPrice) : "",
-        filterMaxPrice: editing.filterRules?.maxPrice != null ? String(editing.filterRules.maxPrice) : "",
+        filterCategory: Array.isArray((editing as any).filterRules?.category) ? (editing as any).filterRules.category.join(", ") : ((editing as any).filterRules?.category || ""),
+        filterMinPrice: (editing as any).filterRules?.minPrice != null ? String((editing as any).filterRules.minPrice) : "",
+        filterMaxPrice: (editing as any).filterRules?.maxPrice != null ? String((editing as any).filterRules.maxPrice) : "",
         visibility: (editing as any).visibility || "",
       });
     } else {

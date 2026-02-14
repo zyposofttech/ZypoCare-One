@@ -296,6 +296,22 @@ model Branch {
 
   // Compliance Infrastructure
   complianceWorkspaces ComplianceWorkspace[]
+
+  // Blood Bank Module
+  bloodBankFacility    BloodBankFacility?
+  bbComponentMasters   BloodComponentMaster[]
+  bbEquipment          BloodBankEquipment[]
+  bbReagents           BloodBankReagent[]
+  bbTariffConfigs      BBTariffConfig[]
+  bbDonors             Donor[]
+  bbBloodUnits         BloodUnit[]
+  bbBloodRequests      BloodRequest[]
+  bbBloodIssues        BloodIssue[]
+  bbTransfusionRecords TransfusionRecord[]
+  bbQCRecords          QualityControlRecord[]
+  bbDonationCamps      BloodDonationCamp[]
+  bbMTPSessions        MTPSession[]
+  bbMSBOSConfigs       MSBOSConfig[]
 }
 
 model FacilityCatalog {
@@ -520,6 +536,8 @@ enum BloodGroup {
   O_NEG
   AB_POS
   AB_NEG
+  BOMBAY
+  RARE_OTHER
 }
 
 enum MaritalStatus {
@@ -1942,6 +1960,12 @@ model Patient {
   // Insurance relations
   insurancePolicies PatientInsurancePolicy[]
   insuranceCases    InsuranceCase[]
+
+  // Blood Bank relations
+  bbDonorLinks         Donor[]
+  bbBloodRequests      BloodRequest[]
+  bbTransfusionRecords TransfusionRecord[]
+  bbMTPSessions        MTPSession[]
 
   @@unique([branchId, uhid])
 }
@@ -4053,6 +4077,9 @@ model GovernmentSchemeConfig {
   updatedAt DateTime @updatedAt
 
   insuranceCases InsuranceCase[]
+
+  // --- Linking to Compliance SchemeEmpanelment ---
+  empanelment SchemeEmpanelment? @relation("EmpanelmentToGovScheme")
 
   @@unique([branchId, schemeCode])
   @@index([branchId, schemeType, isActive])
@@ -6900,6 +6927,7 @@ enum ComplianceEntityType {
   CAPA
   APPROVAL
   SCHEME_API_CREDENTIAL
+  SCHEME_SYNC
 }
 
 // ---- ComplianceWorkspace ----
@@ -7036,6 +7064,11 @@ model SchemeEmpanelment {
   cityCategory CityCategory?
 
   status EmpanelmentStatus @default(DRAFT)
+
+  // --- Linking to Infrastructure GovernmentSchemeConfig ---
+  govSchemeConfigId String?                 @unique
+  govSchemeConfig   GovernmentSchemeConfig? @relation("EmpanelmentToGovScheme", fields: [govSchemeConfigId], references: [id])
+  lastSyncedAt      DateTime?
 
   workspace ComplianceWorkspace @relation(fields: [workspaceId], references: [id])
 
@@ -7383,4 +7416,909 @@ model ComplianceAuditLog {
 
   @@index([workspaceId, entityType, entityId])
   @@map("compliance_audit_logs")
+}
+
+// ============================================================================
+// BLOOD BANK MODULE
+// ============================================================================
+
+enum BloodBankType {
+  HOSPITAL_BASED
+  STANDALONE
+  STORAGE_CENTRE
+  COMPONENT_SEPARATION_CENTRE
+}
+
+enum ComponentType {
+  WHOLE_BLOOD
+  PRBC
+  FFP
+  PLATELET_RDP
+  PLATELET_SDP
+  CRYOPRECIPITATE
+  CRYO_POOR_PLASMA
+}
+
+enum BagType {
+  SINGLE
+  DOUBLE
+  TRIPLE
+  QUADRUPLE
+}
+
+enum DonorType {
+  VOLUNTARY
+  REPLACEMENT
+  DIRECTED
+  AUTOLOGOUS
+}
+
+enum DonorStatus {
+  ELIGIBLE
+  TEMPORARILY_DEFERRED
+  PERMANENTLY_DEFERRED
+}
+
+enum CollectionType {
+  WHOLE_BLOOD_350
+  WHOLE_BLOOD_450
+  APHERESIS_SDP
+  APHERESIS_PLASMA
+}
+
+enum BloodUnitStatus {
+  COLLECTED
+  TESTING
+  QUARANTINED
+  AVAILABLE
+  RESERVED
+  CROSS_MATCHED
+  ISSUED
+  TRANSFUSED
+  DISCARDED
+  SEPARATED
+  RETURNED
+}
+
+enum TTITestResult {
+  REACTIVE
+  NON_REACTIVE
+  INDETERMINATE
+  PENDING
+}
+
+enum CrossMatchMethod {
+  IMMEDIATE_SPIN
+  AHG_INDIRECT_COOMBS
+  ELECTRONIC
+}
+
+enum CrossMatchResult {
+  COMPATIBLE
+  INCOMPATIBLE
+  PENDING
+}
+
+enum BloodRequestUrgency {
+  ROUTINE
+  URGENT
+  EMERGENCY
+  MTP
+}
+
+enum BloodRequestStatus {
+  PENDING
+  SAMPLE_RECEIVED
+  CROSS_MATCHING
+  READY
+  ISSUED
+  COMPLETED
+  CANCELLED
+}
+
+enum TransfusionReactionType {
+  FEBRILE
+  ALLERGIC
+  HEMOLYTIC_ACUTE
+  HEMOLYTIC_DELAYED
+  TRALI
+  TACO
+  ANAPHYLAXIS
+  BACTERIAL
+  OTHER
+}
+
+enum DiscardReason {
+  EXPIRED
+  TTI_REACTIVE
+  BAG_LEAK
+  CLOT
+  LIPEMIC
+  HEMOLYZED
+  QC_FAILURE
+  RETURN_TIMEOUT
+  OTHER
+}
+
+enum BBEquipmentType {
+  REFRIGERATOR
+  DEEP_FREEZER
+  PLATELET_AGITATOR
+  CELL_SEPARATOR
+  BLOOD_WARMER
+  CENTRIFUGE
+  OTHER
+}
+
+// ---- Blood Bank Facility ----
+
+model BloodBankFacility {
+  id       String @id @default(cuid())
+  branchId String @unique
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  facilityType   BloodBankType
+  drugLicenseNo  String?       @db.VarChar(64)
+  sbtcRegNo      String?       @db.VarChar(64)
+  nacoId         String?       @db.VarChar(64)
+  licenseValidTo DateTime?
+
+  operatingHours Json? // { weekday: { open, close }, emergency24x7: bool, onCallRoster: [...] }
+  physicalLayout Json? // { rooms: [{ name, type, area }] }
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("bb_facilities")
+}
+
+// ---- Blood Component Master ----
+
+model BloodComponentMaster {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  componentType ComponentType
+  name          String        @db.VarChar(120)
+  code          String        @db.VarChar(32)
+
+  shelfLifeDays     Int
+  storageMinTempC   Decimal @db.Decimal(5, 2)
+  storageMaxTempC   Decimal @db.Decimal(5, 2)
+  volumeMinMl       Int?
+  volumeMaxMl       Int?
+  preparationMethod String? @db.VarChar(200)
+  requiresAgitation Boolean @default(false)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tariffConfigs BBTariffConfig[]
+
+  @@unique([branchId, code])
+  @@index([branchId, isActive])
+  @@map("bb_component_masters")
+}
+
+// ---- Blood Bank Equipment ----
+
+model BloodBankEquipment {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  equipmentType      BBEquipmentType
+  equipmentId        String          @db.VarChar(64)
+  make               String?         @db.VarChar(120)
+  model              String?         @db.VarChar(120)
+  serialNumber       String?         @db.VarChar(120)
+  location           String?         @db.VarChar(200)
+  capacityUnits      Int?
+  tempRangeMinC      Decimal?        @db.Decimal(5, 2)
+  tempRangeMaxC      Decimal?        @db.Decimal(5, 2)
+  alarmThresholdMinC Decimal?        @db.Decimal(5, 2)
+  alarmThresholdMaxC Decimal?        @db.Decimal(5, 2)
+  pollingIntervalSec Int             @default(300)
+
+  calibrationDueDate  DateTime?
+  calibrationInterval Int? // days
+  lastCalibratedAt    DateTime?
+  calibratedByStaffId String?
+
+  iotSensorId String? @db.VarChar(120)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tempLogs       EquipmentTempLog[]
+  inventorySlots BloodInventorySlot[]
+  qcRecords      QualityControlRecord[]
+
+  @@unique([branchId, equipmentId])
+  @@index([branchId, equipmentType, isActive])
+  @@map("bb_equipment")
+}
+
+// ---- Equipment Temperature Log (IoT) ----
+
+model EquipmentTempLog {
+  id          String             @id @default(cuid())
+  equipmentId String
+  equipment   BloodBankEquipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
+  temperatureC          Decimal   @db.Decimal(5, 2)
+  recordedAt            DateTime  @default(now())
+  isBreaching           Boolean   @default(false)
+  acknowledged          Boolean   @default(false)
+  acknowledgedByStaffId String?
+  acknowledgedAt        DateTime?
+
+  @@index([equipmentId, recordedAt])
+  @@index([equipmentId, isBreaching])
+  @@map("bb_equipment_temp_logs")
+}
+
+// ---- Blood Bank Reagent ----
+
+model BloodBankReagent {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  name     String @db.VarChar(120)
+  code     String @db.VarChar(32)
+  category String @db.VarChar(64) // Anti-A, Anti-B, Anti-D, AHG, Screening Cells, ELISA kits, etc.
+
+  lotNumber   String?   @db.VarChar(64)
+  expiryDate  DateTime?
+  stockQty    Int       @default(0)
+  minStockQty Int       @default(0)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([branchId, code])
+  @@index([branchId, isActive])
+  @@map("bb_reagents")
+}
+
+// ---- Blood Bank Tariff Configuration ----
+
+model BBTariffConfig {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  componentMasterId String?
+  componentMaster   BloodComponentMaster? @relation(fields: [componentMasterId], references: [id], onDelete: SetNull)
+
+  chargeType String  @db.VarChar(48) // PROCESSING, CROSS_MATCH, IRRADIATION, LEUKO_REDUCTION, WASHING, VOLUME_REDUCTION
+  amount     Decimal @db.Decimal(12, 2)
+  currency   String  @default("INR") @db.VarChar(8)
+  gstPercent Decimal @default(0) @db.Decimal(5, 2)
+
+  govSchemeCode String?  @db.VarChar(48) // PMJAY, CGHS, STATE_SCHEME
+  govSchemeRate Decimal? @db.Decimal(12, 2)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([branchId, chargeType, isActive])
+  @@map("bb_tariff_configs")
+}
+
+// ---- Donor ----
+
+model Donor {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  donorNumber String    @db.VarChar(32)
+  donorType   DonorType @default(VOLUNTARY)
+
+  name        String    @db.VarChar(160)
+  gender      String    @db.VarChar(16)
+  dateOfBirth DateTime?
+  age         Int?
+  mobile      String?   @db.VarChar(20)
+  email       String?   @db.VarChar(120)
+  aadhaarNo   String?   @db.VarChar(16)
+  address     String?   @db.VarChar(500)
+  photoUrl    String?   @db.VarChar(500)
+
+  bloodGroup       BloodGroup?
+  donorStatus      DonorStatus @default(ELIGIBLE)
+  donationCount    Int         @default(0)
+  lastDonationDate DateTime?
+  nextEligibleDate DateTime?
+
+  // Optional UHID link
+  patientId String?
+  patient   Patient? @relation(fields: [patientId], references: [id], onDelete: SetNull)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deferrals  DonorDeferral[]
+  screenings DonorScreening[]
+  bloodUnits BloodUnit[]
+
+  @@unique([branchId, donorNumber])
+  @@index([branchId, donorStatus, isActive])
+  @@index([branchId, bloodGroup])
+  @@index([mobile])
+  @@map("bb_donors")
+}
+
+// ---- Donor Deferral ----
+
+model DonorDeferral {
+  id      String @id @default(cuid())
+  donorId String
+  donor   Donor  @relation(fields: [donorId], references: [id], onDelete: Cascade)
+
+  deferralType String    @db.VarChar(32) // TEMPORARY, PERMANENT
+  reason       String    @db.VarChar(500)
+  startDate    DateTime  @default(now())
+  endDate      DateTime?
+
+  deferredByStaffId String?
+  notes             String? @db.VarChar(1000)
+
+  createdAt DateTime @default(now())
+
+  @@index([donorId, startDate])
+  @@map("bb_donor_deferrals")
+}
+
+// ---- Donor Screening ----
+
+model DonorScreening {
+  id      String @id @default(cuid())
+  donorId String
+  donor   Donor  @relation(fields: [donorId], references: [id], onDelete: Cascade)
+
+  screeningDate DateTime @default(now())
+
+  // Digital DHQ
+  dhqResponses Json? // { questions: [{ id, question, answer, flagged }] }
+
+  // Physical Examination
+  hemoglobinGdl  Decimal? @db.Decimal(4, 1)
+  weightKg       Decimal? @db.Decimal(5, 1)
+  bpSystolic     Int?
+  bpDiastolic    Int?
+  pulseRate      Int?
+  temperatureC   Decimal? @db.Decimal(4, 1)
+  veinAssessment String?  @db.VarChar(200)
+
+  // Decision
+  eligibilityDecision String  @db.VarChar(32) // ELIGIBLE, DEFERRED_TEMP, DEFERRED_PERM
+  decisionNotes       String? @db.VarChar(500)
+  decidedByStaffId    String?
+
+  // Consent
+  consentGiven     Boolean   @default(false)
+  consentSignature String?   @db.VarChar(500) // base64 or URL
+  consentTimestamp DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([donorId, screeningDate])
+  @@map("bb_donor_screenings")
+}
+
+// ---- Blood Unit (Master Collection Record) ----
+
+model BloodUnit {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  unitNumber String @db.VarChar(48) // [BB Code]-[Year]-[Seq] or ISBT 128
+  barcode    String @db.VarChar(64)
+
+  donorId String
+  donor   Donor  @relation(fields: [donorId], references: [id])
+
+  bagType        BagType
+  collectionType CollectionType
+  bloodGroup     BloodGroup?
+  rhFactor       String?        @db.VarChar(16)
+
+  collectionStartAt DateTime?
+  collectionEndAt   DateTime?
+  volumeCollectedMl Int?
+  segmentCount      Int?
+
+  status BloodUnitStatus @default(COLLECTED)
+
+  // Parent-child for component separation
+  parentUnitId String?
+  parentUnit   BloodUnit?  @relation("UnitSeparation", fields: [parentUnitId], references: [id], onDelete: SetNull)
+  childUnits   BloodUnit[] @relation("UnitSeparation")
+
+  // Component info (for separated child units)
+  componentType ComponentType?
+  expiryDate    DateTime?
+
+  // Donor adverse event during collection
+  donorAdverseEvent    String? @db.VarChar(200) // vasovagal, hematoma, nerve injury
+  donorAdverseSeverity String? @db.VarChar(32)
+
+  // Staff tracking
+  collectedByStaffId String?
+  pilotTubeLabels    Json? // [{ tubeId, purpose: "grouping"|"tti"|"serology" }]
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  groupingResults BloodGroupingResult[]
+  ttiTests        TTITestRecord[]
+  inventorySlot   BloodInventorySlot?
+  crossMatchTests CrossMatchTest[]
+  bloodIssues     BloodIssue[]
+
+  @@unique([branchId, unitNumber])
+  @@index([branchId, status, bloodGroup])
+  @@index([branchId, expiryDate])
+  @@index([donorId])
+  @@map("bb_blood_units")
+}
+
+// ---- Blood Grouping Result ----
+
+model BloodGroupingResult {
+  id          String    @id @default(cuid())
+  bloodUnitId String
+  bloodUnit   BloodUnit @relation(fields: [bloodUnitId], references: [id], onDelete: Cascade)
+
+  // Forward grouping (Anti-A, Anti-B, Anti-D reactions)
+  forwardGrouping Json? // { antiA: "4+", antiB: "0", antiD: "4+" }
+  // Reverse grouping (A1 cells, B cells reactions)
+  reverseGrouping Json? // { a1Cells: "0", bCells: "4+" }
+
+  aboGroup       String?     @db.VarChar(8) // A, B, AB, O
+  rhType         String?     @db.VarChar(16) // Positive, Negative
+  confirmedGroup BloodGroup?
+
+  // Antibody screen
+  antibodyScreenResult String? @db.VarChar(32) // POSITIVE, NEGATIVE
+  antibodyIdentified   String? @db.VarChar(200)
+
+  hasDiscrepancy   Boolean @default(false)
+  discrepancyNotes String? @db.VarChar(500)
+
+  method            String?   @db.VarChar(48) // TUBE, GEL_CARD, MICROPLATE
+  testedByStaffId   String?
+  verifiedByStaffId String?
+  verifiedAt        DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([bloodUnitId])
+  @@map("bb_grouping_results")
+}
+
+// ---- TTI Test Record ----
+
+model TTITestRecord {
+  id          String    @id @default(cuid())
+  bloodUnitId String
+  bloodUnit   BloodUnit @relation(fields: [bloodUnitId], references: [id], onDelete: Cascade)
+
+  testName String        @db.VarChar(48) // HIV, HBsAg, HCV, SYPHILIS, MALARIA
+  method   String?       @db.VarChar(48) // ELISA, CLIA, RAPID, RPR
+  kitName  String?       @db.VarChar(120)
+  kitLotNo String?       @db.VarChar(64)
+  result   TTITestResult @default(PENDING)
+  rawValue String?       @db.VarChar(120)
+
+  testedByStaffId   String?
+  verifiedByStaffId String?
+  verifiedAt        DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([bloodUnitId, testName])
+  @@map("bb_tti_tests")
+}
+
+// ---- Blood Inventory Slot ----
+
+model BloodInventorySlot {
+  id          String    @id @default(cuid())
+  bloodUnitId String    @unique
+  bloodUnit   BloodUnit @relation(fields: [bloodUnitId], references: [id], onDelete: Cascade)
+
+  equipmentId String
+  equipment   BloodBankEquipment @relation(fields: [equipmentId], references: [id])
+
+  shelf String? @db.VarChar(32)
+  slot  String? @db.VarChar(32)
+
+  assignedAt DateTime  @default(now())
+  removedAt  DateTime?
+
+  @@index([equipmentId])
+  @@map("bb_inventory_slots")
+}
+
+// ---- Blood Request ----
+
+model BloodRequest {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  requestNumber String @db.VarChar(48)
+
+  patientId   String
+  patient     Patient @relation(fields: [patientId], references: [id])
+  encounterId String?
+
+  requestedComponent ComponentType
+  quantityUnits      Int
+  urgency            BloodRequestUrgency @default(ROUTINE)
+  indication         String?             @db.VarChar(500)
+  diagnosis          String?             @db.VarChar(500)
+
+  status BloodRequestStatus @default(PENDING)
+
+  requestedByStaffId String?
+  requestedAt        DateTime @default(now())
+
+  // SLA tracking
+  slaTargetMinutes Int? // 45 routine, 15 urgent, 5 emergency
+
+  notes String? @db.VarChar(1000)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patientSample PatientBloodSample?
+  crossMatches  CrossMatchTest[]
+  bloodIssues   BloodIssue[]
+
+  @@unique([branchId, requestNumber])
+  @@index([branchId, status, urgency])
+  @@index([patientId])
+  @@map("bb_blood_requests")
+}
+
+// ---- Patient Blood Sample ----
+
+model PatientBloodSample {
+  id        String       @id @default(cuid())
+  requestId String       @unique
+  request   BloodRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  sampleId           String   @db.VarChar(48)
+  collectedAt        DateTime @default(now())
+  collectedByStaffId String?
+
+  // Two-person verification for first sample
+  verifiedByStaffId  String?
+  verificationMethod String? @db.VarChar(48) // WRISTBAND_SCAN, MANUAL
+
+  // Patient grouping on this sample
+  patientBloodGroup      BloodGroup?
+  patientAntibodies      String?     @db.VarChar(500)
+  groupHistoryConsistent Boolean?
+
+  createdAt DateTime @default(now())
+
+  crossMatches CrossMatchTest[]
+
+  @@map("bb_patient_samples")
+}
+
+// ---- Cross-Match Test ----
+
+model CrossMatchTest {
+  id        String       @id @default(cuid())
+  requestId String
+  request   BloodRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  sampleId String
+  sample   PatientBloodSample @relation(fields: [sampleId], references: [id])
+
+  bloodUnitId String
+  bloodUnit   BloodUnit @relation(fields: [bloodUnitId], references: [id])
+
+  method CrossMatchMethod
+  result CrossMatchResult @default(PENDING)
+
+  certificateNumber String?   @db.VarChar(48)
+  validUntil        DateTime? // 72 hours from test
+
+  testedByStaffId   String?
+  verifiedByStaffId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bloodIssues BloodIssue[]
+
+  @@index([requestId, result])
+  @@index([bloodUnitId])
+  @@map("bb_cross_match_tests")
+}
+
+// ---- Blood Issue ----
+
+model BloodIssue {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  issueNumber String @db.VarChar(48)
+
+  bloodUnitId String
+  bloodUnit   BloodUnit @relation(fields: [bloodUnitId], references: [id])
+
+  requestId String
+  request   BloodRequest @relation(fields: [requestId], references: [id])
+
+  crossMatchId String?
+  crossMatch   CrossMatchTest? @relation(fields: [crossMatchId], references: [id])
+
+  issuedToWard     String?  @db.VarChar(120)
+  issuedToPerson   String?  @db.VarChar(160)
+  transportBoxTemp Decimal? @db.Decimal(4, 1)
+
+  // Visual inspection checklist
+  visualInspectionOk Boolean @default(true)
+  inspectionNotes    String? @db.VarChar(500)
+
+  issuedByStaffId String?
+  issuedAt        DateTime @default(now())
+
+  // Return tracking
+  isReturned      Boolean   @default(false)
+  returnedAt      DateTime?
+  returnReason    String?   @db.VarChar(200)
+  restockEligible Boolean?
+
+  // Emergency/MTP flag
+  isEmergencyIssue Boolean     @default(false)
+  mtpSessionId     String?
+  mtpSession       MTPSession? @relation(fields: [mtpSessionId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transfusionRecord TransfusionRecord?
+
+  @@unique([branchId, issueNumber])
+  @@index([branchId, issuedAt])
+  @@index([bloodUnitId])
+  @@index([requestId])
+  @@map("bb_blood_issues")
+}
+
+// ---- Transfusion Record ----
+
+model TransfusionRecord {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  issueId String     @unique
+  issue   BloodIssue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  // Bedside verification
+  bedsideVerifiedAt       DateTime?
+  bedsideVerifier1StaffId String?
+  bedsideVerifier2StaffId String?
+  patientWristbandScan    Boolean   @default(false)
+  unitBarcodeScan         Boolean   @default(false)
+  bedsideVerificationOk   Boolean?
+
+  // Transfusion timing
+  startedAt     DateTime?
+  endedAt       DateTime?
+  totalVolumeMl Int?
+
+  // Vitals at intervals
+  preVitals   Json? // { temp, bp, pulse }
+  vitals15Min Json?
+  vitals30Min Json?
+  vitals1Hr   Json?
+  postVitals  Json?
+
+  // Reaction flag
+  hasReaction Boolean @default(false)
+
+  administeredByStaffId String?
+  doctorNotifiedAt      DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reactions TransfusionReaction[]
+
+  @@index([patientId])
+  @@map("bb_transfusion_records")
+}
+
+// ---- Transfusion Reaction ----
+
+model TransfusionReaction {
+  id                String            @id @default(cuid())
+  transfusionId     String
+  transfusionRecord TransfusionRecord @relation(fields: [transfusionId], references: [id], onDelete: Cascade)
+
+  reactionType TransfusionReactionType
+  severity     String                  @db.VarChar(32) // MILD, MODERATE, SEVERE, LIFE_THREATENING
+  onsetAt      DateTime?
+  description  String?                 @db.VarChar(1000)
+
+  // Management
+  transfusionStopped Boolean @default(true)
+  managementNotes    String? @db.VarChar(1000)
+
+  // Investigation
+  investigationResults Json? // { dct, repeat_grouping, cultures, haptoglobin, ... }
+  rootCause            String? @db.VarChar(500)
+  correctiveAction     String? @db.VarChar(500)
+
+  reportedByStaffId     String?
+  investigatedByStaffId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([transfusionId])
+  @@map("bb_transfusion_reactions")
+}
+
+// ---- Quality Control Record ----
+
+model QualityControlRecord {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  recordType String @db.VarChar(32) // IQC, EQAS, CALIBRATION
+  testSystem String @db.VarChar(120) // e.g., "Blood Grouping Gel Card", "HIV ELISA"
+
+  equipmentId String?
+  equipment   BloodBankEquipment? @relation(fields: [equipmentId], references: [id])
+
+  // IQC specific
+  qcLevel        String? @db.VarChar(32) // LOW, NORMAL, HIGH
+  expectedValue  String? @db.VarChar(64)
+  observedValue  String? @db.VarChar(64)
+  westgardResult String? @db.VarChar(32) // PASS, FAIL, WARNING
+  westgardRule   String? @db.VarChar(32) // 1-2s, 1-3s, 2-2s, R4s, etc.
+
+  // EQAS specific
+  eqasCycleId  String? @db.VarChar(64)
+  eqasProvider String? @db.VarChar(120)
+  eqasResult   String? @db.VarChar(32) // SATISFACTORY, UNSATISFACTORY
+
+  // Calibration specific
+  calibrationValues   Json?
+  calibrationPassFail String? @db.VarChar(16)
+
+  correctiveAction String? @db.VarChar(500)
+
+  performedByStaffId String?
+  performedAt        DateTime  @default(now())
+  reviewedByStaffId  String?
+  reviewedAt         DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([branchId, recordType, performedAt])
+  @@map("bb_qc_records")
+}
+
+// ---- Blood Donation Camp ----
+
+model BloodDonationCamp {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  campCode  String   @db.VarChar(32)
+  campDate  DateTime
+  location  String   @db.VarChar(500)
+  organizer String   @db.VarChar(200)
+
+  estimatedDonors Int?
+  actualDonors    Int?
+  unitsCollected  Int?
+
+  teamAllocation     Json? // [{ staffId, role }]
+  equipmentChecklist Json? // [{ item, packed: bool, returned: bool }]
+
+  status   String    @default("PLANNED") @db.VarChar(32) // PLANNED, IN_PROGRESS, COMPLETED, CANCELLED
+  syncedAt DateTime?
+  summary  Json? // post-camp summary data
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([branchId, campCode])
+  @@index([branchId, status])
+  @@map("bb_donation_camps")
+}
+
+// ---- Massive Transfusion Protocol Session ----
+
+model MTPSession {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  patientId   String
+  patient     Patient @relation(fields: [patientId], references: [id])
+  encounterId String?
+
+  activatedByStaffId   String?
+  activatedAt          DateTime  @default(now())
+  deactivatedByStaffId String?
+  deactivatedAt        DateTime?
+
+  // Pack ratio config (e.g., 6 PRBC : 4 FFP : 1 SDP)
+  packRatio Json? // { prbc: 6, ffp: 4, sdp: 1 }
+
+  status String @default("ACTIVE") @db.VarChar(32) // ACTIVE, DEACTIVATED
+
+  summary Json? // reconciliation summary
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bloodIssues BloodIssue[]
+
+  @@index([branchId, status])
+  @@index([patientId])
+  @@map("bb_mtp_sessions")
+}
+
+// ---- MSBOS Configuration ----
+
+model MSBOSConfig {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  procedureCode String @db.VarChar(48)
+  procedureName String @db.VarChar(200)
+
+  recommendedPRBC     Int @default(0)
+  recommendedFFP      Int @default(0)
+  recommendedPlatelet Int @default(0)
+  recommendedCryo     Int @default(0)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([branchId, procedureCode])
+  @@index([branchId, isActive])
+  @@map("bb_msbos_configs")
 }

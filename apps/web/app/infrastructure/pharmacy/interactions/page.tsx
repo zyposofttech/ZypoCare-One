@@ -158,7 +158,7 @@ export default function InteractionsPage() {
       params.set("page", String(page));
       params.set("pageSize", String(pageSize));
 
-      const data = await apiFetch(`/infrastructure/pharmacy/interactions?${params}`);
+      const data: any = await apiFetch(`/infrastructure/pharmacy/interactions?${params}`);
       setRows(data.rows ?? []);
       setTotal(data.total ?? 0);
 

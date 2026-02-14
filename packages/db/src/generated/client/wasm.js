@@ -3130,6 +3130,424 @@ exports.Prisma.ComplianceAuditLogScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.BloodBankFacilityScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  facilityType: 'facilityType',
+  drugLicenseNo: 'drugLicenseNo',
+  sbtcRegNo: 'sbtcRegNo',
+  nacoId: 'nacoId',
+  licenseValidTo: 'licenseValidTo',
+  operatingHours: 'operatingHours',
+  physicalLayout: 'physicalLayout',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BloodComponentMasterScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  componentType: 'componentType',
+  name: 'name',
+  code: 'code',
+  shelfLifeDays: 'shelfLifeDays',
+  storageMinTempC: 'storageMinTempC',
+  storageMaxTempC: 'storageMaxTempC',
+  volumeMinMl: 'volumeMinMl',
+  volumeMaxMl: 'volumeMaxMl',
+  preparationMethod: 'preparationMethod',
+  requiresAgitation: 'requiresAgitation',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BloodBankEquipmentScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  equipmentType: 'equipmentType',
+  equipmentId: 'equipmentId',
+  make: 'make',
+  model: 'model',
+  serialNumber: 'serialNumber',
+  location: 'location',
+  capacityUnits: 'capacityUnits',
+  tempRangeMinC: 'tempRangeMinC',
+  tempRangeMaxC: 'tempRangeMaxC',
+  alarmThresholdMinC: 'alarmThresholdMinC',
+  alarmThresholdMaxC: 'alarmThresholdMaxC',
+  pollingIntervalSec: 'pollingIntervalSec',
+  calibrationDueDate: 'calibrationDueDate',
+  calibrationInterval: 'calibrationInterval',
+  lastCalibratedAt: 'lastCalibratedAt',
+  calibratedByStaffId: 'calibratedByStaffId',
+  iotSensorId: 'iotSensorId',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EquipmentTempLogScalarFieldEnum = {
+  id: 'id',
+  equipmentId: 'equipmentId',
+  temperatureC: 'temperatureC',
+  recordedAt: 'recordedAt',
+  isBreaching: 'isBreaching',
+  acknowledged: 'acknowledged',
+  acknowledgedByStaffId: 'acknowledgedByStaffId',
+  acknowledgedAt: 'acknowledgedAt'
+};
+
+exports.Prisma.BloodBankReagentScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  name: 'name',
+  code: 'code',
+  category: 'category',
+  lotNumber: 'lotNumber',
+  expiryDate: 'expiryDate',
+  stockQty: 'stockQty',
+  minStockQty: 'minStockQty',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BBTariffConfigScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  componentMasterId: 'componentMasterId',
+  chargeType: 'chargeType',
+  amount: 'amount',
+  currency: 'currency',
+  gstPercent: 'gstPercent',
+  govSchemeCode: 'govSchemeCode',
+  govSchemeRate: 'govSchemeRate',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DonorScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  donorNumber: 'donorNumber',
+  donorType: 'donorType',
+  name: 'name',
+  gender: 'gender',
+  dateOfBirth: 'dateOfBirth',
+  age: 'age',
+  mobile: 'mobile',
+  email: 'email',
+  aadhaarNo: 'aadhaarNo',
+  address: 'address',
+  photoUrl: 'photoUrl',
+  bloodGroup: 'bloodGroup',
+  donorStatus: 'donorStatus',
+  donationCount: 'donationCount',
+  lastDonationDate: 'lastDonationDate',
+  nextEligibleDate: 'nextEligibleDate',
+  patientId: 'patientId',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DonorDeferralScalarFieldEnum = {
+  id: 'id',
+  donorId: 'donorId',
+  deferralType: 'deferralType',
+  reason: 'reason',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  deferredByStaffId: 'deferredByStaffId',
+  notes: 'notes',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.DonorScreeningScalarFieldEnum = {
+  id: 'id',
+  donorId: 'donorId',
+  screeningDate: 'screeningDate',
+  dhqResponses: 'dhqResponses',
+  hemoglobinGdl: 'hemoglobinGdl',
+  weightKg: 'weightKg',
+  bpSystolic: 'bpSystolic',
+  bpDiastolic: 'bpDiastolic',
+  pulseRate: 'pulseRate',
+  temperatureC: 'temperatureC',
+  veinAssessment: 'veinAssessment',
+  eligibilityDecision: 'eligibilityDecision',
+  decisionNotes: 'decisionNotes',
+  decidedByStaffId: 'decidedByStaffId',
+  consentGiven: 'consentGiven',
+  consentSignature: 'consentSignature',
+  consentTimestamp: 'consentTimestamp',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.BloodUnitScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  unitNumber: 'unitNumber',
+  barcode: 'barcode',
+  donorId: 'donorId',
+  bagType: 'bagType',
+  collectionType: 'collectionType',
+  bloodGroup: 'bloodGroup',
+  rhFactor: 'rhFactor',
+  collectionStartAt: 'collectionStartAt',
+  collectionEndAt: 'collectionEndAt',
+  volumeCollectedMl: 'volumeCollectedMl',
+  segmentCount: 'segmentCount',
+  status: 'status',
+  parentUnitId: 'parentUnitId',
+  componentType: 'componentType',
+  expiryDate: 'expiryDate',
+  donorAdverseEvent: 'donorAdverseEvent',
+  donorAdverseSeverity: 'donorAdverseSeverity',
+  collectedByStaffId: 'collectedByStaffId',
+  pilotTubeLabels: 'pilotTubeLabels',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BloodGroupingResultScalarFieldEnum = {
+  id: 'id',
+  bloodUnitId: 'bloodUnitId',
+  forwardGrouping: 'forwardGrouping',
+  reverseGrouping: 'reverseGrouping',
+  aboGroup: 'aboGroup',
+  rhType: 'rhType',
+  confirmedGroup: 'confirmedGroup',
+  antibodyScreenResult: 'antibodyScreenResult',
+  antibodyIdentified: 'antibodyIdentified',
+  hasDiscrepancy: 'hasDiscrepancy',
+  discrepancyNotes: 'discrepancyNotes',
+  method: 'method',
+  testedByStaffId: 'testedByStaffId',
+  verifiedByStaffId: 'verifiedByStaffId',
+  verifiedAt: 'verifiedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.TTITestRecordScalarFieldEnum = {
+  id: 'id',
+  bloodUnitId: 'bloodUnitId',
+  testName: 'testName',
+  method: 'method',
+  kitName: 'kitName',
+  kitLotNo: 'kitLotNo',
+  result: 'result',
+  rawValue: 'rawValue',
+  testedByStaffId: 'testedByStaffId',
+  verifiedByStaffId: 'verifiedByStaffId',
+  verifiedAt: 'verifiedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.BloodInventorySlotScalarFieldEnum = {
+  id: 'id',
+  bloodUnitId: 'bloodUnitId',
+  equipmentId: 'equipmentId',
+  shelf: 'shelf',
+  slot: 'slot',
+  assignedAt: 'assignedAt',
+  removedAt: 'removedAt'
+};
+
+exports.Prisma.BloodRequestScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  requestNumber: 'requestNumber',
+  patientId: 'patientId',
+  encounterId: 'encounterId',
+  requestedComponent: 'requestedComponent',
+  quantityUnits: 'quantityUnits',
+  urgency: 'urgency',
+  indication: 'indication',
+  diagnosis: 'diagnosis',
+  status: 'status',
+  requestedByStaffId: 'requestedByStaffId',
+  requestedAt: 'requestedAt',
+  slaTargetMinutes: 'slaTargetMinutes',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PatientBloodSampleScalarFieldEnum = {
+  id: 'id',
+  requestId: 'requestId',
+  sampleId: 'sampleId',
+  collectedAt: 'collectedAt',
+  collectedByStaffId: 'collectedByStaffId',
+  verifiedByStaffId: 'verifiedByStaffId',
+  verificationMethod: 'verificationMethod',
+  patientBloodGroup: 'patientBloodGroup',
+  patientAntibodies: 'patientAntibodies',
+  groupHistoryConsistent: 'groupHistoryConsistent',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.CrossMatchTestScalarFieldEnum = {
+  id: 'id',
+  requestId: 'requestId',
+  sampleId: 'sampleId',
+  bloodUnitId: 'bloodUnitId',
+  method: 'method',
+  result: 'result',
+  certificateNumber: 'certificateNumber',
+  validUntil: 'validUntil',
+  testedByStaffId: 'testedByStaffId',
+  verifiedByStaffId: 'verifiedByStaffId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BloodIssueScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  issueNumber: 'issueNumber',
+  bloodUnitId: 'bloodUnitId',
+  requestId: 'requestId',
+  crossMatchId: 'crossMatchId',
+  issuedToWard: 'issuedToWard',
+  issuedToPerson: 'issuedToPerson',
+  transportBoxTemp: 'transportBoxTemp',
+  visualInspectionOk: 'visualInspectionOk',
+  inspectionNotes: 'inspectionNotes',
+  issuedByStaffId: 'issuedByStaffId',
+  issuedAt: 'issuedAt',
+  isReturned: 'isReturned',
+  returnedAt: 'returnedAt',
+  returnReason: 'returnReason',
+  restockEligible: 'restockEligible',
+  isEmergencyIssue: 'isEmergencyIssue',
+  mtpSessionId: 'mtpSessionId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TransfusionRecordScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  issueId: 'issueId',
+  patientId: 'patientId',
+  bedsideVerifiedAt: 'bedsideVerifiedAt',
+  bedsideVerifier1StaffId: 'bedsideVerifier1StaffId',
+  bedsideVerifier2StaffId: 'bedsideVerifier2StaffId',
+  patientWristbandScan: 'patientWristbandScan',
+  unitBarcodeScan: 'unitBarcodeScan',
+  bedsideVerificationOk: 'bedsideVerificationOk',
+  startedAt: 'startedAt',
+  endedAt: 'endedAt',
+  totalVolumeMl: 'totalVolumeMl',
+  preVitals: 'preVitals',
+  vitals15Min: 'vitals15Min',
+  vitals30Min: 'vitals30Min',
+  vitals1Hr: 'vitals1Hr',
+  postVitals: 'postVitals',
+  hasReaction: 'hasReaction',
+  administeredByStaffId: 'administeredByStaffId',
+  doctorNotifiedAt: 'doctorNotifiedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TransfusionReactionScalarFieldEnum = {
+  id: 'id',
+  transfusionId: 'transfusionId',
+  reactionType: 'reactionType',
+  severity: 'severity',
+  onsetAt: 'onsetAt',
+  description: 'description',
+  transfusionStopped: 'transfusionStopped',
+  managementNotes: 'managementNotes',
+  investigationResults: 'investigationResults',
+  rootCause: 'rootCause',
+  correctiveAction: 'correctiveAction',
+  reportedByStaffId: 'reportedByStaffId',
+  investigatedByStaffId: 'investigatedByStaffId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.QualityControlRecordScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  recordType: 'recordType',
+  testSystem: 'testSystem',
+  equipmentId: 'equipmentId',
+  qcLevel: 'qcLevel',
+  expectedValue: 'expectedValue',
+  observedValue: 'observedValue',
+  westgardResult: 'westgardResult',
+  westgardRule: 'westgardRule',
+  eqasCycleId: 'eqasCycleId',
+  eqasProvider: 'eqasProvider',
+  eqasResult: 'eqasResult',
+  calibrationValues: 'calibrationValues',
+  calibrationPassFail: 'calibrationPassFail',
+  correctiveAction: 'correctiveAction',
+  performedByStaffId: 'performedByStaffId',
+  performedAt: 'performedAt',
+  reviewedByStaffId: 'reviewedByStaffId',
+  reviewedAt: 'reviewedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.BloodDonationCampScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  campCode: 'campCode',
+  campDate: 'campDate',
+  location: 'location',
+  organizer: 'organizer',
+  estimatedDonors: 'estimatedDonors',
+  actualDonors: 'actualDonors',
+  unitsCollected: 'unitsCollected',
+  teamAllocation: 'teamAllocation',
+  equipmentChecklist: 'equipmentChecklist',
+  status: 'status',
+  syncedAt: 'syncedAt',
+  summary: 'summary',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MTPSessionScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  patientId: 'patientId',
+  encounterId: 'encounterId',
+  activatedByStaffId: 'activatedByStaffId',
+  activatedAt: 'activatedAt',
+  deactivatedByStaffId: 'deactivatedByStaffId',
+  deactivatedAt: 'deactivatedAt',
+  packRatio: 'packRatio',
+  status: 'status',
+  summary: 'summary',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MSBOSConfigScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  procedureCode: 'procedureCode',
+  procedureName: 'procedureName',
+  recommendedPRBC: 'recommendedPRBC',
+  recommendedFFP: 'recommendedFFP',
+  recommendedPlatelet: 'recommendedPlatelet',
+  recommendedCryo: 'recommendedCryo',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -3193,7 +3611,9 @@ exports.BloodGroup = exports.$Enums.BloodGroup = {
   O_POS: 'O_POS',
   O_NEG: 'O_NEG',
   AB_POS: 'AB_POS',
-  AB_NEG: 'AB_NEG'
+  AB_NEG: 'AB_NEG',
+  BOMBAY: 'BOMBAY',
+  RARE_OTHER: 'RARE_OTHER'
 };
 
 exports.MaritalStatus = exports.$Enums.MaritalStatus = {
@@ -4533,6 +4953,122 @@ exports.ComplianceApprovalStatus = exports.$Enums.ComplianceApprovalStatus = {
   CANCELLED: 'CANCELLED'
 };
 
+exports.BloodBankType = exports.$Enums.BloodBankType = {
+  HOSPITAL_BASED: 'HOSPITAL_BASED',
+  STANDALONE: 'STANDALONE',
+  STORAGE_CENTRE: 'STORAGE_CENTRE',
+  COMPONENT_SEPARATION_CENTRE: 'COMPONENT_SEPARATION_CENTRE'
+};
+
+exports.ComponentType = exports.$Enums.ComponentType = {
+  WHOLE_BLOOD: 'WHOLE_BLOOD',
+  PRBC: 'PRBC',
+  FFP: 'FFP',
+  PLATELET_RDP: 'PLATELET_RDP',
+  PLATELET_SDP: 'PLATELET_SDP',
+  CRYOPRECIPITATE: 'CRYOPRECIPITATE',
+  CRYO_POOR_PLASMA: 'CRYO_POOR_PLASMA'
+};
+
+exports.BBEquipmentType = exports.$Enums.BBEquipmentType = {
+  REFRIGERATOR: 'REFRIGERATOR',
+  DEEP_FREEZER: 'DEEP_FREEZER',
+  PLATELET_AGITATOR: 'PLATELET_AGITATOR',
+  CELL_SEPARATOR: 'CELL_SEPARATOR',
+  BLOOD_WARMER: 'BLOOD_WARMER',
+  CENTRIFUGE: 'CENTRIFUGE',
+  OTHER: 'OTHER'
+};
+
+exports.DonorType = exports.$Enums.DonorType = {
+  VOLUNTARY: 'VOLUNTARY',
+  REPLACEMENT: 'REPLACEMENT',
+  DIRECTED: 'DIRECTED',
+  AUTOLOGOUS: 'AUTOLOGOUS'
+};
+
+exports.DonorStatus = exports.$Enums.DonorStatus = {
+  ELIGIBLE: 'ELIGIBLE',
+  TEMPORARILY_DEFERRED: 'TEMPORARILY_DEFERRED',
+  PERMANENTLY_DEFERRED: 'PERMANENTLY_DEFERRED'
+};
+
+exports.BagType = exports.$Enums.BagType = {
+  SINGLE: 'SINGLE',
+  DOUBLE: 'DOUBLE',
+  TRIPLE: 'TRIPLE',
+  QUADRUPLE: 'QUADRUPLE'
+};
+
+exports.CollectionType = exports.$Enums.CollectionType = {
+  WHOLE_BLOOD_350: 'WHOLE_BLOOD_350',
+  WHOLE_BLOOD_450: 'WHOLE_BLOOD_450',
+  APHERESIS_SDP: 'APHERESIS_SDP',
+  APHERESIS_PLASMA: 'APHERESIS_PLASMA'
+};
+
+exports.BloodUnitStatus = exports.$Enums.BloodUnitStatus = {
+  COLLECTED: 'COLLECTED',
+  TESTING: 'TESTING',
+  QUARANTINED: 'QUARANTINED',
+  AVAILABLE: 'AVAILABLE',
+  RESERVED: 'RESERVED',
+  CROSS_MATCHED: 'CROSS_MATCHED',
+  ISSUED: 'ISSUED',
+  TRANSFUSED: 'TRANSFUSED',
+  DISCARDED: 'DISCARDED',
+  SEPARATED: 'SEPARATED',
+  RETURNED: 'RETURNED'
+};
+
+exports.TTITestResult = exports.$Enums.TTITestResult = {
+  REACTIVE: 'REACTIVE',
+  NON_REACTIVE: 'NON_REACTIVE',
+  INDETERMINATE: 'INDETERMINATE',
+  PENDING: 'PENDING'
+};
+
+exports.BloodRequestUrgency = exports.$Enums.BloodRequestUrgency = {
+  ROUTINE: 'ROUTINE',
+  URGENT: 'URGENT',
+  EMERGENCY: 'EMERGENCY',
+  MTP: 'MTP'
+};
+
+exports.BloodRequestStatus = exports.$Enums.BloodRequestStatus = {
+  PENDING: 'PENDING',
+  SAMPLE_RECEIVED: 'SAMPLE_RECEIVED',
+  CROSS_MATCHING: 'CROSS_MATCHING',
+  READY: 'READY',
+  ISSUED: 'ISSUED',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.CrossMatchMethod = exports.$Enums.CrossMatchMethod = {
+  IMMEDIATE_SPIN: 'IMMEDIATE_SPIN',
+  AHG_INDIRECT_COOMBS: 'AHG_INDIRECT_COOMBS',
+  ELECTRONIC: 'ELECTRONIC'
+};
+
+exports.CrossMatchResult = exports.$Enums.CrossMatchResult = {
+  COMPATIBLE: 'COMPATIBLE',
+  INCOMPATIBLE: 'INCOMPATIBLE',
+  PENDING: 'PENDING'
+};
+
+exports.TransfusionReactionType = exports.$Enums.TransfusionReactionType = {
+  FEBRILE: 'FEBRILE',
+  ALLERGIC: 'ALLERGIC',
+  HEMOLYTIC_ACUTE: 'HEMOLYTIC_ACUTE',
+  HEMOLYTIC_DELAYED: 'HEMOLYTIC_DELAYED',
+  TRALI: 'TRALI',
+  TACO: 'TACO',
+  ANAPHYLAXIS: 'ANAPHYLAXIS',
+  BACTERIAL: 'BACTERIAL',
+  OTHER: 'OTHER'
+};
+
 exports.Prisma.ModelName = {
   Organization: 'Organization',
   Branch: 'Branch',
@@ -4718,7 +5254,30 @@ exports.Prisma.ModelName = {
   AuditFinding: 'AuditFinding',
   CapaAction: 'CapaAction',
   ComplianceApproval: 'ComplianceApproval',
-  ComplianceAuditLog: 'ComplianceAuditLog'
+  ComplianceAuditLog: 'ComplianceAuditLog',
+  BloodBankFacility: 'BloodBankFacility',
+  BloodComponentMaster: 'BloodComponentMaster',
+  BloodBankEquipment: 'BloodBankEquipment',
+  EquipmentTempLog: 'EquipmentTempLog',
+  BloodBankReagent: 'BloodBankReagent',
+  BBTariffConfig: 'BBTariffConfig',
+  Donor: 'Donor',
+  DonorDeferral: 'DonorDeferral',
+  DonorScreening: 'DonorScreening',
+  BloodUnit: 'BloodUnit',
+  BloodGroupingResult: 'BloodGroupingResult',
+  TTITestRecord: 'TTITestRecord',
+  BloodInventorySlot: 'BloodInventorySlot',
+  BloodRequest: 'BloodRequest',
+  PatientBloodSample: 'PatientBloodSample',
+  CrossMatchTest: 'CrossMatchTest',
+  BloodIssue: 'BloodIssue',
+  TransfusionRecord: 'TransfusionRecord',
+  TransfusionReaction: 'TransfusionReaction',
+  QualityControlRecord: 'QualityControlRecord',
+  BloodDonationCamp: 'BloodDonationCamp',
+  MTPSession: 'MTPSession',
+  MSBOSConfig: 'MSBOSConfig'
 };
 
 /**

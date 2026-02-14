@@ -16,6 +16,7 @@ import { ComplianceModule } from "../compliance/compliance.module";
 import { FacilitySetupModule } from "../facility-setup/facility-setup.module";
 import { InfrastructureModule } from "../infrastructure/infrastructure.module";
 import { OtModule } from "../infrastructure/ot/ot.module";
+import { BloodBankModule } from "../blood-bank/blood-bank.module";
 // import { NatsModule } from "../nats/nats.module";
 
 @Module({
@@ -36,6 +37,7 @@ import { OtModule } from "../infrastructure/ot/ot.module";
     FacilitySetupModule,
     InfrastructureModule,
     OtModule,
+    BloodBankModule,
     //NatsModule
   ],
   controllers: [HealthController],
