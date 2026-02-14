@@ -1955,8 +1955,10 @@ exports.Prisma.DiagnosticSectionScalarFieldEnum = {
   branchId: 'branchId',
   code: 'code',
   name: 'name',
+  type: 'type',
   sortOrder: 'sortOrder',
   isActive: 'isActive',
+  headStaffId: 'headStaffId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -1981,6 +1983,10 @@ exports.Prisma.SpecimenTypeScalarFieldEnum = {
   container: 'container',
   minVolumeMl: 'minVolumeMl',
   handlingNotes: 'handlingNotes',
+  fastingRequired: 'fastingRequired',
+  fastingHours: 'fastingHours',
+  collectionInstructions: 'collectionInstructions',
+  storageTemperature: 'storageTemperature',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -1994,14 +2000,20 @@ exports.Prisma.DiagnosticItemScalarFieldEnum = {
   kind: 'kind',
   sectionId: 'sectionId',
   categoryId: 'categoryId',
+  loincCode: 'loincCode',
+  snomedCode: 'snomedCode',
+  searchAliases: 'searchAliases',
+  careContext: 'careContext',
   specimenId: 'specimenId',
   tatMinsRoutine: 'tatMinsRoutine',
   tatMinsStat: 'tatMinsStat',
   requiresAppointment: 'requiresAppointment',
   preparationText: 'preparationText',
   consentRequired: 'consentRequired',
+  requiresPcpndt: 'requiresPcpndt',
   serviceItemId: 'serviceItemId',
   isPanel: 'isPanel',
+  panelType: 'panelType',
   sortOrder: 'sortOrder',
   isActive: 'isActive',
   createdAt: 'createdAt',
@@ -2027,6 +2039,8 @@ exports.Prisma.DiagnosticParameterScalarFieldEnum = {
   unit: 'unit',
   precision: 'precision',
   allowedText: 'allowedText',
+  isDerived: 'isDerived',
+  formula: 'formula',
   criticalLow: 'criticalLow',
   criticalHigh: 'criticalHigh',
   sortOrder: 'sortOrder',
@@ -2045,6 +2059,7 @@ exports.Prisma.DiagnosticReferenceRangeScalarFieldEnum = {
   high: 'high',
   textRange: 'textRange',
   notes: 'notes',
+  source: 'source',
   sortOrder: 'sortOrder',
   isActive: 'isActive',
   createdAt: 'createdAt',
@@ -2058,6 +2073,10 @@ exports.Prisma.DiagnosticTemplateScalarFieldEnum = {
   name: 'name',
   body: 'body',
   isActive: 'isActive',
+  headerConfig: 'headerConfig',
+  footerConfig: 'footerConfig',
+  parameterLayout: 'parameterLayout',
+  signatureRoles: 'signatureRoles',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -2070,6 +2089,8 @@ exports.Prisma.DiagnosticServicePointScalarFieldEnum = {
   code: 'code',
   name: 'name',
   type: 'type',
+  operatingHours: 'operatingHours',
+  capacity: 'capacity',
   isActive: 'isActive',
   sortOrder: 'sortOrder',
   notes: 'notes',
@@ -2112,6 +2133,27 @@ exports.Prisma.DiagnosticServicePointEquipmentScalarFieldEnum = {
   sortOrder: 'sortOrder',
   isActive: 'isActive',
   notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DiagnosticServicePointSectionScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  servicePointId: 'servicePointId',
+  sectionId: 'sectionId',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DiagnosticServicePointStaffScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  servicePointId: 'servicePointId',
+  staffId: 'staffId',
+  role: 'role',
+  isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -4465,10 +4507,33 @@ exports.OtEquipmentCategory = exports.$Enums.OtEquipmentCategory = {
   OTHER: 'OTHER'
 };
 
+exports.DiagnosticSectionType = exports.$Enums.DiagnosticSectionType = {
+  LAB: 'LAB',
+  IMAGING: 'IMAGING',
+  CARDIOLOGY: 'CARDIOLOGY',
+  NEUROLOGY: 'NEUROLOGY',
+  PULMONOLOGY: 'PULMONOLOGY',
+  OTHER: 'OTHER'
+};
+
 exports.DiagnosticKind = exports.$Enums.DiagnosticKind = {
   LAB: 'LAB',
   IMAGING: 'IMAGING',
   PROCEDURE: 'PROCEDURE'
+};
+
+exports.DiagnosticCareContext = exports.$Enums.DiagnosticCareContext = {
+  OPD: 'OPD',
+  IPD: 'IPD',
+  ER: 'ER',
+  DAYCARE: 'DAYCARE',
+  HOMECARE: 'HOMECARE',
+  ALL: 'ALL'
+};
+
+exports.DiagnosticPanelType = exports.$Enums.DiagnosticPanelType = {
+  PROFILE: 'PROFILE',
+  PACKAGE: 'PACKAGE'
 };
 
 exports.DiagnosticResultDataType = exports.$Enums.DiagnosticResultDataType = {
@@ -4476,6 +4541,15 @@ exports.DiagnosticResultDataType = exports.$Enums.DiagnosticResultDataType = {
   TEXT: 'TEXT',
   BOOLEAN: 'BOOLEAN',
   CHOICE: 'CHOICE'
+};
+
+exports.DiagnosticRangeSource = exports.$Enums.DiagnosticRangeSource = {
+  MANUFACTURER: 'MANUFACTURER',
+  HOSPITAL_DEFINED: 'HOSPITAL_DEFINED',
+  LITERATURE: 'LITERATURE',
+  REGULATORY_BODY: 'REGULATORY_BODY',
+  CONSENSUS_GUIDELINE: 'CONSENSUS_GUIDELINE',
+  OTHER: 'OTHER'
 };
 
 exports.DiagnosticTemplateKind = exports.$Enums.DiagnosticTemplateKind = {
@@ -5193,6 +5267,8 @@ exports.Prisma.ModelName = {
   DiagnosticServicePointRoom: 'DiagnosticServicePointRoom',
   DiagnosticServicePointResource: 'DiagnosticServicePointResource',
   DiagnosticServicePointEquipment: 'DiagnosticServicePointEquipment',
+  DiagnosticServicePointSection: 'DiagnosticServicePointSection',
+  DiagnosticServicePointStaff: 'DiagnosticServicePointStaff',
   DiagnosticCapability: 'DiagnosticCapability',
   DiagnosticCapabilityRoom: 'DiagnosticCapabilityRoom',
   DiagnosticCapabilityResource: 'DiagnosticCapabilityResource',

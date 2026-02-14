@@ -17,6 +17,9 @@ import { DiagnosticsCapabilitiesService } from "./diagnostics-capabilities.servi
 import { DiagnosticsPacksController } from "./diagnostics-packs.controller";
 import { DiagnosticsPacksService } from "./diagnostics-packs.service";
 
+import { DiagnosticsCopilotController } from "./diagnostics-copilot.controller";
+import { DiagnosticsCopilotService } from "./diagnostics-copilot.service";
+
 /**
  * Infrastructure → Diagnostics
  *
@@ -31,6 +34,7 @@ import { DiagnosticsPacksService } from "./diagnostics-packs.service";
     DiagnosticsTemplatesController,
     DiagnosticsCapabilitiesController,
     DiagnosticsPacksController,
+    DiagnosticsCopilotController,
   ],
   providers: [
     DiagnosticsConfigService,
@@ -38,6 +42,7 @@ import { DiagnosticsPacksService } from "./diagnostics-packs.service";
     DiagnosticsTemplatesService,
     DiagnosticsCapabilitiesService,
     DiagnosticsPacksService,
+    DiagnosticsCopilotService,
   ],
   exports: [
     DiagnosticsConfigService,
@@ -45,6 +50,7 @@ import { DiagnosticsPacksService } from "./diagnostics-packs.service";
     DiagnosticsTemplatesService,
     DiagnosticsCapabilitiesService,
     DiagnosticsPacksService,
+    DiagnosticsCopilotService,
   ],
 })
 export class DiagnosticsModule {}

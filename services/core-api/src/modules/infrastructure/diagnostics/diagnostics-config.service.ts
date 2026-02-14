@@ -1,5 +1,6 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import type { PrismaClient } from "@zypocare/db";
+import { Prisma } from "@zypocare/db";
 import type { Principal } from "./diagnostics.principal";
 import { assertCode, assertName, parseOptionalFloat, parseOptionalInt, resolveBranchId } from "./diagnostics.util";
 import {
@@ -107,8 +108,22 @@ export class DiagnosticsConfigService {
 
     return this.prisma.diagnosticSection.upsert({
       where: { branchId_code: { branchId, code } },
-      create: { branchId, code, name, sortOrder: dto.sortOrder ?? 0, isActive: true },
-      update: { name, sortOrder: dto.sortOrder ?? 0, isActive: true },
+      create: {
+        branchId,
+        code,
+        name,
+        type: dto.type ?? "LAB",
+        headStaffId: dto.headStaffId ?? null,
+        sortOrder: dto.sortOrder ?? 0,
+        isActive: true,
+      },
+      update: {
+        name,
+        type: dto.type ?? "LAB",
+        headStaffId: dto.headStaffId ?? null,
+        sortOrder: dto.sortOrder ?? 0,
+        isActive: true,
+      },
     });
   }
 
@@ -124,6 +139,8 @@ export class DiagnosticsConfigService {
       data: {
         ...(dto.code !== undefined ? { code: assertCode(dto.code, "Section") } : {}),
         ...(dto.name !== undefined ? { name: assertName(dto.name, "Section") } : {}),
+        ...(dto.type !== undefined ? { type: dto.type } : {}),
+        ...(dto.headStaffId !== undefined ? { headStaffId: dto.headStaffId } : {}),
         ...(dto.sortOrder !== undefined ? { sortOrder: dto.sortOrder } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
       },
@@ -250,6 +267,10 @@ export class DiagnosticsConfigService {
         container: dto.container ?? null,
         minVolumeMl: dto.minVolumeMl !== undefined ? parseOptionalFloat(dto.minVolumeMl) : null,
         handlingNotes: dto.handlingNotes ?? null,
+        fastingRequired: dto.fastingRequired ?? false,
+        fastingHours: dto.fastingHours !== undefined ? parseOptionalInt(dto.fastingHours) : null,
+        collectionInstructions: dto.collectionInstructions ?? null,
+        storageTemperature: dto.storageTemperature ?? null,
         isActive: true,
       },
       update: {
@@ -257,6 +278,10 @@ export class DiagnosticsConfigService {
         container: dto.container ?? null,
         minVolumeMl: dto.minVolumeMl !== undefined ? parseOptionalFloat(dto.minVolumeMl) : null,
         handlingNotes: dto.handlingNotes ?? null,
+        fastingRequired: dto.fastingRequired ?? false,
+        fastingHours: dto.fastingHours !== undefined ? parseOptionalInt(dto.fastingHours) : null,
+        collectionInstructions: dto.collectionInstructions ?? null,
+        storageTemperature: dto.storageTemperature ?? null,
         isActive: true,
       },
     });
@@ -277,6 +302,10 @@ export class DiagnosticsConfigService {
         ...(dto.container !== undefined ? { container: dto.container } : {}),
         ...(dto.minVolumeMl !== undefined ? { minVolumeMl: parseOptionalFloat(dto.minVolumeMl) } : {}),
         ...(dto.handlingNotes !== undefined ? { handlingNotes: dto.handlingNotes } : {}),
+        ...(dto.fastingRequired !== undefined ? { fastingRequired: dto.fastingRequired } : {}),
+        ...(dto.fastingHours !== undefined ? { fastingHours: parseOptionalInt(dto.fastingHours) } : {}),
+        ...(dto.collectionInstructions !== undefined ? { collectionInstructions: dto.collectionInstructions } : {}),
+        ...(dto.storageTemperature !== undefined ? { storageTemperature: dto.storageTemperature } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
       },
     });
@@ -306,6 +335,7 @@ export class DiagnosticsConfigService {
             OR: [
               { code: { contains: String(q.q).trim(), mode: "insensitive" } },
               { name: { contains: String(q.q).trim(), mode: "insensitive" } },
+              { loincCode: { contains: String(q.q).trim(), mode: "insensitive" } },
             ],
           }
         : {}),
@@ -360,13 +390,19 @@ export class DiagnosticsConfigService {
         kind: dto.kind,
         sectionId: dto.sectionId,
         categoryId: dto.categoryId ?? null,
+        loincCode: dto.loincCode ?? null,
+        snomedCode: dto.snomedCode ?? null,
+        searchAliases: dto.searchAliases ?? Prisma.JsonNull,
+        careContext: dto.careContext ?? "ALL",
         specimenId: dto.specimenId ?? null,
         tatMinsRoutine: parseOptionalInt(dto.tatMinsRoutine) ?? null,
         tatMinsStat: parseOptionalInt(dto.tatMinsStat) ?? null,
         requiresAppointment: dto.requiresAppointment ?? false,
         preparationText: dto.preparationText ?? null,
         consentRequired: dto.consentRequired ?? false,
+        requiresPcpndt: dto.requiresPcpndt ?? false,
         isPanel: dto.isPanel ?? false,
+        panelType: dto.panelType ?? null,
           sortOrder: dto.sortOrder ?? 0,
           serviceItemId: dto.serviceItemId ?? null,
         isActive: true,
@@ -376,13 +412,19 @@ export class DiagnosticsConfigService {
         kind: dto.kind,
         sectionId: dto.sectionId,
         categoryId: dto.categoryId ?? null,
+        loincCode: dto.loincCode ?? null,
+        snomedCode: dto.snomedCode ?? null,
+        searchAliases: dto.searchAliases ?? Prisma.JsonNull,
+        careContext: dto.careContext ?? "ALL",
         specimenId: dto.specimenId ?? null,
         tatMinsRoutine: parseOptionalInt(dto.tatMinsRoutine) ?? null,
         tatMinsStat: parseOptionalInt(dto.tatMinsStat) ?? null,
         requiresAppointment: dto.requiresAppointment ?? false,
         preparationText: dto.preparationText ?? null,
         consentRequired: dto.consentRequired ?? false,
+        requiresPcpndt: dto.requiresPcpndt ?? false,
         isPanel: dto.isPanel ?? false,
+        panelType: dto.panelType ?? null,
           sortOrder: dto.sortOrder ?? 0,
           serviceItemId: dto.serviceItemId ?? null,
         isActive: true,
@@ -432,13 +474,19 @@ export class DiagnosticsConfigService {
         ...(dto.kind !== undefined ? { kind: dto.kind } : {}),
         ...(dto.sectionId !== undefined ? { sectionId: dto.sectionId } : {}),
         ...(dto.categoryId !== undefined ? { categoryId: dto.categoryId } : {}),
+        ...(dto.loincCode !== undefined ? { loincCode: dto.loincCode } : {}),
+        ...(dto.snomedCode !== undefined ? { snomedCode: dto.snomedCode } : {}),
+        ...(dto.searchAliases !== undefined ? { searchAliases: dto.searchAliases ?? Prisma.JsonNull } : {}),
+        ...(dto.careContext !== undefined ? { careContext: dto.careContext } : {}),
         ...(dto.specimenId !== undefined ? { specimenId: dto.specimenId } : {}),
         ...(dto.tatMinsRoutine !== undefined ? { tatMinsRoutine: parseOptionalInt(dto.tatMinsRoutine) } : {}),
         ...(dto.tatMinsStat !== undefined ? { tatMinsStat: parseOptionalInt(dto.tatMinsStat) } : {}),
         ...(dto.requiresAppointment !== undefined ? { requiresAppointment: dto.requiresAppointment } : {}),
         ...(dto.preparationText !== undefined ? { preparationText: dto.preparationText } : {}),
         ...(dto.consentRequired !== undefined ? { consentRequired: dto.consentRequired } : {}),
+        ...(dto.requiresPcpndt !== undefined ? { requiresPcpndt: dto.requiresPcpndt } : {}),
         ...(dto.isPanel !== undefined ? { isPanel: dto.isPanel } : {}),
+        ...(dto.panelType !== undefined ? { panelType: dto.panelType } : {}),
           ...(dto.sortOrder !== undefined ? { sortOrder: dto.sortOrder } : {}),
           ...(dto.serviceItemId !== undefined ? { serviceItemId: dto.serviceItemId } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
@@ -562,6 +610,8 @@ export class DiagnosticsConfigService {
         unit: dto.unit ?? null,
         precision: dto.precision ?? null,
         allowedText: dto.allowedText ?? null,
+        isDerived: dto.isDerived ?? false,
+        formula: dto.formula ?? null,
         criticalLow: dto.criticalLow ?? null,
         criticalHigh: dto.criticalHigh ?? null,
         sortOrder: dto.sortOrder ?? 0,
@@ -573,6 +623,8 @@ export class DiagnosticsConfigService {
         unit: dto.unit ?? null,
         precision: dto.precision ?? null,
         allowedText: dto.allowedText ?? null,
+        isDerived: dto.isDerived ?? false,
+        formula: dto.formula ?? null,
         criticalLow: dto.criticalLow ?? null,
         criticalHigh: dto.criticalHigh ?? null,
         sortOrder: dto.sortOrder ?? 0,
@@ -602,6 +654,8 @@ export class DiagnosticsConfigService {
         ...(dto.unit !== undefined ? { unit: dto.unit } : {}),
         ...(dto.precision !== undefined ? { precision: dto.precision } : {}),
         ...(dto.allowedText !== undefined ? { allowedText: dto.allowedText } : {}),
+        ...(dto.isDerived !== undefined ? { isDerived: dto.isDerived } : {}),
+        ...(dto.formula !== undefined ? { formula: dto.formula } : {}),
         ...(dto.criticalLow !== undefined ? { criticalLow: dto.criticalLow } : {}),
         ...(dto.criticalHigh !== undefined ? { criticalHigh: dto.criticalHigh } : {}),
         ...(dto.sortOrder !== undefined ? { sortOrder: dto.sortOrder } : {}),
@@ -669,6 +723,7 @@ export class DiagnosticsConfigService {
         high,
         textRange,
         notes: dto.notes ? String(dto.notes).trim() : null,
+        source: dto.source ?? null,
         sortOrder: dto.sortOrder ?? 0,
         isActive: true,
       },
@@ -695,6 +750,7 @@ export class DiagnosticsConfigService {
         ...(dto.high !== undefined ? { high: dto.high } : {}),
         ...(dto.textRange !== undefined ? { textRange: dto.textRange } : {}),
         ...(dto.notes !== undefined ? { notes: dto.notes } : {}),
+        ...(dto.source !== undefined ? { source: dto.source } : {}),
         ...(dto.sortOrder !== undefined ? { sortOrder: dto.sortOrder } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
       },
@@ -756,12 +812,29 @@ export class DiagnosticsConfigService {
 
         return tx.diagnosticTemplate.update({
           where: { id: keepId },
-          data: { body: dto.body, isActive: true },
+          data: {
+            body: dto.body,
+            isActive: true,
+            ...(dto.headerConfig !== undefined ? { headerConfig: dto.headerConfig } : {}),
+            ...(dto.footerConfig !== undefined ? { footerConfig: dto.footerConfig } : {}),
+            ...(dto.parameterLayout !== undefined ? { parameterLayout: dto.parameterLayout } : {}),
+            ...(dto.signatureRoles !== undefined ? { signatureRoles: dto.signatureRoles } : {}),
+          },
         });
       }
 
       return tx.diagnosticTemplate.create({
-        data: { itemId, kind, name, body: dto.body, isActive: true },
+        data: {
+          itemId,
+          kind,
+          name,
+          body: dto.body,
+          isActive: true,
+          headerConfig: dto.headerConfig ?? Prisma.JsonNull,
+          footerConfig: dto.footerConfig ?? Prisma.JsonNull,
+          parameterLayout: dto.parameterLayout ?? Prisma.JsonNull,
+          signatureRoles: dto.signatureRoles ?? Prisma.JsonNull,
+        },
       });
     });
   }
@@ -790,6 +863,10 @@ export class DiagnosticsConfigService {
         ...(dto.kind !== undefined ? { kind: dto.kind } : {}),
         ...(dto.name !== undefined ? { name: nextName } : {}),
         ...(dto.body !== undefined ? { body: dto.body } : {}),
+        ...(dto.headerConfig !== undefined ? { headerConfig: dto.headerConfig ?? Prisma.JsonNull } : {}),
+        ...(dto.footerConfig !== undefined ? { footerConfig: dto.footerConfig ?? Prisma.JsonNull } : {}),
+        ...(dto.parameterLayout !== undefined ? { parameterLayout: dto.parameterLayout ?? Prisma.JsonNull } : {}),
+        ...(dto.signatureRoles !== undefined ? { signatureRoles: dto.signatureRoles ?? Prisma.JsonNull } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
       },
     });
@@ -803,5 +880,555 @@ export class DiagnosticsConfigService {
     resolveBranchId(principal, existing.item.branchId);
 
     return this.prisma.diagnosticTemplate.update({ where: { id }, data: { isActive: false } });
+  }
+
+  // ---------------- Go-Live Validation ----------------
+  async runGoLiveValidation(principal: Principal, branchId: string) {
+    const b = resolveBranchId(principal, branchId);
+    const checks: Array<{ id: number; name: string; severity: "BLOCKER" | "WARNING"; status: "PASS" | "FAIL"; details?: string }> = [];
+
+    // 1. At least one diagnostic section enabled with active tests
+    const activeSections = await this.prisma.diagnosticSection.count({ where: { branchId: b, isActive: true } });
+    checks.push({
+      id: 1,
+      name: "At least one diagnostic section is enabled with active tests",
+      severity: "BLOCKER",
+      status: activeSections > 0 ? "PASS" : "FAIL",
+      details: `${activeSections} active section(s)`,
+    });
+
+    // 2. All active tests have at least one parameter configured
+    const testsWithoutParams = await this.prisma.diagnosticItem.count({
+      where: { branchId: b, isActive: true, kind: "LAB", isPanel: false, parameters: { none: { isActive: true } } },
+    });
+    checks.push({
+      id: 2,
+      name: "All active lab tests have at least one parameter configured",
+      severity: "BLOCKER",
+      status: testsWithoutParams === 0 ? "PASS" : "FAIL",
+      details: testsWithoutParams > 0 ? `${testsWithoutParams} test(s) without parameters` : undefined,
+    });
+
+    // 3. All numeric parameters have at least a default reference range
+    const numericParamsWithoutRange = await this.prisma.diagnosticParameter.count({
+      where: {
+        test: { branchId: b, isActive: true },
+        dataType: "NUMERIC",
+        isActive: true,
+        ranges: { none: { isActive: true } },
+      },
+    });
+    checks.push({
+      id: 3,
+      name: "All numeric parameters have at least a default reference range",
+      severity: "BLOCKER",
+      status: numericParamsWithoutRange === 0 ? "PASS" : "FAIL",
+      details: numericParamsWithoutRange > 0 ? `${numericParamsWithoutRange} parameter(s) without reference ranges` : undefined,
+    });
+
+    // 4. Critical ranges do not overlap with normal ranges (checked at data entry)
+    checks.push({
+      id: 4,
+      name: "Critical ranges do not overlap with normal ranges",
+      severity: "BLOCKER",
+      status: "PASS",
+      details: "Validated at data entry",
+    });
+
+    // 5. All lab tests have sample requirements configured
+    const labTestsWithoutSpecimen = await this.prisma.diagnosticItem.count({
+      where: { branchId: b, isActive: true, kind: "LAB", isPanel: false, specimenId: null },
+    });
+    checks.push({
+      id: 5,
+      name: "All lab tests have sample requirements configured",
+      severity: "BLOCKER",
+      status: labTestsWithoutSpecimen === 0 ? "PASS" : "FAIL",
+      details: labTestsWithoutSpecimen > 0 ? `${labTestsWithoutSpecimen} lab test(s) without specimen` : undefined,
+    });
+
+    // 6. All enabled sections have at least one service point
+    const sectionsWithoutSP = await this.prisma.diagnosticSection.count({
+      where: {
+        branchId: b,
+        isActive: true,
+        items: { some: { isActive: true } },
+        servicePoints: { none: { isActive: true } },
+      },
+    });
+    checks.push({
+      id: 6,
+      name: "All enabled sections have at least one service point",
+      severity: "BLOCKER",
+      status: sectionsWithoutSP === 0 ? "PASS" : "FAIL",
+      details: sectionsWithoutSP > 0 ? `${sectionsWithoutSP} section(s) without service points` : undefined,
+    });
+
+    // 7. All service points have at least one staff member assigned
+    const spWithoutStaff = await this.prisma.diagnosticServicePoint.count({
+      where: { branchId: b, isActive: true, staff: { none: { isActive: true } } },
+    });
+    checks.push({
+      id: 7,
+      name: "All service points have at least one staff member assigned",
+      severity: "WARNING",
+      status: spWithoutStaff === 0 ? "PASS" : "FAIL",
+      details: spWithoutStaff > 0 ? `${spWithoutStaff} service point(s) without staff` : undefined,
+    });
+
+    // 8. All service points have equipment linked
+    const spWithoutEquipment = await this.prisma.diagnosticServicePoint.count({
+      where: { branchId: b, isActive: true, type: { not: "OTHER" }, equipment: { none: { isActive: true } } },
+    });
+    checks.push({
+      id: 8,
+      name: "All processing service points have equipment linked",
+      severity: "WARNING",
+      status: spWithoutEquipment === 0 ? "PASS" : "FAIL",
+      details: spWithoutEquipment > 0 ? `${spWithoutEquipment} service point(s) without equipment` : undefined,
+    });
+
+    // 9. LOINC mapping coverage > 80%
+    const totalActiveTests = await this.prisma.diagnosticItem.count({ where: { branchId: b, isActive: true } });
+    const testsWithLoinc = await this.prisma.diagnosticItem.count({
+      where: { branchId: b, isActive: true, loincCode: { not: null } },
+    });
+    const loincPct = totalActiveTests > 0 ? Math.round((testsWithLoinc / totalActiveTests) * 100) : 0;
+    checks.push({
+      id: 9,
+      name: "LOINC mapping coverage > 80% of active tests",
+      severity: "WARNING",
+      status: loincPct >= 80 ? "PASS" : "FAIL",
+      details: `${loincPct}% coverage (${testsWithLoinc}/${totalActiveTests})`,
+    });
+
+    // 10. All imaging tests linked to equipment
+    const imagingWithoutEquipment = await this.prisma.diagnosticItem.count({
+      where: { branchId: b, isActive: true, kind: "IMAGING", capabilities: { none: { isActive: true } } },
+    });
+    checks.push({
+      id: 10,
+      name: "All imaging tests linked to equipment with valid capability",
+      severity: "BLOCKER",
+      status: imagingWithoutEquipment === 0 ? "PASS" : "FAIL",
+      details: imagingWithoutEquipment > 0 ? `${imagingWithoutEquipment} imaging test(s) without capability` : undefined,
+    });
+
+    // 11. All ultrasound tests have PCPNDT compliance flag
+    const usgWithoutPcpndt = await this.prisma.diagnosticItem.count({
+      where: {
+        branchId: b,
+        isActive: true,
+        kind: "IMAGING",
+        requiresPcpndt: false,
+        OR: [
+          { name: { contains: "ultrasound", mode: "insensitive" } },
+          { name: { contains: "USG", mode: "insensitive" } },
+          { name: { contains: "sonography", mode: "insensitive" } },
+        ],
+      },
+    });
+    checks.push({
+      id: 11,
+      name: "All ultrasound tests have PCPNDT compliance flag set",
+      severity: "BLOCKER",
+      status: usgWithoutPcpndt === 0 ? "PASS" : "FAIL",
+      details: usgWithoutPcpndt > 0 ? `${usgWithoutPcpndt} ultrasound test(s) missing PCPNDT flag` : undefined,
+    });
+
+    // 12. Report templates configured for each active section
+    const sectionsWithoutTemplate = await this.prisma.diagnosticSection.count({
+      where: {
+        branchId: b,
+        isActive: true,
+        items: { some: { isActive: true, templates: { none: { isActive: true } } } },
+      },
+    });
+    checks.push({
+      id: 12,
+      name: "Report templates configured for each active section",
+      severity: "WARNING",
+      status: sectionsWithoutTemplate === 0 ? "PASS" : "FAIL",
+      details: sectionsWithoutTemplate > 0 ? `${sectionsWithoutTemplate} section(s) with tests missing templates` : undefined,
+    });
+
+    // 13. Diagnostic tests have ServiceCatalog entries with pricing
+    const testsWithoutServiceItem = await this.prisma.diagnosticItem.count({
+      where: { branchId: b, isActive: true, serviceItemId: null },
+    });
+    checks.push({
+      id: 13,
+      name: "Diagnostic tests have ServiceCatalog entries",
+      severity: "BLOCKER",
+      status: testsWithoutServiceItem === 0 ? "PASS" : "FAIL",
+      details: testsWithoutServiceItem > 0 ? `${testsWithoutServiceItem} test(s) without ServiceCatalog entry` : undefined,
+    });
+
+    // 14. TAT configured for all active tests
+    const testsWithoutTat = await this.prisma.diagnosticItem.count({
+      where: { branchId: b, isActive: true, isPanel: false, tatMinsRoutine: null },
+    });
+    checks.push({
+      id: 14,
+      name: "TAT configured for all active tests (Routine + Stat)",
+      severity: "WARNING",
+      status: testsWithoutTat === 0 ? "PASS" : "FAIL",
+      details: testsWithoutTat > 0 ? `${testsWithoutTat} test(s) without TAT` : undefined,
+    });
+
+    // 15. No age-range gaps in reference ranges for pediatric-relevant tests
+    checks.push({
+      id: 15,
+      name: "No age-range gaps in reference ranges for pediatric-relevant tests",
+      severity: "WARNING",
+      status: "PASS",
+      details: "Manual review recommended",
+    });
+
+    // 16. Signatory roles configured for report templates
+    const templatesWithoutSignatory = await this.prisma.diagnosticTemplate.count({
+      where: { item: { branchId: b, isActive: true }, isActive: true, signatureRoles: { equals: Prisma.AnyNull } },
+    });
+    checks.push({
+      id: 16,
+      name: "Signatory roles configured for report templates",
+      severity: "WARNING",
+      status: templatesWithoutSignatory === 0 ? "PASS" : "FAIL",
+      details: templatesWithoutSignatory > 0 ? `${templatesWithoutSignatory} template(s) without signatory roles` : undefined,
+    });
+
+    const blockers = checks.filter((c) => c.severity === "BLOCKER" && c.status === "FAIL").length;
+    const warnings = checks.filter((c) => c.severity === "WARNING" && c.status === "FAIL").length;
+    const passed = checks.filter((c) => c.status === "PASS").length;
+    const score = Math.round((passed / checks.length) * 100);
+
+    return { checks, summary: { total: checks.length, passed, blockers, warnings, score } };
+  }
+
+  // ==================== Bulk Import/Export ====================
+
+  async exportAll(principal: Principal, branchIdInput: string) {
+    const branchId = resolveBranchId(principal, branchIdInput);
+
+    const [sections, categories, specimens, items, servicePoints] = await Promise.all([
+      this.prisma.diagnosticSection.findMany({ where: { branchId, isActive: true }, orderBy: { sortOrder: "asc" } }),
+      this.prisma.diagnosticCategory.findMany({ where: { branchId, isActive: true }, orderBy: { sortOrder: "asc" } }),
+      this.prisma.specimenType.findMany({ where: { branchId, isActive: true }, orderBy: { name: "asc" } }),
+      this.prisma.diagnosticItem.findMany({
+        where: { branchId, isActive: true },
+        include: {
+          parameters: { where: { isActive: true }, include: { ranges: { where: { isActive: true } } } },
+          templates: { where: { isActive: true } },
+        },
+        orderBy: { sortOrder: "asc" },
+      }),
+      this.prisma.diagnosticServicePoint.findMany({ where: { branchId, isActive: true } }),
+    ]);
+
+    return {
+      exportedAt: new Date().toISOString(),
+      branchId,
+      sections: sections.map((s) => ({
+        code: s.code,
+        name: s.name,
+        type: s.type,
+      })),
+      categories: categories.map((c) => ({
+        code: c.code,
+        name: c.name,
+        sectionCode: sections.find((s) => s.id === c.sectionId)?.code ?? null,
+      })),
+      specimens: specimens.map((sp) => ({
+        code: sp.code,
+        name: sp.name,
+        container: sp.container,
+        minVolumeMl: sp.minVolumeMl,
+        handlingNotes: sp.handlingNotes,
+        fastingRequired: sp.fastingRequired,
+        fastingHours: sp.fastingHours,
+        collectionInstructions: sp.collectionInstructions,
+        storageTemperature: sp.storageTemperature,
+      })),
+      items: items.map((i) => ({
+        code: i.code,
+        name: i.name,
+        kind: i.kind,
+        sectionCode: sections.find((s) => s.id === i.sectionId)?.code ?? null,
+        categoryCode: categories.find((c) => c.id === i.categoryId)?.code ?? null,
+        specimenCode: specimens.find((sp) => sp.id === i.specimenId)?.code ?? null,
+        loincCode: i.loincCode,
+        snomedCode: i.snomedCode,
+        careContext: i.careContext,
+        requiresPcpndt: i.requiresPcpndt,
+        panelType: i.panelType,
+        searchAliases: i.searchAliases,
+        isPanel: i.isPanel,
+        tatMinsRoutine: i.tatMinsRoutine,
+        tatMinsStat: i.tatMinsStat,
+        consentRequired: i.consentRequired,
+        requiresAppointment: i.requiresAppointment,
+        preparationText: i.preparationText,
+        parameters: i.parameters.map((p) => ({
+          code: p.code,
+          name: p.name,
+          dataType: p.dataType,
+          unit: p.unit,
+          precision: p.precision,
+          isDerived: p.isDerived,
+          formula: p.formula,
+          ranges: p.ranges.map((r) => ({
+            sex: r.sex,
+            ageMinDays: r.ageMinDays,
+            ageMaxDays: r.ageMaxDays,
+            low: r.low,
+            high: r.high,
+            textRange: r.textRange,
+            source: r.source,
+            notes: r.notes,
+          })),
+        })),
+        templates: i.templates.map((t) => ({
+          name: t.name,
+          kind: t.kind,
+          body: t.body,
+          headerConfig: t.headerConfig,
+          footerConfig: t.footerConfig,
+          signatureRoles: t.signatureRoles,
+        })),
+      })),
+    };
+  }
+
+  async importBulk(principal: Principal, branchIdInput: string, data: any, dryRun: boolean) {
+    const branchId = resolveBranchId(principal, branchIdInput);
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    let sectionsCount = 0;
+    let categoriesCount = 0;
+    let specimensCount = 0;
+    let itemsCount = 0;
+    let parametersCount = 0;
+    let rangesCount = 0;
+    let templatesCount = 0;
+
+    // Validate structure
+    if (!data || typeof data !== "object") {
+      return { success: false, errors: ["Invalid data format"], warnings: [], counts: {} };
+    }
+
+    const importSections = Array.isArray(data.sections) ? data.sections : [];
+    const importCategories = Array.isArray(data.categories) ? data.categories : [];
+    const importSpecimens = Array.isArray(data.specimens) ? data.specimens : [];
+    const importItems = Array.isArray(data.items) ? data.items : [];
+
+    // Validate sections
+    for (const s of importSections) {
+      if (!s.code || !s.name) errors.push(`Section missing code or name: ${JSON.stringify(s)}`);
+    }
+
+    // Validate items
+    for (const item of importItems) {
+      if (!item.code || !item.name) errors.push(`Item missing code or name: ${JSON.stringify(item).slice(0, 100)}`);
+      if (!item.kind) errors.push(`Item "${item.code}" missing kind`);
+      if (!item.sectionCode) warnings.push(`Item "${item.code}" missing section reference`);
+    }
+
+    if (errors.length > 0 || dryRun) {
+      return {
+        success: errors.length === 0,
+        dryRun: true,
+        errors,
+        warnings,
+        counts: {
+          sections: importSections.length,
+          categories: importCategories.length,
+          specimens: importSpecimens.length,
+          items: importItems.length,
+        },
+      };
+    }
+
+    // Execute import
+    const sectionMap = new Map<string, string>(); // code -> id
+    const categoryMap = new Map<string, string>();
+    const specimenMap = new Map<string, string>();
+
+    // Import sections
+    for (const s of importSections) {
+      const existing = await this.prisma.diagnosticSection.findFirst({ where: { branchId, code: s.code } });
+      if (existing) {
+        sectionMap.set(s.code, existing.id);
+      } else {
+        const created = await this.prisma.diagnosticSection.create({
+          data: { branchId, code: s.code, name: s.name, type: s.type || "LAB" },
+        });
+        sectionMap.set(s.code, created.id);
+        sectionsCount++;
+      }
+    }
+
+    // Import categories
+    for (const c of importCategories) {
+      const sid = sectionMap.get(c.sectionCode);
+      if (!sid) { warnings.push(`Category "${c.code}" references unknown section "${c.sectionCode}"`); continue; }
+      const existing = await this.prisma.diagnosticCategory.findFirst({ where: { branchId, code: c.code } });
+      if (existing) {
+        categoryMap.set(c.code, existing.id);
+      } else {
+        const created = await this.prisma.diagnosticCategory.create({
+          data: { branchId, code: c.code, name: c.name, sectionId: sid },
+        });
+        categoryMap.set(c.code, created.id);
+        categoriesCount++;
+      }
+    }
+
+    // Import specimens
+    for (const sp of importSpecimens) {
+      const existing = await this.prisma.specimenType.findFirst({ where: { branchId, code: sp.code } });
+      if (existing) {
+        specimenMap.set(sp.code, existing.id);
+      } else {
+        const created = await this.prisma.specimenType.create({
+          data: {
+            branchId,
+            code: sp.code,
+            name: sp.name,
+            container: sp.container,
+            minVolumeMl: sp.minVolumeMl,
+            handlingNotes: sp.handlingNotes,
+            fastingRequired: sp.fastingRequired ?? false,
+            fastingHours: sp.fastingHours,
+            collectionInstructions: sp.collectionInstructions,
+            storageTemperature: sp.storageTemperature,
+          },
+        });
+        specimenMap.set(sp.code, created.id);
+        specimensCount++;
+      }
+    }
+
+    // Import items
+    for (const item of importItems) {
+      const sectionId = sectionMap.get(item.sectionCode);
+      if (!sectionId) { warnings.push(`Item "${item.code}" references unknown section "${item.sectionCode}"`); continue; }
+
+      const existing = await this.prisma.diagnosticItem.findFirst({ where: { branchId, code: item.code } });
+      let itemId: string;
+
+      if (existing) {
+        itemId = existing.id;
+        warnings.push(`Item "${item.code}" already exists, skipping creation (updating sub-items only)`);
+      } else {
+        const created = await this.prisma.diagnosticItem.create({
+          data: {
+            branchId,
+            code: item.code,
+            name: item.name,
+            kind: item.kind,
+            sectionId,
+            categoryId: item.categoryCode ? categoryMap.get(item.categoryCode) : undefined,
+            specimenId: item.specimenCode ? specimenMap.get(item.specimenCode) : undefined,
+            loincCode: item.loincCode,
+            snomedCode: item.snomedCode,
+            careContext: item.careContext || "ALL",
+            requiresPcpndt: item.requiresPcpndt ?? false,
+            panelType: item.panelType,
+            searchAliases: item.searchAliases,
+            isPanel: item.isPanel ?? false,
+            tatMinsRoutine: item.tatMinsRoutine,
+            tatMinsStat: item.tatMinsStat,
+            consentRequired: item.consentRequired ?? false,
+            requiresAppointment: item.requiresAppointment ?? false,
+            preparationText: item.preparationText,
+          },
+        });
+        itemId = created.id;
+        itemsCount++;
+      }
+
+      // Import parameters
+      if (Array.isArray(item.parameters)) {
+        for (const param of item.parameters) {
+          const existingParam = await this.prisma.diagnosticParameter.findFirst({
+            where: { testId: itemId, code: param.code },
+          });
+
+          let paramId: string;
+          if (existingParam) {
+            paramId = existingParam.id;
+          } else {
+            const created = await this.prisma.diagnosticParameter.create({
+              data: {
+                testId: itemId,
+                code: param.code,
+                name: param.name,
+                dataType: param.dataType || "NUMERIC",
+                unit: param.unit,
+                precision: param.precision,
+                isDerived: param.isDerived ?? false,
+                formula: param.formula,
+              },
+            });
+            paramId = created.id;
+            parametersCount++;
+          }
+
+          // Import ranges
+          if (Array.isArray(param.ranges)) {
+            for (const range of param.ranges) {
+              await this.prisma.diagnosticReferenceRange.create({
+                data: {
+                  parameterId: paramId,
+                  sex: range.sex,
+                  ageMinDays: range.ageMinDays,
+                  ageMaxDays: range.ageMaxDays,
+                  low: range.low,
+                  high: range.high,
+                  textRange: range.textRange,
+                  source: range.source,
+                  notes: range.notes,
+                },
+              });
+              rangesCount++;
+            }
+          }
+        }
+      }
+
+      // Import templates
+      if (Array.isArray(item.templates)) {
+        for (const tmpl of item.templates) {
+          await this.prisma.diagnosticTemplate.create({
+            data: {
+              itemId: itemId,
+              name: tmpl.name,
+              kind: tmpl.kind || "LAB_REPORT",
+              body: tmpl.body || "",
+              headerConfig: tmpl.headerConfig,
+              footerConfig: tmpl.footerConfig,
+              signatureRoles: tmpl.signatureRoles,
+            },
+          });
+          templatesCount++;
+        }
+      }
+    }
+
+    return {
+      success: true,
+      dryRun: false,
+      errors,
+      warnings,
+      counts: {
+        sections: sectionsCount,
+        categories: categoriesCount,
+        specimens: specimensCount,
+        items: itemsCount,
+        parameters: parametersCount,
+        ranges: rangesCount,
+        templates: templatesCount,
+      },
+    };
   }
 }

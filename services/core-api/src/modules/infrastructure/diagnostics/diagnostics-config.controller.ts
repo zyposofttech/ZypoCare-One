@@ -264,4 +264,28 @@ export class DiagnosticsConfigController {
     return this.svc.deleteTemplate(this.principalFrom(req), id);
   }
 
+  // ---------------------- Go-Live Validation ----------------------
+  @Get("go-live-validation")
+  @Permissions(PERM.INFRA_DIAGNOSTICS_READ)
+  runGoLiveValidation(@Req() req: any, @Query("branchId") branchId: string) {
+    return this.svc.runGoLiveValidation(this.principalFrom(req), branchId);
+  }
+
+  // ---------------------- Bulk Import/Export ----------------------
+  @Get("export")
+  @Permissions(PERM.INFRA_DIAGNOSTICS_READ)
+  exportAll(@Req() req: any, @Query("branchId") branchId: string) {
+    return this.svc.exportAll(this.principalFrom(req), branchId);
+  }
+
+  @Post("import")
+  @Permissions(PERM.INFRA_DIAGNOSTICS_CREATE)
+  importBulk(
+    @Req() req: any,
+    @Query("branchId") branchId: string,
+    @Body() body: { data: any; dryRun?: boolean },
+  ) {
+    return this.svc.importBulk(this.principalFrom(req), branchId, body.data, body.dryRun ?? true);
+  }
+
 }

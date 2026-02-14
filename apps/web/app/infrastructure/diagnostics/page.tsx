@@ -51,7 +51,12 @@ type DiagnosticKind = "LAB" | "IMAGING" | "PROCEDURE";
 type ResultDataType = "NUMERIC" | "TEXT" | "CHOICE" | "BOOLEAN";
 type TemplateKind = "IMAGING_REPORT" | "LAB_REPORT";
 
-type SectionRow = { id: string; branchId: string; code: string; name: string; sortOrder: number; isActive: boolean };
+type DiagnosticSectionType = "LAB" | "IMAGING" | "CARDIOLOGY" | "NEUROLOGY" | "PULMONOLOGY" | "OTHER";
+type DiagnosticCareContext = "OPD" | "IPD" | "ER" | "DAYCARE" | "HOMECARE" | "ALL";
+type DiagnosticPanelType = "PROFILE" | "PACKAGE";
+type DiagnosticRangeSource = "MANUFACTURER" | "HOSPITAL_DEFINED" | "LITERATURE" | "REGULATORY_BODY" | "CONSENSUS_GUIDELINE" | "OTHER";
+
+type SectionRow = { id: string; branchId: string; code: string; name: string; type?: DiagnosticSectionType; headStaffId?: string | null; sortOrder: number; isActive: boolean; _count?: { categories: number; items: number } };
 
 type CategoryRow = {
   id: string;
@@ -72,6 +77,10 @@ type SpecimenRow = {
   container?: string | null;
   minVolumeMl?: number | null;
   handlingNotes?: string | null;
+  fastingRequired?: boolean;
+  fastingHours?: number | null;
+  collectionInstructions?: string | null;
+  storageTemperature?: string | null;
   isActive: boolean;
 };
 
@@ -84,12 +93,18 @@ type DiagnosticItemRow = {
   sectionId: string;
   categoryId?: string | null;
   specimenId?: string | null;
+  loincCode?: string | null;
+  snomedCode?: string | null;
+  searchAliases?: string[] | null;
+  careContext?: DiagnosticCareContext;
   isPanel: boolean;
+  panelType?: DiagnosticPanelType | null;
   tatMinsRoutine?: number | null;
   tatMinsStat?: number | null;
   preparationText?: string | null;
   consentRequired: boolean;
   requiresAppointment: boolean;
+  requiresPcpndt?: boolean;
   sortOrder: number;
   isActive: boolean;
   section?: SectionRow;
@@ -109,6 +124,10 @@ type ParameterRow = {
   unit?: string | null;
   precision?: number | null;
   allowedText?: string | null;
+  isDerived?: boolean;
+  formula?: string | null;
+  criticalLow?: number | null;
+  criticalHigh?: number | null;
   isActive: boolean;
   ranges?: RangeRow[];
 };
@@ -122,10 +141,12 @@ type RangeRow = {
   low?: number | null;
   high?: number | null;
   textRange?: string | null;
+  notes?: string | null;
+  source?: DiagnosticRangeSource | null;
   isActive: boolean;
 };
 
-type TemplateRow = { id: string; itemId: string; kind: TemplateKind; name: string; body: string; isActive: boolean };
+type TemplateRow = { id: string; itemId: string; kind: TemplateKind; name: string; body: string; headerConfig?: any; footerConfig?: any; parameterLayout?: any; signatureRoles?: string[] | null; isActive: boolean };
 
 /* ---- Service Points / Capabilities / Bootstrap ---- */
 
@@ -391,7 +412,7 @@ function asRecord(v: any): Record<string, any> {
    Page + Tabs
    ========================================================= */
 
-type ActiveTab = "packs" | "servicePoints" | "catalog" | "panels" | "lab" | "templates" | "capabilities" | "goLive";
+type ActiveTab = "packs" | "servicePoints" | "catalog" | "panels" | "lab" | "templates" | "capabilities" | "copilot" | "bulkImport" | "goLive";
 type TabProps = { branchId: string };
 
 export default function DiagnosticsConfigPage() {
@@ -424,7 +445,9 @@ export default function DiagnosticsConfigPage() {
       { key: "lab", title: "Result Schema", help: "For lab tests: define parameters and reference ranges." },
       { key: "templates", title: "Report Templates", help: "Create report templates for lab/imaging/procedure items." },
       { key: "capabilities", title: "Routing Rules", help: "Map items to service points (capabilities) with modality + constraints." },
-      { key: "goLive", title: "Go‑Live Check", help: "Validate readiness and jump directly to fixes." },
+      { key: "copilot", title: "AI Copilot", help: "AI-powered LOINC/SNOMED mapping, gap analysis, and compliance checks." },
+      { key: "bulkImport", title: "Import/Export", help: "Bulk import/export diagnostic items, parameters, and ranges." },
+      { key: "goLive", title: "Go-Live Check", help: "Validate readiness and jump directly to fixes." },
     ],
     [],
   );
@@ -614,6 +637,10 @@ export default function DiagnosticsConfigPage() {
                     initialServicePointId={focusServicePointId}
                     autoOpenCreate={Boolean(focusItemId || focusServicePointId)}
                   />
+                ) : activeTab === "copilot" ? (
+                  <CopilotTab branchId={branchId} />
+                ) : activeTab === "bulkImport" ? (
+                  <BulkImportExportTab branchId={branchId} />
                 ) : (
                   <GoLiveTab
                     branchId={branchId}
@@ -773,7 +800,612 @@ function ModalHeader({
 }
 
 /* =========================================================
-   TAB 8: Go‑Live Check (Readiness)
+   TAB: Bulk Import/Export
+   ========================================================= */
+
+function BulkImportExportTab({ branchId }: TabProps) {
+  const { toast } = useToast();
+  const [loading, setLoading] = React.useState(false);
+  const [err, setErr] = React.useState<string | null>(null);
+  const [mode, setMode] = React.useState<"export" | "import">("export");
+
+  // Import state
+  const [importJson, setImportJson] = React.useState("");
+  const [validationResult, setValidationResult] = React.useState<any>(null);
+  const [importing, setImporting] = React.useState(false);
+
+  async function handleExport() {
+    setLoading(true);
+    setErr(null);
+    try {
+      const data = await apiFetch<any>(
+        `/api/infrastructure/diagnostics/export?branchId=${encodeURIComponent(branchId)}`,
+      );
+      const jsonStr = JSON.stringify(data, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `diagnostics-export-${branchId.slice(0, 8)}-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast({ title: "Export downloaded" });
+    } catch (e: any) {
+      setErr(e?.message || "Export failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleValidate() {
+    if (!importJson.trim()) return;
+    setLoading(true);
+    setErr(null);
+    try {
+      let parsed: any;
+      try {
+        parsed = JSON.parse(importJson);
+      } catch {
+        setErr("Invalid JSON format");
+        setLoading(false);
+        return;
+      }
+      const result = await apiFetch<any>(
+        `/api/infrastructure/diagnostics/import?branchId=${encodeURIComponent(branchId)}`,
+        {
+          method: "POST",
+          body: JSON.stringify({ data: parsed, dryRun: true }),
+        },
+      );
+      setValidationResult(result);
+    } catch (e: any) {
+      setErr(e?.message || "Validation failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleImport() {
+    if (!importJson.trim()) return;
+    setImporting(true);
+    setErr(null);
+    try {
+      const parsed = JSON.parse(importJson);
+      const result = await apiFetch<any>(
+        `/api/infrastructure/diagnostics/import?branchId=${encodeURIComponent(branchId)}`,
+        {
+          method: "POST",
+          body: JSON.stringify({ data: parsed, dryRun: false }),
+        },
+      );
+      if (result.success) {
+        toast({ title: "Import completed", description: `Created: ${result.counts.items} items, ${result.counts.parameters} parameters, ${result.counts.ranges} ranges` });
+        setImportJson("");
+        setValidationResult(null);
+      } else {
+        setErr(`Import failed: ${(result.errors ?? []).join(", ")}`);
+      }
+    } catch (e: any) {
+      setErr(e?.message || "Import failed");
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setImportJson(ev.target?.result as string ?? "");
+      setValidationResult(null);
+    };
+    reader.readAsText(file);
+  }
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">Import / Export</CardTitle>
+        <CardDescription>Bulk import/export diagnostic configuration as JSON.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {err ? <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{err}</div> : null}
+
+        <div className="mb-4 flex gap-2">
+          <Button variant={mode === "export" ? "primary" : "outline"} size="sm" onClick={() => setMode("export")}>
+            Export
+          </Button>
+          <Button variant={mode === "import" ? "primary" : "outline"} size="sm" onClick={() => setMode("import")}>
+            Import
+          </Button>
+        </div>
+
+        {mode === "export" ? (
+          <div>
+            <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-4">
+              <div className="text-sm font-semibold mb-2">Export All Configuration</div>
+              <div className="text-xs text-zc-muted mb-4">
+                Downloads a JSON file containing all sections, categories, specimens, items (with parameters, ranges, and templates) for the current branch.
+                This file can be used to import configuration into another branch.
+              </div>
+              <Button onClick={handleExport} disabled={loading}>
+                {loading ? "Exporting..." : "Download Export"}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <div className="mb-4">
+              <div className="text-sm font-semibold mb-2">Upload JSON File</div>
+              <div className="flex gap-2 items-center">
+                <Input
+                  type="file"
+                  accept=".json"
+                  onChange={handleFileUpload}
+                  className="max-w-[300px]"
+                />
+                <span className="text-xs text-zc-muted">or paste JSON below</span>
+              </div>
+            </div>
+
+            <Field label="Import Data (JSON)">
+              <Textarea
+                value={importJson}
+                onChange={(e) => { setImportJson(e.target.value); setValidationResult(null); }}
+                rows={10}
+                placeholder='{"sections": [...], "items": [...], ...}'
+                className="font-mono text-xs"
+              />
+            </Field>
+
+            <div className="mt-3 flex gap-2">
+              <Button variant="outline" onClick={handleValidate} disabled={loading || !importJson.trim()}>
+                {loading ? "Validating..." : "Validate (Dry Run)"}
+              </Button>
+              <Button
+                onClick={handleImport}
+                disabled={importing || !importJson.trim() || (validationResult && !validationResult.success)}
+              >
+                {importing ? "Importing..." : "Import"}
+              </Button>
+            </div>
+
+            {validationResult ? (
+              <div className="mt-4">
+                <div className={cn(
+                  "rounded-xl border p-3",
+                  validationResult.success
+                    ? "border-emerald-200/70 bg-emerald-50/40"
+                    : "border-rose-200/70 bg-rose-50/60",
+                )}>
+                  <div className="text-sm font-semibold">
+                    {validationResult.success ? "Validation Passed" : "Validation Failed"}
+                  </div>
+
+                  {validationResult.counts ? (
+                    <div className="mt-2 grid gap-2 md:grid-cols-4">
+                      {Object.entries(validationResult.counts).map(([key, val]) => (
+                        <div key={key} className="text-xs">
+                          <span className="font-semibold capitalize">{key}:</span> {String(val)}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {(validationResult.errors ?? []).length > 0 ? (
+                    <div className="mt-2">
+                      <div className="text-xs font-semibold text-rose-700">Errors:</div>
+                      {validationResult.errors.map((e: string, idx: number) => (
+                        <div key={idx} className="text-xs text-rose-600">{e}</div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {(validationResult.warnings ?? []).length > 0 ? (
+                    <div className="mt-2">
+                      <div className="text-xs font-semibold text-amber-700">Warnings:</div>
+                      {validationResult.warnings.map((w: string, idx: number) => (
+                        <div key={idx} className="text-xs text-amber-600">{w}</div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/* =========================================================
+   TAB: AI Copilot
+   ========================================================= */
+
+type CopilotMapping = {
+  itemId: string;
+  name: string;
+  loincCode: string;
+  display: string;
+  confidence: number;
+};
+
+type CopilotGap = {
+  category: string;
+  title: string;
+  detail: string;
+  severity: "high" | "medium" | "low";
+};
+
+function CopilotTab({ branchId }: TabProps) {
+  const { toast } = useToast();
+  const [loading, setLoading] = React.useState(false);
+  const [err, setErr] = React.useState<string | null>(null);
+  const [activeSection, setActiveSection] = React.useState<"gaps" | "loinc" | "lookup">("gaps");
+
+  // Gap analysis state
+  const [gaps, setGaps] = React.useState<CopilotGap[]>([]);
+  const [stats, setStats] = React.useState<any>(null);
+
+  // LOINC auto-mapping state
+  const [mappings, setMappings] = React.useState<CopilotMapping[]>([]);
+  const [skipped, setSkipped] = React.useState<string[]>([]);
+  const [selectedMappings, setSelectedMappings] = React.useState<Set<string>>(new Set());
+  const [applying, setApplying] = React.useState(false);
+
+  // Lookup state
+  const [lookupName, setLookupName] = React.useState("");
+  const [loincResults, setLoincResults] = React.useState<any[]>([]);
+  const [snomedResults, setSnomedResults] = React.useState<any[]>([]);
+  const [pcpndtResult, setPcpndtResult] = React.useState<any>(null);
+
+  async function loadGaps() {
+    setLoading(true);
+    setErr(null);
+    try {
+      const data = await apiFetch<any>(
+        `/api/infrastructure/diagnostics/copilot/analyze-gaps?branchId=${encodeURIComponent(branchId)}`,
+      );
+      setGaps(data.gaps ?? []);
+      setStats(data.stats ?? null);
+    } catch (e: any) {
+      setErr(e?.message || "Failed to analyze gaps");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadLoincMappings() {
+    setLoading(true);
+    setErr(null);
+    try {
+      const data = await apiFetch<any>(
+        `/api/infrastructure/diagnostics/copilot/auto-map-loinc?branchId=${encodeURIComponent(branchId)}`,
+      );
+      setMappings(data.mapped ?? []);
+      setSkipped(data.skipped ?? []);
+      setSelectedMappings(new Set((data.mapped ?? []).map((m: CopilotMapping) => m.itemId)));
+    } catch (e: any) {
+      setErr(e?.message || "Failed to auto-map LOINC");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function applySelected() {
+    const toApply = mappings.filter((m) => selectedMappings.has(m.itemId));
+    if (toApply.length === 0) return;
+    setApplying(true);
+    try {
+      const result = await apiFetch<any>(
+        `/api/infrastructure/diagnostics/copilot/apply-loinc-mappings?branchId=${encodeURIComponent(branchId)}`,
+        {
+          method: "POST",
+          body: JSON.stringify({ mappings: toApply.map((m) => ({ itemId: m.itemId, loincCode: m.loincCode })) }),
+        },
+      );
+      toast({ title: `Applied LOINC codes to ${result.updated} item(s)` });
+      // Remove applied from list
+      setMappings((prev) => prev.filter((m) => !selectedMappings.has(m.itemId)));
+      setSelectedMappings(new Set());
+    } catch (e: any) {
+      toast({ title: "Apply failed", description: e?.message || "Error", variant: "destructive" as any });
+    } finally {
+      setApplying(false);
+    }
+  }
+
+  async function runLookup() {
+    if (!lookupName.trim()) return;
+    setLoading(true);
+    try {
+      const [loinc, snomed, pcpndt] = await Promise.all([
+        apiFetch<any>(`/api/infrastructure/diagnostics/copilot/suggest-loinc?testName=${encodeURIComponent(lookupName)}`),
+        apiFetch<any>(`/api/infrastructure/diagnostics/copilot/suggest-snomed?testName=${encodeURIComponent(lookupName)}`),
+        apiFetch<any>(`/api/infrastructure/diagnostics/copilot/detect-pcpndt?testName=${encodeURIComponent(lookupName)}`),
+      ]);
+      setLoincResults(loinc.suggestions ?? []);
+      setSnomedResults(snomed.suggestions ?? []);
+      setPcpndtResult(pcpndt);
+    } catch (e: any) {
+      toast({ title: "Lookup failed", description: e?.message || "Error", variant: "destructive" as any });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  React.useEffect(() => {
+    if (activeSection === "gaps") void loadGaps();
+    if (activeSection === "loinc") void loadLoincMappings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [branchId, activeSection]);
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">AI Copilot</CardTitle>
+        <CardDescription>Intelligent suggestions for LOINC/SNOMED mapping, gap analysis, and compliance checks.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {err ? <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{err}</div> : null}
+
+        {/* Section switcher */}
+        <div className="mb-4 flex gap-2">
+          {([
+            { key: "gaps" as const, label: "Gap Analysis" },
+            { key: "loinc" as const, label: "LOINC Auto-Map" },
+            { key: "lookup" as const, label: "Code Lookup" },
+          ]).map((s) => (
+            <Button
+              key={s.key}
+              variant={activeSection === s.key ? "primary" : "outline"}
+              size="sm"
+              onClick={() => setActiveSection(s.key)}
+            >
+              {s.label}
+            </Button>
+          ))}
+        </div>
+
+        {/* Gap Analysis */}
+        {activeSection === "gaps" ? (
+          <div>
+            {stats ? (
+              <div className="mb-4 grid gap-3 md:grid-cols-4">
+                <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+                  <div className="text-xs text-zc-muted">Total Items</div>
+                  <div className="mt-1 text-2xl font-semibold">{stats.totalItems}</div>
+                </div>
+                <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+                  <div className="text-xs text-zc-muted">LOINC Coverage</div>
+                  <div className={cn("mt-1 text-2xl font-semibold", stats.loincCoverage >= 80 ? "text-emerald-600" : "text-amber-600")}>
+                    {stats.loincCoverage}%
+                  </div>
+                </div>
+                <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+                  <div className="text-xs text-zc-muted">With LOINC</div>
+                  <div className="mt-1 text-2xl font-semibold">{stats.itemsWithLoinc}</div>
+                </div>
+                <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+                  <div className="text-xs text-zc-muted">With Templates</div>
+                  <div className="mt-1 text-2xl font-semibold">{stats.itemsWithTemplates}</div>
+                </div>
+              </div>
+            ) : null}
+
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-semibold">Configuration Gaps ({gaps.length})</div>
+              <Button variant="outline" size="sm" onClick={() => loadGaps()} disabled={loading} className="gap-2">
+                <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} /> Refresh
+              </Button>
+            </div>
+
+            <div className="grid gap-2">
+              {gaps.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-emerald-300 bg-emerald-50/40 p-4 text-sm text-emerald-700">
+                  No configuration gaps detected. Configuration looks complete.
+                </div>
+              ) : (
+                gaps.map((g, idx) => (
+                  <div key={idx} className={cn(
+                    "rounded-xl border p-3",
+                    g.severity === "high"
+                      ? "border-rose-200/70 bg-rose-50/60"
+                      : g.severity === "medium"
+                        ? "border-amber-200/70 bg-amber-50/60"
+                        : "border-blue-200/70 bg-blue-50/60",
+                  )}>
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase",
+                        g.severity === "high"
+                          ? "bg-rose-100 text-rose-700"
+                          : g.severity === "medium"
+                            ? "bg-amber-100 text-amber-700"
+                            : "bg-blue-100 text-blue-700",
+                      )}>
+                        {g.severity}
+                      </span>
+                      <span className={cn(
+                        "text-[10px] font-semibold uppercase rounded-full px-2 py-0.5 bg-gray-100 text-gray-600",
+                      )}>
+                        {g.category}
+                      </span>
+                      <span className="text-sm font-semibold">{g.title}</span>
+                    </div>
+                    <div className="mt-1 text-xs text-zc-muted">{g.detail}</div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        ) : null}
+
+        {/* LOINC Auto-Map */}
+        {activeSection === "loinc" ? (
+          <div>
+            <div className="mb-4 flex items-center justify-between">
+              <div className="text-sm text-zc-muted">
+                {mappings.length} items can be auto-mapped. {skipped.length} skipped (no match found).
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => loadLoincMappings()} disabled={loading} className="gap-2">
+                  <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} /> Refresh
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={applySelected}
+                  disabled={applying || selectedMappings.size === 0}
+                >
+                  Apply Selected ({selectedMappings.size})
+                </Button>
+              </div>
+            </div>
+
+            {mappings.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-emerald-300 bg-emerald-50/40 p-4 text-sm text-emerald-700">
+                All items already have LOINC codes or no matches found.
+              </div>
+            ) : (
+              <div className="grid gap-2">
+                {mappings.map((m) => (
+                  <div key={m.itemId} className="flex items-center gap-3 rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedMappings.has(m.itemId)}
+                      onChange={(e) => {
+                        const next = new Set(selectedMappings);
+                        if (e.target.checked) next.add(m.itemId);
+                        else next.delete(m.itemId);
+                        setSelectedMappings(next);
+                      }}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-semibold">{m.name}</div>
+                      <div className="text-xs text-zc-muted">
+                        LOINC: <span className="font-mono text-zc-text">{m.loincCode}</span> - {m.display}
+                      </div>
+                    </div>
+                    <span className={cn(
+                      "text-xs font-semibold rounded-full px-2 py-0.5",
+                      m.confidence >= 0.9 ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700",
+                    )}>
+                      {Math.round(m.confidence * 100)}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {skipped.length > 0 ? (
+              <div className="mt-4">
+                <div className="text-sm font-semibold text-zc-muted mb-2">Skipped (no match)</div>
+                <div className="text-xs text-zc-muted">{skipped.join(", ")}</div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {/* Code Lookup */}
+        {activeSection === "lookup" ? (
+          <div>
+            <div className="mb-4 flex gap-2">
+              <Input
+                value={lookupName}
+                onChange={(e) => setLookupName(e.target.value)}
+                placeholder="Enter test name (e.g. CBC, Hemoglobin, X-Ray Chest)"
+                className="flex-1"
+                onKeyDown={(e) => { if (e.key === "Enter") void runLookup(); }}
+              />
+              <Button onClick={() => void runLookup()} disabled={loading || !lookupName.trim()}>
+                Search
+              </Button>
+            </div>
+
+            {loincResults.length > 0 ? (
+              <div className="mb-4">
+                <div className="text-sm font-semibold mb-2">LOINC Suggestions</div>
+                <div className="grid gap-2">
+                  {loincResults.map((r: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+                      <div>
+                        <div className="text-sm font-mono font-semibold">{r.code}</div>
+                        <div className="text-xs text-zc-muted">{r.display}</div>
+                      </div>
+                      <span className={cn(
+                        "text-xs font-semibold rounded-full px-2 py-0.5",
+                        r.confidence >= 0.9 ? "bg-emerald-100 text-emerald-700" : r.confidence >= 0.7 ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-600",
+                      )}>
+                        {Math.round(r.confidence * 100)}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {snomedResults.length > 0 ? (
+              <div className="mb-4">
+                <div className="text-sm font-semibold mb-2">SNOMED Suggestions</div>
+                <div className="grid gap-2">
+                  {snomedResults.map((r: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+                      <div>
+                        <div className="text-sm font-mono font-semibold">{r.code}</div>
+                        <div className="text-xs text-zc-muted">{r.display}</div>
+                      </div>
+                      <span className={cn(
+                        "text-xs font-semibold rounded-full px-2 py-0.5",
+                        r.confidence >= 0.9 ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700",
+                      )}>
+                        {Math.round(r.confidence * 100)}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {pcpndtResult ? (
+              <div className="mb-4">
+                <div className="text-sm font-semibold mb-2">PCPNDT Detection</div>
+                <div className={cn(
+                  "rounded-xl border p-3",
+                  pcpndtResult.requiresPcpndt
+                    ? "border-rose-200/70 bg-rose-50/60"
+                    : "border-emerald-200/70 bg-emerald-50/40",
+                )}>
+                  <div className="text-sm font-semibold">
+                    {pcpndtResult.requiresPcpndt ? "PCPNDT Flag Required" : "No PCPNDT requirement detected"}
+                  </div>
+                  {pcpndtResult.matchedKeyword ? (
+                    <div className="text-xs text-zc-muted mt-1">
+                      Matched keyword: <span className="font-mono">{pcpndtResult.matchedKeyword}</span>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+
+            {lookupName && loincResults.length === 0 && snomedResults.length === 0 && !loading ? (
+              <div className="rounded-xl border border-dashed border-zc-border p-4 text-sm text-zc-muted">
+                No results found. Try a different test name.
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+/* =========================================================
+   TAB 8: Go-Live Check (Readiness)
    ========================================================= */
 
 type GoLiveFix =
@@ -794,24 +1426,35 @@ function GoLiveTab({
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
-  const [servicePoints, setServicePoints] = React.useState<DiagnosticServicePointRow[]>([]);
-  const [items, setItems] = React.useState<DiagnosticItemRow[]>([]);
-  const [caps, setCaps] = React.useState<CapabilityRow[]>([]);
+
+  type GoLiveCheck = {
+    id: string;
+    title: string;
+    severity: "BLOCKER" | "WARNING";
+    passed: boolean;
+    detail: string;
+  };
+  type GoLiveSummary = {
+    total: number;
+    passed: number;
+    blockers: number;
+    warnings: number;
+    score: number;
+  };
+  type GoLiveResult = { checks: GoLiveCheck[]; summary: GoLiveSummary };
+
+  const [result, setResult] = React.useState<GoLiveResult | null>(null);
 
   async function load() {
     setLoading(true);
     setErr(null);
     try {
-      const [sp, it, cp] = await Promise.all([
-        apiFetch<DiagnosticServicePointRow[]>(`/api/infrastructure/diagnostics/service-points?branchId=${encodeURIComponent(branchId)}`),
-        apiFetch<DiagnosticItemRow[]>(`/api/infrastructure/diagnostics/items?branchId=${encodeURIComponent(branchId)}`),
-        apiFetch<CapabilityRow[]>(`/api/infrastructure/diagnostics/capabilities?branchId=${encodeURIComponent(branchId)}`),
-      ]);
-      setServicePoints(safeArray(sp).filter((s) => s.isActive));
-      setItems(safeArray(it).filter((i) => i.isActive));
-      setCaps(safeArray(cp).filter((c) => c.isActive));
+      const data = await apiFetch<GoLiveResult>(
+        `/api/infrastructure/diagnostics/go-live-validation?branchId=${encodeURIComponent(branchId)}`,
+      );
+      setResult(data);
     } catch (e: any) {
-      setErr(e?.message || "Failed to load readiness data");
+      setErr(e?.message || "Failed to run go-live validation");
     } finally {
       setLoading(false);
     }
@@ -822,133 +1465,31 @@ function GoLiveTab({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [branchId]);
 
-  const capCountByItem = React.useMemo(() => {
-    const m = new Map<string, number>();
-    for (const c of caps) m.set(c.diagnosticItemId, (m.get(c.diagnosticItemId) ?? 0) + 1);
-    return m;
-  }, [caps]);
+  const failedChecks = result?.checks.filter((c) => !c.passed) ?? [];
+  const passedChecks = result?.checks.filter((c) => c.passed) ?? [];
+  const blockers = result?.summary.blockers ?? 0;
+  const warns = result?.summary.warnings ?? 0;
+  const score = result?.summary.score ?? 0;
+  const ready = blockers === 0 && result != null;
 
-  const capCountByServicePoint = React.useMemo(() => {
-    const m = new Map<string, number>();
-    for (const c of caps) m.set(c.servicePointId, (m.get(c.servicePointId) ?? 0) + 1);
-    return m;
-  }, [caps]);
-
-  type Issue = {
-    severity: "blocker" | "warn";
-    title: string;
-    detail: string;
-    fix?: GoLiveFix;
-  };
-
-  const issues: Issue[] = React.useMemo(() => {
-    const out: Issue[] = [];
-
-    if (servicePoints.length === 0) {
-      out.push({
-        severity: "blocker",
-        title: "No service points",
-        detail: "Create at least one service point (Lab/Radiology/etc.) to route diagnostic items.",
-        fix: { kind: "servicePoint", servicePointId: "" },
-      });
-    }
-
-    const tests = items.filter((i) => !i.isPanel);
-    if (tests.length === 0) {
-      out.push({
-        severity: "blocker",
-        title: "No diagnostic items",
-        detail: "Add at least one diagnostic item (lab test, imaging or procedure) in the test library.",
-        fix: { kind: "catalog" },
-      });
-    }
-
-    // Panels must have children
-    for (const p of items.filter((i) => i.isPanel)) {
-      const n = p._count?.panelChildren ?? 0;
-      if (n === 0) {
-        out.push({
-          severity: "blocker",
-          title: `Panel has no tests: ${p.name}`,
-          detail: "Add at least one child test to the panel.",
-          fix: { kind: "panel", panelId: p.id },
-        });
-      }
-    }
-
-    // Lab tests must have parameters
-    for (const t of tests.filter((i) => i.kind === "LAB")) {
-      const pcount = t._count?.parameters ?? 0;
-      if (pcount === 0) {
-        out.push({
-          severity: "blocker",
-          title: `Lab test missing parameters: ${t.name}`,
-          detail: "Define at least one parameter (result schema) so results can be recorded.",
-          fix: { kind: "labParams", itemId: t.id },
-        });
-      }
-      const tmpl = t._count?.templates ?? 0;
-      if (tmpl === 0) {
-        out.push({
-          severity: "warn",
-          title: `Lab test missing template: ${t.name}`,
-          detail: "Recommended: add a report template for consistent printing.",
-          fix: { kind: "templates", itemId: t.id },
-        });
-      }
-    }
-
-    // Imaging/procedure should have templates
-    for (const t of tests.filter((i) => i.kind !== "LAB")) {
-      const tmpl = t._count?.templates ?? 0;
-      if (tmpl === 0) {
-        out.push({
-          severity: "blocker",
-          title: `Missing template: ${t.name}`,
-          detail: "Add a report template for this diagnostic item.",
-          fix: { kind: "templates", itemId: t.id },
-        });
-      }
-    }
-
-    // Every non-panel item should be routable
-    for (const t of tests) {
-      const ccount = capCountByItem.get(t.id) ?? 0;
-      if (ccount === 0) {
-        out.push({
-          severity: "blocker",
-          title: `No routing capability: ${t.name}`,
-          detail: "Create a capability to route this item to a service point.",
-          fix: { kind: "capability", itemId: t.id },
-        });
-      }
-    }
-
-    // Service points with zero capabilities (warning)
-    for (const sp of servicePoints) {
-      const n = capCountByServicePoint.get(sp.id) ?? 0;
-      if (n === 0) {
-        out.push({
-          severity: "warn",
-          title: `Service point has no routing rules: ${sp.name}`,
-          detail: "Recommended: add at least one capability mapping so this service point can be used for orders.",
-          fix: { kind: "capability", itemId: "", servicePointId: sp.id },
-        });
-      }
-    }
-
-    return out;
-  }, [servicePoints, items, capCountByItem, capCountByServicePoint]);
-
-  const blockers = issues.filter((i) => i.severity === "blocker").length;
-  const warns = issues.filter((i) => i.severity === "warn").length;
-  const ready = blockers === 0;
+  function fixForCheck(check: GoLiveCheck): GoLiveFix | undefined {
+    const id = check.id;
+    if (id === "sections-exist") return { kind: "catalog" };
+    if (id === "lab-params" || id === "lab-specimen") return { kind: "catalog" };
+    if (id === "numeric-ranges" || id === "critical-ranges") return { kind: "catalog" };
+    if (id === "section-service-points" || id === "sp-staff" || id === "sp-equipment")
+      return { kind: "servicePoint", servicePointId: "" };
+    if (id === "imaging-equipment" || id === "pcpndt-flag") return { kind: "catalog" };
+    if (id === "report-templates") return { kind: "catalog" };
+    if (id === "service-catalog" || id === "tat-configured") return { kind: "catalog" };
+    return undefined;
+  }
 
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-base">Go‑Live Check</CardTitle>
-        <CardDescription>Fast readiness validation with one-click navigation to fixes.</CardDescription>
+        <CardTitle className="text-base">Go-Live Validation (16 Checks)</CardTitle>
+        <CardDescription>Comprehensive readiness validation powered by backend engine.</CardDescription>
       </CardHeader>
       <CardContent>
         {err ? <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{err}</div> : null}
@@ -973,66 +1514,105 @@ function GoLiveTab({
           </div>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-3">
-          <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-            <div className="text-xs text-zc-muted">Active service points</div>
-            <div className="mt-1 text-2xl font-semibold">{servicePoints.length}</div>
-          </div>
-          <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-            <div className="text-xs text-zc-muted">Active items (incl panels)</div>
-            <div className="mt-1 text-2xl font-semibold">{items.length}</div>
-          </div>
-          <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-            <div className="text-xs text-zc-muted">Active capabilities</div>
-            <div className="mt-1 text-2xl font-semibold">{caps.length}</div>
-          </div>
-        </div>
-
-        <Separator className="my-4" />
-
-        <div className="grid gap-2">
-          {issues.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-zc-border p-4 text-sm text-zc-muted">No issues detected.</div>
-          ) : (
-            issues.map((i, idx) => (
-              <div key={`${i.title}-${idx}`} className={cn(
-                "flex flex-wrap items-start justify-between gap-3 rounded-xl border p-3",
-                i.severity === "blocker"
-                  ? "border-rose-200/70 bg-rose-50/60 dark:border-rose-900/50 dark:bg-rose-950/20"
-                  : "border-amber-200/70 bg-amber-50/60 dark:border-amber-900/50 dark:bg-amber-950/20",
-              )}>
-                <div className="min-w-0">
-                  <div className={cn(
-                    "text-sm font-semibold",
-                    i.severity === "blocker" ? "text-rose-800 dark:text-rose-200" : "text-amber-800 dark:text-amber-200",
-                  )}>
-                    {i.title}
-                  </div>
-                  <div className="mt-1 text-xs text-zc-muted">{i.detail}</div>
-                </div>
-                {i.fix ? (
-                  <Button
-                    size="sm"
-                    variant={i.severity === "blocker" ? "primary" : "outline"}
-                    onClick={() => {
-                      const fix = i.fix;
-                      if (!fix) return;
-                      if (fix.kind === "servicePoint" && (fix as any).servicePointId === "") {
-                        onFix({ kind: "servicePoint", servicePointId: "" });
-                        return;
-                      }
-                      onFix(fix);
-                    }}
-                    className="gap-2"
-                  >
-                    Fix
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                ) : null}
+        {result ? (
+          <>
+            <div className="grid gap-3 md:grid-cols-4">
+              <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+                <div className="text-xs text-zc-muted">Total Checks</div>
+                <div className="mt-1 text-2xl font-semibold">{result.summary.total}</div>
               </div>
-            ))
-          )}
-        </div>
+              <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+                <div className="text-xs text-zc-muted">Passed</div>
+                <div className="mt-1 text-2xl font-semibold text-emerald-600">{result.summary.passed}</div>
+              </div>
+              <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+                <div className="text-xs text-zc-muted">Blockers</div>
+                <div className="mt-1 text-2xl font-semibold text-rose-600">{blockers}</div>
+              </div>
+              <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+                <div className="text-xs text-zc-muted">Readiness Score</div>
+                <div className={cn("mt-1 text-2xl font-semibold", score >= 80 ? "text-emerald-600" : score >= 50 ? "text-amber-600" : "text-rose-600")}>
+                  {score}%
+                </div>
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+              <div
+                className={cn("h-full rounded-full transition-all", score >= 80 ? "bg-emerald-500" : score >= 50 ? "bg-amber-500" : "bg-rose-500")}
+                style={{ width: `${score}%` }}
+              />
+            </div>
+
+            <Separator className="my-4" />
+
+            {/* Failed checks */}
+            {failedChecks.length > 0 ? (
+              <div className="mb-4">
+                <div className="mb-2 text-sm font-semibold text-zc-text">Issues ({failedChecks.length})</div>
+                <div className="grid gap-2">
+                  {failedChecks.map((check) => {
+                    const fix = fixForCheck(check);
+                    return (
+                      <div key={check.id} className={cn(
+                        "flex flex-wrap items-start justify-between gap-3 rounded-xl border p-3",
+                        check.severity === "BLOCKER"
+                          ? "border-rose-200/70 bg-rose-50/60 dark:border-rose-900/50 dark:bg-rose-950/20"
+                          : "border-amber-200/70 bg-amber-50/60 dark:border-amber-900/50 dark:bg-amber-950/20",
+                      )}>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className={cn(
+                              "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                              check.severity === "BLOCKER"
+                                ? "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300"
+                                : "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+                            )}>
+                              {check.severity}
+                            </span>
+                            <span className={cn(
+                              "text-sm font-semibold",
+                              check.severity === "BLOCKER" ? "text-rose-800 dark:text-rose-200" : "text-amber-800 dark:text-amber-200",
+                            )}>
+                              {check.title}
+                            </span>
+                          </div>
+                          <div className="mt-1 text-xs text-zc-muted">{check.detail}</div>
+                        </div>
+                        {fix ? (
+                          <Button
+                            size="sm"
+                            variant={check.severity === "BLOCKER" ? "primary" : "outline"}
+                            onClick={() => onFix(fix)}
+                            className="gap-2"
+                          >
+                            Fix <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+
+            {/* Passed checks */}
+            {passedChecks.length > 0 ? (
+              <div>
+                <div className="mb-2 text-sm font-semibold text-zc-text">Passed ({passedChecks.length})</div>
+                <div className="grid gap-2">
+                  {passedChecks.map((check) => (
+                    <div key={check.id} className="flex items-center gap-3 rounded-xl border border-emerald-200/70 bg-emerald-50/40 p-3 dark:border-emerald-900/50 dark:bg-emerald-950/10">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      <div className="text-sm text-emerald-800 dark:text-emerald-200">{check.title}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </>
+        ) : null}
       </CardContent>
     </Card>
   );
@@ -1367,6 +1947,7 @@ function SectionDialog({
   const { toast } = useToast();
   const [code, setCode] = React.useState("");
   const [name, setName] = React.useState("");
+  const [sectionType, setSectionType] = React.useState<DiagnosticSectionType>("LAB");
   const [sortOrder, setSortOrder] = React.useState("");
   const [isActive, setIsActive] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
@@ -1376,6 +1957,7 @@ function SectionDialog({
     if (!open) return;
     setCode(editing?.code ?? "");
     setName(editing?.name ?? "");
+    setSectionType(editing?.type ?? "LAB");
     setSortOrder(editing?.sortOrder != null ? String(editing.sortOrder) : "");
     setIsActive(editing?.isActive ?? true);
     setErr(null);
@@ -1398,6 +1980,7 @@ function SectionDialog({
             branchId,
             code: normalizeCode(code),
             name: name.trim(),
+            type: sectionType,
             sortOrder: toInt(sortOrder) ?? undefined,
             isActive,
           }),
@@ -1409,6 +1992,7 @@ function SectionDialog({
             branchId,
             code: normalizeCode(code),
             name: name.trim(),
+            type: sectionType,
             sortOrder: toInt(sortOrder) ?? undefined,
           }),
         });
@@ -1438,6 +2022,16 @@ function SectionDialog({
           </Field>
           <Field label="Name" required>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Laboratory" />
+          </Field>
+          <Field label="Section Type" required>
+            <Select value={sectionType} onValueChange={(v) => setSectionType(v as DiagnosticSectionType)}>
+              <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+              <SelectContent>
+                {(["LAB", "IMAGING", "CARDIOLOGY", "NEUROLOGY", "PULMONOLOGY", "OTHER"] as const).map((t) => (
+                  <SelectItem key={t} value={t}>{t.replace(/_/g, " ")}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
           <Field label="Sort order">
             <Input value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} placeholder="0" />
@@ -1609,6 +2203,10 @@ function SpecimenDialog({
   const [container, setContainer] = React.useState("");
   const [minVolumeMl, setMinVolumeMl] = React.useState("");
   const [handlingNotes, setHandlingNotes] = React.useState("");
+  const [fastingRequired, setFastingRequired] = React.useState(false);
+  const [fastingHours, setFastingHours] = React.useState("");
+  const [collectionInstructions, setCollectionInstructions] = React.useState("");
+  const [storageTemperature, setStorageTemperature] = React.useState("");
   const [isActive, setIsActive] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
@@ -1620,6 +2218,10 @@ function SpecimenDialog({
     setContainer(editing?.container ?? "");
     setMinVolumeMl(editing?.minVolumeMl != null ? String(editing.minVolumeMl) : "");
     setHandlingNotes(editing?.handlingNotes ?? "");
+    setFastingRequired(editing?.fastingRequired ?? false);
+    setFastingHours(editing?.fastingHours != null ? String(editing.fastingHours) : "");
+    setCollectionInstructions(editing?.collectionInstructions ?? "");
+    setStorageTemperature(editing?.storageTemperature ?? "");
     setIsActive(editing?.isActive ?? true);
     setErr(null);
   }, [open, editing]);
@@ -1644,6 +2246,10 @@ function SpecimenDialog({
             container: container.trim() || null,
             minVolumeMl: toFloat(minVolumeMl),
             handlingNotes: handlingNotes.trim() || null,
+            fastingRequired,
+            fastingHours: toInt(fastingHours),
+            collectionInstructions: collectionInstructions.trim() || null,
+            storageTemperature: storageTemperature.trim() || null,
             isActive,
           }),
         });
@@ -1657,6 +2263,10 @@ function SpecimenDialog({
             container: container.trim() || undefined,
             minVolumeMl: toFloat(minVolumeMl) ?? undefined,
             handlingNotes: handlingNotes.trim() || undefined,
+            fastingRequired,
+            fastingHours: toInt(fastingHours) ?? undefined,
+            collectionInstructions: collectionInstructions.trim() || undefined,
+            storageTemperature: storageTemperature.trim() || undefined,
           }),
         });
       }
@@ -1695,6 +2305,21 @@ function SpecimenDialog({
           <Field label="Handling notes">
             <Textarea value={handlingNotes} onChange={(e) => setHandlingNotes(e.target.value)} placeholder="Keep chilled, process within 2 hours" />
           </Field>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Storage Temperature">
+              <Input value={storageTemperature} onChange={(e) => setStorageTemperature(e.target.value)} placeholder="2-8°C" />
+            </Field>
+            <Field label="Fasting Hours" hint={fastingRequired ? "Required" : "Only if fasting is required"}>
+              <Input value={fastingHours} onChange={(e) => setFastingHours(e.target.value)} placeholder="8" disabled={!fastingRequired} />
+            </Field>
+          </div>
+          <Field label="Collection Instructions">
+            <Textarea value={collectionInstructions} onChange={(e) => setCollectionInstructions(e.target.value)} placeholder="Detailed collection procedure..." />
+          </Field>
+          <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+            <div className="text-sm font-semibold text-zc-text">Fasting Required</div>
+            <Switch checked={fastingRequired} onCheckedChange={setFastingRequired} />
+          </div>
           {editing ? (
             <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel/10 p-3">
               <div className="text-sm font-semibold text-zc-text">Active</div>
@@ -1748,6 +2373,12 @@ function ItemDialog({
   const [requiresAppointment, setRequiresAppointment] = React.useState(false);
   const [isPanel, setIsPanel] = React.useState(false);
   const [isActive, setIsActive] = React.useState(true);
+  const [loincCode, setLoincCode] = React.useState("");
+  const [snomedCode, setSnomedCode] = React.useState("");
+  const [searchAliasesText, setSearchAliasesText] = React.useState("");
+  const [careContext, setCareContext] = React.useState<DiagnosticCareContext>("ALL");
+  const [requiresPcpndt, setRequiresPcpndt] = React.useState(false);
+  const [panelType, setPanelType] = React.useState<DiagnosticPanelType | "none">("none");
   const [saving, setSaving] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
 
@@ -1766,6 +2397,12 @@ function ItemDialog({
     setRequiresAppointment(editing?.requiresAppointment ?? false);
     setIsPanel(editing?.isPanel ?? false);
     setIsActive(editing?.isActive ?? true);
+    setLoincCode(editing?.loincCode ?? "");
+    setSnomedCode(editing?.snomedCode ?? "");
+    setSearchAliasesText(Array.isArray(editing?.searchAliases) ? (editing.searchAliases as string[]).join(", ") : "");
+    setCareContext(editing?.careContext ?? "ALL");
+    setRequiresPcpndt(editing?.requiresPcpndt ?? false);
+    setPanelType(editing?.panelType ?? "none");
     setErr(null);
   }, [open, editing]);
 
@@ -1779,6 +2416,10 @@ function ItemDialog({
       setErr(codeErr || nameErr);
       return;
     }
+
+    const aliases = searchAliasesText.trim()
+      ? searchAliasesText.split(",").map((s) => s.trim()).filter(Boolean)
+      : undefined;
 
     const payload: any = {
       branchId,
@@ -1795,6 +2436,12 @@ function ItemDialog({
       requiresAppointment,
       isPanel,
       isActive,
+      loincCode: loincCode.trim() || null,
+      snomedCode: snomedCode.trim() || null,
+      searchAliases: aliases,
+      careContext,
+      requiresPcpndt,
+      panelType: panelType === "none" ? null : panelType,
     };
 
     setSaving(true);
@@ -1883,6 +2530,41 @@ function ItemDialog({
               </Select>
             </Field>
           </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="LOINC Code" hint="e.g. 718-7">
+              <Input value={loincCode} onChange={(e) => setLoincCode(e.target.value)} placeholder="718-7" />
+            </Field>
+            <Field label="SNOMED Code" hint="e.g. 26604007">
+              <Input value={snomedCode} onChange={(e) => setSnomedCode(e.target.value)} placeholder="26604007" />
+            </Field>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Care Context">
+              <Select value={careContext} onValueChange={(v) => setCareContext(v as DiagnosticCareContext)}>
+                <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {(["ALL", "OPD", "IPD", "ER", "DAYCARE", "HOMECARE"] as const).map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            {isPanel ? (
+              <Field label="Panel Type">
+                <Select value={panelType} onValueChange={(v) => setPanelType(v as DiagnosticPanelType | "none")}>
+                  <SelectTrigger className="h-10"><SelectValue placeholder="Select type" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="PROFILE">Profile</SelectItem>
+                    <SelectItem value="PACKAGE">Package</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+            ) : null}
+          </div>
+          <Field label="Search Aliases" hint="Comma-separated">
+            <Input value={searchAliasesText} onChange={(e) => setSearchAliasesText(e.target.value)} placeholder="CBC, blood count, hemogram" />
+          </Field>
           {kind === "LAB" ? (
             <div className="grid gap-4 md:grid-cols-2">
               <Field label="Routine TAT (mins)">
@@ -1897,7 +2579,7 @@ function ItemDialog({
               <Textarea value={preparationText} onChange={(e) => setPreparationText(e.target.value)} placeholder="Any preparation notes" />
             </Field>
           )}
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel/10 p-3">
               <div className="text-sm font-semibold text-zc-text">Panel item</div>
               <Switch checked={isPanel} onCheckedChange={setIsPanel} />
@@ -1909,6 +2591,10 @@ function ItemDialog({
             <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel/10 p-3">
               <div className="text-sm font-semibold text-zc-text">Consent required</div>
               <Switch checked={consentRequired} onCheckedChange={setConsentRequired} />
+            </div>
+            <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+              <div className="text-sm font-semibold text-zc-text">Requires PCPNDT</div>
+              <Switch checked={requiresPcpndt} onCheckedChange={setRequiresPcpndt} />
             </div>
           </div>
           {editing ? (
@@ -2316,6 +3002,8 @@ function ParameterDialog({
   const [unit, setUnit] = React.useState("");
   const [precision, setPrecision] = React.useState("");
   const [allowedText, setAllowedText] = React.useState("");
+  const [isDerived, setIsDerived] = React.useState(false);
+  const [formula, setFormula] = React.useState("");
   const [isActive, setIsActive] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
@@ -2328,6 +3016,8 @@ function ParameterDialog({
     setUnit(editing?.unit ?? "");
     setPrecision(editing?.precision != null ? String(editing.precision) : "");
     setAllowedText(editing?.allowedText ?? "");
+    setIsDerived(editing?.isDerived ?? false);
+    setFormula(editing?.formula ?? "");
     setIsActive(editing?.isActive ?? true);
     setErr(null);
   }, [open, editing]);
@@ -2353,6 +3043,8 @@ function ParameterDialog({
             unit: unit.trim() || null,
             precision: toInt(precision) ?? null,
             allowedText: allowedText.trim() || null,
+            isDerived,
+            formula: formula.trim() || null,
             isActive,
           }),
         });
@@ -2366,6 +3058,8 @@ function ParameterDialog({
             unit: unit.trim() || undefined,
             precision: toInt(precision) ?? undefined,
             allowedText: allowedText.trim() || undefined,
+            isDerived,
+            formula: formula.trim() || undefined,
           }),
         });
       }
@@ -2416,6 +3110,15 @@ function ParameterDialog({
           <Field label="Allowed text (for choice)">
             <Input value={allowedText} onChange={(e) => setAllowedText(e.target.value)} placeholder="Low,Normal,High" />
           </Field>
+          <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+            <div className="text-sm font-semibold text-zc-text">Derived (calculated)</div>
+            <Switch checked={isDerived} onCheckedChange={setIsDerived} />
+          </div>
+          {isDerived ? (
+            <Field label="Formula" hint="e.g. MCV = RBC_HCT / RBC_COUNT * 10">
+              <Input value={formula} onChange={(e) => setFormula(e.target.value)} placeholder="param1 / param2 * 10" />
+            </Field>
+          ) : null}
           {editing ? (
             <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel/10 p-3">
               <div className="text-sm font-semibold text-zc-text">Active</div>
@@ -2458,6 +3161,8 @@ function RangeDialog({
   const [low, setLow] = React.useState("");
   const [high, setHigh] = React.useState("");
   const [textRange, setTextRange] = React.useState("");
+  const [source, setSource] = React.useState<DiagnosticRangeSource | "none">("none");
+  const [notes, setNotes] = React.useState("");
   const [isActive, setIsActive] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
@@ -2470,6 +3175,8 @@ function RangeDialog({
     setLow(editing?.low != null ? String(editing.low) : "");
     setHigh(editing?.high != null ? String(editing.high) : "");
     setTextRange(editing?.textRange ?? "");
+    setSource(editing?.source ?? "none");
+    setNotes(editing?.notes ?? "");
     setIsActive(editing?.isActive ?? true);
     setErr(null);
   }, [open, editing]);
@@ -2490,6 +3197,8 @@ function RangeDialog({
             low: toFloat(low),
             high: toFloat(high),
             textRange: textRange.trim() || null,
+            source: source === "none" ? null : source,
+            notes: notes.trim() || null,
             isActive,
           }),
         });
@@ -2503,6 +3212,8 @@ function RangeDialog({
             low: toFloat(low) ?? undefined,
             high: toFloat(high) ?? undefined,
             textRange: textRange.trim() || undefined,
+            source: source === "none" ? undefined : source,
+            notes: notes.trim() || undefined,
           }),
         });
       }
@@ -2550,6 +3261,23 @@ function RangeDialog({
               <Input value={high} onChange={(e) => setHigh(e.target.value)} placeholder="10" />
             </Field>
           </div>
+          <Field label="Source">
+            <Select value={source} onValueChange={(v) => setSource(v as DiagnosticRangeSource | "none")}>
+              <SelectTrigger className="h-10"><SelectValue placeholder="Select source" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Not specified</SelectItem>
+                <SelectItem value="MANUFACTURER">Manufacturer</SelectItem>
+                <SelectItem value="HOSPITAL_DEFINED">Hospital Defined</SelectItem>
+                <SelectItem value="LITERATURE">Literature</SelectItem>
+                <SelectItem value="REGULATORY_BODY">Regulatory Body</SelectItem>
+                <SelectItem value="CONSENSUS_GUIDELINE">Consensus Guideline</SelectItem>
+                <SelectItem value="OTHER">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Notes">
+            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Reference notes or citations..." rows={2} />
+          </Field>
           {editing ? (
             <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel/10 p-3">
               <div className="text-sm font-semibold text-zc-text">Active</div>
@@ -2730,6 +3458,9 @@ function TemplateDialog({
   const [name, setName] = React.useState("");
   const [kind, setKind] = React.useState<TemplateKind>("IMAGING_REPORT");
   const [body, setBody] = React.useState("");
+  const [headerText, setHeaderText] = React.useState("");
+  const [footerText, setFooterText] = React.useState("");
+  const [signatureRolesText, setSignatureRolesText] = React.useState("");
   const [isActive, setIsActive] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
@@ -2739,6 +3470,9 @@ function TemplateDialog({
     setName(editing?.name ?? "");
     setKind(editing?.kind ?? "IMAGING_REPORT");
     setBody(editing?.body ?? "");
+    setHeaderText(editing?.headerConfig ? (typeof editing.headerConfig === "string" ? editing.headerConfig : JSON.stringify(editing.headerConfig)) : "");
+    setFooterText(editing?.footerConfig ? (typeof editing.footerConfig === "string" ? editing.footerConfig : JSON.stringify(editing.footerConfig)) : "");
+    setSignatureRolesText(Array.isArray(editing?.signatureRoles) ? (editing.signatureRoles as string[]).join(", ") : "");
     setIsActive(editing?.isActive ?? true);
     setErr(null);
   }, [open, editing]);
@@ -2753,6 +3487,10 @@ function TemplateDialog({
       setErr("Template body is required");
       return;
     }
+    const sigRoles = signatureRolesText.trim()
+      ? signatureRolesText.split(",").map((s) => s.trim()).filter(Boolean)
+      : undefined;
+
     setSaving(true);
     setErr(null);
     try {
@@ -2764,6 +3502,9 @@ function TemplateDialog({
             name: name.trim(),
             kind,
             body: body.trim(),
+            headerConfig: headerText.trim() || null,
+            footerConfig: footerText.trim() || null,
+            signatureRoles: sigRoles,
             isActive,
           }),
         });
@@ -2774,6 +3515,9 @@ function TemplateDialog({
             name: name.trim(),
             kind,
             body: body.trim(),
+            headerConfig: headerText.trim() || undefined,
+            footerConfig: footerText.trim() || undefined,
+            signatureRoles: sigRoles,
           }),
         });
       }
@@ -2812,6 +3556,17 @@ function TemplateDialog({
           </div>
           <Field label="Body" required>
             <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={8} placeholder="Template body..." />
+          </Field>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Header" hint="Report header text/config">
+              <Textarea value={headerText} onChange={(e) => setHeaderText(e.target.value)} rows={2} placeholder="Hospital logo, address..." />
+            </Field>
+            <Field label="Footer" hint="Report footer text/config">
+              <Textarea value={footerText} onChange={(e) => setFooterText(e.target.value)} rows={2} placeholder="Disclaimer, page numbers..." />
+            </Field>
+          </div>
+          <Field label="Signature Roles" hint="Comma-separated, e.g. Pathologist, Lab Director">
+            <Input value={signatureRolesText} onChange={(e) => setSignatureRolesText(e.target.value)} placeholder="Pathologist, Lab Director" />
           </Field>
           {editing ? (
             <div className="flex items-center justify-between rounded-xl border border-zc-border bg-zc-panel/10 p-3">

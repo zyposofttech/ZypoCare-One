@@ -13,7 +13,15 @@ import {
   ValidateNested,
   IsNumber,
 } from "class-validator";
-import { DiagnosticKind, DiagnosticResultDataType, DiagnosticTemplateKind } from "../diagnostics.types";
+import {
+  DiagnosticKind,
+  DiagnosticResultDataType,
+  DiagnosticTemplateKind,
+  DiagnosticSectionType,
+  DiagnosticCareContext,
+  DiagnosticPanelType,
+  DiagnosticRangeSource,
+} from "../diagnostics.types";
 
 // -------------------- Sections --------------------
 export class ListSectionsQuery {
@@ -44,6 +52,14 @@ export class CreateSectionDto {
   name!: string;
 
   @IsOptional()
+  @IsEnum(DiagnosticSectionType)
+  type?: DiagnosticSectionType;
+
+  @IsOptional()
+  @IsString()
+  headStaffId?: string;
+
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(0)
@@ -64,6 +80,14 @@ export class UpdateSectionDto {
   @IsOptional()
   @IsString()
   name?: string;
+
+  @IsOptional()
+  @IsEnum(DiagnosticSectionType)
+  type?: DiagnosticSectionType;
+
+  @IsOptional()
+  @IsString()
+  headStaffId?: string | null;
 
   @IsOptional()
   @Type(() => Number)
@@ -189,6 +213,25 @@ export class CreateSpecimenDto {
   @IsOptional()
   @IsString()
   handlingNotes?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  fastingRequired?: boolean;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(72)
+  fastingHours?: number;
+
+  @IsOptional()
+  @IsString()
+  collectionInstructions?: string;
+
+  @IsOptional()
+  @IsString()
+  storageTemperature?: string;
 }
 
 export class UpdateSpecimenDto {
@@ -216,6 +259,25 @@ export class UpdateSpecimenDto {
   @IsOptional()
   @IsString()
   handlingNotes?: string | null;
+
+  @IsOptional()
+  @IsBoolean()
+  fastingRequired?: boolean;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(72)
+  fastingHours?: number | null;
+
+  @IsOptional()
+  @IsString()
+  collectionInstructions?: string | null;
+
+  @IsOptional()
+  @IsString()
+  storageTemperature?: string | null;
 
   @IsOptional()
   @IsBoolean()
@@ -277,6 +339,23 @@ export class CreateDiagnosticItemDto {
   @IsString()
   categoryId?: string;
 
+  // coding standards
+  @IsOptional()
+  @IsString()
+  loincCode?: string;
+
+  @IsOptional()
+  @IsString()
+  snomedCode?: string;
+
+  @IsOptional()
+  searchAliases?: string[];
+
+  // care context
+  @IsOptional()
+  @IsEnum(DiagnosticCareContext)
+  careContext?: DiagnosticCareContext;
+
   // lab
   @IsOptional()
   @IsString()
@@ -309,10 +388,18 @@ export class CreateDiagnosticItemDto {
   @IsBoolean()
   consentRequired?: boolean;
 
+  @IsOptional()
+  @IsBoolean()
+  requiresPcpndt?: boolean;
+
   // panels
   @IsOptional()
   @IsBoolean()
   isPanel?: boolean;
+
+  @IsOptional()
+  @IsEnum(DiagnosticPanelType)
+  panelType?: DiagnosticPanelType;
 
   @IsOptional()
   @Type(() => Number)
@@ -354,6 +441,23 @@ export class UpdateDiagnosticItemDto {
   @IsString()
   categoryId?: string | null;
 
+  // coding standards
+  @IsOptional()
+  @IsString()
+  loincCode?: string | null;
+
+  @IsOptional()
+  @IsString()
+  snomedCode?: string | null;
+
+  @IsOptional()
+  searchAliases?: string[] | null;
+
+  // care context
+  @IsOptional()
+  @IsEnum(DiagnosticCareContext)
+  careContext?: DiagnosticCareContext;
+
   @IsOptional()
   @IsString()
   specimenId?: string | null;
@@ -386,7 +490,15 @@ export class UpdateDiagnosticItemDto {
 
   @IsOptional()
   @IsBoolean()
+  requiresPcpndt?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
   isPanel?: boolean;
+
+  @IsOptional()
+  @IsEnum(DiagnosticPanelType)
+  panelType?: DiagnosticPanelType | null;
 
   @IsOptional()
   @Type(() => Number)
@@ -460,6 +572,14 @@ export class CreateParameterDto {
   allowedText?: string;
 
   @IsOptional()
+  @IsBoolean()
+  isDerived?: boolean;
+
+  @IsOptional()
+  @IsString()
+  formula?: string;
+
+  @IsOptional()
   @Type(() => Number)
   @IsNumber({ allowNaN: false, allowInfinity: false })
   criticalLow?: number;
@@ -507,6 +627,14 @@ export class UpdateParameterDto {
   @IsOptional()
   @IsString()
   allowedText?: string | null;
+
+  @IsOptional()
+  @IsBoolean()
+  isDerived?: boolean;
+
+  @IsOptional()
+  @IsString()
+  formula?: string | null;
 
   @IsOptional()
   @Type(() => Number)
@@ -566,6 +694,10 @@ export class CreateReferenceRangeDto {
   notes?: string;
 
   @IsOptional()
+  @IsEnum(DiagnosticRangeSource)
+  source?: DiagnosticRangeSource;
+
+  @IsOptional()
   @IsInt()
   @Min(0)
   @Max(9999)
@@ -612,6 +744,10 @@ export class UpdateReferenceRangeDto {
   notes?: string | null;
 
   @IsOptional()
+  @IsEnum(DiagnosticRangeSource)
+  source?: DiagnosticRangeSource | null;
+
+  @IsOptional()
   @IsInt()
   @Min(0)
   @Max(9999)
@@ -638,6 +774,18 @@ export class CreateTemplateDto {
   @IsString()
   @IsNotEmpty()
   body!: string;
+
+  @IsOptional()
+  headerConfig?: any;
+
+  @IsOptional()
+  footerConfig?: any;
+
+  @IsOptional()
+  parameterLayout?: any;
+
+  @IsOptional()
+  signatureRoles?: string[];
 }
 
 export class UpdateTemplateDto {
@@ -656,6 +804,18 @@ export class UpdateTemplateDto {
   @IsOptional()
   @IsString()
   body?: string;
+
+  @IsOptional()
+  headerConfig?: any;
+
+  @IsOptional()
+  footerConfig?: any;
+
+  @IsOptional()
+  parameterLayout?: any;
+
+  @IsOptional()
+  signatureRoles?: string[];
 
   @IsOptional()
   @IsBoolean()

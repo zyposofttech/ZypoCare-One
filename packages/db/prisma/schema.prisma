@@ -4539,6 +4539,39 @@ model OtEquipment {
 }
 
 // ---------------- Diagnostics Facilities (Infrastructure) ----------------
+
+enum DiagnosticSectionType {
+  LAB
+  IMAGING
+  CARDIOLOGY
+  NEUROLOGY
+  PULMONOLOGY
+  OTHER
+}
+
+enum DiagnosticCareContext {
+  OPD
+  IPD
+  ER
+  DAYCARE
+  HOMECARE
+  ALL
+}
+
+enum DiagnosticPanelType {
+  PROFILE
+  PACKAGE
+}
+
+enum DiagnosticRangeSource {
+  MANUFACTURER
+  HOSPITAL_DEFINED
+  LITERATURE
+  REGULATORY_BODY
+  CONSENSUS_GUIDELINE
+  OTHER
+}
+
 enum DiagnosticServicePointType {
   LAB
   RADIOLOGY
@@ -4606,16 +4639,23 @@ model DiagnosticSection {
   branchId  String
   code      String
   name      String
-  sortOrder Int      @default(0)
-  isActive  Boolean  @default(true)
+  type      DiagnosticSectionType @default(LAB)
+  sortOrder Int                   @default(0)
+  isActive  Boolean               @default(true)
+
+  // section head (optional FK to Staff)
+  headStaffId String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  categories DiagnosticCategory[]
-  items      DiagnosticItem[]
+  categories    DiagnosticCategory[]
+  items         DiagnosticItem[]
+  servicePoints DiagnosticServicePointSection[]
 
   @@unique([branchId, code])
   @@index([branchId, isActive])
+  @@index([branchId, type])
 }
 
 model DiagnosticCategory {
@@ -4637,16 +4677,20 @@ model DiagnosticCategory {
 }
 
 model SpecimenType {
-  id            String   @id @default(cuid())
-  branchId      String
-  code          String
-  name          String
-  container     String?
-  minVolumeMl   Float?
-  handlingNotes String?
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                     String   @id @default(cuid())
+  branchId               String
+  code                   String
+  name                   String
+  container              String?
+  minVolumeMl            Float?
+  handlingNotes          String?
+  fastingRequired        Boolean  @default(false)
+  fastingHours           Int?
+  collectionInstructions String?
+  storageTemperature     String?
+  isActive               Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
   items DiagnosticItem[]
 
@@ -4665,6 +4709,14 @@ model DiagnosticItem {
   sectionId  String
   categoryId String?
 
+  // coding standards
+  loincCode     String?
+  snomedCode    String?
+  searchAliases Json?   // string[] — alternative names for search
+
+  // care context
+  careContext DiagnosticCareContext @default(ALL)
+
   // lab
   specimenId     String?
   tatMinsRoutine Int?
@@ -4674,13 +4726,15 @@ model DiagnosticItem {
   requiresAppointment Boolean @default(false)
   preparationText     String?
   consentRequired     Boolean @default(false)
+  requiresPcpndt      Boolean @default(false)
 
   // Optional: link to ServiceItem master for unified orderables/catalogues
   serviceItemId String?
   serviceItem   ServiceItem? @relation("DiagnosticItem_ServiceItem", fields: [serviceItemId], references: [id], onDelete: SetNull)
 
   // panels
-  isPanel Boolean @default(false)
+  isPanel   Boolean              @default(false)
+  panelType DiagnosticPanelType?
 
   sortOrder Int      @default(0)
   isActive  Boolean  @default(true)
@@ -4709,6 +4763,7 @@ model DiagnosticItem {
   @@unique([serviceItemId])
   @@index([branchId, kind, isActive])
   @@index([branchId, sectionId, categoryId])
+  @@index([branchId, loincCode])
 }
 
 model DiagnosticPanelItem {
@@ -4736,6 +4791,10 @@ model DiagnosticParameter {
   unit        String?
   precision   Int? // decimals
   allowedText String? // for CHOICE: comma separated values (simple MVP)
+
+  // derived / formula parameters
+  isDerived Boolean @default(false)
+  formula   String? // e.g. "ALBUMIN / (TOTAL_PROTEIN - ALBUMIN)"
 
   // critical thresholds (for NUMERIC)
   criticalLow  Float?
@@ -4768,7 +4827,8 @@ model DiagnosticReferenceRange {
   textRange String?
 
   // notes / remarks (display-only)
-  notes String?
+  notes  String?
+  source DiagnosticRangeSource?
 
   sortOrder Int      @default(0)
   isActive  Boolean  @default(true)
@@ -4787,8 +4847,15 @@ model DiagnosticTemplate {
   name      String
   body      String
   isActive  Boolean                @default(true)
-  createdAt DateTime               @default(now())
-  updatedAt DateTime               @updatedAt
+
+  // structured config
+  headerConfig    Json? // { logo, hospitalName, address, nablNumber, regNumber }
+  footerConfig    Json? // { disclaimer, notes }
+  parameterLayout Json? // { groupBy, showUnits, showRanges, showFlags }
+  signatureRoles  Json? // string[] — e.g. ["Lab Technician", "Consultant Pathologist"]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   item DiagnosticItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
@@ -4814,6 +4881,10 @@ model DiagnosticServicePoint {
 
   type DiagnosticServicePointType @default(OTHER)
 
+  // operational config
+  operatingHours Json? // { start, end, days[], is24x7 }
+  capacity       Int?  // max samples/slots per day
+
   isActive  Boolean @default(true)
   sortOrder Int     @default(0)
   notes     String?
@@ -4824,6 +4895,8 @@ model DiagnosticServicePoint {
   rooms     DiagnosticServicePointRoom[]
   resources DiagnosticServicePointResource[]
   equipment DiagnosticServicePointEquipment[]
+  sections  DiagnosticServicePointSection[]
+  staff     DiagnosticServicePointStaff[]
 
   // Optional routing contract for future operations
   capabilities DiagnosticCapability[]
@@ -4904,6 +4977,44 @@ model DiagnosticServicePointEquipment {
   @@index([branchId, servicePointId, isActive])
   @@index([branchId, equipmentId])
   @@index([branchId, modality, isActive])
+}
+
+model DiagnosticServicePointSection {
+  id       String @id @default(cuid())
+  branchId String
+
+  servicePointId String
+  servicePoint   DiagnosticServicePoint @relation(fields: [servicePointId], references: [id], onDelete: Cascade)
+
+  sectionId String
+  section   DiagnosticSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([servicePointId, sectionId])
+  @@index([branchId, servicePointId, isActive])
+  @@index([branchId, sectionId])
+}
+
+model DiagnosticServicePointStaff {
+  id       String @id @default(cuid())
+  branchId String
+
+  servicePointId String
+  servicePoint   DiagnosticServicePoint @relation(fields: [servicePointId], references: [id], onDelete: Cascade)
+
+  staffId String
+  role    String? // e.g. "Lab Technician", "Pathologist", "Radiologist"
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([servicePointId, staffId])
+  @@index([branchId, servicePointId, isActive])
+  @@index([branchId, staffId])
 }
 
 model DiagnosticCapability {
