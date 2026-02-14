@@ -34,6 +34,36 @@ const HREF_TO_AREA: Record<string, string> = {
   "/infrastructure/service-availability": "service-availability",
   "/infrastructure/service-bulk-import": "service-bulk-import",
   "/infrastructure": "infrastructure",
+  // Billing & Claims
+  "/billing": "billing",
+  "/billing/preauth": "billing-preauth",
+  "/billing/claims": "billing-claims",
+  "/billing/claims-dashboard": "billing-claims-dashboard",
+  "/billing/reconciliation": "billing-reconciliation",
+  "/billing/insurance-policies": "billing-insurance-policies",
+  "/billing/insurance-cases": "billing-insurance-cases",
+  "/billing/insurance-documents": "billing-insurance-documents",
+  "/billing/document-checklists": "billing-document-checklists",
+  "/billing/payer-integrations": "billing-payer-integrations",
+  // Compliance & Governance
+  "/compliance": "compliance",
+  "/compliance/workspaces": "compliance-workspaces",
+  "/compliance/evidence": "compliance-evidence",
+  "/compliance/approvals": "compliance-approvals",
+  "/compliance/abdm": "compliance-abdm",
+  "/compliance/abdm/abha": "compliance-abdm-abha",
+  "/compliance/abdm/hfr": "compliance-abdm-hfr",
+  "/compliance/abdm/hpr": "compliance-abdm-hpr",
+  "/compliance/schemes": "compliance-schemes",
+  "/compliance/schemes/pmjay": "compliance-schemes-pmjay",
+  "/compliance/schemes/cghs": "compliance-schemes-cghs",
+  "/compliance/schemes/echs": "compliance-schemes-echs",
+  "/compliance/schemes/mapping": "compliance-schemes-mapping",
+  "/compliance/nabh": "compliance-nabh",
+  "/compliance/nabh/checklist": "compliance-nabh-checklist",
+  "/compliance/nabh/audits": "compliance-nabh-audits",
+  "/compliance/validator": "compliance-validator",
+  "/compliance/audit-log": "compliance-audit-log",
 };
 
 /**
@@ -53,16 +83,33 @@ export function NavBadgeAI({ href }: { href: string }) {
 
     function readHealth() {
       try {
-        const raw = sessionStorage.getItem("zc.copilot.health");
-        if (!raw) return;
-        const health = JSON.parse(raw);
-        if (!health?.topIssues) return;
+        // Merge issues from both infrastructure and compliance health stores
+        const allIssues: { area: string; severity: string }[] = [];
 
-        const issues = health.topIssues.filter(
-          (i: { area: string }) => i.area === area
+        const rawInfra = sessionStorage.getItem("zc.copilot.health");
+        if (rawInfra) {
+          const infra = JSON.parse(rawInfra);
+          if (infra?.topIssues) allIssues.push(...infra.topIssues);
+        }
+
+        const rawComp = sessionStorage.getItem("zc.copilot.compliance-health");
+        if (rawComp) {
+          const comp = JSON.parse(rawComp);
+          if (comp?.topIssues) allIssues.push(...comp.topIssues);
+        }
+
+        if (allIssues.length === 0) {
+          setCount(0);
+          setSeverity(null);
+          return;
+        }
+
+        // For parent areas like "compliance-abdm", also match children like "compliance-abdm-hfr"
+        const issues = allIssues.filter(
+          (i) => i.area === area || i.area.startsWith(area + "-")
         );
         const blockers = issues.filter(
-          (i: { severity: string }) => i.severity === "BLOCKER"
+          (i) => i.severity === "BLOCKER"
         );
         const total = issues.length;
 

@@ -35,6 +35,7 @@ import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
 import { RequirePerm } from "@/components/RequirePerm";
+import { CompliancePageHead, CompliancePageInsights } from "@/components/copilot/ComplianceHelpInline";
 import {
   ArrowLeft,
   ArrowRight,
@@ -63,7 +64,7 @@ type SyncResult = { empanelmentId: string; govSchemeConfigId: string; created: b
 
 function statusBadgeClass(status: string) {
   switch (status) {
-    case "ACTIVE": return "border-green-200/70 bg-green-50/70 text-green-700 dark:border-green-900/40 dark:bg-green-900/20 dark:text-green-200";
+    case "ACTIVE": return "border-emerald-200/70 bg-emerald-50/70 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200";
     case "PENDING": return "border-amber-200/70 bg-amber-50/70 text-amber-700 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200";
     case "EXPIRED": return "border-red-200/70 bg-red-50/70 text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-200";
     case "DRAFT": return "border-amber-200/70 bg-amber-50/70 text-amber-700 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200";
@@ -173,10 +174,14 @@ export default function CghsPage() {
             <div className="min-w-0"><div className="text-3xl font-semibold tracking-tight">CGHS Empanelment</div><div className="mt-1 text-sm text-zc-muted">Central Government Health Scheme empanelment details and rate cards.</div></div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <CompliancePageHead pageId="compliance-schemes-cghs" />
             {empanelment && <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold", statusBadgeClass(empanelment.status))}>{empanelment.status}</span>}
             <Button variant="outline" className="gap-2" onClick={() => { fetchEmpanelment(); fetchRateCards(); }} disabled={empLoading || rcLoading}><RefreshCw className={empLoading || rcLoading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />Refresh</Button>
           </div>
         </div>
+
+        {/* AI Insights */}
+        <CompliancePageInsights pageId="compliance-schemes-cghs" />
 
         {empLoading ? <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-zc-muted" /></div> : (
           <Card className="overflow-hidden">

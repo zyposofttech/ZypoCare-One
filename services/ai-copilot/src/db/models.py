@@ -636,3 +636,69 @@ class TaxCode(Base):
     isActive: Mapped[bool] = mapped_column(Boolean, default=True)
     createdAt: Mapped[datetime] = mapped_column(DateTime)
     updatedAt: Mapped[datetime] = mapped_column(DateTime)
+
+
+# ── Billing / Claims ──────────────────────────────────────────────────────
+
+
+class InsurancePolicy(Base):
+    __tablename__ = "InsurancePolicy"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    branchId: Mapped[str] = mapped_column(String, ForeignKey("Branch.id"))
+    status: Mapped[str] = mapped_column(String, default="ACTIVE")
+    createdAt: Mapped[datetime] = mapped_column(DateTime)
+
+
+class InsuranceCase(Base):
+    __tablename__ = "InsuranceCase"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    branchId: Mapped[str] = mapped_column(String, ForeignKey("Branch.id"))
+    caseNumber: Mapped[str] = mapped_column(String)
+    status: Mapped[str] = mapped_column(String, default="OPEN")
+    createdAt: Mapped[datetime] = mapped_column(DateTime)
+
+
+class PreauthRequest(Base):
+    __tablename__ = "PreauthRequest"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    branchId: Mapped[str] = mapped_column(String, ForeignKey("Branch.id"))
+    requestNumber: Mapped[str] = mapped_column(String)
+    status: Mapped[str] = mapped_column(String, default="PREAUTH_DRAFT")
+    requestedAmount: Mapped[Optional[Decimal]] = mapped_column(Numeric(14, 2), nullable=True)
+    approvedAmount: Mapped[Optional[Decimal]] = mapped_column(Numeric(14, 2), nullable=True)
+    createdAt: Mapped[datetime] = mapped_column(DateTime)
+
+
+class Claim(Base):
+    __tablename__ = "Claim"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    branchId: Mapped[str] = mapped_column(String, ForeignKey("Branch.id"))
+    claimNumber: Mapped[str] = mapped_column(String)
+    status: Mapped[str] = mapped_column(String, default="CLAIM_DRAFT")
+    totalAmount: Mapped[Optional[Decimal]] = mapped_column(Numeric(14, 2), nullable=True)
+    approvedAmount: Mapped[Optional[Decimal]] = mapped_column(Numeric(14, 2), nullable=True)
+    createdAt: Mapped[datetime] = mapped_column(DateTime)
+
+
+class DocumentChecklist(Base):
+    __tablename__ = "DocumentChecklist"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    branchId: Mapped[str] = mapped_column(String, ForeignKey("Branch.id"))
+    payerId: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    createdAt: Mapped[datetime] = mapped_column(DateTime)
+
+
+class PayerIntegrationConfig(Base):
+    __tablename__ = "PayerIntegrationConfig"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    branchId: Mapped[str] = mapped_column(String, ForeignKey("Branch.id"))
+    payerId: Mapped[str] = mapped_column(String)
+    integrationMode: Mapped[str] = mapped_column(String, default="MANUAL")
+    isActive: Mapped[bool] = mapped_column(Boolean, default=True)
+    createdAt: Mapped[datetime] = mapped_column(DateTime)

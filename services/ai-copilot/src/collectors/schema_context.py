@@ -15,21 +15,27 @@ from sqlalchemy.orm import selectinload
 from src.db.models import (
     Branch,
     ChargeMasterItem,
+    Claim,
     Department,
     DepartmentSpecialty,
+    DocumentChecklist,
     DrugInteraction,
     DrugMaster,
     Formulary,
     FormularyItem,
     GovernmentSchemeConfig,
+    InsuranceCase,
+    InsurancePolicy,
     InventoryConfig,
     LocationNode,
     LocationNodeRevision,
     PatientPricingTier,
     Payer,
     PayerContract,
+    PayerIntegrationConfig,
     PharmacyStore,
     PharmSupplier,
+    PreauthRequest,
     ServiceItem,
     ServicePriceHistory,
     Specialty,
@@ -45,6 +51,7 @@ from src.db.models import (
 from src.db.session import get_session
 
 from .models import (
+    BillingSummary,
     BranchContext,
     BranchSnapshot,
     DepartmentDetail,
@@ -84,6 +91,7 @@ async def collect_branch_context(branch_id: str) -> BranchContext:
         specialties = await _collect_specialties(session, branch_id)
         pharmacy = await _collect_pharmacy(session, branch_id)
         service_catalog = await _collect_service_catalog(session, branch_id)
+        billing = await _collect_billing(session, branch_id)
 
     text_summary = _build_text_summary(branch, location, units, departments, pharmacy, service_catalog)
     return BranchContext(
@@ -94,6 +102,7 @@ async def collect_branch_context(branch_id: str) -> BranchContext:
         specialties=specialties,
         pharmacy=pharmacy,
         serviceCatalog=service_catalog,
+        billing=billing,
         textSummary=text_summary,
     )
 
@@ -766,3 +775,91 @@ def _build_text_summary(
         lines.append("Service catalog: Not set up")
 
     return "\n".join(lines)
+
+
+# ── Billing / Claims ──────────────────────────────────────────────────────
+
+
+async def _collect_billing(session: AsyncSession, branch_id: str) -> BillingSummary:
+    """Collect billing/claims aggregate stats for a branch."""
+    try:
+        # Insurance policies
+        policy_rows = (await session.execute(
+            select(InsurancePolicy.status, func.count()).where(
+                InsurancePolicy.branchId == branch_id
+            ).group_by(InsurancePolicy.status)
+        )).all()
+        total_policies = sum(r[1] for r in policy_rows)
+        active_policies = sum(r[1] for r in policy_rows if r[0] == "ACTIVE")
+
+        # Insurance cases
+        case_rows = (await session.execute(
+            select(InsuranceCase.status, func.count()).where(
+                InsuranceCase.branchId == branch_id
+            ).group_by(InsuranceCase.status)
+        )).all()
+        total_cases = sum(r[1] for r in case_rows)
+        open_cases = sum(r[1] for r in case_rows if r[0] == "OPEN")
+
+        # Pre-authorizations
+        preauth_rows = (await session.execute(
+            select(PreauthRequest.status, func.count()).where(
+                PreauthRequest.branchId == branch_id
+            ).group_by(PreauthRequest.status)
+        )).all()
+        preauth_by_status = {r[0]: r[1] for r in preauth_rows}
+        total_preauths = sum(preauth_by_status.values())
+        pending_preauths = preauth_by_status.get("PREAUTH_PENDING", 0) + preauth_by_status.get("PREAUTH_SUBMITTED", 0)
+        approved_preauths = preauth_by_status.get("PREAUTH_APPROVED", 0)
+        rejected_preauths = preauth_by_status.get("PREAUTH_REJECTED", 0) + preauth_by_status.get("PREAUTH_DENIED", 0)
+
+        # Claims
+        claim_rows = (await session.execute(
+            select(Claim.status, func.count()).where(
+                Claim.branchId == branch_id
+            ).group_by(Claim.status)
+        )).all()
+        claim_by_status = {r[0]: r[1] for r in claim_rows}
+        total_claims = sum(claim_by_status.values())
+        draft_claims = claim_by_status.get("CLAIM_DRAFT", 0)
+        submitted_claims = claim_by_status.get("CLAIM_SUBMITTED", 0) + claim_by_status.get("CLAIM_ACKNOWLEDGED", 0)
+        settled_claims = claim_by_status.get("CLAIM_SETTLED", 0) + claim_by_status.get("CLAIM_PAID", 0)
+        rejected_claims = claim_by_status.get("CLAIM_REJECTED", 0) + claim_by_status.get("CLAIM_DENIED", 0)
+
+        # Document checklists
+        checklist_count = (await session.execute(
+            select(func.count()).where(DocumentChecklist.branchId == branch_id)
+        )).scalar_one_or_none() or 0
+
+        # Payer integrations
+        integration_rows = (await session.execute(
+            select(PayerIntegrationConfig.isActive, func.count()).where(
+                PayerIntegrationConfig.branchId == branch_id
+            ).group_by(PayerIntegrationConfig.isActive)
+        )).all()
+        total_integrations = sum(r[1] for r in integration_rows)
+        active_integrations = sum(r[1] for r in integration_rows if r[0])
+
+        return BillingSummary(
+            totalInsurancePolicies=total_policies,
+            activeInsurancePolicies=active_policies,
+            totalInsuranceCases=total_cases,
+            openInsuranceCases=open_cases,
+            totalPreauths=total_preauths,
+            byPreauthStatus=preauth_by_status,
+            pendingPreauths=pending_preauths,
+            approvedPreauths=approved_preauths,
+            rejectedPreauths=rejected_preauths,
+            totalClaims=total_claims,
+            byClaimStatus=claim_by_status,
+            draftClaims=draft_claims,
+            submittedClaims=submitted_claims,
+            settledClaims=settled_claims,
+            rejectedClaims=rejected_claims,
+            totalDocumentChecklists=checklist_count,
+            totalPayerIntegrations=total_integrations,
+            activePayerIntegrations=active_integrations,
+        )
+    except Exception as exc:
+        logger.warning("billing collector failed for branch=%s: %s", branch_id, exc)
+        return BillingSummary()

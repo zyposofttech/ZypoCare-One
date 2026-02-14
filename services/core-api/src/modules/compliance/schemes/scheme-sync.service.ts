@@ -136,6 +136,21 @@ export class SchemeSyncService {
       },
     });
 
+    await this.ctx.audit.log({
+      branchId: branchId,
+      actorUserId: principal.userId,
+      action: "SCHEME_SYNC_PUSH_TO_INFRA",
+      entity: "SchemeEmpanelment",
+      entityId: empanelmentId,
+      meta: {
+        govSchemeConfigId,
+        created: !existingConfig,
+        syncedFields: Object.keys(syncData),
+        rateCardId: frozenRateCard?.id ?? null,
+        rateCardItemCount: frozenRateCard?.items.length ?? 0,
+      },
+    });
+
     return {
       empanelmentId,
       govSchemeConfigId,
@@ -210,6 +225,18 @@ export class SchemeSyncService {
       actorStaffId: principal.staffId,
       before: { empanelmentNumber: empanelment.empanelmentNumber, shaCode: empanelment.shaCode },
       after: pullData,
+    });
+
+    await this.ctx.audit.log({
+      branchId: empanelment.workspace.branchId,
+      actorUserId: principal.userId,
+      action: "SCHEME_SYNC_PULL_FROM_INFRA",
+      entity: "SchemeEmpanelment",
+      entityId: empanelmentId,
+      meta: {
+        govSchemeConfigId: config.id,
+        fieldsPulled: Object.keys(pullData),
+      },
     });
 
     return {
@@ -343,6 +370,15 @@ export class SchemeSyncService {
       after: { empanelmentId, govSchemeConfigId },
     });
 
+    await this.ctx.audit.log({
+      branchId: empanelment.workspace.branchId,
+      actorUserId: principal.userId,
+      action: "SCHEME_SYNC_MANUAL_LINK",
+      entity: "SchemeEmpanelment",
+      entityId: empanelmentId,
+      meta: { govSchemeConfigId },
+    });
+
     return { empanelmentId, govSchemeConfigId, linked: true };
   }
 
@@ -376,6 +412,15 @@ export class SchemeSyncService {
       actorStaffId: principal.staffId,
       before: { govSchemeConfigId: prevConfigId },
       after: { govSchemeConfigId: null },
+    });
+
+    await this.ctx.audit.log({
+      branchId: principal.branchId,
+      actorUserId: principal.userId,
+      action: "SCHEME_SYNC_UNLINK",
+      entity: "SchemeEmpanelment",
+      entityId: empanelmentId,
+      meta: { previousGovSchemeConfigId: prevConfigId },
     });
 
     return { empanelmentId, unlinked: true, previousGovSchemeConfigId: prevConfigId };

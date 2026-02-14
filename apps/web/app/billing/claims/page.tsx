@@ -317,7 +317,7 @@ export default function ClaimsPage() {
 
   // AI Copilot
   const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({
-    module: "claims",
+    module: "billing-claims",
     enabled: true,
   });
 

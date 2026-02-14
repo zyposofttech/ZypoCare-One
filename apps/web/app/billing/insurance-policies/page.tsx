@@ -224,7 +224,7 @@ export default function InsurancePoliciesPage() {
 
   // AI Copilot
   const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({
-    module: "insurance-policies",
+    module: "billing-insurance-policies",
     enabled: !!branchId,
   });
 

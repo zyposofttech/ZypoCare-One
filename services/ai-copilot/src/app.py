@@ -453,6 +453,47 @@ async def ai_health_check(branchId: str = Query(...), bust: str = Query(None)):
                 "area": _issue_area(issue.category),
             })
 
+    # Billing issues
+    bl = ctx.billing
+    if bl.rejectedClaims > 0:
+        top_issues.append({
+            "id": "billing-rejected-claims",
+            "severity": "WARNING",
+            "title": f"{bl.rejectedClaims} rejected claim(s) require resubmission",
+            "category": "CLAIM",
+            "fixHint": "Review rejection reasons and resubmit corrected claims",
+            "area": "billing-claims",
+        })
+        total_warnings += bl.rejectedClaims
+    if bl.rejectedPreauths > 0:
+        top_issues.append({
+            "id": "billing-rejected-preauths",
+            "severity": "WARNING",
+            "title": f"{bl.rejectedPreauths} rejected pre-auth(s) need attention",
+            "category": "PREAUTH",
+            "fixHint": "Check rejection reasons and resubmit with additional documentation",
+            "area": "billing-preauth",
+        })
+        total_warnings += bl.rejectedPreauths
+    if bl.draftClaims > 5:
+        top_issues.append({
+            "id": "billing-draft-claims-backlog",
+            "severity": "WARNING",
+            "title": f"{bl.draftClaims} draft claims pending submission",
+            "category": "CLAIM",
+            "fixHint": "Submit draft claims promptly to avoid payment delays",
+            "area": "billing-claims",
+        })
+    if bl.totalDocumentChecklists == 0 and ctx.serviceCatalog.totalPayers > 0:
+        top_issues.append({
+            "id": "billing-no-checklists",
+            "severity": "WARNING",
+            "title": "No document checklists configured for any payer",
+            "category": "DOCUMENT_CHECKLIST",
+            "fixHint": "Define required documents per payer for smooth claim processing",
+            "area": "billing-document-checklists",
+        })
+
     result = {
         "branchId": branchId,
         "branchName": ctx.branch.name,
@@ -503,6 +544,15 @@ def _issue_area(category: str) -> str:
         "ORDER_SET": "order-sets",
         "SERVICE_AVAILABILITY": "service-availability",
         "SERVICE_BULK_IMPORT": "service-bulk-import",
+        # Billing & Claims
+        "BILLING": "billing",
+        "PREAUTH": "billing-preauth",
+        "CLAIM": "billing-claims",
+        "INSURANCE_POLICY": "billing-insurance-policies",
+        "INSURANCE_CASE": "billing-insurance-cases",
+        "DOCUMENT_CHECKLIST": "billing-document-checklists",
+        "PAYER_INTEGRATION": "billing-payer-integrations",
+        "RECONCILIATION": "billing-reconciliation",
         # Legacy fallback
         "FINANCIAL": "tax-codes",
     }
@@ -709,6 +759,366 @@ async def ai_chat(inp: ChatInput):
         "data": result.data,
         "durationMs": result.durationMs,
     }
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# Compliance AI Help — /v1/ai/compliance/...
+# ══════════════════════════════════════════════════════════════════════════
+
+
+class ComplianceHelpInput(BaseModel):
+    pageId: str
+
+
+@app.post("/v1/ai/compliance/page-help")
+def ai_compliance_page_help(inp: ComplianceHelpInput):
+    """Get contextual help for a specific compliance page."""
+    from .engines.compliance_help import get_page_help
+
+    result = get_page_help(inp.pageId)
+    return result.model_dump()
+
+
+@app.get("/v1/ai/compliance/glossary")
+def ai_compliance_glossary(category: str = Query(None), search: str = Query(None)):
+    """Get compliance glossary terms, optionally filtered."""
+    from .engines.compliance_help import COMPLIANCE_GLOSSARY
+
+    terms = COMPLIANCE_GLOSSARY
+    if category:
+        terms = [t for t in terms if t.category.lower() == category.lower()]
+    if search:
+        q = search.lower()
+        terms = [t for t in terms if q in t.term.lower() or q in t.shortDef.lower() or q in t.longDef.lower()]
+
+    return {"terms": [t.model_dump() for t in terms], "total": len(terms)}
+
+
+class ComplianceWorkflowInput(BaseModel):
+    complianceState: dict[str, Any]
+    currentPage: str | None = None
+
+
+@app.post("/v1/ai/compliance/whats-next")
+def ai_compliance_whats_next(inp: ComplianceWorkflowInput):
+    """Compute workflow progress and next steps."""
+    import time as _time
+    from .engines.compliance_help import compute_workflow_steps
+
+    steps = compute_workflow_steps(inp.complianceState)
+    done_count = sum(1 for s in steps if s.status == "done")
+    progress = int(done_count / len(steps) * 100) if steps else 0
+
+    return {
+        "currentPage": inp.currentPage,
+        "overallProgress": progress,
+        "steps": [s.model_dump() for s in steps],
+        "generatedAt": _time.time(),
+    }
+
+
+class ComplianceChatInput(BaseModel):
+    message: str
+    pageContext: str | None = None
+    complianceState: dict[str, Any] | None = None
+
+
+@app.post("/v1/ai/compliance/chat")
+def ai_compliance_chat(inp: ComplianceChatInput):
+    """Compliance-specific chat Q&A with knowledge base answers."""
+    from .engines.compliance_help import answer_compliance_question
+
+    result = answer_compliance_question(
+        question=inp.message,
+        page_context=inp.pageContext,
+        compliance_state=inp.complianceState,
+    )
+    return result.model_dump()
+
+
+# ── Compliance Health Check — sidebar badges + dashboard summary ─────────
+
+
+class ComplianceHealthInput(BaseModel):
+    complianceState: dict[str, Any]
+    branchId: str | None = None
+
+
+_compliance_health_cache: dict[str, tuple[float, Any]] = {}
+COMPLIANCE_HEALTH_CACHE_TTL = 120  # 2 minutes
+
+
+@app.post("/v1/ai/compliance/health-check")
+def ai_compliance_health_check(inp: ComplianceHealthInput):
+    """Run compliance health analysis and return issues for sidebar badges + dashboard card.
+
+    Returns a structure similar to the infrastructure health-check:
+    - overallHealth: EXCELLENT | GOOD | NEEDS_ATTENTION | CRITICAL
+    - complianceScore: 0-100
+    - totalBlockers: number of blocking issues
+    - totalWarnings: number of warning issues
+    - topIssues: list of issues with area mapping for NavBadgeAI
+    - summary: human-readable summary text
+    - areas: per-area score breakdowns
+    """
+    from .engines.compliance_help import compute_workflow_steps
+
+    # Optional caching by branchId
+    cache_key = inp.branchId or "__default__"
+    now = time.time()
+    if cache_key in _compliance_health_cache:
+        cached_at, cached_result = _compliance_health_cache[cache_key]
+        if now - cached_at < COMPLIANCE_HEALTH_CACHE_TTL:
+            return cached_result
+
+    s = inp.complianceState
+    top_issues: list[dict[str, Any]] = []
+    area_scores: dict[str, dict[str, Any]] = {}
+
+    # ── ABDM checks ────────────────────────────────────────────────
+    abdm_score = 0
+    abdm_checks = 0
+    abdm_total = 3  # ABHA, HFR, HPR
+
+    if not s.get("hasAbhaConfig"):
+        top_issues.append({
+            "id": "comp-abdm-no-abha",
+            "severity": "BLOCKER",
+            "title": "ABHA integration not configured",
+            "category": "COMPLIANCE_ABDM",
+            "fixHint": "Go to ABDM → ABHA Config and set up your client credentials.",
+            "area": "compliance-abdm",
+        })
+    else:
+        abdm_checks += 1
+
+    hfr = s.get("hfrCompleteness", 0)
+    if hfr < 50:
+        top_issues.append({
+            "id": "comp-abdm-hfr-incomplete",
+            "severity": "BLOCKER" if hfr < 20 else "WARNING",
+            "title": f"HFR profile only {hfr}% complete",
+            "category": "COMPLIANCE_ABDM",
+            "fixHint": "Fill in all HFR profile fields in ABDM → HFR Profile.",
+            "area": "compliance-abdm-hfr",
+        })
+    elif hfr >= 80:
+        abdm_checks += 1
+
+    hpr = s.get("hprLinked", 0)
+    if hpr == 0:
+        top_issues.append({
+            "id": "comp-abdm-no-hpr",
+            "severity": "WARNING",
+            "title": "No staff linked to HPR",
+            "category": "COMPLIANCE_ABDM",
+            "fixHint": "Link your doctors and nurses to HPR in ABDM → HPR Linkage.",
+            "area": "compliance-abdm-hpr",
+        })
+    else:
+        abdm_checks += 1
+
+    abdm_score = int(abdm_checks / abdm_total * 100)
+    area_scores["abdm"] = {"score": abdm_score, "label": "ABDM", "issues": sum(1 for i in top_issues if i["area"].startswith("compliance-abdm"))}
+
+    # ── Workspace checks ───────────────────────────────────────────
+    if not s.get("hasWorkspace"):
+        top_issues.append({
+            "id": "comp-ws-none",
+            "severity": "BLOCKER",
+            "title": "No compliance workspace created",
+            "category": "COMPLIANCE_WORKSPACE",
+            "fixHint": "Create a workspace in Workspaces to begin compliance setup.",
+            "area": "compliance-workspaces",
+        })
+    elif s.get("workspaceStatus") == "DRAFT":
+        top_issues.append({
+            "id": "comp-ws-draft",
+            "severity": "WARNING",
+            "title": "Workspace is still in DRAFT status",
+            "category": "COMPLIANCE_WORKSPACE",
+            "fixHint": "Complete setup and activate the workspace.",
+            "area": "compliance-workspaces",
+        })
+
+    # ── Schemes checks ─────────────────────────────────────────────
+    scheme_score = 0
+    has_pmjay = s.get("pmjayActive", False)
+    has_cghs = s.get("cghsActive", False)
+    has_echs = s.get("echsActive", False)
+    has_any_scheme = has_pmjay or has_cghs or has_echs
+
+    if not has_any_scheme:
+        top_issues.append({
+            "id": "comp-scheme-none",
+            "severity": "WARNING",
+            "title": "No government scheme configured",
+            "category": "COMPLIANCE_SCHEME",
+            "fixHint": "Set up at least one scheme (PMJAY, CGHS, or ECHS) in Schemes.",
+            "area": "compliance-schemes",
+        })
+        scheme_score = 0
+    else:
+        active_count = sum([has_pmjay, has_cghs, has_echs])
+        scheme_score = min(100, active_count * 30)
+
+        unmapped = s.get("unmappedPercent", 100)
+        if unmapped > 50:
+            top_issues.append({
+                "id": "comp-scheme-unmapped-high",
+                "severity": "BLOCKER",
+                "title": f"{unmapped}% of services unmapped to scheme codes",
+                "category": "COMPLIANCE_SCHEME",
+                "fixHint": "Map your services to scheme codes in Schemes → Mappings.",
+                "area": "compliance-schemes-mapping",
+            })
+        elif unmapped > 20:
+            top_issues.append({
+                "id": "comp-scheme-unmapped",
+                "severity": "WARNING",
+                "title": f"{unmapped}% of services unmapped to scheme codes",
+                "category": "COMPLIANCE_SCHEME",
+                "fixHint": "Map remaining services in Schemes → Mappings.",
+                "area": "compliance-schemes-mapping",
+            })
+            scheme_score = min(scheme_score, 70)
+        else:
+            scheme_score = min(100, scheme_score + 40)
+
+    area_scores["schemes"] = {"score": scheme_score, "label": "Schemes", "issues": sum(1 for i in top_issues if i["area"].startswith("compliance-scheme"))}
+
+    # ── Evidence checks ────────────────────────────────────────────
+    evidence_score = 0
+    ev_count = s.get("evidenceCount", 0)
+    ev_expiring = s.get("evidenceExpiring", 0)
+
+    if ev_count == 0:
+        top_issues.append({
+            "id": "comp-ev-none",
+            "severity": "BLOCKER",
+            "title": "No evidence documents uploaded",
+            "category": "COMPLIANCE_EVIDENCE",
+            "fixHint": "Upload compliance documents to the Evidence Vault.",
+            "area": "compliance-evidence",
+        })
+    else:
+        evidence_score = min(100, ev_count * 10)
+
+    if ev_expiring > 0:
+        top_issues.append({
+            "id": "comp-ev-expiring",
+            "severity": "WARNING" if ev_expiring < 3 else "BLOCKER",
+            "title": f"{ev_expiring} evidence document(s) expiring within 30 days",
+            "category": "COMPLIANCE_EVIDENCE",
+            "fixHint": "Renew expiring documents in the Evidence Vault.",
+            "area": "compliance-evidence",
+        })
+        evidence_score = max(0, evidence_score - ev_expiring * 10)
+
+    area_scores["evidence"] = {"score": max(0, evidence_score), "label": "Evidence", "issues": sum(1 for i in top_issues if i["area"].startswith("compliance-evidence"))}
+
+    # ── NABH checks ────────────────────────────────────────────────
+    nabh_progress = s.get("nabhProgress", 0)
+    nabh_score = nabh_progress
+
+    if nabh_progress == 0:
+        top_issues.append({
+            "id": "comp-nabh-not-started",
+            "severity": "WARNING",
+            "title": "NABH checklist not started",
+            "category": "COMPLIANCE_NABH",
+            "fixHint": "Begin the NABH checklist in NABH → Checklist.",
+            "area": "compliance-nabh",
+        })
+    elif nabh_progress < 30:
+        top_issues.append({
+            "id": "comp-nabh-early",
+            "severity": "WARNING",
+            "title": f"NABH checklist only {nabh_progress}% complete",
+            "category": "COMPLIANCE_NABH",
+            "fixHint": "Continue working through the NABH checklist items.",
+            "area": "compliance-nabh-checklist",
+        })
+
+    area_scores["nabh"] = {"score": nabh_score, "label": "NABH", "issues": sum(1 for i in top_issues if i["area"].startswith("compliance-nabh"))}
+
+    # ── Approvals checks ───────────────────────────────────────────
+    pending = s.get("pendingApprovals", 0)
+    if pending > 0:
+        top_issues.append({
+            "id": "comp-approvals-pending",
+            "severity": "WARNING",
+            "title": f"{pending} approval(s) pending review",
+            "category": "COMPLIANCE_APPROVAL",
+            "fixHint": "Review and decide on pending approvals.",
+            "area": "compliance-approvals",
+        })
+
+    # ── Validator / readiness checks ───────────────────────────────
+    validator_score = s.get("validatorScore", 0)
+    blocking_gaps = s.get("blockingGapCount", 0)
+    has_blocking = s.get("hasBlockingGaps", True)
+
+    if has_blocking and blocking_gaps > 0:
+        top_issues.append({
+            "id": "comp-validator-blockers",
+            "severity": "BLOCKER",
+            "title": f"{blocking_gaps} blocking gap(s) in validator",
+            "category": "COMPLIANCE_VALIDATOR",
+            "fixHint": "Run the Validator and fix all blocking gaps before go-live.",
+            "area": "compliance-validator",
+        })
+
+    # ── Compute overall score (weighted) ───────────────────────────
+    # NABH 40%, Schemes 25%, ABDM 20%, Evidence 15%
+    compliance_score = int(
+        nabh_score * 0.40
+        + scheme_score * 0.25
+        + abdm_score * 0.20
+        + max(0, evidence_score) * 0.15
+    )
+
+    total_blockers = sum(1 for i in top_issues if i["severity"] == "BLOCKER")
+    total_warnings = sum(1 for i in top_issues if i["severity"] == "WARNING")
+
+    if total_blockers == 0 and compliance_score >= 80:
+        overall = "EXCELLENT"
+    elif total_blockers == 0 and compliance_score >= 50:
+        overall = "GOOD"
+    elif total_blockers <= 2:
+        overall = "NEEDS_ATTENTION"
+    else:
+        overall = "CRITICAL"
+
+    # ── Summary text ───────────────────────────────────────────────
+    if overall == "EXCELLENT":
+        summary = "Compliance is in great shape. All major areas are configured."
+    elif overall == "GOOD":
+        summary = "Compliance is progressing well. A few areas need attention."
+    elif overall == "NEEDS_ATTENTION":
+        summary = f"Compliance needs work. {total_blockers} blocker(s) and {total_warnings} warning(s) found."
+    else:
+        summary = f"Critical compliance gaps found. {total_blockers} blocker(s) must be resolved before go-live."
+
+    # Workflow progress
+    steps = compute_workflow_steps(s)
+    done_count = sum(1 for step in steps if step.status == "done")
+    workflow_progress = int(done_count / len(steps) * 100) if steps else 0
+
+    result = {
+        "overallHealth": overall,
+        "complianceScore": compliance_score,
+        "workflowProgress": workflow_progress,
+        "totalBlockers": total_blockers,
+        "totalWarnings": total_warnings,
+        "topIssues": top_issues,
+        "summary": summary,
+        "areas": area_scores,
+        "generatedAt": now,
+    }
+
+    _compliance_health_cache[cache_key] = (now, result)
+    return result
 
 
 # ══════════════════════════════════════════════════════════════════════════

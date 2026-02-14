@@ -48,9 +48,11 @@ export class ComplianceService {
   async getAuditLogs(
     principal: Principal,
     query: {
+      branchId?: string;
       workspaceId?: string;
       entityType?: string;
       entityId?: string;
+      action?: string;
       from?: string;
       to?: string;
       cursor?: string;
@@ -60,9 +62,11 @@ export class ComplianceService {
     const take = Math.min(Math.max(query.take ?? 50, 1), 200);
     const where: any = {};
 
+    if (query.branchId) where.workspace = { branchId: query.branchId };
     if (query.workspaceId) where.workspaceId = query.workspaceId;
     if (query.entityType) where.entityType = query.entityType;
     if (query.entityId) where.entityId = query.entityId;
+    if (query.action) where.action = query.action;
     if (query.from || query.to) {
       where.createdAt = {};
       if (query.from) where.createdAt.gte = new Date(query.from);

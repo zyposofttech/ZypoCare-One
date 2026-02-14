@@ -327,7 +327,7 @@ export default function InsuranceCasesPage() {
 
   // AI Copilot
   const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({
-    module: "insurance-cases",
+    module: "billing-insurance-cases",
     enabled: true,
   });
 

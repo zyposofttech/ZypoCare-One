@@ -245,7 +245,7 @@ export default function DocumentChecklistsPage() {
 
   // AI Copilot
   const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({
-    module: "document-checklists",
+    module: "billing-document-checklists",
     enabled: true,
   });
 

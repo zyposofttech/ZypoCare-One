@@ -28,6 +28,7 @@ import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { RequirePerm } from "@/components/RequirePerm";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
+import { CompliancePageHead, CompliancePageInsights } from "@/components/copilot/ComplianceHelpInline";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -209,10 +210,14 @@ export default function HfrProfilePage() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <CompliancePageHead pageId="compliance-abdm-hfr" />
             <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold", verificationBadgeClass(verificationStatus))}>{verificationLabel(verificationStatus)}</span>
             {hfrId && (<span className="inline-flex items-center rounded-full border border-gray-200/70 bg-gray-50/70 px-2 py-0.5 text-[11px] font-mono font-semibold text-gray-700 dark:border-gray-900/40 dark:bg-gray-900/20 dark:text-gray-200">HFR: {hfrId}</span>)}
           </div>
         </div>
+
+        {/* AI Insights */}
+        <CompliancePageInsights pageId="compliance-abdm-hfr" />
 
         {/* ── Guard states ───────────────────────────────────────────── */}
         {!activeBranchId ? (
@@ -310,7 +315,7 @@ export default function HfrProfilePage() {
               </Button>
               <div className="flex items-center gap-2">
                 <Button variant="outline" className="px-5 gap-2" onClick={() => { if (workspaceId) fetchProfile(workspaceId); }} disabled={saving || validating}><RefreshCw className="h-4 w-4" />Reset</Button>
-                <Button className="px-5 gap-2" onClick={handleSave} disabled={saving || validating}>{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}Save Profile</Button>
+                <Button variant="primary" className="px-5 gap-2" onClick={handleSave} disabled={saving || validating}>{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}Save Profile</Button>
               </div>
             </div>
           </>

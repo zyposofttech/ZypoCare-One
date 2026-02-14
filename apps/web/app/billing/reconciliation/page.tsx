@@ -250,7 +250,7 @@ export default function ReconciliationPage() {
 
   // AI Copilot
   const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({
-    module: "reconciliation",
+    module: "billing-reconciliation",
     enabled: !!effectiveBranchId,
   });
 

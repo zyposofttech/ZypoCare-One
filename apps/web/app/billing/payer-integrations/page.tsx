@@ -203,7 +203,7 @@ export default function PayerIntegrationsPage() {
 
   // AI Copilot
   const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({
-    module: "payer-integrations",
+    module: "billing-payer-integrations",
     enabled: !!branchId,
   });
 

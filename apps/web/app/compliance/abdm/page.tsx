@@ -17,6 +17,7 @@ import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { RequirePerm } from "@/components/RequirePerm";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
+import { CompliancePageHead, CompliancePageInsights } from "@/components/copilot/ComplianceHelpInline";
 import {
   ArrowRight,
   AlertTriangle,
@@ -62,7 +63,7 @@ type HprSummary = {
 
 function configStatusText(config: AbdmConfig | null) {
   if (!config) return { label: "Not Configured", color: "red" as const };
-  if (config.status === "TESTED") return { label: "Tested", color: "green" as const };
+  if (config.status === "TESTED") return { label: "Tested", color: "emerald" as const };
   return { label: "Configured", color: "blue" as const };
 }
 
@@ -71,7 +72,7 @@ function hfrStatusText(hfr: HfrProfile | null) {
   const map: Record<string, { label: string; color: string }> = {
     DRAFT: { label: "Draft", color: "amber" },
     SUBMITTED: { label: "Submitted", color: "blue" },
-    VERIFIED: { label: "Verified", color: "green" },
+    VERIFIED: { label: "Verified", color: "emerald" },
     REJECTED: { label: "Rejected", color: "red" },
   };
   return map[hfr.verificationStatus] ?? map.DRAFT;
@@ -159,6 +160,7 @@ export default function AbdmOverviewPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <CompliancePageHead pageId="compliance-abdm" />
             <Button
               variant="outline"
               className="px-5 gap-2"
@@ -170,6 +172,9 @@ export default function AbdmOverviewPage() {
             </Button>
           </div>
         </div>
+
+        {/* AI Insights */}
+        <CompliancePageInsights pageId="compliance-abdm" />
 
         {/* ── Guard states ───────────────────────────────────────────── */}
         {!activeBranchId ? (
@@ -208,22 +213,22 @@ export default function AbdmOverviewPage() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-green-200 bg-green-50/50 p-3 dark:border-green-900/50 dark:bg-green-900/10">
-                <div className="text-xs font-medium text-green-600 dark:text-green-400">HFR Profile</div>
-                <div className="mt-1 text-lg font-bold text-green-700 dark:text-green-300">
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 dark:border-emerald-900/50 dark:bg-emerald-900/10">
+                <div className="text-xs font-medium text-emerald-600 dark:text-emerald-400">HFR Profile</div>
+                <div className="mt-1 text-lg font-bold text-emerald-700 dark:text-emerald-300">
                   {hfrStatus.label}
                 </div>
-                <div className="mt-1 text-[11px] text-green-700/80 dark:text-green-300/80">
+                <div className="mt-1 text-[11px] text-emerald-700/80 dark:text-emerald-300/80">
                   {hfr?.hfrId ? `HFR ID: ${hfr.hfrId}` : "No HFR ID assigned"}
                 </div>
               </div>
 
-              <div className="rounded-xl border border-purple-200 bg-purple-50/50 p-3 dark:border-purple-900/50 dark:bg-purple-900/10">
-                <div className="text-xs font-medium text-purple-600 dark:text-purple-400">HPR Links</div>
-                <div className="mt-1 text-lg font-bold text-purple-700 dark:text-purple-300">
+              <div className="rounded-xl border border-violet-200 bg-violet-50/50 p-3 dark:border-violet-900/50 dark:bg-violet-900/10">
+                <div className="text-xs font-medium text-violet-600 dark:text-violet-400">HPR Links</div>
+                <div className="mt-1 text-lg font-bold text-violet-700 dark:text-violet-300">
                   {hprSummary?.total ?? 0}
                 </div>
-                <div className="mt-1 text-[11px] text-purple-700/80 dark:text-purple-300/80">
+                <div className="mt-1 text-[11px] text-violet-700/80 dark:text-violet-300/80">
                   Verified: <span className="font-semibold tabular-nums">{hprSummary?.verified ?? 0}</span> | Pending:{" "}
                   <span className="font-semibold tabular-nums">{hprSummary?.unverified ?? 0}</span>
                 </div>
@@ -252,7 +257,7 @@ export default function AbdmOverviewPage() {
                       <span className={cn(
                         "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold",
                         cfgStatus.color === "red" && "border-red-200/70 bg-red-50/70 text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-200",
-                        cfgStatus.color === "green" && "border-green-200/70 bg-green-50/70 text-green-700 dark:border-green-900/40 dark:bg-green-900/20 dark:text-green-200",
+                        cfgStatus.color === "emerald" && "border-emerald-200/70 bg-emerald-50/70 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200",
                         cfgStatus.color === "blue" && "border-blue-200/70 bg-blue-50/70 text-blue-700 dark:border-blue-900/40 dark:bg-blue-900/20 dark:text-blue-200",
                       )}>
                         {cfgStatus.label}
@@ -265,11 +270,11 @@ export default function AbdmOverviewPage() {
 
               {/* HFR Profile Card */}
               <Link href="/compliance/abdm/hfr" className="group">
-                <Card className="h-full transition hover:border-green-300">
+                <Card className="h-full transition hover:border-emerald-300">
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-3">
-                      <span className="grid h-9 w-9 place-items-center rounded-xl border border-green-200 bg-green-50 dark:border-green-900/50 dark:bg-green-900/20">
-                        <Building2 className="h-4.5 w-4.5 text-green-600 dark:text-green-400" />
+                      <span className="grid h-9 w-9 place-items-center rounded-xl border border-emerald-200 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-900/20">
+                        <Building2 className="h-4.5 w-4.5 text-emerald-600 dark:text-emerald-400" />
                       </span>
                       <div className="flex-1 min-w-0">
                         <CardTitle className="text-base">HFR Facility Profile</CardTitle>
@@ -284,7 +289,7 @@ export default function AbdmOverviewPage() {
                         "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold",
                         hfrStatus.color === "amber" && "border-amber-200/70 bg-amber-50/70 text-amber-700 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200",
                         hfrStatus.color === "blue" && "border-blue-200/70 bg-blue-50/70 text-blue-700 dark:border-blue-900/40 dark:bg-blue-900/20 dark:text-blue-200",
-                        hfrStatus.color === "green" && "border-green-200/70 bg-green-50/70 text-green-700 dark:border-green-900/40 dark:bg-green-900/20 dark:text-green-200",
+                        hfrStatus.color === "emerald" && "border-emerald-200/70 bg-emerald-50/70 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200",
                         hfrStatus.color === "red" && "border-red-200/70 bg-red-50/70 text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-200",
                         hfrStatus.color === "gray" && "border-gray-200/70 bg-gray-50/70 text-gray-700 dark:border-gray-900/40 dark:bg-gray-900/20 dark:text-gray-200",
                       )}>
@@ -298,11 +303,11 @@ export default function AbdmOverviewPage() {
 
               {/* HPR Links Card */}
               <Link href="/compliance/abdm/hpr" className="group">
-                <Card className="h-full transition hover:border-purple-300">
+                <Card className="h-full transition hover:border-violet-300">
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-3">
-                      <span className="grid h-9 w-9 place-items-center rounded-xl border border-purple-200 bg-purple-50 dark:border-purple-900/50 dark:bg-purple-900/20">
-                        <UserCheck className="h-4.5 w-4.5 text-purple-600 dark:text-purple-400" />
+                      <span className="grid h-9 w-9 place-items-center rounded-xl border border-violet-200 bg-violet-50 dark:border-violet-900/50 dark:bg-violet-900/20">
+                        <UserCheck className="h-4.5 w-4.5 text-violet-600 dark:text-violet-400" />
                       </span>
                       <div className="flex-1 min-w-0">
                         <CardTitle className="text-base">HPR Professional Links</CardTitle>

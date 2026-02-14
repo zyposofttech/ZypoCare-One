@@ -63,6 +63,18 @@ export class NabhService {
         },
       });
 
+      await this.ctx.logCompliance(
+        {
+          workspaceId: dto.orgId || "SYSTEM",
+          entityType: "NABH_TEMPLATE",
+          entityId: created.id,
+          action: "CREATE",
+          actorStaffId: principal.staffId,
+          after: created,
+        },
+        tx,
+      );
+
       await this.ctx.audit.log(
         {
           branchId: principal.branchId,
@@ -100,6 +112,18 @@ export class NabhService {
           riskLevel: dto.riskLevel ?? "MINOR",
         },
       });
+
+      await this.ctx.logCompliance(
+        {
+          workspaceId: template.orgId || "SYSTEM",
+          entityType: "NABH_TEMPLATE_ITEM",
+          entityId: created.id,
+          action: "CREATE",
+          actorStaffId: principal.staffId,
+          after: created,
+        },
+        tx,
+      );
 
       await this.ctx.audit.log(
         {

@@ -4,13 +4,14 @@ import * as React from "react";
 import { AppLink as Link } from "@/components/app-link";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
 import { RequirePerm } from "@/components/RequirePerm";
+import { useCopilot } from "@/lib/copilot/CopilotProvider";
 import {
   AlertTriangle,
   ArrowRight,
@@ -20,7 +21,10 @@ import {
   RefreshCw,
   Shield,
   ShieldCheck,
+  Sparkles,
+  TrendingUp,
 } from "lucide-react";
+import { CompliancePageHead, QuickStartBanner } from "@/components/copilot/ComplianceHelpInline";
 
 type DashboardData = {
   workspaces: number;
@@ -28,6 +32,241 @@ type DashboardData = {
   expiringEvidence: number;
   auditCycles: number;
 };
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Score Gauge — circular progress for area scores
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function ScoreGauge({ label, score }: { label: string; score: number }) {
+  const color =
+    score >= 80 ? "text-emerald-600 dark:text-emerald-400" :
+    score >= 50 ? "text-amber-600 dark:text-amber-400" :
+    "text-red-600 dark:text-red-400";
+
+  const ringColor =
+    score >= 80 ? "stroke-emerald-500" :
+    score >= 50 ? "stroke-amber-500" :
+    "stroke-red-500";
+
+  const circumference = 2 * Math.PI * 20;
+  const offset = circumference - (score / 100) * circumference;
+
+  return (
+    <div className="flex flex-col items-center gap-1.5 rounded-xl border border-zc-border bg-zc-panel/15 p-3">
+      <div className="relative h-12 w-12">
+        <svg className="h-12 w-12 -rotate-90" viewBox="0 0 48 48">
+          <circle cx="24" cy="24" r="20" fill="none" className="stroke-zinc-200 dark:stroke-zinc-700" strokeWidth="3" />
+          <circle
+            cx="24" cy="24" r="20" fill="none"
+            className={ringColor}
+            strokeWidth="3"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+          />
+        </svg>
+        <span className={cn("absolute inset-0 flex items-center justify-center text-xs font-bold", color)}>
+          {score}
+        </span>
+      </div>
+      <span className="text-[10px] font-medium text-zc-muted text-center">{label}</span>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AI Health Summary Card
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function ComplianceAIHealthCard() {
+  const { complianceHealth, complianceHealthLoading, refreshComplianceHealth } = useCopilot();
+
+  if (!complianceHealth && !complianceHealthLoading) return null;
+
+  const topBlockers = complianceHealth?.topIssues?.filter((i) => i.severity === "BLOCKER") ?? [];
+  const topWarnings = complianceHealth?.topIssues?.filter((i) => i.severity === "WARNING") ?? [];
+
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-indigo-500" />
+            AI Compliance Summary
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 text-xs text-zc-muted"
+            onClick={refreshComplianceHealth}
+            disabled={complianceHealthLoading}
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5", complianceHealthLoading ? "animate-spin" : "")} />
+            Refresh
+          </Button>
+        </div>
+        <CardDescription>
+          AI-powered compliance analysis: ABDM, Government Schemes, NABH readiness, and evidence coverage.
+        </CardDescription>
+      </CardHeader>
+      <Separator />
+      <CardContent className="pt-6">
+        {complianceHealthLoading && !complianceHealth ? (
+          <div className="grid gap-3">
+            <div className="h-20 w-full animate-pulse rounded-xl bg-zinc-200 dark:bg-zinc-800" />
+            <div className="h-12 w-full animate-pulse rounded-xl bg-zinc-200 dark:bg-zinc-800" />
+          </div>
+        ) : complianceHealth ? (
+          <div className="grid gap-4">
+            {/* Overall status banner */}
+            <div
+              className={cn(
+                "flex items-center justify-between rounded-xl border p-4",
+                complianceHealth.overallHealth === "EXCELLENT" || complianceHealth.overallHealth === "GOOD"
+                  ? "border-emerald-200/60 bg-emerald-50/40 dark:border-emerald-900/40 dark:bg-emerald-900/15"
+                  : complianceHealth.overallHealth === "NEEDS_ATTENTION"
+                    ? "border-amber-200/60 bg-amber-50/40 dark:border-amber-900/40 dark:bg-amber-900/15"
+                    : "border-red-200/60 bg-red-50/40 dark:border-red-900/40 dark:bg-red-900/15"
+              )}
+            >
+              <div className="flex items-center gap-3">
+                {complianceHealth.overallHealth === "EXCELLENT" || complianceHealth.overallHealth === "GOOD" ? (
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                ) : (
+                  <AlertTriangle
+                    className={cn(
+                      "h-5 w-5",
+                      complianceHealth.overallHealth === "NEEDS_ATTENTION"
+                        ? "text-amber-600 dark:text-amber-400"
+                        : "text-red-600 dark:text-red-400"
+                    )}
+                  />
+                )}
+                <div>
+                  <div className="text-sm font-semibold">
+                    {complianceHealth.overallHealth === "EXCELLENT"
+                      ? "Excellent"
+                      : complianceHealth.overallHealth === "GOOD"
+                        ? "Good"
+                        : complianceHealth.overallHealth === "NEEDS_ATTENTION"
+                          ? "Needs Attention"
+                          : "Critical Issues"}
+                  </div>
+                  <div className="text-xs text-zc-muted">{complianceHealth.summary}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {complianceHealth.complianceScore >= 80 && complianceHealth.totalBlockers === 0 ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50/70 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Go-Live Ready
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-red-200/70 bg-red-50/70 px-2.5 py-1 text-[11px] font-semibold text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-200">
+                    <AlertTriangle className="h-3 w-3" />
+                    Not Ready
+                  </span>
+                )}
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-bold",
+                    complianceHealth.complianceScore >= 80
+                      ? "border-emerald-200/70 bg-emerald-50/70 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200"
+                      : complianceHealth.complianceScore >= 50
+                        ? "border-amber-200/70 bg-amber-50/70 text-amber-700 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200"
+                        : "border-red-200/70 bg-red-50/70 text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-200"
+                  )}
+                >
+                  Score {complianceHealth.complianceScore}%
+                </span>
+              </div>
+            </div>
+
+            {/* Area scores */}
+            <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+              {complianceHealth.areas.abdm && (
+                <ScoreGauge label="ABDM" score={complianceHealth.areas.abdm.score} />
+              )}
+              {complianceHealth.areas.schemes && (
+                <ScoreGauge label="Schemes" score={complianceHealth.areas.schemes.score} />
+              )}
+              {complianceHealth.areas.nabh && (
+                <ScoreGauge label="NABH" score={complianceHealth.areas.nabh.score} />
+              )}
+              {complianceHealth.areas.evidence && (
+                <ScoreGauge label="Evidence" score={complianceHealth.areas.evidence.score} />
+              )}
+            </div>
+
+            {/* Workflow progress bar */}
+            <div className="rounded-xl border border-indigo-200/60 bg-indigo-50/30 dark:border-indigo-900/40 dark:bg-indigo-900/10 p-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                  <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-400">
+                    Setup Progress
+                  </span>
+                </div>
+                <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                  {complianceHealth.workflowProgress}%
+                </span>
+              </div>
+              <div className="h-2 rounded-full bg-indigo-200/60 dark:bg-indigo-900/40 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-500"
+                  style={{ width: `${complianceHealth.workflowProgress}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Issue summary */}
+            <div className="flex items-center gap-4 text-sm text-zc-muted">
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2 w-2 rounded-full bg-red-500" />
+                {complianceHealth.totalBlockers} blocker{complianceHealth.totalBlockers !== 1 ? "s" : ""}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />
+                {complianceHealth.totalWarnings} warning{complianceHealth.totalWarnings !== 1 ? "s" : ""}
+              </span>
+            </div>
+
+            {/* Top issues */}
+            {(topBlockers.length > 0 || topWarnings.length > 0) && (
+              <div className="rounded-xl border border-zc-border bg-zc-panel/15 p-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Top Issues</div>
+                <div className="mt-2 grid gap-1.5">
+                  {topBlockers.slice(0, 4).map((issue) => (
+                    <div key={issue.id} className="flex items-start gap-2 text-sm">
+                      <span className="mt-0.5 inline-block h-2 w-2 shrink-0 rounded-full bg-red-500" />
+                      <div className="min-w-0">
+                        <span className="font-medium text-zc-text">{issue.title}</span>
+                        <span className="ml-2 text-xs text-zc-muted">{issue.fixHint}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {topWarnings.slice(0, 3).map((issue) => (
+                    <div key={issue.id} className="flex items-start gap-2 text-sm">
+                      <span className="mt-0.5 inline-block h-2 w-2 shrink-0 rounded-full bg-amber-500" />
+                      <div className="min-w-0">
+                        <span className="font-medium text-zc-text">{issue.title}</span>
+                        <span className="ml-2 text-xs text-zc-muted">{issue.fixHint}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Main Dashboard Page
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 export default function ComplianceDashboardPage() {
   const { activeBranchId } = useBranchContext();
@@ -75,6 +314,7 @@ export default function ComplianceDashboardPage() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <CompliancePageHead pageId="compliance-dashboard" />
             <Button variant="outline" className="px-5 gap-2" onClick={refresh} disabled={loading}>
               <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
               Refresh
@@ -156,6 +396,9 @@ export default function ComplianceDashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* ── AI Compliance Health Summary ── */}
+        <ComplianceAIHealthCard />
 
         <Separator />
 
@@ -270,13 +513,20 @@ export default function ComplianceDashboardPage() {
           </Link>
         </div>
 
-        {/* ── Info Callout ── */}
-        <div className="rounded-2xl border border-zc-border bg-zc-panel/20 p-5">
-          <div className="text-sm font-semibold text-zc-text">Recommended Setup Order</div>
-          <div className="mt-1 text-sm text-zc-muted">
-            Start with Workspaces, then configure ABDM &amp; Government Schemes, upload Evidence documents, set up NABH checklists, and finally review Approvals. Use the Validator to check readiness at any stage.
-          </div>
-        </div>
+        {/* ── AI-Powered Quick Start ── */}
+        <QuickStartBanner
+          title="New to Compliance? AI Help is here!"
+          description="The AI Help assistant can guide you through every step of the compliance setup process."
+          steps={[
+            "Create a Workspace for your branch",
+            "Configure ABDM (ABHA, HFR, HPR)",
+            "Set up Government Schemes (PMJAY, CGHS, ECHS)",
+            "Upload Evidence documents to the vault",
+            "Complete the NABH 10-chapter checklist",
+            "Run the Validator to check readiness",
+          ]}
+
+        />
       </div>
       </RequirePerm>
     </AppShell>

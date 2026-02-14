@@ -247,11 +247,12 @@ export default function EvidenceDetailPage() {
         <div className="grid gap-6">
           <div className="flex items-center gap-3">
             <Button
-              variant="ghost"
-              size="sm"
+              variant="outline"
+              size="icon"
               onClick={() => router.push("/compliance/evidence")}
+              title="Back to Evidence"
             >
-              <ArrowLeft className="mr-1 h-4 w-4" /> Back
+              <ArrowLeft className="h-4 w-4" />
             </Button>
             <div className="text-3xl font-semibold tracking-tight">
               Evidence Detail
@@ -285,11 +286,12 @@ export default function EvidenceDetailPage() {
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-center gap-3">
             <Button
-              variant="ghost"
-              size="sm"
+              variant="outline"
+              size="icon"
               onClick={() => router.push("/compliance/evidence")}
+              title="Back to Evidence"
             >
-              <ArrowLeft className="mr-1 h-4 w-4" /> Back
+              <ArrowLeft className="h-4 w-4" />
             </Button>
             <span className="grid h-10 w-10 place-items-center rounded-2xl border border-zc-border bg-zc-panel/30">
               <FileText className="h-5 w-5 text-zc-accent" />
@@ -391,7 +393,7 @@ export default function EvidenceDetailPage() {
                       />
                     </div>
                     <div className="flex gap-2">
-                      <Button onClick={handleSave} disabled={saving}>
+                      <Button variant="primary" onClick={handleSave} disabled={saving}>
                         {saving ? (
                           <Loader2 className="mr-1 h-4 w-4 animate-spin" />
                         ) : (

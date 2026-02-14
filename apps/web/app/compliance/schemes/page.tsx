@@ -10,6 +10,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
+import { CompliancePageHead, CompliancePageInsights } from "@/components/copilot/ComplianceHelpInline";
 import { RequirePerm } from "@/components/RequirePerm";
 import { ArrowRight, AlertTriangle, FileText, Link2, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
 
@@ -116,6 +117,7 @@ function schemeColors(scheme: string) {
 export default function SchemesOverviewPage() {
   const { activeBranchId } = useBranchContext();
   const { toast } = useToast();
+
   const [data, setData] = React.useState<SchemeSummary | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [workspaceId, setWorkspaceId] = React.useState<string | null>(null);
@@ -164,6 +166,7 @@ export default function SchemesOverviewPage() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <CompliancePageHead pageId="compliance-schemes" />
             <Button variant="outline" className="px-5 gap-2" onClick={() => void refresh()} disabled={loading}>
               <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />Refresh
             </Button>
@@ -172,6 +175,9 @@ export default function SchemesOverviewPage() {
             </Link>
           </div>
         </div>
+
+        {/* AI Insights */}
+        <CompliancePageInsights pageId="compliance-schemes" />
 
         {/* ── Loading ────────────────────────────────────────────────── */}
         {loading ? (

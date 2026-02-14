@@ -16,6 +16,7 @@ import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { RequirePerm } from "@/components/RequirePerm";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
+import { CompliancePageHead, CompliancePageInsights } from "@/components/copilot/ComplianceHelpInline";
 import { AlertTriangle, ArrowLeft, Filter, Loader2, Plus, RefreshCw, ShieldCheck, UserCheck } from "lucide-react";
 
 /* --------------------------------- Types --------------------------------- */
@@ -141,14 +142,18 @@ export default function HprLinkagePage() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <CompliancePageHead pageId="compliance-abdm-hpr" />
             <Button variant="outline" className="px-5 gap-2" onClick={() => { if (workspaceId) fetchLinks(workspaceId); }} disabled={loading}>
               <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />Refresh
             </Button>
-            <Button className="px-5 gap-2" onClick={openLinkDialog} disabled={loading || !workspaceId}>
+            <Button variant="primary" className="px-5 gap-2" onClick={openLinkDialog} disabled={loading || !workspaceId}>
               <Plus className="h-4 w-4" />Link Staff
             </Button>
           </div>
         </div>
+
+        {/* AI Insights */}
+        <CompliancePageInsights pageId="compliance-abdm-hpr" />
 
         {/* ── Guard states ───────────────────────────────────────────── */}
         {!activeBranchId ? (
@@ -273,7 +278,7 @@ export default function HprLinkagePage() {
             </div>
             <DialogFooter className="gap-2">
               <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>Cancel</Button>
-              <Button onClick={handleCreateLink} disabled={saving}>
+              <Button variant="primary" onClick={handleCreateLink} disabled={saving}>
                 {saving ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Plus className="mr-1.5 h-4 w-4" />}
                 Create Link
               </Button>

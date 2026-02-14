@@ -3,7 +3,12 @@
 import * as React from "react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 import {
   Select,
@@ -28,6 +34,7 @@ import { cn } from "@/lib/cn";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
 import { RequirePerm } from "@/components/RequirePerm";
 import { IconClipboard } from "@/components/icons";
+import { CompliancePageHead, CompliancePageInsights } from "@/components/copilot/ComplianceHelpInline";
 import {
   ChevronDown,
   Clock,
@@ -46,8 +53,9 @@ type AuditLogEntry = {
   entityType: string;
   entityId: string;
   action: string;
-  actorUserId: string;
-  actorName?: string;
+  actorUserId?: string | null;
+  actorStaffId?: string | null;
+  actorName?: string | null;
   before: Record<string, unknown> | null;
   after: Record<string, unknown> | null;
   createdAt: string;
@@ -115,6 +123,15 @@ function fmtFullDateTime(value: string | null | undefined): string {
     dateStyle: "full",
     timeStyle: "medium",
   }).format(date);
+}
+
+function fmtActor(entry: Pick<AuditLogEntry, "actorName" | "actorStaffId" | "actorUserId">): string {
+  const actorName = typeof entry.actorName === "string" ? entry.actorName.trim() : "";
+  if (actorName) return actorName;
+
+  const actorId = entry.actorStaffId || entry.actorUserId;
+  if (!actorId) return "System";
+  return actorId.length > 8 ? `${actorId.slice(0, 8)}...` : actorId;
 }
 
 function entityTypeBadgeClasses(type: string): string {
@@ -372,12 +389,16 @@ export default function AuditLogPage() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <CompliancePageHead pageId="compliance-audit-log" />
             <Button variant="outline" size="sm" onClick={() => fetchLogs()}>
               <RefreshCw className="mr-1.5 h-4 w-4" />
               Refresh
             </Button>
           </div>
         </div>
+
+        {/* AI Insights */}
+        <CompliancePageInsights pageId="compliance-audit-log" />
 
         {/* ---- Filters ---- */}
         <div className="rounded-2xl border border-zc-border bg-zc-panel/20 p-5">
@@ -433,7 +454,7 @@ export default function AuditLogPage() {
               />
             </div>
 
-            <Button size="sm" onClick={handleApplyFilters}>
+            <Button variant="primary" size="sm" onClick={handleApplyFilters}>
               <Filter className="mr-1.5 h-4 w-4" />
               Apply
             </Button>
@@ -442,6 +463,11 @@ export default function AuditLogPage() {
 
         {/* ---- Table ---- */}
         <Card className="overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Audit Trail</CardTitle>
+            <CardDescription className="text-sm">Immutable record of all compliance data changes.</CardDescription>
+          </CardHeader>
+          <Separator />
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-zc-muted" />
@@ -524,8 +550,7 @@ export default function AuditLogPage() {
                           </td>
                           <td className="px-4 py-3">
                             <span className="text-sm">
-                              {entry.actorName ||
-                                entry.actorUserId.slice(0, 8) + "..."}
+                              {fmtActor(entry)}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-right">

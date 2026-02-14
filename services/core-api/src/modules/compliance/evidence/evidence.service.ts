@@ -91,6 +91,18 @@ export class EvidenceService {
         tx,
       );
 
+      await this.ctx.audit.log(
+        {
+          branchId: principal.branchId,
+          actorUserId: principal.userId,
+          action: "EVIDENCE_UPLOAD",
+          entity: "Evidence",
+          entityId: created.id,
+          meta: { fileName: file.originalname, title: dto.title },
+        },
+        tx,
+      );
+
       return created;
     });
 
@@ -134,6 +146,18 @@ export class EvidenceService {
         tx,
       );
 
+      await this.ctx.audit.log(
+        {
+          branchId: principal.branchId,
+          actorUserId: principal.userId,
+          action: "EVIDENCE_UPDATE",
+          entity: "Evidence",
+          entityId: evidenceId,
+          meta: dto,
+        },
+        tx,
+      );
+
       return result;
     });
 
@@ -171,6 +195,18 @@ export class EvidenceService {
         tx,
       );
 
+      await this.ctx.audit.log(
+        {
+          branchId: principal.branchId,
+          actorUserId: principal.userId,
+          action: "EVIDENCE_LINK",
+          entity: "Evidence",
+          entityId: evidenceId,
+          meta: { targetType: dto.targetType, targetId: dto.targetId, linkId: created.id },
+        },
+        tx,
+      );
+
       return created;
     });
 
@@ -201,6 +237,18 @@ export class EvidenceService {
           action: "UNLINK",
           actorStaffId: principal.staffId,
           before: link,
+        },
+        tx,
+      );
+
+      await this.ctx.audit.log(
+        {
+          branchId: principal.branchId,
+          actorUserId: principal.userId,
+          action: "EVIDENCE_UNLINK",
+          entity: "Evidence",
+          entityId: evidenceId,
+          meta: { linkId, targetType: link.targetType, targetId: link.targetId },
         },
         tx,
       );

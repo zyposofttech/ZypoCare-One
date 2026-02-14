@@ -14,11 +14,13 @@ import { Permissions } from "../../auth/permissions.decorator";
 import { PERM } from "../../iam/iam.constants";
 import { AbdmService } from "./abdm.service";
 import {
+  AbdmEnvironment,
+  BulkImportHprDto,
   CreateAbdmConfigDto,
-  UpdateAbdmConfigDto,
   CreateHfrProfileDto,
-  UpdateHfrProfileDto,
   CreateHprLinkDto,
+  UpdateAbdmConfigDto,
+  UpdateHfrProfileDto,
   UpdateHprLinkDto,
 } from "./dto/abdm.dto";
 
@@ -32,7 +34,7 @@ export class AbdmController {
   }
 
   // ──────────────────────────────────────────────────────────────
-  // ABDM Config
+  // ABDM Config (ABHA)
   // ──────────────────────────────────────────────────────────────
 
   @Get("config")
@@ -40,17 +42,14 @@ export class AbdmController {
   async getConfig(
     @Req() req: any,
     @Query("workspaceId") workspaceId: string,
-    @Query("environment") environment?: "SANDBOX" | "PRODUCTION",
+    @Query("environment") environment?: AbdmEnvironment,
   ) {
     return this.svc.getConfig(this.principal(req), workspaceId, environment);
   }
 
   @Post("config")
   @Permissions(PERM.COMPLIANCE_ABDM_CONFIG)
-  async createConfig(
-    @Req() req: any,
-    @Body() dto: CreateAbdmConfigDto,
-  ) {
+  async createConfig(@Req() req: any, @Body() dto: CreateAbdmConfigDto) {
     return this.svc.upsertConfig(this.principal(req), dto);
   }
 
@@ -70,7 +69,7 @@ export class AbdmController {
     @Req() req: any,
     @Param("abdmConfigId") abdmConfigId: string,
   ) {
-    return this.svc.testConfig(abdmConfigId, this.principal(req).staffId!);
+    return this.svc.testConfig(this.principal(req), abdmConfigId);
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -79,19 +78,13 @@ export class AbdmController {
 
   @Get("hfr")
   @Permissions(PERM.COMPLIANCE_ABDM_HFR_UPDATE)
-  async getHfrProfile(
-    @Req() req: any,
-    @Query("workspaceId") workspaceId: string,
-  ) {
+  async getHfrProfile(@Req() req: any, @Query("workspaceId") workspaceId: string) {
     return this.svc.getHfrProfile(this.principal(req), workspaceId);
   }
 
   @Post("hfr")
   @Permissions(PERM.COMPLIANCE_ABDM_HFR_UPDATE)
-  async createHfrProfile(
-    @Req() req: any,
-    @Body() dto: CreateHfrProfileDto,
-  ) {
+  async createHfrProfile(@Req() req: any, @Body() dto: CreateHfrProfileDto) {
     return this.svc.upsertHfrProfile(this.principal(req), dto);
   }
 
@@ -107,10 +100,7 @@ export class AbdmController {
 
   @Post("hfr/:hfrProfileId/validate")
   @Permissions(PERM.COMPLIANCE_ABDM_HFR_UPDATE)
-  async validateHfrProfile(
-    @Req() req: any,
-    @Param("hfrProfileId") hfrProfileId: string,
-  ) {
+  async validateHfrProfile(@Req() req: any, @Param("hfrProfileId") hfrProfileId: string) {
     return this.svc.validateHfrProfile(this.principal(req), hfrProfileId, true);
   }
 
@@ -125,7 +115,7 @@ export class AbdmController {
       hfrProfileId,
       body.verificationStatus,
       body.verificationNotes,
-      this.principal(req).staffId!,
+      this.principal(req),
     );
   }
 
@@ -135,10 +125,7 @@ export class AbdmController {
 
   @Get("hpr/summary")
   @Permissions(PERM.COMPLIANCE_ABDM_HPR_UPDATE)
-  async hprSummary(
-    @Req() req: any,
-    @Query("workspaceId") workspaceId: string,
-  ) {
+  async hprSummary(@Req() req: any, @Query("workspaceId") workspaceId: string) {
     return this.svc.getHprSummary(workspaceId);
   }
 
@@ -163,16 +150,13 @@ export class AbdmController {
 
   @Post("hpr/bulk-import")
   @Permissions(PERM.COMPLIANCE_ABDM_HPR_UPDATE)
-  async bulkImportHpr(@Body() dto: any, @Req() req: any) {
+  async bulkImportHpr(@Req() req: any, @Body() dto: BulkImportHprDto) {
     return this.svc.bulkImportHpr(this.principal(req), dto);
   }
 
   @Post("hpr")
   @Permissions(PERM.COMPLIANCE_ABDM_HPR_UPDATE)
-  async createHprLink(
-    @Req() req: any,
-    @Body() dto: CreateHprLinkDto,
-  ) {
+  async createHprLink(@Req() req: any, @Body() dto: CreateHprLinkDto) {
     return this.svc.createHprLink(this.principal(req), dto);
   }
 
@@ -188,10 +172,7 @@ export class AbdmController {
 
   @Post("hpr/:hprLinkId/verify")
   @Permissions(PERM.COMPLIANCE_ABDM_HPR_UPDATE)
-  async verifyHprLink(
-    @Req() req: any,
-    @Param("hprLinkId") hprLinkId: string,
-  ) {
+  async verifyHprLink(@Req() req: any, @Param("hprLinkId") hprLinkId: string) {
     return this.svc.verifyHprLink(this.principal(req), hprLinkId);
   }
 }

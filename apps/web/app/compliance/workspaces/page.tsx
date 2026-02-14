@@ -33,6 +33,7 @@ import { RequirePerm } from "@/components/RequirePerm";
 import { IconBuilding, IconChevronRight, IconPlus, IconSearch } from "@/components/icons";
 import { usePageInsights } from "@/lib/copilot/usePageInsights";
 import { PageInsightBanner } from "@/components/copilot/PageInsightBanner";
+import { CompliancePageHead, CompliancePageInsights } from "@/components/copilot/ComplianceHelpInline";
 import {
   AlertTriangle,
   Building2,
@@ -599,6 +600,7 @@ export default function WorkspacesPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <CompliancePageHead pageId="compliance-workspaces" />
             <Button variant="outline" className="px-5 gap-2" onClick={() => void refresh(true)} disabled={loading}>
               <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
               Refresh
@@ -612,6 +614,9 @@ export default function WorkspacesPage() {
             ) : null}
           </div>
         </div>
+
+        {/* AI Insights */}
+        <CompliancePageInsights pageId="compliance-workspaces" />
 
         <PageInsightBanner insights={insights} loading={insightsLoading} onDismiss={dismissInsight} />
 
@@ -699,7 +704,11 @@ export default function WorkspacesPage() {
                 {!filtered.length ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-10 text-center text-sm text-zc-muted">
-                      {loading ? "Loading workspaces..." : "No workspaces found."}
+                      {loading ? (
+                        <Loader2 className="mx-auto h-6 w-6 animate-spin text-zc-muted" />
+                      ) : (
+                        "No workspaces found."
+                      )}
                     </td>
                   </tr>
                 ) : null}

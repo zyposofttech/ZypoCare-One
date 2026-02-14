@@ -24,18 +24,22 @@ export class ComplianceController {
   @Permissions(PERM.COMPLIANCE_AUDIT_LOG_READ)
   async auditLogs(
     @Req() req: any,
+    @Query("branchId") branchId?: string,
     @Query("workspaceId") workspaceId?: string,
     @Query("entityType") entityType?: string,
     @Query("entityId") entityId?: string,
+    @Query("action") action?: string,
     @Query("from") from?: string,
     @Query("to") to?: string,
     @Query("cursor") cursor?: string,
     @Query("take") take?: string,
   ) {
     return this.svc.getAuditLogs(this.principal(req), {
+      branchId,
       workspaceId,
       entityType,
       entityId,
+      action,
       from,
       to,
       cursor,

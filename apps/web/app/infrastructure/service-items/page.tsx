@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   CheckCircle,
   ClipboardList,
+  Download,
   Eye,
   History,
   Link as LinkIcon,
@@ -17,6 +18,7 @@ import {
   Star,
   ToggleLeft,
   ToggleRight,
+  Upload,
   Wrench,
   XCircle,
 } from "lucide-react";
@@ -31,6 +33,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -111,6 +114,25 @@ type ServiceItemRow = {
   effectiveTill?: string | null;
   isOrderable: boolean;
   isActive: boolean;
+  isBillable?: boolean;
+  consentRequired?: boolean;
+  type?: string;
+  genderRestriction?: string | null;
+  minAgeYears?: number | null;
+  maxAgeYears?: number | null;
+  cooldownMins?: number | null;
+  preparationText?: string | null;
+  instructionsText?: string | null;
+  contraindicationsText?: string | null;
+  requiresAppointment?: boolean;
+  estimatedDurationMins?: number | null;
+  prepMins?: number | null;
+  recoveryMins?: number | null;
+  tatMinsRoutine?: number | null;
+  tatMinsStat?: number | null;
+  chargeUnit?: string | null;
+  taxApplicability?: string | null;
+  lifecycleStatus?: string;
   mappings?: ServiceChargeMappingRow[];
 };
 
@@ -264,6 +286,18 @@ export default function ServiceItemsPage() {
   const [fGenderRestriction, setFGenderRestriction] = React.useState("");
   const [fMinAgeYears, setFMinAgeYears] = React.useState("");
   const [fMaxAgeYears, setFMaxAgeYears] = React.useState("");
+  const [fCooldownMins, setFCooldownMins] = React.useState("");
+  const [fPreparationText, setFPreparationText] = React.useState("");
+  const [fInstructionsText, setFInstructionsText] = React.useState("");
+  const [fContraindicationsText, setFContraindicationsText] = React.useState("");
+  const [fRequiresAppointment, setFRequiresAppointment] = React.useState(false);
+  const [fEstimatedDurationMins, setFEstimatedDurationMins] = React.useState("");
+  const [fPrepMins, setFPrepMins] = React.useState("");
+  const [fRecoveryMins, setFRecoveryMins] = React.useState("");
+  const [fTatMinsRoutine, setFTatMinsRoutine] = React.useState("");
+  const [fTatMinsStat, setFTatMinsStat] = React.useState("");
+  const [fChargeUnit, setFChargeUnit] = React.useState("");
+  const [fTaxApplicability, setFTaxApplicability] = React.useState("");
   const [specialties, setSpecialties] = React.useState<SpecialtyRow[]>([]);
 
   // Favorites (localStorage)
@@ -283,6 +317,9 @@ export default function ServiceItemsPage() {
       return next;
     });
   }
+
+  // Bulk import
+  const [importOpen, setImportOpen] = React.useState(false);
 
   // Version history
   const [versionsOpen, setVersionsOpen] = React.useState(false);
@@ -453,6 +490,18 @@ export default function ServiceItemsPage() {
     setFGenderRestriction("");
     setFMinAgeYears("");
     setFMaxAgeYears("");
+    setFCooldownMins("");
+    setFPreparationText("");
+    setFInstructionsText("");
+    setFContraindicationsText("");
+    setFRequiresAppointment(false);
+    setFEstimatedDurationMins("");
+    setFPrepMins("");
+    setFRecoveryMins("");
+    setFTatMinsRoutine("");
+    setFTatMinsStat("");
+    setFChargeUnit("");
+    setFTaxApplicability("");
     setEditorOpen(true);
   }
 
@@ -479,12 +528,24 @@ export default function ServiceItemsPage() {
     setFOrderable(!!r.isOrderable);
     setFActive(!!r.isActive);
     setFChargeMasterCode(""); // backend supports chargeMasterCode only on create
-    setFType((r as any).type || "OTHER");
-    setFIsBillable((r as any).isBillable !== false);
-    setFConsentRequired(!!(r as any).consentRequired);
-    setFGenderRestriction((r as any).genderRestriction || "");
-    setFMinAgeYears((r as any).minAgeYears != null ? String((r as any).minAgeYears) : "");
-    setFMaxAgeYears((r as any).maxAgeYears != null ? String((r as any).maxAgeYears) : "");
+    setFType(r.type || "OTHER");
+    setFIsBillable(r.isBillable !== false);
+    setFConsentRequired(!!r.consentRequired);
+    setFGenderRestriction(r.genderRestriction || "");
+    setFMinAgeYears(r.minAgeYears != null ? String(r.minAgeYears) : "");
+    setFMaxAgeYears(r.maxAgeYears != null ? String(r.maxAgeYears) : "");
+    setFCooldownMins(r.cooldownMins != null ? String(r.cooldownMins) : "");
+    setFPreparationText(r.preparationText || "");
+    setFInstructionsText(r.instructionsText || "");
+    setFContraindicationsText(r.contraindicationsText || "");
+    setFRequiresAppointment(!!r.requiresAppointment);
+    setFEstimatedDurationMins(r.estimatedDurationMins != null ? String(r.estimatedDurationMins) : "");
+    setFPrepMins(r.prepMins != null ? String(r.prepMins) : "");
+    setFRecoveryMins(r.recoveryMins != null ? String(r.recoveryMins) : "");
+    setFTatMinsRoutine(r.tatMinsRoutine != null ? String(r.tatMinsRoutine) : "");
+    setFTatMinsStat(r.tatMinsStat != null ? String(r.tatMinsStat) : "");
+    setFChargeUnit(r.chargeUnit || "");
+    setFTaxApplicability(r.taxApplicability || "");
     setEditorOpen(true);
   }
 
@@ -527,6 +588,18 @@ export default function ServiceItemsPage() {
       genderRestriction: fGenderRestriction || null,
       minAgeYears: fMinAgeYears ? Number(fMinAgeYears) : null,
       maxAgeYears: fMaxAgeYears ? Number(fMaxAgeYears) : null,
+      cooldownMins: fCooldownMins ? Number(fCooldownMins) : null,
+      preparationText: fPreparationText.trim() || null,
+      instructionsText: fInstructionsText.trim() || null,
+      contraindicationsText: fContraindicationsText.trim() || null,
+      requiresAppointment: !!fRequiresAppointment,
+      estimatedDurationMins: fEstimatedDurationMins ? Number(fEstimatedDurationMins) : null,
+      prepMins: fPrepMins ? Number(fPrepMins) : null,
+      recoveryMins: fRecoveryMins ? Number(fRecoveryMins) : null,
+      tatMinsRoutine: fTatMinsRoutine ? Number(fTatMinsRoutine) : null,
+      tatMinsStat: fTatMinsStat ? Number(fTatMinsStat) : null,
+      chargeUnit: fChargeUnit || null,
+      taxApplicability: fTaxApplicability || null,
     };
 
     if (!editing && fChargeMasterCode.trim()) payload.chargeMasterCode = fChargeMasterCode.trim();
@@ -703,6 +776,16 @@ export default function ServiceItemsPage() {
               Refresh
             </Button>
 
+            <Button variant="outline" className="px-5 gap-2" onClick={() => exportCsv(rows)} disabled={!branchId || rows.length === 0}>
+              <Download className="h-4 w-4" />
+              Export CSV
+            </Button>
+
+            <Button variant="outline" className="px-5 gap-2" onClick={() => setImportOpen(true)} disabled={!branchId || busy || loading}>
+              <Upload className="h-4 w-4" />
+              Import
+            </Button>
+
             <Button variant="primary" className="px-5 gap-2" onClick={openCreate} disabled={!branchId || busy || loading}>
               <Plus className="h-4 w-4" />
               New Service
@@ -816,11 +899,17 @@ export default function ServiceItemsPage() {
 
                 <TableBody>
                   {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="py-8 text-center text-sm text-zc-muted">
-                        Loading...
-                      </TableCell>
-                    </TableRow>
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <TableRow key={`skel-${i}`}>
+                        <TableCell><Skeleton className="h-4 w-4 rounded" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-40" /><Skeleton className="mt-1 h-3 w-20" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-16 rounded-full" /><Skeleton className="mt-1 h-5 w-20 rounded-full" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                        <TableCell className="text-right"><Skeleton className="ml-auto h-8 w-8 rounded-lg" /></TableCell>
+                      </TableRow>
+                    ))
                   ) : filteredRows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="py-10 text-center text-sm text-zc-muted">
@@ -864,9 +953,9 @@ export default function ServiceItemsPage() {
                                   Not orderable
                                 </Badge>
                               )}
-                              {(r as any).lifecycleStatus && (r as any).lifecycleStatus !== "PUBLISHED" && (
-                                <Badge variant={(r as any).lifecycleStatus === "DRAFT" ? "secondary" : (r as any).lifecycleStatus === "IN_REVIEW" ? "warning" : (r as any).lifecycleStatus === "APPROVED" ? "ok" : (r as any).lifecycleStatus === "DEPRECATED" ? "destructive" : "secondary"} className="text-[10px] w-fit">
-                                  {(r as any).lifecycleStatus}
+                              {r.lifecycleStatus && r.lifecycleStatus !== "PUBLISHED" && (
+                                <Badge variant={r.lifecycleStatus === "DRAFT" ? "secondary" : r.lifecycleStatus === "IN_REVIEW" ? "warning" : r.lifecycleStatus === "APPROVED" ? "ok" : r.lifecycleStatus === "DEPRECATED" ? "destructive" : "secondary"} className="text-[10px] w-fit">
+                                  {r.lifecycleStatus}
                                 </Badge>
                               )}
                             </div>
@@ -920,12 +1009,12 @@ export default function ServiceItemsPage() {
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuLabel>Workflow</DropdownMenuLabel>
-                                {(r as any).lifecycleStatus === "DRAFT" && (
+                                {r.lifecycleStatus === "DRAFT" && (
                                   <DropdownMenuItem onClick={() => updateLifecycleStatus(r.id, "IN_REVIEW")}>
                                     <Send className="mr-2 h-4 w-4" /> Submit for Review
                                   </DropdownMenuItem>
                                 )}
-                                {(r as any).lifecycleStatus === "IN_REVIEW" && (
+                                {r.lifecycleStatus === "IN_REVIEW" && (
                                   <>
                                     <DropdownMenuItem onClick={() => updateLifecycleStatus(r.id, "APPROVED")}>
                                       <CheckCircle className="mr-2 h-4 w-4 text-emerald-600" /> Approve
@@ -935,12 +1024,12 @@ export default function ServiceItemsPage() {
                                     </DropdownMenuItem>
                                   </>
                                 )}
-                                {(r as any).lifecycleStatus === "APPROVED" && (
+                                {r.lifecycleStatus === "APPROVED" && (
                                   <DropdownMenuItem onClick={() => updateLifecycleStatus(r.id, "PUBLISHED")}>
                                     <CheckCircle className="mr-2 h-4 w-4 text-blue-600" /> Publish
                                   </DropdownMenuItem>
                                 )}
-                                {(r as any).lifecycleStatus === "PUBLISHED" && (
+                                {r.lifecycleStatus === "PUBLISHED" && (
                                   <DropdownMenuItem onClick={() => updateLifecycleStatus(r.id, "DEPRECATED")}>
                                     <XCircle className="mr-2 h-4 w-4 text-amber-600" /> Deprecate
                                   </DropdownMenuItem>
@@ -1081,6 +1170,82 @@ export default function ServiceItemsPage() {
                   <Label>Max Age (years)</Label>
                   <Input className="mt-1" type="number" min={0} value={fMaxAgeYears} onChange={(e) => setFMaxAgeYears(e.target.value)} placeholder="e.g., 120" />
                 </div>
+                <div>
+                  <Label>Cooldown (mins)</Label>
+                  <Input className="mt-1" type="number" min={0} value={fCooldownMins} onChange={(e) => setFCooldownMins(e.target.value)} placeholder="e.g., 60" />
+                  <div className="mt-1 text-xs text-zc-muted">Min minutes between repeat orders</div>
+                </div>
+
+                {/* Operational timing */}
+                <Separator className="md:col-span-2 my-1" />
+                <div className="md:col-span-2 text-sm font-semibold text-zc-muted">Operational Timing</div>
+
+                <div>
+                  <Label>Estimated Duration (mins)</Label>
+                  <Input className="mt-1" type="number" min={0} value={fEstimatedDurationMins} onChange={(e) => setFEstimatedDurationMins(e.target.value)} placeholder="e.g., 30" />
+                </div>
+                <div>
+                  <Label>Preparation Time (mins)</Label>
+                  <Input className="mt-1" type="number" min={0} value={fPrepMins} onChange={(e) => setFPrepMins(e.target.value)} placeholder="e.g., 15" />
+                </div>
+                <div>
+                  <Label>Recovery Time (mins)</Label>
+                  <Input className="mt-1" type="number" min={0} value={fRecoveryMins} onChange={(e) => setFRecoveryMins(e.target.value)} placeholder="e.g., 30" />
+                </div>
+                <div>
+                  <Label>Routine TAT (mins)</Label>
+                  <Input className="mt-1" type="number" min={0} value={fTatMinsRoutine} onChange={(e) => setFTatMinsRoutine(e.target.value)} placeholder="e.g., 1440" />
+                </div>
+                <div>
+                  <Label>STAT TAT (mins)</Label>
+                  <Input className="mt-1" type="number" min={0} value={fTatMinsStat} onChange={(e) => setFTatMinsStat(e.target.value)} placeholder="e.g., 120" />
+                </div>
+
+                {/* Billing config */}
+                <Separator className="md:col-span-2 my-1" />
+                <div className="md:col-span-2 text-sm font-semibold text-zc-muted">Billing Configuration</div>
+
+                <div>
+                  <Label>Charge Unit</Label>
+                  <Select value={fChargeUnit || "_none"} onValueChange={(v) => setFChargeUnit(v === "_none" ? "" : v)}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select..." /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="_none">Not set</SelectItem>
+                      {["PER_UNIT", "PER_SESSION", "PER_DAY", "PER_HOUR", "PER_VISIT", "PER_TEST", "PER_STUDY", "LUMP_SUM"].map((u) => (
+                        <SelectItem key={u} value={u}>{u.replace(/_/g, " ")}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Tax Applicability</Label>
+                  <Select value={fTaxApplicability || "_none"} onValueChange={(v) => setFTaxApplicability(v === "_none" ? "" : v)}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select..." /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="_none">Not set</SelectItem>
+                      {["TAXABLE", "EXEMPT", "NIL_RATED", "NON_GST"].map((t) => (
+                        <SelectItem key={t} value={t}>{t.replace(/_/g, " ")}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Clinical instructions */}
+                <Separator className="md:col-span-2 my-1" />
+                <div className="md:col-span-2 text-sm font-semibold text-zc-muted">Clinical Instructions</div>
+
+                <div className="md:col-span-2">
+                  <Label>Preparation Instructions</Label>
+                  <Textarea className="mt-1" rows={2} value={fPreparationText} onChange={(e) => setFPreparationText(e.target.value)} placeholder="e.g., 12-hour fasting required..." />
+                </div>
+                <div className="md:col-span-2">
+                  <Label>Patient Instructions</Label>
+                  <Textarea className="mt-1" rows={2} value={fInstructionsText} onChange={(e) => setFInstructionsText(e.target.value)} placeholder="e.g., Bring previous reports..." />
+                </div>
+                <div className="md:col-span-2">
+                  <Label>Contraindications</Label>
+                  <Textarea className="mt-1" rows={2} value={fContraindicationsText} onChange={(e) => setFContraindicationsText(e.target.value)} placeholder="e.g., Not recommended for patients with..." />
+                </div>
 
                 {/* Toggles */}
                 <div className="rounded-xl border border-zc-border bg-zc-card p-3">
@@ -1108,6 +1273,15 @@ export default function ServiceItemsPage() {
                       <div className="text-xs text-zc-muted">Discounts can be applied</div>
                     </div>
                     <Switch checked={fAllowDiscount} onCheckedChange={(v) => setFAllowDiscount(!!v)} />
+                  </div>
+                </div>
+                <div className="rounded-xl border border-zc-border bg-zc-card p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium">Requires Appointment</div>
+                      <div className="text-xs text-zc-muted">Requires scheduled appointment</div>
+                    </div>
+                    <Switch checked={fRequiresAppointment} onCheckedChange={(v) => setFRequiresAppointment(!!v)} />
                   </div>
                 </div>
                 <div className="rounded-xl border border-zc-border bg-zc-card p-3">
@@ -1339,6 +1513,17 @@ export default function ServiceItemsPage() {
           versions={versions}
           loading={versionsLoading}
         />
+
+        {/* ----------------------------- Bulk Import ----------------------------- */}
+        <BulkImportDialog
+          open={importOpen}
+          onOpenChange={setImportOpen}
+          branchId={branchId || ""}
+          onImported={async () => {
+            toast({ title: "Import complete", description: "Service items imported. Refreshing list..." });
+            await loadServices(branchId);
+          }}
+        />
       </div>
           </RequirePerm>
 </AppShell>
@@ -1464,6 +1649,277 @@ function VersionHistoryDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               CSV Export                                     */
+/* -------------------------------------------------------------------------- */
+
+const EXPORT_COLUMNS = [
+  "code", "name", "shortName", "displayName", "category", "subCategory",
+  "unit", "type", "isOrderable", "isActive", "isBillable",
+  "basePrice", "costPrice", "maxDiscountPercent", "defaultTatHours",
+  "genderRestriction", "minAgeYears", "maxAgeYears", "cooldownMins",
+  "estimatedDurationMins", "prepMins", "recoveryMins", "tatMinsRoutine", "tatMinsStat",
+  "chargeUnit", "taxApplicability", "consentRequired", "requiresScheduling",
+  "requiresAppointment", "statAvailable", "allowDiscount", "effectiveTill", "lifecycleStatus",
+] as const;
+
+function exportCsv(rows: ServiceItemRow[]) {
+  const header = EXPORT_COLUMNS.join(",");
+  const lines = rows.map((r) => {
+    return EXPORT_COLUMNS.map((col) => {
+      const v = (r as any)[col];
+      if (v === null || v === undefined) return "";
+      const s = String(v);
+      return s.includes(",") || s.includes('"') || s.includes("\n")
+        ? `"${s.replace(/"/g, '""')}"`
+        : s;
+    }).join(",");
+  });
+
+  const csv = [header, ...lines].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `service-items-export-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* -------------------------------------------------------------------------- */
+/*                            Bulk Import Dialog                               */
+/* -------------------------------------------------------------------------- */
+
+function BulkImportDialog({
+  open,
+  onOpenChange,
+  branchId,
+  onImported,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  branchId: string;
+  onImported: () => void;
+}) {
+  const { toast } = useToast();
+  const [step, setStep] = React.useState<"upload" | "validate" | "commit">("upload");
+  const [parsedRows, setParsedRows] = React.useState<any[]>([]);
+  const [fileName, setFileName] = React.useState("");
+  const [validationResult, setValidationResult] = React.useState<any>(null);
+  const [saving, setSaving] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!open) {
+      setStep("upload");
+      setParsedRows([]);
+      setFileName("");
+      setValidationResult(null);
+    }
+  }, [open]);
+
+  function parseCsv(text: string): any[] {
+    const lines = text.split(/\r?\n/).filter((l) => l.trim());
+    if (lines.length < 2) return [];
+    const headers = lines[0].split(",").map((h) => h.trim());
+    return lines.slice(1).map((line) => {
+      const values = line.split(",").map((v) => v.trim().replace(/^"|"$/g, ""));
+      const row: any = {};
+      headers.forEach((h, i) => {
+        if (values[i] !== undefined && values[i] !== "") row[h] = values[i];
+      });
+      return row;
+    });
+  }
+
+  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFileName(file.name);
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result;
+      if (typeof text !== "string") return;
+      const rows = parseCsv(text);
+      setParsedRows(rows);
+      setStep("validate");
+    };
+    reader.readAsText(file);
+  }
+
+  async function validate() {
+    if (!parsedRows.length) return;
+    setSaving(true);
+    try {
+      const result = await apiFetch<any>(`/api/infrastructure/import/validate?branchId=${branchId}`, {
+        method: "POST",
+        body: JSON.stringify({ entityType: "SERVICE_ITEMS", rows: parsedRows, fileName }),
+      });
+      setValidationResult(result);
+      if (result.invalidRows === 0) {
+        setStep("commit");
+      }
+    } catch (e: any) {
+      toast({ title: "Validation failed", description: e?.message || "Unknown error", variant: "destructive" as any });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function commit() {
+    if (!validationResult?.jobId) return;
+    setSaving(true);
+    try {
+      await apiFetch(`/api/infrastructure/import/commit`, {
+        method: "POST",
+        body: JSON.stringify({ jobId: validationResult.jobId }),
+      });
+      onOpenChange(false);
+      onImported();
+    } catch (e: any) {
+      toast({ title: "Commit failed", description: e?.message || "Unknown error", variant: "destructive" as any });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function downloadTemplate() {
+    const header = EXPORT_COLUMNS.join(",");
+    const example = "LAB-CBC,Complete Blood Count,,CBC,LAB,Haematology,Per test,DIAGNOSTIC,true,true,true,500,200,10,24,,0,,60,30,15,30,1440,120,PER_TEST,TAXABLE,false,false,false,true,true,,DRAFT";
+    const csv = [header, example].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "service-items-import-template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-3">
+            <Upload className="h-5 w-5 text-zc-accent" />
+            Bulk Import Service Items
+          </DialogTitle>
+          <DialogDescription>
+            Upload a CSV file to import or update service items in bulk. Two-step process: validate then commit.
+          </DialogDescription>
+        </DialogHeader>
+
+        <Separator className="my-2" />
+
+        {step === "upload" && (
+          <div className="grid gap-4 py-4">
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={downloadTemplate}>
+                <Download className="mr-2 h-4 w-4" />
+                Download Template
+              </Button>
+              <span className="text-xs text-zc-muted">CSV with all supported columns</span>
+            </div>
+
+            <div className="rounded-xl border-2 border-dashed border-zc-border p-8 text-center">
+              <Upload className="mx-auto h-8 w-8 text-zc-muted mb-3" />
+              <div className="text-sm text-zc-muted mb-3">
+                Drop a CSV file or click to browse
+              </div>
+              <Input
+                type="file"
+                accept=".csv"
+                onChange={handleFileUpload}
+                className="max-w-xs mx-auto"
+              />
+            </div>
+          </div>
+        )}
+
+        {step === "validate" && (
+          <div className="grid gap-4 py-4">
+            <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-4">
+              <div className="text-sm font-semibold">File: {fileName}</div>
+              <div className="text-xs text-zc-muted mt-1">{parsedRows.length} rows parsed</div>
+            </div>
+
+            {validationResult && (
+              <div className="grid gap-3 md:grid-cols-3">
+                <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-3">
+                  <div className="text-xs text-blue-600">Total</div>
+                  <div className="text-lg font-bold text-blue-700">{validationResult.totalRows}</div>
+                </div>
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3">
+                  <div className="text-xs text-emerald-600">Valid</div>
+                  <div className="text-lg font-bold text-emerald-700">{validationResult.validRows}</div>
+                </div>
+                <div className="rounded-xl border border-red-200 bg-red-50/50 p-3">
+                  <div className="text-xs text-red-600">Invalid</div>
+                  <div className="text-lg font-bold text-red-700">{validationResult.invalidRows}</div>
+                </div>
+              </div>
+            )}
+
+            {validationResult?.errors?.length > 0 && (
+              <div className="max-h-[200px] overflow-auto rounded-xl border border-red-200 bg-red-50/30 p-3">
+                <div className="text-xs font-semibold text-red-700 mb-2">Validation Errors</div>
+                {validationResult.errors.slice(0, 50).map((err: any, i: number) => (
+                  <div key={i} className="text-xs text-red-600">
+                    Row {err.row}{err.field ? ` [${err.field}]` : ""}: {err.message}
+                  </div>
+                ))}
+                {validationResult.errors.length > 50 && (
+                  <div className="text-xs text-red-500 mt-1">... and {validationResult.errors.length - 50} more</div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {step === "commit" && (
+          <div className="grid gap-4 py-4">
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50/30 p-4 text-center">
+              <CheckCircle className="mx-auto h-8 w-8 text-emerald-600 mb-2" />
+              <div className="text-sm font-semibold text-emerald-700">
+                All {validationResult?.validRows} rows validated successfully
+              </div>
+              <div className="text-xs text-zc-muted mt-1">
+                Click Commit to import/update service items. Existing items (by code) will be updated.
+              </div>
+            </div>
+          </div>
+        )}
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+            Cancel
+          </Button>
+
+          {step === "validate" && !validationResult && (
+            <Button onClick={() => void validate()} disabled={saving || parsedRows.length === 0}>
+              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Validate
+            </Button>
+          )}
+
+          {step === "validate" && validationResult?.invalidRows > 0 && (
+            <Button variant="outline" onClick={() => { setStep("upload"); setValidationResult(null); setParsedRows([]); }}>
+              Re-upload
+            </Button>
+          )}
+
+          {step === "commit" && (
+            <Button variant="primary" onClick={() => void commit()} disabled={saving}>
+              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Commit Import
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

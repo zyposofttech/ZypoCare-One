@@ -16,6 +16,7 @@ import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
 import { RequirePerm } from "@/components/RequirePerm";
+import { CompliancePageHead, CompliancePageInsights } from "@/components/copilot/ComplianceHelpInline";
 import { ArrowLeft, ArrowUpRight, Link2, Link2Off, Loader2, Lock, Plus, RefreshCw, Settings, ShieldCheck } from "lucide-react";
 
 /* --------------------------------- Constants ----------------------------- */
@@ -137,7 +138,13 @@ export default function PmjayPage() {
               <div className="mt-1 text-sm text-zc-muted">Manage empanelment details and rate cards for {SCHEME}.</div>
             </div>
           </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <CompliancePageHead pageId="compliance-schemes-pmjay" />
+          </div>
         </div>
+
+        {/* AI Insights */}
+        <CompliancePageInsights pageId="compliance-schemes-pmjay" />
 
         {/* ── Empanelment ────────────────────────────────────────────── */}
         {empLoading ? (
@@ -184,7 +191,7 @@ export default function PmjayPage() {
                       <Link2Off className="h-3.5 w-3.5 mr-1" />Unlink
                     </Button>
                   )}
-                  <Button size="sm" onClick={handlePushToInfra} disabled={syncing} className="gap-1.5">
+                  <Button variant="primary" size="sm" onClick={handlePushToInfra} disabled={syncing} className="gap-1.5">
                     {syncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ArrowUpRight className="h-3.5 w-3.5" />}
                     {empanelment.govSchemeConfigId ? "Re-sync" : "Push to Operations"}
                   </Button>
@@ -197,7 +204,7 @@ export default function PmjayPage() {
         {/* ── Rate Cards ─────────────────────────────────────────────── */}
         <div className="flex items-center justify-between">
           <div className="text-lg font-semibold">Rate Cards</div>
-          <Button className="px-5 gap-2" size="sm" onClick={handleNewRateCard}><Plus className="h-4 w-4" />New Rate Card</Button>
+          <Button variant="primary" className="px-5 gap-2" size="sm" onClick={handleNewRateCard}><Plus className="h-4 w-4" />New Rate Card</Button>
         </div>
 
         {rcLoading ? (
@@ -236,7 +243,7 @@ export default function PmjayPage() {
               <div className="grid gap-2"><Label htmlFor="state">State</Label><Input id="state" value={form.state} onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))} placeholder="e.g. Karnataka" /></div>
               <div className="grid gap-2"><Label htmlFor="status">Status</Label><Select value={form.status} onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}><SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger><SelectContent><SelectItem value="ACTIVE">Active</SelectItem><SelectItem value="PENDING">Pending</SelectItem><SelectItem value="EXPIRED">Expired</SelectItem></SelectContent></Select></div>
             </div>
-            <DialogFooter><Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>Cancel</Button><Button onClick={handleSave} disabled={saving}>{saving && <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />}{empanelment ? "Update" : "Create"}</Button></DialogFooter>
+            <DialogFooter><Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>Cancel</Button><Button variant="primary" onClick={handleSave} disabled={saving}>{saving && <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />}{empanelment ? "Update" : "Create"}</Button></DialogFooter>
           </DialogContent>
         </Dialog>
       </div>

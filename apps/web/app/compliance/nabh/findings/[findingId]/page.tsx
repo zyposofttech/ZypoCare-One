@@ -268,13 +268,13 @@ export default function FindingDetailPage() {
         <div className="text-center py-24">
           <p className="text-zc-muted">Finding not found.</p>
           <Button
-            variant="ghost"
-            size="sm"
+            variant="outline"
+            size="icon"
             className="mt-4"
             onClick={() => router.push("/compliance/nabh/audits")}
+            title="Back to Audits"
           >
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Back to Audits
+            <ArrowLeft className="h-4 w-4" />
           </Button>
         </div>
         </RequirePerm>
@@ -302,14 +302,14 @@ export default function FindingDetailPage() {
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-center gap-3">
             <Button
-              variant="ghost"
-              size="sm"
+              variant="outline"
+              size="icon"
               onClick={() =>
                 router.push(`/compliance/nabh/audits/${finding.auditId}`)
               }
+              title="Back to Audit"
             >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back
+              <ArrowLeft className="h-4 w-4" />
             </Button>
             <span className="grid h-10 w-10 place-items-center rounded-2xl border border-zc-border bg-zc-panel/30">
               <ShieldAlert className="h-5 w-5 text-zc-accent" />

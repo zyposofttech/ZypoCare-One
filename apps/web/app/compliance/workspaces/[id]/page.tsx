@@ -271,7 +271,7 @@ export default function WorkspaceDetailPage() {
         {/* ── Header ── */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => router.push("/compliance/workspaces")}>
+            <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => router.push("/compliance/workspaces")} title="Back to Workspaces">
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <span className="grid h-10 w-10 place-items-center rounded-2xl border border-zc-border bg-zc-panel/30">

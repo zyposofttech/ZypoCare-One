@@ -137,6 +137,31 @@ export class NabhController {
     });
   }
 
+  // ────────────────────────────── Chapter Summary ──────────────────────────────
+  // IMPORTANT: Static routes like "items/chapter-summary" MUST be defined
+  // BEFORE parameterized routes like "items/:itemId", otherwise NestJS will
+  // match "chapter-summary" as an :itemId parameter.
+
+  @Get("chapters/summary")
+  @Permissions(PERM.COMPLIANCE_NABH_ITEM_UPDATE)
+  async chapterSummary(
+    @Req() req: any,
+    @Query("workspaceId") workspaceId: string,
+  ) {
+    return this.svc.getChapterSummary(this.principal(req), workspaceId);
+  }
+
+  @Get("items/chapter-summary")
+  @Permissions(PERM.COMPLIANCE_NABH_ITEM_UPDATE)
+  async chapterSummaryAlias(
+    @Req() req: any,
+    @Query("workspaceId") workspaceId: string,
+  ) {
+    return this.svc.getChapterSummary(this.principal(req), workspaceId);
+  }
+
+  // ────────────────────────────── Item by ID (parameterized — must come after static routes) ──
+
   @Get("items/:itemId")
   @Permissions(PERM.COMPLIANCE_NABH_ITEM_UPDATE)
   async getItem(@Req() req: any, @Param("itemId") itemId: string) {
@@ -157,27 +182,6 @@ export class NabhController {
   @Permissions(PERM.COMPLIANCE_NABH_ITEM_VERIFY)
   async verifyItem(@Req() req: any, @Param("itemId") itemId: string) {
     return this.svc.verifyItem(this.principal(req), itemId);
-  }
-
-  // ────────────────────────────── Chapter Summary ──────────────────────────────
-
-  @Get("chapters/summary")
-  @Permissions(PERM.COMPLIANCE_NABH_ITEM_UPDATE)
-  async chapterSummary(
-    @Req() req: any,
-    @Query("workspaceId") workspaceId: string,
-  ) {
-    return this.svc.getChapterSummary(this.principal(req), workspaceId);
-  }
-
-  /** Alias so the frontend path `/nabh/items/chapter-summary` also resolves */
-  @Get("items/chapter-summary")
-  @Permissions(PERM.COMPLIANCE_NABH_ITEM_UPDATE)
-  async chapterSummaryAlias(
-    @Req() req: any,
-    @Query("workspaceId") workspaceId: string,
-  ) {
-    return this.svc.getChapterSummary(this.principal(req), workspaceId);
   }
 
   // ────────────────────────────── Audit Cycles ──────────────────────────────

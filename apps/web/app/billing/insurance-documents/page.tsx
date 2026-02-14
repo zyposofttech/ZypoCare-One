@@ -244,7 +244,7 @@ export default function InsuranceDocumentsPage() {
 
   // AI Copilot
   const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({
-    module: "insurance-documents",
+    module: "billing-insurance-documents",
     enabled: !!branchId,
   });
 

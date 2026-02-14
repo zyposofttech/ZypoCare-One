@@ -387,6 +387,7 @@ export default function ExportPackPage() {
             {selectedSections.size !== 1 ? "s" : ""}
           </p>
           <Button
+            variant="primary"
             size="lg"
             onClick={handleExport}
             disabled={exporting || selectedSections.size === 0}

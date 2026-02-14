@@ -71,7 +71,7 @@ type ItemsResponse = {
 function statusBadgeClass(status: string) {
   switch (status) {
     case "ACTIVE":
-      return "border-green-200/70 bg-green-50/70 text-green-700 dark:border-green-900/40 dark:bg-green-900/20 dark:text-green-200";
+      return "border-emerald-200/70 bg-emerald-50/70 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200";
     case "DRAFT":
       return "border-amber-200/70 bg-amber-50/70 text-amber-700 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200";
     case "FROZEN":
@@ -527,7 +527,7 @@ export default function RateCardDetailPage() {
                           {!isFrozen && (
                             <td className="px-4 py-3 text-right">
                               <Button
-                                variant="info"
+                                variant="outline"
                                 size="sm"
                                 className="gap-1.5"
                                 onClick={() => openEditDialog(item)}

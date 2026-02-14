@@ -36,6 +36,7 @@ import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
 import { RequirePerm } from "@/components/RequirePerm";
+import { CompliancePageHead, CompliancePageInsights } from "@/components/copilot/ComplianceHelpInline";
 import {
   ArrowLeft,
   Check,
@@ -316,6 +317,7 @@ export default function MappingManagerPage() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <CompliancePageHead pageId="compliance-schemes-mapping" />
             <Button
               variant="outline"
               className="gap-2"
@@ -350,6 +352,9 @@ export default function MappingManagerPage() {
             </Button>
           </div>
         </div>
+
+        {/* AI Insights */}
+        <CompliancePageInsights pageId="compliance-schemes-mapping" />
 
         {/* ── Stat Boxes ─────────────────────────────────────────────── */}
         <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">

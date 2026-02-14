@@ -258,7 +258,7 @@ export default function PreauthPage() {
 
   // AI Copilot
   const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({
-    module: "preauth",
+    module: "billing-preauth",
     enabled: true,
   });
 

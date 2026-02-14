@@ -58,6 +58,12 @@ export class WorkspaceController {
     return this.svc.update(this.principal(req), workspaceId, dto);
   }
 
+  @Post(":workspaceId/activate")
+  @Permissions(PERM.COMPLIANCE_WORKSPACE_ACTIVATE)
+  async activate(@Req() req: any, @Param("workspaceId") workspaceId: string) {
+    return this.svc.update(this.principal(req), workspaceId, { status: "ACTIVE" });
+  }
+
   @Post(":workspaceId/clone-to-branch")
   @Permissions(PERM.COMPLIANCE_WORKSPACE_CREATE)
   async clone(

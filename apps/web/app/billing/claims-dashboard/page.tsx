@@ -127,7 +127,7 @@ export default function ClaimsDashboardPage() {
 
   // AI Copilot
   const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({
-    module: "claims-dashboard",
+    module: "billing-claims-dashboard",
     enabled: !!effectiveBranchId,
   });
 

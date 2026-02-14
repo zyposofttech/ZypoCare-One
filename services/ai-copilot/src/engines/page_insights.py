@@ -79,6 +79,31 @@ def get_page_insights(module: str, ctx: BranchContext) -> PageInsightsResult:
         insights = _service_availability_insights(ctx)
     elif module == "service-bulk-import":
         insights = _service_bulk_import_insights(ctx)
+    # Billing & Claims
+    elif module == "billing-overview":
+        insights = _billing_overview_insights(ctx)
+    elif module == "billing-preauth":
+        insights = _billing_preauth_insights(ctx)
+    elif module == "billing-claims":
+        insights = _billing_claims_insights(ctx)
+    elif module == "billing-claims-dashboard":
+        insights = _billing_claims_dashboard_insights(ctx)
+    elif module == "billing-reconciliation":
+        insights = _billing_reconciliation_insights(ctx)
+    elif module == "billing-insurance-policies":
+        insights = _billing_insurance_policies_insights(ctx)
+    elif module == "billing-insurance-cases":
+        insights = _billing_insurance_cases_insights(ctx)
+    elif module == "billing-insurance-documents":
+        insights = _billing_insurance_documents_insights(ctx)
+    elif module == "billing-document-checklists":
+        insights = _billing_document_checklists_insights(ctx)
+    elif module == "billing-payer-integrations":
+        insights = _billing_payer_integrations_insights(ctx)
+    elif module.startswith("compliance-"):
+        # Compliance module insights — delegated to compliance_help engine
+        from .compliance_help import get_compliance_page_insights
+        insights = get_compliance_page_insights(module)
 
     return PageInsightsResult(
         module=module,
@@ -1391,5 +1416,306 @@ def _service_bulk_import_insights(ctx: BranchContext) -> list[PageInsight]:
             message="Bulk import is ideal for initial setup. Prepare your CSV/Excel with codes, names, and categories.",
             actionHint="Download the template, fill it, and upload.",
         ))
+
+    return insights
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  BILLING & CLAIMS PAGE INSIGHTS
+# ══════════════════════════════════════════════════════════════════════════
+
+
+def _billing_overview_insights(ctx: BranchContext) -> list[PageInsight]:
+    insights: list[PageInsight] = []
+    b = ctx.billing
+    sc = ctx.serviceCatalog
+
+    # Check if billing setup is complete
+    if sc.totalPayers == 0:
+        insights.append(PageInsight(
+            id="billing-no-payers",
+            level="critical",
+            message="No payers configured. Insurance billing cannot function without payer setup.",
+            actionHint="Go to Billing Setup > Payer Management to add payers.",
+        ))
+
+    if not sc.hasCashPayer:
+        insights.append(PageInsight(
+            id="billing-no-cash-payer",
+            level="warning",
+            message="No CASH/Self-Pay payer configured. Self-pay patients cannot be billed.",
+            actionHint="Create a payer with kind=CASH in Payer Management.",
+        ))
+
+    if sc.totalTaxCodes == 0:
+        insights.append(PageInsight(
+            id="billing-no-tax-codes",
+            level="warning",
+            message="No tax codes defined. GST/TDS calculations will not work.",
+            actionHint="Go to Billing Setup > Tax Codes to configure GST rates.",
+        ))
+
+    if b.totalClaims > 0:
+        total_active = b.submittedClaims + b.draftClaims
+        if total_active > 0:
+            insights.append(PageInsight(
+                id="billing-active-claims",
+                level="info",
+                message=f"{total_active} active claim(s): {b.draftClaims} draft, {b.submittedClaims} submitted.",
+                entityCount=total_active,
+            ))
+
+    if b.rejectedClaims > 0:
+        insights.append(PageInsight(
+            id="billing-rejected-claims",
+            level="warning",
+            message=f"{b.rejectedClaims} rejected claim(s) require attention for resubmission.",
+            actionHint="Review rejected claims and correct issues before resubmitting.",
+            entityCount=b.rejectedClaims,
+        ))
+
+    return insights
+
+
+def _billing_preauth_insights(ctx: BranchContext) -> list[PageInsight]:
+    insights: list[PageInsight] = []
+    b = ctx.billing
+
+    if b.totalPreauths == 0:
+        insights.append(PageInsight(
+            id="preauth-empty",
+            level="info",
+            message="No pre-authorization requests yet. Create one when an insured patient is admitted.",
+        ))
+        return insights
+
+    if b.pendingPreauths > 0:
+        insights.append(PageInsight(
+            id="preauth-pending",
+            level="warning",
+            message=f"{b.pendingPreauths} pre-auth(s) pending/submitted awaiting payer response.",
+            actionHint="Follow up with payers for timely approval.",
+            entityCount=b.pendingPreauths,
+        ))
+
+    if b.rejectedPreauths > 0:
+        insights.append(PageInsight(
+            id="preauth-rejected",
+            level="critical",
+            message=f"{b.rejectedPreauths} pre-auth(s) rejected. Review and resubmit with corrections.",
+            actionHint="Check rejection reasons and resubmit with additional documentation.",
+            entityCount=b.rejectedPreauths,
+        ))
+
+    if b.approvedPreauths > 0:
+        insights.append(PageInsight(
+            id="preauth-approved",
+            level="info",
+            message=f"{b.approvedPreauths} pre-auth(s) approved and ready for treatment.",
+            entityCount=b.approvedPreauths,
+        ))
+
+    return insights
+
+
+def _billing_claims_insights(ctx: BranchContext) -> list[PageInsight]:
+    insights: list[PageInsight] = []
+    b = ctx.billing
+
+    if b.totalClaims == 0:
+        insights.append(PageInsight(
+            id="claims-empty",
+            level="info",
+            message="No claims created yet. Claims are generated from completed insurance cases.",
+        ))
+        return insights
+
+    if b.draftClaims > 0:
+        insights.append(PageInsight(
+            id="claims-draft",
+            level="warning",
+            message=f"{b.draftClaims} draft claim(s) not yet submitted. Complete and submit promptly.",
+            actionHint="Review draft claims, attach required documents, and submit.",
+            entityCount=b.draftClaims,
+        ))
+
+    if b.rejectedClaims > 0:
+        insights.append(PageInsight(
+            id="claims-rejected",
+            level="critical",
+            message=f"{b.rejectedClaims} claim(s) rejected by payer. Resubmit after corrections.",
+            actionHint="Check rejection reasons, fix issues, and resubmit.",
+            entityCount=b.rejectedClaims,
+        ))
+
+    if b.settledClaims > 0:
+        insights.append(PageInsight(
+            id="claims-settled",
+            level="info",
+            message=f"{b.settledClaims} claim(s) settled/paid. Verify reconciliation.",
+            entityCount=b.settledClaims,
+        ))
+
+    return insights
+
+
+def _billing_claims_dashboard_insights(ctx: BranchContext) -> list[PageInsight]:
+    insights: list[PageInsight] = []
+    b = ctx.billing
+
+    total = b.totalClaims + b.totalPreauths
+    if total == 0:
+        insights.append(PageInsight(
+            id="dashboard-empty",
+            level="info",
+            message="No billing activity yet. Start by creating insurance cases and pre-authorizations.",
+        ))
+    else:
+        insights.append(PageInsight(
+            id="dashboard-summary",
+            level="info",
+            message=f"Billing activity: {b.totalPreauths} pre-auth(s), {b.totalClaims} claim(s), {b.totalInsuranceCases} case(s).",
+        ))
+
+    if b.rejectedClaims + b.rejectedPreauths > 0:
+        insights.append(PageInsight(
+            id="dashboard-rejections",
+            level="warning",
+            message=f"{b.rejectedClaims + b.rejectedPreauths} rejected item(s) need attention across claims and pre-auths.",
+            entityCount=b.rejectedClaims + b.rejectedPreauths,
+        ))
+
+    return insights
+
+
+def _billing_reconciliation_insights(ctx: BranchContext) -> list[PageInsight]:
+    insights: list[PageInsight] = []
+    b = ctx.billing
+
+    if b.settledClaims > 0:
+        insights.append(PageInsight(
+            id="recon-settled",
+            level="info",
+            message=f"{b.settledClaims} settled claim(s) available for reconciliation.",
+            entityCount=b.settledClaims,
+        ))
+
+    if b.submittedClaims > 0:
+        insights.append(PageInsight(
+            id="recon-pending",
+            level="warning",
+            message=f"{b.submittedClaims} submitted claim(s) awaiting payer settlement.",
+            actionHint="Monitor submitted claims for timely settlement.",
+            entityCount=b.submittedClaims,
+        ))
+
+    return insights
+
+
+def _billing_insurance_policies_insights(ctx: BranchContext) -> list[PageInsight]:
+    insights: list[PageInsight] = []
+    b = ctx.billing
+
+    if b.totalInsurancePolicies == 0:
+        insights.append(PageInsight(
+            id="policies-empty",
+            level="info",
+            message="No insurance policies registered. Add patient policies to enable insurance billing.",
+        ))
+    else:
+        insights.append(PageInsight(
+            id="policies-summary",
+            level="info",
+            message=f"{b.totalInsurancePolicies} policy(ies): {b.activeInsurancePolicies} active.",
+            entityCount=b.totalInsurancePolicies,
+        ))
+
+    return insights
+
+
+def _billing_insurance_cases_insights(ctx: BranchContext) -> list[PageInsight]:
+    insights: list[PageInsight] = []
+    b = ctx.billing
+
+    if b.totalInsuranceCases == 0:
+        insights.append(PageInsight(
+            id="cases-empty",
+            level="info",
+            message="No insurance cases. Cases are created when an insured patient has an encounter.",
+        ))
+    else:
+        if b.openInsuranceCases > 0:
+            insights.append(PageInsight(
+                id="cases-open",
+                level="info",
+                message=f"{b.openInsuranceCases} open insurance case(s). Submit pre-auths and claims as treatment progresses.",
+                entityCount=b.openInsuranceCases,
+            ))
+
+    return insights
+
+
+def _billing_insurance_documents_insights(ctx: BranchContext) -> list[PageInsight]:
+    insights: list[PageInsight] = []
+
+    insights.append(PageInsight(
+        id="docs-tip",
+        level="info",
+        message="Upload required insurance documents (ID proofs, referral letters, discharge summaries) for smooth claim processing.",
+    ))
+
+    return insights
+
+
+def _billing_document_checklists_insights(ctx: BranchContext) -> list[PageInsight]:
+    insights: list[PageInsight] = []
+    b = ctx.billing
+
+    if b.totalDocumentChecklists == 0:
+        insights.append(PageInsight(
+            id="checklist-empty",
+            level="warning",
+            message="No document checklists configured. Define per-payer document requirements.",
+            actionHint="Create checklists for each payer specifying required documents for claims.",
+        ))
+    else:
+        insights.append(PageInsight(
+            id="checklist-count",
+            level="info",
+            message=f"{b.totalDocumentChecklists} checklist(s) defined across payers.",
+            entityCount=b.totalDocumentChecklists,
+        ))
+
+    return insights
+
+
+def _billing_payer_integrations_insights(ctx: BranchContext) -> list[PageInsight]:
+    insights: list[PageInsight] = []
+    b = ctx.billing
+    sc = ctx.serviceCatalog
+
+    if b.totalPayerIntegrations == 0 and sc.totalPayers > 0:
+        insights.append(PageInsight(
+            id="integration-none",
+            level="warning",
+            message=f"{sc.totalPayers} payer(s) exist but no integration configs. Claims will use MANUAL/Portal-Assisted mode.",
+            actionHint="Configure Direct-API or HCX integration for automated claim submission.",
+        ))
+    elif b.totalPayerIntegrations > 0:
+        manual_count = b.totalPayerIntegrations - b.activePayerIntegrations
+        if manual_count > 0:
+            insights.append(PageInsight(
+                id="integration-inactive",
+                level="warning",
+                message=f"{manual_count} integration(s) inactive. These payers default to manual submission.",
+                entityCount=manual_count,
+            ))
+        else:
+            insights.append(PageInsight(
+                id="integration-all-active",
+                level="info",
+                message=f"All {b.activePayerIntegrations} payer integration(s) are active.",
+                entityCount=b.activePayerIntegrations,
+            ))
 
     return insights

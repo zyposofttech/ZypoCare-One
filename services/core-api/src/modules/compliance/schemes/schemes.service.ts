@@ -99,6 +99,18 @@ export class SchemesService {
         tx,
       );
 
+      await this.ctx.audit.log(
+        {
+          branchId: principal.branchId,
+          actorUserId: principal.userId,
+          action: "SCHEME_EMPANELMENT_CREATE",
+          entity: "SchemeEmpanelment",
+          entityId: created.id,
+          meta: { scheme: dto.scheme, empanelmentNumber: dto.empanelmentNumber },
+        },
+        tx,
+      );
+
       return created;
     });
 
@@ -131,6 +143,18 @@ export class SchemesService {
           actorStaffId: principal.staffId,
           before: existing,
           after: result,
+        },
+        tx,
+      );
+
+      await this.ctx.audit.log(
+        {
+          branchId: principal.branchId,
+          actorUserId: principal.userId,
+          action: "SCHEME_EMPANELMENT_UPDATE",
+          entity: "SchemeEmpanelment",
+          entityId: id,
+          meta: dto,
         },
         tx,
       );
@@ -229,6 +253,18 @@ export class SchemesService {
         tx,
       );
 
+      await this.ctx.audit.log(
+        {
+          branchId: principal.branchId,
+          actorUserId: principal.userId,
+          action: "SCHEME_RATE_CARD_CREATE",
+          entity: "SchemeRateCard",
+          entityId: created.id,
+          meta: { scheme: dto.scheme, version: dto.version },
+        },
+        tx,
+      );
+
       return created;
     });
 
@@ -278,6 +314,18 @@ export class SchemesService {
         tx,
       );
 
+      await this.ctx.audit.log(
+        {
+          branchId: principal.branchId,
+          actorUserId: principal.userId,
+          action: "SCHEME_RATE_CARD_UPDATE",
+          entity: "SchemeRateCard",
+          entityId: id,
+          meta: dto,
+        },
+        tx,
+      );
+
       return result;
     });
 
@@ -318,6 +366,18 @@ export class SchemesService {
           actorStaffId: principal.staffId,
           before: { status: existing.status },
           after: { status: "FROZEN" },
+        },
+        tx,
+      );
+
+      await this.ctx.audit.log(
+        {
+          branchId: principal.branchId,
+          actorUserId: principal.userId,
+          action: "SCHEME_RATE_CARD_FREEZE",
+          entity: "SchemeRateCard",
+          entityId: id,
+          meta: { scheme: existing.scheme, version: existing.version },
         },
         tx,
       );
@@ -403,6 +463,18 @@ export class SchemesService {
         tx,
       );
 
+      await this.ctx.audit.log(
+        {
+          branchId: principal.branchId,
+          actorUserId: principal.userId,
+          action: "SCHEME_RATE_CARD_ITEM_UPDATE",
+          entity: "SchemeRateCardItem",
+          entityId: itemId,
+          meta: dto,
+        },
+        tx,
+      );
+
       return result;
     });
 
@@ -454,6 +526,18 @@ export class SchemesService {
           action: "BULK_UPLOAD_ITEMS",
           actorStaffId: principal.staffId,
           after: { count: upserted.length },
+        },
+        tx,
+      );
+
+      await this.ctx.audit.log(
+        {
+          branchId: principal.branchId,
+          actorUserId: principal.userId,
+          action: "SCHEME_RATE_CARD_BULK_UPLOAD",
+          entity: "SchemeRateCard",
+          entityId: rateCardId,
+          meta: { itemCount: upserted.length },
         },
         tx,
       );
@@ -546,6 +630,18 @@ export class SchemesService {
         tx,
       );
 
+      await this.ctx.audit.log(
+        {
+          branchId: principal.branchId,
+          actorUserId: principal.userId,
+          action: "SCHEME_MAPPING_CREATE",
+          entity: "SchemeMapping",
+          entityId: created.id,
+          meta: { scheme: dto.scheme, externalCode: dto.externalCode },
+        },
+        tx,
+      );
+
       return created;
     });
 
@@ -582,6 +678,18 @@ export class SchemesService {
         tx,
       );
 
+      await this.ctx.audit.log(
+        {
+          branchId: principal.branchId,
+          actorUserId: principal.userId,
+          action: "SCHEME_MAPPING_UPDATE",
+          entity: "SchemeMapping",
+          entityId: id,
+          meta: dto,
+        },
+        tx,
+      );
+
       return result;
     });
 
@@ -602,6 +710,15 @@ export class SchemesService {
       action: "DELETE",
       actorStaffId: principal.staffId,
       before: mapping,
+    });
+
+    await this.ctx.audit.log({
+      branchId: principal.branchId,
+      actorUserId: principal.userId,
+      action: "SCHEME_MAPPING_DELETE",
+      entity: "SchemeMapping",
+      entityId: mappingId,
+      meta: { scheme: mapping.scheme, externalCode: mapping.externalCode },
     });
 
     return { deleted: true };
@@ -706,6 +823,14 @@ export class SchemesService {
       after: result,
     });
 
+    await this.ctx.audit.log({
+      actorUserId: actorId,
+      action: "SCHEME_API_CREDENTIAL_UPSERT",
+      entity: "SchemeApiCredential",
+      entityId: result.id,
+      meta: { scheme: dto.scheme, environment: dto.environment },
+    });
+
     return result;
   }
 
@@ -723,6 +848,14 @@ export class SchemesService {
       entityId: credentialId,
       action: 'TEST_API_CREDENTIAL',
       actorStaffId: actorId,
+    });
+
+    await this.ctx.audit.log({
+      actorUserId: actorId,
+      action: "SCHEME_API_CREDENTIAL_TEST",
+      entity: "SchemeApiCredential",
+      entityId: credentialId,
+      meta: { scheme: cred.scheme, environment: cred.environment, testedAt: updated.lastTestedAt },
     });
 
     return { success: true, testedAt: updated.lastTestedAt };

@@ -1,46 +1,93 @@
 import {
+  ArrayMaxSize,
   IsArray,
+  IsBoolean,
+  IsEmail,
   IsEnum,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
   MaxLength,
+  ValidateNested,
 } from "class-validator";
 
-// ────────────────────────────────────────────────────────────────
-// ABDM Config
-// ────────────────────────────────────────────────────────────────
+export enum AbdmEnvironment {
+  SANDBOX = "SANDBOX",
+  PRODUCTION = "PRODUCTION",
+}
 
+export enum HprRegistrationStatus {
+  UNVERIFIED = "UNVERIFIED",
+  VERIFIED = "VERIFIED",
+  EXPIRED = "EXPIRED",
+  MISMATCH = "MISMATCH",
+}
+
+/**
+ * ABDM Config (ABHA)
+ * Supports BOTH:
+ * - New format: clientSecretEnc, callbackUrls[], featureTogglesJson
+ * - Legacy/FE-friendly: clientSecret, callbackUrlsText, enable* booleans
+ */
 export class CreateAbdmConfigDto {
   @IsString()
   workspaceId!: string;
 
-  @IsEnum(["SANDBOX", "PRODUCTION"])
-  environment!: "SANDBOX" | "PRODUCTION";
+  @IsEnum(AbdmEnvironment)
+  environment!: AbdmEnvironment;
 
   @IsString()
   @IsOptional()
   @MaxLength(200)
   clientId?: string;
 
+  /** Preferred field stored in DB (still treated as sensitive) */
   @IsString()
   @IsOptional()
   @MaxLength(500)
   clientSecretEnc?: string;
 
+  /** Legacy alias from UI */
+  @IsString()
+  @IsOptional()
+  @MaxLength(500)
+  clientSecret?: string;
+
+  /** Preferred field */
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
+  @ArrayMaxSize(50)
   callbackUrls?: string[];
 
+  /** Legacy alias from UI textarea */
+  @IsString()
+  @IsOptional()
+  callbackUrlsText?: string;
+
+  /** Preferred structure */
   @IsOptional()
   featureTogglesJson?: any;
+
+  /** Legacy toggles (service maps -> featureTogglesJson) */
+  @IsBoolean()
+  @IsOptional()
+  enableAbhaLinking?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  enableConsentFlow?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  enableHealthRecords?: boolean;
 }
 
 export class UpdateAbdmConfigDto {
-  @IsEnum(["SANDBOX", "PRODUCTION"])
+  @IsEnum(AbdmEnvironment)
   @IsOptional()
-  environment?: "SANDBOX" | "PRODUCTION";
+  environment?: AbdmEnvironment;
 
   @IsString()
   @IsOptional()
@@ -52,13 +99,35 @@ export class UpdateAbdmConfigDto {
   @MaxLength(500)
   clientSecretEnc?: string;
 
+  @IsString()
+  @IsOptional()
+  @MaxLength(500)
+  clientSecret?: string;
+
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
+  @ArrayMaxSize(50)
   callbackUrls?: string[];
+
+  @IsString()
+  @IsOptional()
+  callbackUrlsText?: string;
 
   @IsOptional()
   featureTogglesJson?: any;
+
+  @IsBoolean()
+  @IsOptional()
+  enableAbhaLinking?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  enableConsentFlow?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  enableHealthRecords?: boolean;
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -83,10 +152,12 @@ export class CreateHfrProfileDto {
 
   @IsArray()
   @IsString({ each: true })
+  @ArrayMaxSize(50)
   systemsOfMedicine!: string[];
 
   @IsArray()
   @IsString({ each: true })
+  @ArrayMaxSize(200)
   servicesOffered!: string[];
 
   @IsString()
@@ -123,7 +194,7 @@ export class CreateHfrProfileDto {
   @MaxLength(20)
   contactPhone?: string;
 
-  @IsString()
+  @IsEmail()
   @IsOptional()
   @MaxLength(200)
   contactEmail?: string;
@@ -148,11 +219,13 @@ export class UpdateHfrProfileDto {
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
+  @ArrayMaxSize(50)
   systemsOfMedicine?: string[];
 
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
+  @ArrayMaxSize(200)
   servicesOffered?: string[];
 
   @IsString()
@@ -193,7 +266,7 @@ export class UpdateHfrProfileDto {
   @MaxLength(20)
   contactPhone?: string;
 
-  @IsString()
+  @IsEmail()
   @IsOptional()
   @MaxLength(200)
   contactEmail?: string;
@@ -230,7 +303,17 @@ export class UpdateHprLinkDto {
   @MaxLength(500)
   notes?: string;
 
-  @IsEnum(["UNVERIFIED", "VERIFIED", "EXPIRED", "MISMATCH"])
+  @IsEnum(HprRegistrationStatus)
   @IsOptional()
-  registrationStatus?: "UNVERIFIED" | "VERIFIED" | "EXPIRED" | "MISMATCH";
+  registrationStatus?: HprRegistrationStatus;
+}
+
+export class BulkImportHprDto {
+  @IsString()
+  workspaceId!: string;
+
+  @IsArray()
+  @ArrayMaxSize(5000)
+  @IsOptional()
+  links?: Array<{ staffId: string; hprId: string; category: string }>;
 }

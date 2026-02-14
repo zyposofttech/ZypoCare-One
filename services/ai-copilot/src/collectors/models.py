@@ -214,6 +214,28 @@ class ServiceCatalogSummary(BaseModel):
     hasCashPayer: bool = False
 
 
+class BillingSummary(BaseModel):
+    """Aggregate billing/claims stats for a branch."""
+    totalInsurancePolicies: int = 0
+    activeInsurancePolicies: int = 0
+    totalInsuranceCases: int = 0
+    openInsuranceCases: int = 0
+    totalPreauths: int = 0
+    byPreauthStatus: dict[str, int] = {}
+    pendingPreauths: int = 0
+    approvedPreauths: int = 0
+    rejectedPreauths: int = 0
+    totalClaims: int = 0
+    byClaimStatus: dict[str, int] = {}
+    draftClaims: int = 0
+    submittedClaims: int = 0
+    settledClaims: int = 0
+    rejectedClaims: int = 0
+    totalDocumentChecklists: int = 0
+    totalPayerIntegrations: int = 0
+    activePayerIntegrations: int = 0
+
+
 class BranchContext(BaseModel):
     branch: BranchSnapshot
     location: LocationSummary
@@ -222,4 +244,5 @@ class BranchContext(BaseModel):
     specialties: SpecialtySummary = SpecialtySummary()
     pharmacy: PharmacySummary = PharmacySummary()
     serviceCatalog: ServiceCatalogSummary = ServiceCatalogSummary()
+    billing: BillingSummary = BillingSummary()
     textSummary: str = ""

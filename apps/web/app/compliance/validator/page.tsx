@@ -20,6 +20,7 @@ import { cn } from "@/lib/cn";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
 import { RequirePerm } from "@/components/RequirePerm";
 import { IconShield } from "@/components/icons";
+import { CompliancePageHead, CompliancePageInsights } from "@/components/copilot/ComplianceHelpInline";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -71,6 +72,20 @@ type ValidationResult = {
 
 /* ----------------------------- Helpers ----------------------------- */
 
+function toFiniteNumber(value: unknown, fallback = 0): number {
+  const n =
+    typeof value === "number"
+      ? value
+      : typeof value === "string"
+        ? Number(value)
+        : Number.NaN;
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function clampPercent(value: number): number {
+  return Math.max(0, Math.min(100, value));
+}
+
 function errorMessage(err: unknown, fallback: string) {
   if (err instanceof ApiError) return err.message;
   if (err instanceof Error) return err.message;
@@ -78,15 +93,15 @@ function errorMessage(err: unknown, fallback: string) {
 }
 
 function scoreColor(pct: number): string {
-  if (pct >= 80) return "text-green-600";
-  if (pct >= 50) return "text-amber-500";
-  return "text-red-600";
+  if (pct >= 80) return "text-emerald-600 dark:text-emerald-400";
+  if (pct >= 50) return "text-amber-500 dark:text-amber-400";
+  return "text-red-600 dark:text-red-400";
 }
 
 function scoreTrackColor(pct: number): string {
-  if (pct >= 80) return "stroke-green-500";
-  if (pct >= 50) return "stroke-amber-500";
-  return "stroke-red-500";
+  if (pct >= 80) return "stroke-emerald-500 dark:stroke-emerald-400";
+  if (pct >= 50) return "stroke-amber-500 dark:stroke-amber-400";
+  return "stroke-red-500 dark:stroke-red-400";
 }
 
 const GAP_AREAS = ["All", "ABDM", "Schemes", "NABH", "Evidence"] as const;
@@ -98,6 +113,115 @@ const AREA_LINK_MAP: Record<string, string> = {
   NABH: "/compliance/nabh",
   Evidence: "/compliance/evidence",
 };
+
+type RawGap = {
+  area?: unknown;
+  category?: unknown;
+  severity?: unknown;
+  message?: unknown;
+  title?: unknown;
+  description?: unknown;
+  entityType?: unknown;
+  entityId?: unknown;
+};
+
+function mapGapArea(raw: RawGap): string {
+  if (typeof raw.area === "string" && raw.area.trim()) return raw.area;
+  switch (raw.category) {
+    case "ABDM":
+      return "ABDM";
+    case "SCHEMES":
+      return "Schemes";
+    case "NABH":
+      return "NABH";
+    case "EVIDENCE":
+      return "Evidence";
+    default:
+      return "Other";
+  }
+}
+
+function normalizeGap(raw: unknown): Gap | null {
+  if (!raw || typeof raw !== "object") return null;
+  const g = raw as RawGap;
+  const message =
+    typeof g.message === "string"
+      ? g.message
+      : typeof g.description === "string"
+        ? g.description
+        : typeof g.title === "string"
+          ? g.title
+          : "Unknown compliance gap";
+  const severity: GapSeverity = g.severity === "BLOCKING" ? "BLOCKING" : "WARNING";
+  return {
+    area: mapGapArea(g),
+    severity,
+    message,
+    entityType: typeof g.entityType === "string" ? g.entityType : "UNKNOWN",
+    entityId: typeof g.entityId === "string" ? g.entityId : "",
+  };
+}
+
+function normalizeCategoryScore(raw: unknown) {
+  if (!raw || typeof raw !== "object") return { score: 0, maxScore: 100 };
+  const row = raw as { score?: unknown; maxScore?: unknown };
+  const score = clampPercent(toFiniteNumber(row.score, 0));
+  const maxScoreRaw = toFiniteNumber(row.maxScore, 100);
+  const maxScore = maxScoreRaw > 0 ? maxScoreRaw : 100;
+  return { score, maxScore };
+}
+
+function normalizeValidationResult(input: unknown): ValidationResult | null {
+  if (!input || typeof input !== "object") return null;
+  const raw = input as Record<string, unknown>;
+
+  const hasFrontendShape =
+    "percentage" in raw || "maxScore" in raw || "categories" in raw;
+  const hasBackendSummary = !!raw.summary && typeof raw.summary === "object";
+  const hasGaps = Array.isArray(raw.gaps);
+  if (!hasFrontendShape && !hasBackendSummary && !hasGaps) return null;
+
+  const rawScore = toFiniteNumber(raw.score, 0);
+  let maxScore = toFiniteNumber(raw.maxScore, 100);
+  if (!Number.isFinite(maxScore) || maxScore <= 0) maxScore = 100;
+
+  let percentage = toFiniteNumber(raw.percentage, Number.NaN);
+  if (!Number.isFinite(percentage)) {
+    percentage = rawScore;
+  }
+  percentage = clampPercent(percentage);
+
+  const gaps = Array.isArray(raw.gaps)
+    ? raw.gaps.map(normalizeGap).filter((g): g is Gap => g !== null)
+    : [];
+
+  let categories: ValidationResult["categories"] | undefined;
+  if (raw.categories && typeof raw.categories === "object") {
+    const c = raw.categories as Record<string, unknown>;
+    categories = {
+      nabh: normalizeCategoryScore(c.nabh),
+      schemes: normalizeCategoryScore(c.schemes),
+      abdm: normalizeCategoryScore(c.abdm),
+      evidence: normalizeCategoryScore(c.evidence),
+    };
+  } else if (raw.summary && typeof raw.summary === "object") {
+    const s = raw.summary as Record<string, unknown>;
+    categories = {
+      nabh: normalizeCategoryScore(s.nabh),
+      schemes: normalizeCategoryScore(s.schemes),
+      abdm: normalizeCategoryScore(s.abdm),
+      evidence: normalizeCategoryScore(s.evidence),
+    };
+  }
+
+  return {
+    score: rawScore,
+    maxScore,
+    percentage,
+    gaps,
+    categories,
+  };
+}
 
 /* ----------------------------- Score Gauge ----------------------------- */
 
@@ -113,7 +237,11 @@ function ScoreGauge({
   const radius = 80;
   const strokeWidth = 12;
   const circumference = 2 * Math.PI * radius;
-  const dashOffset = circumference - (percentage / 100) * circumference;
+  const safePercentage = clampPercent(toFiniteNumber(percentage, 0));
+  const safeScore = toFiniteNumber(score, 0);
+  const safeMaxScore = Math.max(0, toFiniteNumber(maxScore, 0));
+  const dashOffset =
+    circumference - (safePercentage / 100) * circumference;
 
   return (
     <div className="flex flex-col items-center justify-center">
@@ -137,16 +265,16 @@ function ScoreGauge({
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={dashOffset}
-            className={scoreTrackColor(percentage)}
+            className={scoreTrackColor(safePercentage)}
             style={{ transition: "stroke-dashoffset 1s ease-in-out" }}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={cn("text-4xl font-bold", scoreColor(percentage))}>
-            {Math.round(percentage)}%
+          <span className={cn("text-4xl font-bold", scoreColor(safePercentage))}>
+            {Math.round(safePercentage)}%
           </span>
           <span className="mt-1 text-sm text-zc-muted">
-            {score} / {maxScore} pts
+            {Math.round(safeScore)} / {Math.round(safeMaxScore)} pts
           </span>
         </div>
       </div>
@@ -197,10 +325,11 @@ export default function ValidatorPage() {
     if (!workspaceId) return;
     setLoading(true);
     try {
-      const res = await apiFetch<ValidationResult>(
+      const res = await apiFetch<unknown>(
         `/api/compliance/validator/dashboard?workspaceId=${workspaceId}`,
       );
-      setResult(res);
+      const normalized = normalizeValidationResult(res);
+      if (normalized) setResult(normalized);
     } catch {
       // No cached results yet - that's OK
     } finally {
@@ -226,11 +355,15 @@ export default function ValidatorPage() {
 
     setRunning(true);
     try {
-      const res = await apiFetch<ValidationResult>(
+      const res = await apiFetch<unknown>(
         `/api/compliance/validator/run`,
         { method: "POST", body: { workspaceId } },
       );
-      setResult(res);
+      const normalized = normalizeValidationResult(res);
+      if (!normalized) {
+        throw new Error("Unexpected validator response");
+      }
+      setResult(normalized);
       toast({ title: "Validation complete" });
     } catch (e) {
       toast({
@@ -306,24 +439,24 @@ export default function ValidatorPage() {
         weight: "40%",
         score: cats?.nabh?.score ?? 0,
         maxScore: cats?.nabh?.maxScore ?? 0,
-        color: "text-purple-700 dark:text-purple-400",
+        color: "text-violet-700 dark:text-violet-400",
         borderColor:
-          "border-purple-200 dark:border-purple-900/50",
+          "border-violet-200 dark:border-violet-900/50",
         bgColor:
-          "bg-purple-50/50 dark:bg-purple-900/10",
-        icon: <ShieldCheck className="h-5 w-5 text-purple-600" />,
+          "bg-violet-50/50 dark:bg-violet-900/10",
+        icon: <ShieldCheck className="h-5 w-5 text-violet-600" />,
       },
       {
         label: "Government Schemes",
         weight: "25%",
         score: cats?.schemes?.score ?? 0,
         maxScore: cats?.schemes?.maxScore ?? 0,
-        color: "text-green-700 dark:text-green-400",
+        color: "text-emerald-700 dark:text-emerald-400",
         borderColor:
-          "border-green-200 dark:border-green-900/50",
+          "border-emerald-200 dark:border-emerald-900/50",
         bgColor:
-          "bg-green-50/50 dark:bg-green-900/10",
-        icon: <Shield className="h-5 w-5 text-green-600" />,
+          "bg-emerald-50/50 dark:bg-emerald-900/10",
+        icon: <Shield className="h-5 w-5 text-emerald-600" />,
       },
       {
         label: "ABDM Configuration",
@@ -400,6 +533,7 @@ export default function ValidatorPage() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <CompliancePageHead pageId="compliance-validator" />
             <Button
               variant="outline"
               size="sm"
@@ -413,7 +547,7 @@ export default function ValidatorPage() {
               )}
               Export Pack
             </Button>
-            <Button size="sm" onClick={handleRunValidation} disabled={running}>
+            <Button variant="primary" size="sm" onClick={handleRunValidation} disabled={running}>
               {running ? (
                 <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
               ) : (
@@ -423,6 +557,9 @@ export default function ValidatorPage() {
             </Button>
           </div>
         </div>
+
+        {/* AI Insights */}
+        <CompliancePageInsights pageId="compliance-validator" />
 
         {/* ---- Workspace selector row ---- */}
         <div className="flex flex-wrap items-end gap-4">

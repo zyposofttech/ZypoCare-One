@@ -17,6 +17,7 @@ import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { RequirePerm } from "@/components/RequirePerm";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
+import { CompliancePageHead, CompliancePageInsights } from "@/components/copilot/ComplianceHelpInline";
 import {
   AlertTriangle,
   ArrowRight,
@@ -203,9 +204,9 @@ export default function NabhOverviewPage() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <CompliancePageHead pageId="compliance-nabh" />
             <Button
               variant="outline"
-              size="sm"
               onClick={() => fetchChapterSummary()}
               disabled={!workspaceId}
             >
@@ -213,13 +214,16 @@ export default function NabhOverviewPage() {
               Refresh
             </Button>
             <Link href="/compliance/nabh/checklist">
-              <Button size="sm" variant="primary">
+              <Button variant="primary">
                 <ClipboardCheck className="h-4 w-4 mr-1.5" />
                 Full Checklist
               </Button>
             </Link>
           </div>
         </div>
+
+        {/* AI Insights */}
+        <CompliancePageInsights pageId="compliance-nabh" />
 
         {/* Guard: no branch */}
         {!activeBranchId ? (
@@ -248,16 +252,16 @@ export default function NabhOverviewPage() {
           <>
             {/* Quick Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="rounded-xl border border-purple-200 bg-purple-50/50 p-3 dark:border-purple-900/50 dark:bg-purple-900/10">
-                <div className="text-xs font-medium text-purple-600 dark:text-purple-400">Total Standards</div>
-                <div className="mt-1 text-lg font-bold text-purple-700 dark:text-purple-300">{totals.total}</div>
-                <div className="mt-0.5 text-[11px] text-purple-600/70 dark:text-purple-400/70">Across {chapters.length} chapters</div>
+              <div className="rounded-xl border border-violet-200 bg-violet-50/50 p-3 dark:border-violet-900/50 dark:bg-violet-900/10">
+                <div className="text-xs font-medium text-violet-600 dark:text-violet-400">Total Standards</div>
+                <div className="mt-1 text-lg font-bold text-violet-700 dark:text-violet-300">{totals.total}</div>
+                <div className="mt-0.5 text-[11px] text-violet-600/70 dark:text-violet-400/70">Across {chapters.length} chapters</div>
               </div>
 
-              <div className="rounded-xl border border-green-200 bg-green-50/50 p-3 dark:border-green-900/50 dark:bg-green-900/10">
-                <div className="text-xs font-medium text-green-600 dark:text-green-400">Compliant</div>
-                <div className="mt-1 text-lg font-bold text-green-700 dark:text-green-300">{totals.compliant}</div>
-                <div className="mt-0.5 text-[11px] text-green-600/70 dark:text-green-400/70">{pct(totals.compliant, totals.total)}% completion</div>
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 dark:border-emerald-900/50 dark:bg-emerald-900/10">
+                <div className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Compliant</div>
+                <div className="mt-1 text-lg font-bold text-emerald-700 dark:text-emerald-300">{totals.compliant}</div>
+                <div className="mt-0.5 text-[11px] text-emerald-600/70 dark:text-emerald-400/70">{pct(totals.compliant, totals.total)}% completion</div>
               </div>
 
               <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-3 dark:border-blue-900/50 dark:bg-blue-900/10">
@@ -303,7 +307,7 @@ export default function NabhOverviewPage() {
                         <div key={ch.chapter} className="space-y-1.5">
                           <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-2">
-                              <span className="inline-flex items-center rounded-full border border-purple-200/70 bg-purple-50/70 px-2 py-0.5 text-[11px] font-semibold text-purple-700 dark:border-purple-800/50 dark:bg-purple-900/30 dark:text-purple-300">
+                              <span className="inline-flex items-center rounded-full border border-violet-200/70 bg-violet-50/70 px-2 py-0.5 text-[11px] font-semibold text-violet-700 dark:border-violet-800/50 dark:bg-violet-900/30 dark:text-violet-300">
                                 {shortCode}
                               </span>
                               <span className="font-medium truncate max-w-[280px]">
@@ -312,7 +316,7 @@ export default function NabhOverviewPage() {
                             </div>
                             <div className="flex items-center gap-3 text-xs text-zc-muted">
                               <span className="flex items-center gap-1">
-                                <CheckCircle2 className="h-3 w-3 text-green-500" />
+                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
                                 {ch.compliant}
                               </span>
                               <span className="flex items-center gap-1">
@@ -367,8 +371,8 @@ export default function NabhOverviewPage() {
                 <Card className="hover:border-zc-accent/40 transition cursor-pointer">
                   <CardHeader>
                     <div className="flex items-center gap-3">
-                      <span className="grid h-10 w-10 place-items-center rounded-2xl border border-purple-200 bg-purple-50/50 dark:border-purple-900/50 dark:bg-purple-900/10">
-                        <ClipboardCheck className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                      <span className="grid h-10 w-10 place-items-center rounded-2xl border border-violet-200 bg-violet-50/50 dark:border-violet-900/50 dark:bg-violet-900/10">
+                        <ClipboardCheck className="h-5 w-5 text-violet-600 dark:text-violet-400" />
                       </span>
                       <div className="min-w-0">
                         <CardTitle className="text-base">

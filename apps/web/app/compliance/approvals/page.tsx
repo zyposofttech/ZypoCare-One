@@ -21,6 +21,7 @@ import { apiFetch, ApiError } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { RequirePerm } from "@/components/RequirePerm";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
+import { CompliancePageHead, CompliancePageInsights } from "@/components/copilot/ComplianceHelpInline";
 import {
   AlertTriangle,
   Check,
@@ -286,8 +287,8 @@ export default function ApprovalsPage() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-sm text-zc-muted">
-                    Loading...
+                  <td colSpan={7} className="px-4 py-10 text-center">
+                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-zc-muted" />
                   </td>
                 </tr>
               ) : !data.length ? (
@@ -369,12 +370,16 @@ export default function ApprovalsPage() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <CompliancePageHead pageId="compliance-approvals" />
             <Button variant="outline" className="px-5 gap-2" onClick={refreshAll} disabled={loadingPending}>
               <RefreshCw className={cn("h-4 w-4", loadingPending && "animate-spin")} />
               Refresh
             </Button>
           </div>
         </div>
+
+        {/* AI Insights */}
+        <CompliancePageInsights pageId="compliance-approvals" />
 
         {/* ── Error banner ── */}
         {err ? (

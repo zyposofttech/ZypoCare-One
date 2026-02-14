@@ -5,7 +5,7 @@ import type { CreateApprovalDto, DecideApprovalDto } from "./dto/approvals.dto";
 
 @Injectable()
 export class ApprovalsService {
-  constructor(private readonly ctx: ComplianceContextService) {}
+  constructor(private readonly ctx: ComplianceContextService) { }
 
   async list(
     principal: Principal,
@@ -73,6 +73,18 @@ export class ApprovalsService {
         tx,
       );
 
+      await this.ctx.audit.log(
+        {
+          branchId: principal.branchId,
+          actorUserId: principal.userId,
+          action: "APPROVAL_CREATE",
+          entity: "ComplianceApproval",
+          entityId: created.id,
+          meta: { changeType: dto.changeType, entityType: dto.entityType, entityId: dto.entityId },
+        },
+        tx,
+      );
+
       return created;
     });
 
@@ -97,6 +109,18 @@ export class ApprovalsService {
           entityId: approvalId,
           action: "SUBMIT",
           actorStaffId: principal.staffId,
+        },
+        tx,
+      );
+
+      await this.ctx.audit.log(
+        {
+          branchId: principal.branchId,
+          actorUserId: principal.userId,
+          action: "APPROVAL_SUBMIT",
+          entity: "ComplianceApproval",
+          entityId: approvalId,
+          meta: { changeType: existing.changeType },
         },
         tx,
       );
@@ -141,6 +165,18 @@ export class ApprovalsService {
         tx,
       );
 
+      await this.ctx.audit.log(
+        {
+          branchId: principal.branchId,
+          actorUserId: principal.userId,
+          action: `APPROVAL_${dto.decision}`,
+          entity: "ComplianceApproval",
+          entityId: approvalId,
+          meta: { decision: dto.decision, decisionNotes: dto.decisionNotes, changeType: existing.changeType },
+        },
+        tx,
+      );
+
       return result;
     });
 
@@ -158,36 +194,86 @@ export class ApprovalsService {
   }
 
   private async executeApprovedChange(approval: any) {
-    const payload = approval.payloadDraft as Record<string, unknown>;
+  const payload: any = approval.payloadDraft ?? {};
 
-    switch (approval.changeType) {
-      case 'ABDM_SECRET_UPDATE': {
-        await this.ctx.prisma.abdmConfig.update({
-          where: { id: approval.entityId },
-          data: { clientSecretEnc: payload.clientSecretEnc as string },
-        });
-        break;
+  switch (approval.changeType) {
+    case "ABDM_SECRET_UPDATE": {
+      // ✅ Prefer correct field. Fallback to old field to support legacy approvals.
+      const newSecret = String(payload.clientSecretEnc ?? payload.clientSecret ?? "").trim();
+
+      // Never allow redacted placeholder to be applied
+      if (!newSecret || newSecret === "[REDACTED]") {
+        throw new BadRequestException("Approved payload is missing clientSecretEnc");
       }
-      case 'RATE_CARD_FREEZE': {
-        await this.ctx.prisma.schemeRateCard.update({
+
+      await this.ctx.prisma.$transaction(async (tx) => {
+        const existing = await tx.abdmConfig.findUnique({
           where: { id: approval.entityId },
-          data: { status: 'FROZEN' },
         });
-        break;
-      }
-      case 'NABH_CRITICAL_VERIFY': {
-        await this.ctx.prisma.nabhWorkspaceItem.update({
+        if (!existing) throw new NotFoundException("ABDM config not found");
+
+        // ✅ Apply the secret to ABDM config
+        await tx.abdmConfig.update({
           where: { id: approval.entityId },
           data: {
-            status: 'VERIFIED',
-            verifiedAt: new Date(),
-            verifiedByStaffId: approval.decidedByStaffId,
+            clientSecretEnc: newSecret,
+            status: existing.status === "NOT_CONFIGURED" ? "CONFIGURED" : existing.status,
           },
         });
-        break;
-      }
-      default:
-        break;
+
+        // ✅ Redact secret in approval payload after applying (so DB doesn’t retain it)
+        await tx.complianceApproval.update({
+          where: { id: approval.id },
+          data: {
+            payloadDraft: {
+              ...payload,
+              clientSecretEnc: "[REDACTED]",
+              // also redact legacy key if it existed
+              ...(payload.clientSecret ? { clientSecret: "[REDACTED]" } : {}),
+            },
+          },
+        });
+
+        // ✅ Compliance log (no secret)
+        await this.ctx.logCompliance(
+          {
+            workspaceId: approval.workspaceId,
+            entityType: "ABDM_CONFIG",
+            entityId: approval.entityId,
+            action: "SECRET_APPLIED",
+            actorStaffId: approval.decidedByStaffId ?? null,
+            after: { clientSecretEnc: "[REDACTED]" },
+          },
+          tx,
+        );
+      });
+
+      break;
     }
+
+    case "RATE_CARD_FREEZE": {
+      await this.ctx.prisma.schemeRateCard.update({
+        where: { id: approval.entityId },
+        data: { status: "FROZEN" },
+      });
+      break;
+    }
+
+    case "NABH_CRITICAL_VERIFY": {
+      await this.ctx.prisma.nabhWorkspaceItem.update({
+        where: { id: approval.entityId },
+        data: {
+          status: "VERIFIED",
+          verifiedAt: new Date(),
+          verifiedByStaffId: approval.decidedByStaffId,
+        },
+      });
+      break;
+    }
+
+    default:
+      break;
   }
+}
+
 }

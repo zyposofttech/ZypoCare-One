@@ -34,6 +34,7 @@ import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
 import { RequirePerm } from "@/components/RequirePerm";
+import { CompliancePageHead, CompliancePageInsights } from "@/components/copilot/ComplianceHelpInline";
 import {
   Activity,
   AlertTriangle,
@@ -396,6 +397,7 @@ export default function NabhChecklistPage() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <CompliancePageHead pageId="compliance-nabh-checklist" />
             <Button variant="outline" size="sm" onClick={fetchItems} disabled={!workspaceId}>
               <RefreshCw className="h-4 w-4 mr-1.5" />
               Refresh
@@ -413,6 +415,9 @@ export default function NabhChecklistPage() {
             ) : null}
           </div>
         </div>
+
+        {/* AI Insights */}
+        <CompliancePageInsights pageId="compliance-nabh-checklist" />
 
         {/* Guard: no branch */}
         {!activeBranchId ? (
