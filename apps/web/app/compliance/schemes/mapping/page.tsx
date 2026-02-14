@@ -294,7 +294,7 @@ export default function MappingManagerPage() {
         {/* ── Header ─────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/compliance/schemes">
+            {/* <Link href="/compliance/schemes">
               <Button
                 variant="outline"
                 size="icon"
@@ -302,7 +302,7 @@ export default function MappingManagerPage() {
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-            </Link>
+            </Link> */}
             <span className="grid h-10 w-10 place-items-center rounded-2xl border border-zc-border bg-zc-panel/30">
               <Link2 className="h-5 w-5 text-zc-accent" />
             </span>
