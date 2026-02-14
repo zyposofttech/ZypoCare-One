@@ -5258,7 +5258,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "D:\\ZypoCare-HIMS\\.claude\\worktrees\\recursing-knuth\\packages\\db\\src\\generated\\client",
+      "value": "D:\\ZypoCare-HIMS\\packages\\db\\src\\generated\\client",
       "fromEnvVar": null
     },
     "config": {
@@ -5276,11 +5276,12 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "D:\\ZypoCare-HIMS\\.claude\\worktrees\\recursing-knuth\\packages\\db\\prisma\\schema.prisma",
+    "sourceFilePath": "D:\\ZypoCare-HIMS\\packages\\db\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": null
+    "rootEnvPath": null,
+    "schemaEnvPath": "../../../.env"
   },
   "relativePath": "../../../prisma",
   "clientVersion": "5.22.0",

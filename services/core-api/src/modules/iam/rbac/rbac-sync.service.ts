@@ -29,22 +29,32 @@ export class RbacSyncService implements OnModuleInit {
     const forceMetadata = process.env.RBAC_SYNC_FORCE_METADATA === "true";
 
     for (const perm of items) {
-      const existing = await this.prisma.permission.findUnique({
+      let existing = await this.prisma.permission.findUnique({
         where: { code: perm.code },
         select: { id: true, name: true, category: true, description: true },
       });
 
       if (!existing) {
-        await this.prisma.permission.create({
-          data: {
-            code: perm.code,
-            name: perm.name,
-            category: perm.category,
-            description: perm.description,
-          },
-        });
-        created++;
-        continue;
+        try {
+          await this.prisma.permission.create({
+            data: {
+              code: perm.code,
+              name: perm.name,
+              category: perm.category,
+              description: perm.description,
+            },
+          });
+          created++;
+          continue;
+        } catch (err: any) {
+          // Another sync worker may have inserted the same code concurrently.
+          if (err?.code !== "P2002") throw err;
+          existing = await this.prisma.permission.findUnique({
+            where: { code: perm.code },
+            select: { id: true, name: true, category: true, description: true },
+          });
+          if (!existing) throw err;
+        }
       }
 
       // Default behavior: do not override existing metadata unless:
