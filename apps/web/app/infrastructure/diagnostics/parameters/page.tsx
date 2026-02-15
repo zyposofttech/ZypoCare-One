@@ -64,7 +64,7 @@ import {
   NoBranchGuard,
   ToneBadge,
   ModalHeader,
-  modalClassName,
+  drawerClassName,
   toneForResultDataType,
   PageHeader,
   ErrorAlert,
@@ -174,7 +174,7 @@ function ParameterDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[760px] max-h-[85vh] overflow-y-auto")}>
+      <DialogContent className={drawerClassName()}>
         <ModalHeader
           title={editing ? "Edit Parameter" : "Add Parameter"}
           description="Define result data type and validation details."
@@ -332,7 +332,7 @@ function RangeDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={modalClassName("w-[95vw] sm:max-w-[760px] max-h-[85vh] overflow-y-auto")}>
+      <DialogContent className={drawerClassName()}>
         <ModalHeader
           title={editing ? "Edit Range" : "Add Range"}
           description="Reference ranges for numeric or text results."
