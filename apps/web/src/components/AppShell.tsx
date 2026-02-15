@@ -254,9 +254,15 @@ const NAV_WORKSPACES: NavNode[] = [
       },
       {
         type: "group",
+        label: "OT Setup",
+        children: [
+          { label: "OT Suites", href: "/infrastructure/ot" },
+        ],
+      },
+      {
+        type: "group",
         label: "Clinical Facilities",
         children: [
-          { label: "OT Setup", href: "/infrastructure/ot" },
           { label: "Equipment Register", href: "/infrastructure/equipment" },
         ],
       },
