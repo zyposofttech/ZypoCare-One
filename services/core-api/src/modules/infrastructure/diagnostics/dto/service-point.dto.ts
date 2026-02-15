@@ -64,6 +64,15 @@ export class CreateServicePointDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsOptional()
+  operatingHours?: any;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(99999)
+  capacity?: number;
 }
 
 export class UpdateServicePointDto {
@@ -104,4 +113,13 @@ export class UpdateServicePointDto {
   @IsOptional()
   @IsString()
   notes?: string | null;
+
+  @IsOptional()
+  operatingHours?: any;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(99999)
+  capacity?: number | null;
 }

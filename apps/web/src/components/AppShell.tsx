@@ -257,8 +257,24 @@ const NAV_WORKSPACES: NavNode[] = [
         label: "Clinical Facilities",
         children: [
           { label: "OT Setup", href: "/infrastructure/ot" },
-          { label: "Diagnostics Configuration", href: "/infrastructure/diagnostics" },
           { label: "Equipment Register", href: "/infrastructure/equipment" },
+        ],
+      },
+      {
+        type: "group",
+        label: "Diagnostics Setup",
+        children: [
+          { label: "Diagnostics Overview", href: "/infrastructure/diagnostics" },
+          { label: "Quick Start (Packs)", href: "/infrastructure/diagnostics/packs" },
+          { label: "Service Points", href: "/infrastructure/diagnostics/service-points" },
+          { label: "Test Library", href: "/infrastructure/diagnostics/catalog" },
+          { label: "Panels", href: "/infrastructure/diagnostics/panels" },
+          { label: "Result Schema", href: "/infrastructure/diagnostics/parameters" },
+          { label: "Report Templates", href: "/infrastructure/diagnostics/templates" },
+          { label: "Routing Rules", href: "/infrastructure/diagnostics/capabilities" },
+          { label: "AI Copilot", href: "/infrastructure/diagnostics/copilot", badge: { label: "AI", tone: "new" } },
+          { label: "Import / Export", href: "/infrastructure/diagnostics/import-export" },
+          { label: "Go-Live Check", href: "/infrastructure/diagnostics/go-live" },
         ],
       },
       {

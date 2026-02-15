@@ -33,7 +33,7 @@ export class DiagnosticsFacilitiesService {
       include: {
         locationNode: true,
         unit: true,
-        _count: { select: { rooms: true, resources: true, equipment: true } },
+        _count: { select: { rooms: true, resources: true, equipment: true, staff: true, sections: true } },
       },
     });
   }
@@ -88,6 +88,8 @@ export class DiagnosticsFacilitiesService {
         type: dto.type ?? "OTHER",
         sortOrder: dto.sortOrder ?? 0,
         notes: dto.notes ?? null,
+        operatingHours: dto.operatingHours ?? undefined,
+        capacity: dto.capacity ?? undefined,
       },
       include: { locationNode: true, unit: true },
     });
@@ -138,6 +140,8 @@ export class DiagnosticsFacilitiesService {
         ...(dto.notes !== undefined ? { notes: dto.notes } : {}),
         ...(dto.locationNodeId ? { locationNodeId: dto.locationNodeId } : {}),
         ...(nextUnitId !== undefined ? { unitId: nextUnitId } : {}),
+        ...(dto.operatingHours !== undefined ? { operatingHours: dto.operatingHours } : {}),
+        ...(dto.capacity !== undefined ? { capacity: dto.capacity } : {}),
       },
       include: { locationNode: true, unit: true },
     });
@@ -318,6 +322,75 @@ export class DiagnosticsFacilitiesService {
     if (!link) throw new NotFoundException("Equipment mapping not found");
 
     return this.prisma.diagnosticServicePointEquipment.update({ where: { id: args.linkId }, data: { isActive: false } });
+  }
+
+  // ---------- Staff ----------
+  async listStaff(principal: Principal, args: { servicePointId: string; branchId: string }) {
+    const branchId = resolveBranchId(principal, args.branchId);
+    await this.assertServicePoint(branchId, args.servicePointId);
+    return this.prisma.diagnosticServicePointStaff.findMany({
+      where: { branchId, servicePointId: args.servicePointId, isActive: true },
+      orderBy: [{ role: "asc" }, { createdAt: "asc" }],
+    });
+  }
+
+  async addStaff(principal: Principal, args: { servicePointId: string; branchId: string }, dto: { staffId: string; role?: string }) {
+    const branchId = resolveBranchId(principal, args.branchId);
+    await this.assertServicePoint(branchId, args.servicePointId);
+    return this.prisma.diagnosticServicePointStaff.upsert({
+      where: { servicePointId_staffId: { servicePointId: args.servicePointId, staffId: dto.staffId } },
+      create: { branchId, servicePointId: args.servicePointId, staffId: dto.staffId, role: dto.role ?? null, isActive: true },
+      update: { isActive: true, role: dto.role ?? null },
+    });
+  }
+
+  async removeStaff(principal: Principal, args: { servicePointId: string; linkId: string; branchId: string }) {
+    const branchId = resolveBranchId(principal, args.branchId);
+    await this.assertServicePoint(branchId, args.servicePointId);
+    const link = await this.prisma.diagnosticServicePointStaff.findFirst({
+      where: { id: args.linkId, branchId, servicePointId: args.servicePointId },
+      select: { id: true },
+    });
+    if (!link) throw new NotFoundException("Staff assignment not found");
+    return this.prisma.diagnosticServicePointStaff.update({ where: { id: args.linkId }, data: { isActive: false } });
+  }
+
+  // ---------- Sections ----------
+  async listSections(principal: Principal, args: { servicePointId: string; branchId: string }) {
+    const branchId = resolveBranchId(principal, args.branchId);
+    await this.assertServicePoint(branchId, args.servicePointId);
+    return this.prisma.diagnosticServicePointSection.findMany({
+      where: { branchId, servicePointId: args.servicePointId, isActive: true },
+      orderBy: [{ createdAt: "asc" }],
+      include: { section: true },
+    });
+  }
+
+  async addSection(principal: Principal, args: { servicePointId: string; branchId: string }, dto: { sectionId: string }) {
+    const branchId = resolveBranchId(principal, args.branchId);
+    await this.assertServicePoint(branchId, args.servicePointId);
+    const section = await this.prisma.diagnosticSection.findFirst({
+      where: { id: dto.sectionId, branchId, isActive: true },
+      select: { id: true },
+    });
+    if (!section) throw new BadRequestException("Invalid sectionId for this branch");
+    return this.prisma.diagnosticServicePointSection.upsert({
+      where: { servicePointId_sectionId: { servicePointId: args.servicePointId, sectionId: dto.sectionId } },
+      create: { branchId, servicePointId: args.servicePointId, sectionId: dto.sectionId, isActive: true },
+      update: { isActive: true },
+      include: { section: true },
+    });
+  }
+
+  async removeSection(principal: Principal, args: { servicePointId: string; linkId: string; branchId: string }) {
+    const branchId = resolveBranchId(principal, args.branchId);
+    await this.assertServicePoint(branchId, args.servicePointId);
+    const link = await this.prisma.diagnosticServicePointSection.findFirst({
+      where: { id: args.linkId, branchId, servicePointId: args.servicePointId },
+      select: { id: true },
+    });
+    if (!link) throw new NotFoundException("Section mapping not found");
+    return this.prisma.diagnosticServicePointSection.update({ where: { id: args.linkId }, data: { isActive: false } });
   }
 
   private async assertServicePoint(branchId: string, servicePointId: string) {

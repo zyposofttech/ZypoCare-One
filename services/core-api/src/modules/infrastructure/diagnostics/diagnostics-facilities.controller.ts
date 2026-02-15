@@ -139,4 +139,54 @@ export class DiagnosticsFacilitiesController {
     const b = this.branchIdFrom(p, branchId);
     return this.svc.removeEquipment(p, { servicePointId: id, linkId, branchId: b });
   }
+
+  // -------- Staff --------
+  @Get("service-points/:id/staff")
+  @Permissions(PERM.INFRA_DIAGNOSTICS_READ)
+  listStaff(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string) {
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.listStaff(p, { servicePointId: id, branchId: b });
+  }
+
+  @Post("service-points/:id/staff")
+  @Permissions(PERM.INFRA_DIAGNOSTICS_UPDATE)
+  addStaff(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string, @Body() dto: { staffId: string; role?: string }) {
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.addStaff(p, { servicePointId: id, branchId: b }, dto);
+  }
+
+  @Delete("service-points/:id/staff/:linkId")
+  @Permissions(PERM.INFRA_DIAGNOSTICS_UPDATE)
+  removeStaff(@Req() req: any, @Param("id") id: string, @Param("linkId") linkId: string, @Query("branchId") branchId: string) {
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.removeStaff(p, { servicePointId: id, linkId, branchId: b });
+  }
+
+  // -------- Sections --------
+  @Get("service-points/:id/sections")
+  @Permissions(PERM.INFRA_DIAGNOSTICS_READ)
+  listSPSections(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string) {
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.listSections(p, { servicePointId: id, branchId: b });
+  }
+
+  @Post("service-points/:id/sections")
+  @Permissions(PERM.INFRA_DIAGNOSTICS_UPDATE)
+  addSPSection(@Req() req: any, @Param("id") id: string, @Query("branchId") branchId: string, @Body() dto: { sectionId: string }) {
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.addSection(p, { servicePointId: id, branchId: b }, dto);
+  }
+
+  @Delete("service-points/:id/sections/:linkId")
+  @Permissions(PERM.INFRA_DIAGNOSTICS_UPDATE)
+  removeSPSection(@Req() req: any, @Param("id") id: string, @Param("linkId") linkId: string, @Query("branchId") branchId: string) {
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.svc.removeSection(p, { servicePointId: id, linkId, branchId: b });
+  }
 }
