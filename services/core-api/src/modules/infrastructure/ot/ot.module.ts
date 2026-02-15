@@ -24,6 +24,9 @@ import { OtComplianceService } from "./ot-compliance.service";
 import { OtValidationController } from "./ot-validation.controller";
 import { OtValidationService } from "./ot-validation.service";
 
+import { OtCopilotController } from "./ot-copilot.controller";
+import { OtCopilotService } from "./ot-copilot.service";
+
 // ✅ Provides AccessPolicyService + PrincipalGuard + PermissionsGuard
 import { AuthModule } from "../../auth/auth.module";
 
@@ -41,6 +44,7 @@ import { PrismaModule } from "../../database/prisma.module";
     OtBillingController,
     OtComplianceController,
     OtValidationController,
+    OtCopilotController,
   ],
   providers: [
     OtService,
@@ -51,6 +55,7 @@ import { PrismaModule } from "../../database/prisma.module";
     OtBillingService,
     OtComplianceService,
     OtValidationService,
+    OtCopilotService,
   ],
   exports: [OtService],
 })
