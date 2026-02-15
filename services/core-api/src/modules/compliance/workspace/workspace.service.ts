@@ -22,7 +22,7 @@ export class WorkspaceService {
     const where: any = {};
 
     // Scope enforcement
-    if (principal.scope !== "GLOBAL") {
+    if (principal.roleScope !== "GLOBAL") {
       const bid = this.ctx.resolveBranchId(principal, query.branchId ?? principal.branchId);
       where.branchId = bid;
       where.type = "BRANCH";
@@ -57,7 +57,7 @@ export class WorkspaceService {
   }
 
   async create(principal: Principal, dto: CreateWorkspaceDto) {
-    if (dto.type === "ORG_TEMPLATE" && principal.scope !== "GLOBAL") {
+    if (dto.type === "ORG_TEMPLATE" && principal.roleScope !== "GLOBAL") {
       throw new BadRequestException("ORG_TEMPLATE workspace requires GLOBAL scope");
     }
 
@@ -277,7 +277,7 @@ export class WorkspaceService {
   }
 
   async cloneToBranch(principal: Principal, workspaceId: string, dto: CloneWorkspaceDto) {
-    if (principal.scope !== "GLOBAL") {
+    if (principal.roleScope !== "GLOBAL") {
       throw new BadRequestException("Cloning template workspaces requires GLOBAL scope");
     }
 

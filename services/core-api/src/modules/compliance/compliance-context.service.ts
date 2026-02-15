@@ -79,7 +79,7 @@ export class ComplianceContextService {
     if (!ws) throw new NotFoundException("Workspace not found");
 
     if (ws.type === "ORG_TEMPLATE") {
-      if (principal.scope !== "GLOBAL") throw new ForbiddenException("ORG_TEMPLATE workspace requires GLOBAL scope");
+      if (principal.roleScope !== "GLOBAL") throw new ForbiddenException("ORG_TEMPLATE workspace requires GLOBAL scope");
       return ws;
     }
 

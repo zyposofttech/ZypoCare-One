@@ -1205,11 +1205,11 @@ export class NabhService {
       (prevStatusLog?.after as any)?.ui?.status ?? (existing.status === "CLOSED" ? "COMPLETED" : existing.status);
 
     const uiNewStatus = dto.status;
-    const dbNewStatus = uiNewStatus
-      ? ["COMPLETED", "VERIFIED", "CLOSED"].includes(uiNewStatus)
-        ? "CLOSED"
-        : uiNewStatus
-      : undefined;
+    const dbNewStatus = (() => {
+      if (!uiNewStatus) return undefined;
+      if (uiNewStatus === "OPEN" || uiNewStatus === "IN_PROGRESS") return uiNewStatus;
+      return "CLOSED";
+    })();
     const isClosure = dbNewStatus === "CLOSED" && existing.status !== "CLOSED";
 
     const updated = await this.ctx.prisma.$transaction(async (tx) => {
