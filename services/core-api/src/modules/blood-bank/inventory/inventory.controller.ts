@@ -3,7 +3,7 @@ import { ApiTags } from "@nestjs/swagger";
 import { Permissions } from "../../auth/permissions.decorator";
 import { PERM } from "../../iam/iam.constants";
 import { InventoryService } from "./inventory.service";
-import { DiscardUnitDto, TransferUnitDto } from "./dto";
+import { AssignInventorySlotDto, DiscardUnitDto, TransferUnitDto } from "./dto";
 
 @ApiTags("blood-bank/inventory")
 @Controller("blood-bank")
@@ -56,6 +56,12 @@ export class InventoryController {
   @Permissions(PERM.BB_INVENTORY_TRANSFER)
   transfer(@Req() req: any, @Body() dto: TransferUnitDto) {
     return this.svc.transferUnit(this.principal(req), dto);
+  }
+
+  @Post("inventory/assign-slot")
+  @Permissions(PERM.BB_INVENTORY_WRITE)
+  assignSlot(@Req() req: any, @Body() dto: AssignInventorySlotDto) {
+    return this.svc.assignSlot(this.principal(req), dto);
   }
 
   @Get("inventory/stock-levels")

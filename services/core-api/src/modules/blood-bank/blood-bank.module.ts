@@ -44,8 +44,15 @@ import { QCService } from "./quality-control/qc.service";
 import { ReportsController } from "./reports/reports.controller";
 import { ReportsService } from "./reports/reports.service";
 
+import { NotificationsModule } from "../notifications/notifications.module";
+import { TransfersModule } from "./transfers/transfers.module";
+import { LookbackModule } from "./lookback/lookback.module";
+import { AiModule } from "./ai/ai.module";
+import { ReportsRunsController } from "./reports/reports-runs.controller";
+import { ReportsRunsService } from "./reports/reports-runs.service";
+
 @Module({
-  imports: [AuthModule, BBSharedModule],
+  imports: [AuthModule, BBSharedModule, NotificationsModule, TransfersModule, LookbackModule, AiModule],
   controllers: [
     FacilityController,
     ComponentMasterController,
@@ -61,6 +68,7 @@ import { ReportsService } from "./reports/reports.service";
     IssueController,
     QCController,
     ReportsController,
+    ReportsRunsController,
   ],
   providers: [
     FacilityService,
@@ -77,6 +85,7 @@ import { ReportsService } from "./reports/reports.service";
     IssueService,
     QCService,
     ReportsService,
+    ReportsRunsService,
   ],
 })
 export class BloodBankModule {}

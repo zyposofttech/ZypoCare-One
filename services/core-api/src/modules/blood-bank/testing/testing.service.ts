@@ -135,7 +135,7 @@ export class TestingService {
   async confirmLabel(principal: Principal, dto: ConfirmLabelDto) {
     const unit = await this.ctx.prisma.bloodUnit.findUnique({
       where: { id: dto.unitId },
-      include: { ttiTests: true, groupingResults: true },
+      include: { ttiTests: true, groupingResults: true, inventorySlot: true },
     });
     if (!unit) throw new NotFoundException("Blood unit not found");
     const bid = this.ctx.resolveBranchId(principal, unit.branchId);
@@ -156,6 +156,57 @@ export class TestingService {
       where: { id: dto.unitId },
       data: { status: "AVAILABLE" },
     });
+
+    // Storage placement: auto-place into default storage equipment (best UX)
+    // - If facility has defaultStorageEquipmentId: use it
+    // - Else fallback to first active refrigerator/freezer/agitator
+    // - If none found: create a WARN notification so operations can assign manually
+    if (!unit.inventorySlot) {
+      const facility = await this.ctx.prisma.bloodBankFacility.findUnique({
+        where: { branchId: bid },
+        select: { defaultStorageEquipmentId: true },
+      });
+      const fallbackEq = await this.ctx.prisma.bloodBankEquipment.findFirst({
+        where: {
+          branchId: bid,
+          isActive: true,
+          equipmentType: { in: ["REFRIGERATOR", "DEEP_FREEZER", "PLATELET_AGITATOR"] },
+        },
+        orderBy: { createdAt: "asc" },
+        select: { id: true },
+      });
+
+      const equipmentId = facility?.defaultStorageEquipmentId ?? fallbackEq?.id ?? null;
+      if (equipmentId) {
+        await this.ctx.prisma.bloodInventorySlot.upsert({
+          where: { bloodUnitId: dto.unitId },
+          create: { bloodUnitId: dto.unitId, equipmentId },
+          update: { equipmentId, assignedAt: new Date(), removedAt: null },
+        });
+        await this.ctx.audit.log({
+          branchId: bid,
+          actorUserId: principal.userId,
+          action: "BB_STORAGE_AUTO_PLACED",
+          entity: "BloodUnit",
+          entityId: dto.unitId,
+          meta: { equipmentId },
+        });
+      } else {
+        await this.ctx.prisma.notification.create({
+          data: {
+            branchId: bid,
+            title: "Storage placement pending",
+            message: `Unit ${unit.unitNumber} released as AVAILABLE but no storage equipment is configured. Please assign a storage location.`,
+            severity: "WARNING",
+            status: "OPEN",
+            source: "BLOOD_BANK",
+            entity: "BloodUnit",
+            entityId: dto.unitId,
+            meta: { unitId: dto.unitId, unitNumber: unit.unitNumber },
+          },
+        });
+      }
+    }
 
     await this.ctx.audit.log({
       branchId: bid, actorUserId: principal.userId,

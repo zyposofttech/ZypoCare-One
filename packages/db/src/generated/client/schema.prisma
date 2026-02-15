@@ -312,6 +312,11 @@ model Branch {
   bbDonationCamps      BloodDonationCamp[]
   bbMTPSessions        MTPSession[]
   bbMSBOSConfigs       MSBOSConfig[]
+  notifications        Notification[]
+  bbTransfersFrom      BloodUnitTransfer[]    @relation("BBTransferFromBranch")
+  bbTransfersTo        BloodUnitTransfer[]    @relation("BBTransferToBranch")
+  bbLookbackCases      BloodLookbackCase[]
+  bbReportRuns         BBReportRun[]
 }
 
 model FacilityCatalog {
@@ -1931,6 +1936,20 @@ model User {
   uploadedInsuranceDocs    InsuranceDocument[]      @relation("InsDoc_UploadedBy")
   verifiedInsuranceDocs    InsuranceDocument[]      @relation("InsDoc_VerifiedBy")
   reconciledPaymentAdvices PaymentAdvice[]          @relation("PaymentAdvice_ReconciledBy")
+  notificationsToUser      Notification[]           @relation("NotificationToUser")
+  notificationsAckBy       Notification[]           @relation("NotificationAckBy")
+  notificationsResolvedBy  Notification[]           @relation("NotificationResolvedBy")
+  notificationReads        NotificationRead[]
+  notificationPreference   NotificationPreference?
+  bbTransfersCreatedBy     BloodUnitTransfer[]      @relation("BBTransferCreatedBy")
+  bbTransfersDispatchedBy  BloodUnitTransfer[]      @relation("BBTransferDispatchedBy")
+  bbTransfersReceivedBy    BloodUnitTransfer[]      @relation("BBTransferReceivedBy")
+  bbLookbacksCreatedBy     BloodLookbackCase[]      @relation("BBLookbackCreatedBy")
+  bbLookbacksClosedBy      BloodLookbackCase[]      @relation("BBLookbackClosedBy")
+  bbReportRunsCreatedBy    BBReportRun[]            @relation("BBReportRunCreatedBy")
+  bbReportRunsSubmittedBy  BBReportRun[]            @relation("BBReportRunSubmittedBy")
+  bbReportRunsApprovedBy   BBReportRun[]            @relation("BBReportRunApprovedBy")
+  bbReportRunsRejectedBy   BBReportRun[]            @relation("BBReportRunRejectedBy")
 }
 
 model Patient {
@@ -7585,6 +7604,8 @@ enum BloodUnitStatus {
   RESERVED
   CROSS_MATCHED
   ISSUED
+  TRANSFER_PENDING
+  IN_TRANSIT
   TRANSFUSED
   DISCARDED
   SEPARATED
@@ -7674,8 +7695,10 @@ model BloodBankFacility {
   nacoId         String?       @db.VarChar(64)
   licenseValidTo DateTime?
 
-  operatingHours Json? // { weekday: { open, close }, emergency24x7: bool, onCallRoster: [...] }
-  physicalLayout Json? // { rooms: [{ name, type, area }] }
+  operatingHours            Json? // { weekday: { open, close }, emergency24x7: bool, onCallRoster: [...] }
+  physicalLayout            Json? // { rooms: [{ name, type, area }] }
+  defaultStorageEquipmentId String?
+  defaultStorageEquipment   BloodBankEquipment? @relation("FacilityDefaultStorage", fields: [defaultStorageEquipmentId], references: [id], onDelete: SetNull)
 
   isActive Boolean @default(true)
 
@@ -7748,9 +7771,10 @@ model BloodBankEquipment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tempLogs       EquipmentTempLog[]
-  inventorySlots BloodInventorySlot[]
-  qcRecords      QualityControlRecord[]
+  tempLogs             EquipmentTempLog[]
+  inventorySlots       BloodInventorySlot[]
+  qcRecords            QualityControlRecord[]
+  defaultForFacilities BloodBankFacility[]    @relation("FacilityDefaultStorage")
 
   @@unique([branchId, equipmentId])
   @@index([branchId, equipmentType, isActive])
@@ -7864,9 +7888,10 @@ model Donor {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  deferrals  DonorDeferral[]
-  screenings DonorScreening[]
-  bloodUnits BloodUnit[]
+  deferrals     DonorDeferral[]
+  screenings    DonorScreening[]
+  bloodUnits    BloodUnit[]
+  lookbackCases BloodLookbackCase[]
 
   @@unique([branchId, donorNumber])
   @@index([branchId, donorStatus, isActive])
@@ -7985,6 +8010,7 @@ model BloodUnit {
   inventorySlot   BloodInventorySlot?
   crossMatchTests CrossMatchTest[]
   bloodIssues     BloodIssue[]
+  transferItems   BloodUnitTransferItem[]
 
   @@unique([branchId, unitNumber])
   @@index([branchId, status, bloodGroup])
@@ -8432,4 +8458,273 @@ model MSBOSConfig {
   @@unique([branchId, procedureCode])
   @@index([branchId, isActive])
   @@map("bb_msbos_configs")
+}
+
+// -----------------------------------------------------------------------------
+// Central Notifications (Option B: separate Read vs Ack/Resolve)
+// -----------------------------------------------------------------------------
+
+enum NotificationSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum NotificationStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  SMS
+  WHATSAPP
+}
+
+enum NotificationDigest {
+  NONE
+  DAILY
+  WEEKLY
+}
+
+model Notification {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  title   String  @db.VarChar(200)
+  message String? @db.VarChar(2000)
+
+  severity NotificationSeverity @default(INFO)
+  status   NotificationStatus   @default(OPEN)
+
+  // Where did this alert come from (e.g., BLOOD_BANK, IAM, BILLING)?
+  source   String? @db.VarChar(64)
+  entity   String? @db.VarChar(64)
+  entityId String? @db.VarChar(64)
+
+  // Free-form meta for the producer (safe for future expansion)
+  meta Json?
+
+  // Optional targeted user (NULL => branch-wide alert)
+  toUserId String?
+  toUser   User?   @relation("NotificationToUser", fields: [toUserId], references: [id], onDelete: SetNull)
+
+  // Ack/Resolve are operational actions (separate from read/unread)
+  ackByUserId String?
+  ackByUser   User?     @relation("NotificationAckBy", fields: [ackByUserId], references: [id], onDelete: SetNull)
+  ackAt       DateTime?
+
+  resolvedByUserId String?
+  resolvedByUser   User?     @relation("NotificationResolvedBy", fields: [resolvedByUserId], references: [id], onDelete: SetNull)
+  resolvedAt       DateTime?
+
+  // De-duplication key to prevent spamming repeated alerts (producer-defined)
+  dedupeKey String? @db.VarChar(200)
+
+  // Useful tags for filtering in UI (Postgres text[])
+  tags String[]
+
+  reads NotificationRead[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([branchId, status, severity, createdAt])
+  @@index([toUserId, status, createdAt])
+  @@index([dedupeKey])
+  @@map("notifications")
+}
+
+model NotificationRead {
+  id             String       @id @default(cuid())
+  notificationId String
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  readAt DateTime @default(now())
+
+  @@unique([notificationId, userId])
+  @@index([userId, readAt])
+  @@map("notification_reads")
+}
+
+model NotificationPreference {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  enabled     Boolean               @default(true)
+  severityMin NotificationSeverity  @default(INFO)
+  channels    NotificationChannel[]
+  digest      NotificationDigest    @default(NONE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("notification_preferences")
+}
+
+// -----------------------------------------------------------------------------
+// Blood Bank: Transfers, Lookback, Report Runs (PRD completeness)
+// -----------------------------------------------------------------------------
+
+enum BloodUnitTransferStatus {
+  INITIATED
+  DISPATCHED
+  RECEIVED
+  REJECTED
+  CANCELLED
+}
+
+model BloodUnitTransfer {
+  id           String @id @default(cuid())
+  fromBranchId String
+  fromBranch   Branch @relation("BBTransferFromBranch", fields: [fromBranchId], references: [id], onDelete: Cascade)
+
+  toBranchId String
+  toBranch   Branch @relation("BBTransferToBranch", fields: [toBranchId], references: [id], onDelete: Cascade)
+
+  status BloodUnitTransferStatus @default(INITIATED)
+
+  courierName   String? @db.VarChar(120)
+  courierRef    String? @db.VarChar(120)
+  dispatchTempC Float?
+  receivedTempC Float?
+  notes         String? @db.VarChar(500)
+
+  createdByUserId String?
+  createdByUser   User?   @relation("BBTransferCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  dispatchedByUserId String?
+  dispatchedByUser   User?     @relation("BBTransferDispatchedBy", fields: [dispatchedByUserId], references: [id], onDelete: SetNull)
+  dispatchedAt       DateTime?
+
+  receivedByUserId String?
+  receivedByUser   User?     @relation("BBTransferReceivedBy", fields: [receivedByUserId], references: [id], onDelete: SetNull)
+  receivedAt       DateTime?
+
+  items BloodUnitTransferItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([fromBranchId, status, createdAt])
+  @@index([toBranchId, status, createdAt])
+  @@map("bb_unit_transfers")
+}
+
+model BloodUnitTransferItem {
+  id         String            @id @default(cuid())
+  transferId String
+  transfer   BloodUnitTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+
+  bloodUnitId String
+  bloodUnit   BloodUnit @relation(fields: [bloodUnitId], references: [id], onDelete: Cascade)
+
+  @@unique([transferId, bloodUnitId])
+  @@index([bloodUnitId])
+  @@map("bb_unit_transfer_items")
+}
+
+enum LookbackStatus {
+  OPEN
+  INVESTIGATING
+  CLOSED
+}
+
+enum LookbackTriggerType {
+  REACTIVE_TTI
+  POST_ISSUE_REVIEW
+  MANUAL
+}
+
+model BloodLookbackCase {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  status      LookbackStatus      @default(OPEN)
+  triggerType LookbackTriggerType @default(MANUAL)
+
+  donorId String?
+  donor   Donor?  @relation(fields: [donorId], references: [id], onDelete: SetNull)
+
+  notes String? @db.VarChar(1000)
+
+  // Stored snapshot (impacted units + recipients + any auto-quarantine actions)
+  computedData Json?
+
+  createdByUserId String?
+  createdByUser   User?   @relation("BBLookbackCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  closedByUserId String?
+  closedByUser   User?     @relation("BBLookbackClosedBy", fields: [closedByUserId], references: [id], onDelete: SetNull)
+  closedAt       DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([branchId, status, createdAt])
+  @@index([donorId])
+  @@map("bb_lookback_cases")
+}
+
+enum BBReportType {
+  DAILY_SUMMARY
+  UTILIZATION
+  DISCARD_ANALYSIS
+  DONOR_DEFERRAL
+  TTI_SEROPREVALENCE
+  HAEMOVIGILANCE
+  NACO_ANNUAL
+  SBTC_QUARTERLY
+}
+
+enum BBReportRunStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+model BBReportRun {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  type   BBReportType
+  status BBReportRunStatus @default(DRAFT)
+
+  // report input parameters (date range, quarter, etc.)
+  params Json?
+
+  // computed report output stored for deterministic exports
+  data Json?
+
+  createdByUserId String?
+  createdByUser   User?   @relation("BBReportRunCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  submittedByUserId String?
+  submittedByUser   User?     @relation("BBReportRunSubmittedBy", fields: [submittedByUserId], references: [id], onDelete: SetNull)
+  submittedAt       DateTime?
+
+  approvedByUserId String?
+  approvedByUser   User?     @relation("BBReportRunApprovedBy", fields: [approvedByUserId], references: [id], onDelete: SetNull)
+  approvedAt       DateTime?
+
+  rejectedByUserId String?
+  rejectedByUser   User?     @relation("BBReportRunRejectedBy", fields: [rejectedByUserId], references: [id], onDelete: SetNull)
+  rejectedAt       DateTime?
+  rejectReason     String?   @db.VarChar(500)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([branchId, type, status, createdAt])
+  @@map("bb_report_runs")
 }

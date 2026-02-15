@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { BBContextService } from "../shared/bb-context.service";
 import type { Principal } from "../../auth/access-policy.service";
-import type { DiscardUnitDto, TransferUnitDto } from "./dto";
+import type { AssignInventorySlotDto, DiscardUnitDto, TransferUnitDto } from "./dto";
 
 @Injectable()
 export class InventoryService {
@@ -125,6 +125,45 @@ export class InventoryService {
       action: "BB_UNIT_TRANSFERRED", entity: "BloodUnit", entityId: dto.unitId,
       meta: { fromBranch: bid, toBranch: dto.targetBranchId },
     });
+    return result;
+  }
+
+  async assignSlot(principal: Principal, dto: AssignInventorySlotDto) {
+    const unit = await this.ctx.prisma.bloodUnit.findUnique({ where: { id: dto.unitId }, include: { inventorySlot: true } });
+    if (!unit) throw new NotFoundException("Blood unit not found");
+    const bid = this.ctx.resolveBranchId(principal, unit.branchId);
+
+    const eq = await this.ctx.prisma.bloodBankEquipment.findUnique({ where: { id: dto.equipmentId } });
+    if (!eq) throw new NotFoundException("Equipment not found");
+    if (eq.branchId !== bid) throw new BadRequestException("Equipment belongs to a different branch");
+    if (!eq.isActive) throw new BadRequestException("Equipment is inactive");
+
+    const result = await this.ctx.prisma.bloodInventorySlot.upsert({
+      where: { bloodUnitId: dto.unitId },
+      create: {
+        bloodUnitId: dto.unitId,
+        equipmentId: dto.equipmentId,
+        shelf: dto.shelf,
+        slot: dto.slot,
+      },
+      update: {
+        equipmentId: dto.equipmentId,
+        shelf: dto.shelf ?? undefined,
+        slot: dto.slot ?? undefined,
+        assignedAt: new Date(),
+        removedAt: null,
+      },
+    });
+
+    await this.ctx.audit.log({
+      branchId: bid,
+      actorUserId: principal.userId,
+      action: "BB_STORAGE_ASSIGNED",
+      entity: "BloodUnit",
+      entityId: dto.unitId,
+      meta: { equipmentId: dto.equipmentId, shelf: dto.shelf, slot: dto.slot },
+    });
+
     return result;
   }
 

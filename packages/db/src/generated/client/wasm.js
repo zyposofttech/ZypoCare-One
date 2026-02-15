@@ -3182,6 +3182,7 @@ exports.Prisma.BloodBankFacilityScalarFieldEnum = {
   licenseValidTo: 'licenseValidTo',
   operatingHours: 'operatingHours',
   physicalLayout: 'physicalLayout',
+  defaultStorageEquipmentId: 'defaultStorageEquipmentId',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -3586,6 +3587,105 @@ exports.Prisma.MSBOSConfigScalarFieldEnum = {
   recommendedPlatelet: 'recommendedPlatelet',
   recommendedCryo: 'recommendedCryo',
   isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.NotificationScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  title: 'title',
+  message: 'message',
+  severity: 'severity',
+  status: 'status',
+  source: 'source',
+  entity: 'entity',
+  entityId: 'entityId',
+  meta: 'meta',
+  toUserId: 'toUserId',
+  ackByUserId: 'ackByUserId',
+  ackAt: 'ackAt',
+  resolvedByUserId: 'resolvedByUserId',
+  resolvedAt: 'resolvedAt',
+  dedupeKey: 'dedupeKey',
+  tags: 'tags',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.NotificationReadScalarFieldEnum = {
+  id: 'id',
+  notificationId: 'notificationId',
+  userId: 'userId',
+  readAt: 'readAt'
+};
+
+exports.Prisma.NotificationPreferenceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  enabled: 'enabled',
+  severityMin: 'severityMin',
+  channels: 'channels',
+  digest: 'digest',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BloodUnitTransferScalarFieldEnum = {
+  id: 'id',
+  fromBranchId: 'fromBranchId',
+  toBranchId: 'toBranchId',
+  status: 'status',
+  courierName: 'courierName',
+  courierRef: 'courierRef',
+  dispatchTempC: 'dispatchTempC',
+  receivedTempC: 'receivedTempC',
+  notes: 'notes',
+  createdByUserId: 'createdByUserId',
+  dispatchedByUserId: 'dispatchedByUserId',
+  dispatchedAt: 'dispatchedAt',
+  receivedByUserId: 'receivedByUserId',
+  receivedAt: 'receivedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BloodUnitTransferItemScalarFieldEnum = {
+  id: 'id',
+  transferId: 'transferId',
+  bloodUnitId: 'bloodUnitId'
+};
+
+exports.Prisma.BloodLookbackCaseScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  status: 'status',
+  triggerType: 'triggerType',
+  donorId: 'donorId',
+  notes: 'notes',
+  computedData: 'computedData',
+  createdByUserId: 'createdByUserId',
+  closedByUserId: 'closedByUserId',
+  closedAt: 'closedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BBReportRunScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  type: 'type',
+  status: 'status',
+  params: 'params',
+  data: 'data',
+  createdByUserId: 'createdByUserId',
+  submittedByUserId: 'submittedByUserId',
+  submittedAt: 'submittedAt',
+  approvedByUserId: 'approvedByUserId',
+  approvedAt: 'approvedAt',
+  rejectedByUserId: 'rejectedByUserId',
+  rejectedAt: 'rejectedAt',
+  rejectReason: 'rejectReason',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -5089,6 +5189,8 @@ exports.BloodUnitStatus = exports.$Enums.BloodUnitStatus = {
   RESERVED: 'RESERVED',
   CROSS_MATCHED: 'CROSS_MATCHED',
   ISSUED: 'ISSUED',
+  TRANSFER_PENDING: 'TRANSFER_PENDING',
+  IN_TRANSIT: 'IN_TRANSIT',
   TRANSFUSED: 'TRANSFUSED',
   DISCARDED: 'DISCARDED',
   SEPARATED: 'SEPARATED',
@@ -5141,6 +5243,69 @@ exports.TransfusionReactionType = exports.$Enums.TransfusionReactionType = {
   ANAPHYLAXIS: 'ANAPHYLAXIS',
   BACTERIAL: 'BACTERIAL',
   OTHER: 'OTHER'
+};
+
+exports.NotificationSeverity = exports.$Enums.NotificationSeverity = {
+  INFO: 'INFO',
+  WARNING: 'WARNING',
+  CRITICAL: 'CRITICAL'
+};
+
+exports.NotificationStatus = exports.$Enums.NotificationStatus = {
+  OPEN: 'OPEN',
+  ACKNOWLEDGED: 'ACKNOWLEDGED',
+  RESOLVED: 'RESOLVED'
+};
+
+exports.NotificationDigest = exports.$Enums.NotificationDigest = {
+  NONE: 'NONE',
+  DAILY: 'DAILY',
+  WEEKLY: 'WEEKLY'
+};
+
+exports.NotificationChannel = exports.$Enums.NotificationChannel = {
+  IN_APP: 'IN_APP',
+  EMAIL: 'EMAIL',
+  SMS: 'SMS',
+  WHATSAPP: 'WHATSAPP'
+};
+
+exports.BloodUnitTransferStatus = exports.$Enums.BloodUnitTransferStatus = {
+  INITIATED: 'INITIATED',
+  DISPATCHED: 'DISPATCHED',
+  RECEIVED: 'RECEIVED',
+  REJECTED: 'REJECTED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.LookbackStatus = exports.$Enums.LookbackStatus = {
+  OPEN: 'OPEN',
+  INVESTIGATING: 'INVESTIGATING',
+  CLOSED: 'CLOSED'
+};
+
+exports.LookbackTriggerType = exports.$Enums.LookbackTriggerType = {
+  REACTIVE_TTI: 'REACTIVE_TTI',
+  POST_ISSUE_REVIEW: 'POST_ISSUE_REVIEW',
+  MANUAL: 'MANUAL'
+};
+
+exports.BBReportType = exports.$Enums.BBReportType = {
+  DAILY_SUMMARY: 'DAILY_SUMMARY',
+  UTILIZATION: 'UTILIZATION',
+  DISCARD_ANALYSIS: 'DISCARD_ANALYSIS',
+  DONOR_DEFERRAL: 'DONOR_DEFERRAL',
+  TTI_SEROPREVALENCE: 'TTI_SEROPREVALENCE',
+  HAEMOVIGILANCE: 'HAEMOVIGILANCE',
+  NACO_ANNUAL: 'NACO_ANNUAL',
+  SBTC_QUARTERLY: 'SBTC_QUARTERLY'
+};
+
+exports.BBReportRunStatus = exports.$Enums.BBReportRunStatus = {
+  DRAFT: 'DRAFT',
+  SUBMITTED: 'SUBMITTED',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
 };
 
 exports.Prisma.ModelName = {
@@ -5353,7 +5518,14 @@ exports.Prisma.ModelName = {
   QualityControlRecord: 'QualityControlRecord',
   BloodDonationCamp: 'BloodDonationCamp',
   MTPSession: 'MTPSession',
-  MSBOSConfig: 'MSBOSConfig'
+  MSBOSConfig: 'MSBOSConfig',
+  Notification: 'Notification',
+  NotificationRead: 'NotificationRead',
+  NotificationPreference: 'NotificationPreference',
+  BloodUnitTransfer: 'BloodUnitTransfer',
+  BloodUnitTransferItem: 'BloodUnitTransferItem',
+  BloodLookbackCase: 'BloodLookbackCase',
+  BBReportRun: 'BBReportRun'
 };
 
 /**
