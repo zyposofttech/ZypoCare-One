@@ -66,7 +66,7 @@ export class OtValidationService {
       { key: "BIOMEDICAL_WASTE", label: "Biomedical waste management configured", ok: complianceConfigs.some((c) => c.configType === "BIOMEDICAL_WASTE"), severity: "WARNING" as const },
       { key: "SSI_SURVEILLANCE", label: "SSI surveillance configured", ok: complianceConfigs.some((c) => c.configType === "SSI_SURVEILLANCE"), severity: "WARNING" as const },
       { key: "STAFF_ASSIGNMENTS", label: "Staff assigned to OT", ok: staffAssignments.length >= 1, severity: "WARNING" as const },
-      { key: "TABLES_PER_THEATRE", label: "All theatres have tables", ok: theatres.every((t) => (t.theatre as any)?.tables?.length >= 1 || true), severity: "WARNING" as const },
+      { key: "TABLES_PER_THEATRE", label: "All theatres have tables", ok: theatres.every((t) => (t.theatre as any)?.tables?.length >= 1), severity: "WARNING" as const },
     ];
 
     const allChecks = [...blockerChecks, ...warningChecks];
