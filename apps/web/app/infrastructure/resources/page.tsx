@@ -1391,7 +1391,7 @@ export default function ResourcesPage() {
                 <DialogDescription>
                   {stateDlgResource ? (
                     <>
-                      {stateDlgResource.code} <span className="font-semibold">{stateDlgNext}</span>
+                      {stateDlgResource.code} &rarr; <span className="font-semibold">{stateDlgNext}</span>
                     </>
                   ) : (
                     "Provide a reason to continue."
