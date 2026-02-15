@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,9 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { apiFetch } from "@/lib/api";
-import { getAccessToken } from "@/lib/auth";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
 import { cn } from "@/lib/utils";
 import {
@@ -43,6 +41,32 @@ type ReportRun = {
   approvedByUser?: { id: string; name: string; email?: string } | null;
   rejectedReason?: string | null;
   data?: any;
+};
+
+type ReportType =
+  | "NACO_ANNUAL"
+  | "SBTC_QUARTERLY"
+  | "UTILIZATION"
+  | "HAEMOVIGILANCE"
+  | "DISCARD_ANALYSIS"
+  | "DONOR_DEFERRAL"
+  | "TTI_SEROPREVALENCE"
+  | "DAILY_SUMMARY";
+
+type ReportTypeMeta = {
+  type: ReportType;
+  title: string;
+  description: string;
+  params: "year" | "yearQuarter" | "range" | "date";
+};
+
+type RunForm = {
+  reportType: ReportType | "";
+  year: string;
+  quarter: string;
+  date: string;
+  from: string;
+  to: string;
 };
 
 const REPORT_TYPES = [
@@ -94,7 +118,7 @@ const REPORT_TYPES = [
     description: "Daily snapshot for operations.",
     params: "date" as const,
   },
-] as const;
+] as const satisfies readonly ReportTypeMeta[];
 
 function formatDate(value: string | Date | null | undefined) {
   if (!value) return "—";
@@ -116,7 +140,10 @@ function statusBadge(status: ReportRun["status"]) {
 }
 
 async function downloadWithAuth(url: string, filenameHint?: string) {
-  const token = getAccessToken();
+  const token =
+    typeof window === "undefined"
+      ? null
+      : localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
   const res = await fetch(url, {
     method: "GET",
     headers: {
@@ -146,18 +173,9 @@ async function downloadWithAuth(url: string, filenameHint?: string) {
   URL.revokeObjectURL(href);
 }
 
-const RunSchema = z.object({
-  reportType: z.string().min(1),
-  year: z.string().optional(),
-  quarter: z.string().optional(),
-  date: z.string().optional(),
-  from: z.string().optional(),
-  to: z.string().optional(),
-});
-
 export default function BloodBankReportsPage() {
   const { toast } = useToast();
-  const { selectedBranch } = useBranchContext();
+  const { branchId } = useBranchContext();
 
   const [runs, setRuns] = useState<ReportRun[]>([]);
   const [loading, setLoading] = useState(false);
@@ -166,10 +184,10 @@ export default function BloodBankReportsPage() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
 
-  const [selectedType, setSelectedType] = useState<(typeof REPORT_TYPES)[number] | null>(null);
+  const [selectedType, setSelectedType] = useState<ReportTypeMeta | null>(null);
   const [selectedRun, setSelectedRun] = useState<ReportRun | null>(null);
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<RunForm>({
     reportType: "",
     year: "",
     quarter: "1",
@@ -182,10 +200,8 @@ export default function BloodBankReportsPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [exportFormat, setExportFormat] = useState("pdf");
 
-  const branchId = selectedBranch?.id;
-
   const typeMeta = useMemo(() => {
-    const m = new Map(REPORT_TYPES.map((t) => [t.type, t] as const));
+    const m = new Map<string, ReportTypeMeta>(REPORT_TYPES.map((t) => [t.type, t]));
     return m;
   }, []);
 
@@ -207,7 +223,7 @@ export default function BloodBankReportsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [branchId]);
 
-  const openRunDialog = (t: (typeof REPORT_TYPES)[number]) => {
+  const openRunDialog = (t: ReportTypeMeta) => {
     setSelectedType(t);
     setForm((p) => ({ ...p, reportType: t.type }));
     setRunDialogOpen(true);
@@ -215,16 +231,32 @@ export default function BloodBankReportsPage() {
 
   const createRun = async () => {
     if (!branchId) return;
-    const parsed = RunSchema.safeParse(form);
-    if (!parsed.success) {
-      toast({ title: "Invalid inputs", description: parsed.error.issues[0]?.message, variant: "destructive" });
-      return;
-    }
-
     const t = selectedType ?? typeMeta.get(form.reportType) ?? null;
     if (!t) {
       toast({ title: "Select a report type", variant: "destructive" });
       return;
+    }
+    if ((t.params === "year" || t.params === "yearQuarter") && !/^\d{4}$/.test(form.year)) {
+      toast({ title: "Invalid inputs", description: "Enter a valid 4-digit year.", variant: "destructive" });
+      return;
+    }
+    if (t.params === "yearQuarter" && !["1", "2", "3", "4"].includes(form.quarter)) {
+      toast({ title: "Invalid inputs", description: "Quarter must be one of Q1 to Q4.", variant: "destructive" });
+      return;
+    }
+    if (t.params === "date" && !form.date) {
+      toast({ title: "Invalid inputs", description: "Date is required.", variant: "destructive" });
+      return;
+    }
+    if (t.params === "range") {
+      if (!form.from || !form.to) {
+        toast({ title: "Invalid inputs", description: "From and To dates are required.", variant: "destructive" });
+        return;
+      }
+      if (form.from > form.to) {
+        toast({ title: "Invalid inputs", description: "From date cannot be after To date.", variant: "destructive" });
+        return;
+      }
     }
 
     const parameters: any = {};
@@ -303,7 +335,7 @@ export default function BloodBankReportsPage() {
   };
 
   return (
-    <AppShell>
+    <AppShell title="Blood Bank Reports">
       <div className="space-y-6">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -466,7 +498,7 @@ export default function BloodBankReportsPage() {
                 <Select
                   value={form.reportType}
                   onValueChange={(v) => {
-                    setForm((p) => ({ ...p, reportType: v }));
+                    setForm((p) => ({ ...p, reportType: v as ReportType }));
                     setSelectedType(typeMeta.get(v) ?? null);
                   }}
                 >

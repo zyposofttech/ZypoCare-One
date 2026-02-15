@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { apiFetch } from "@/lib/api";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
 import { cn } from "@/lib/utils";
@@ -63,8 +63,7 @@ const TRIGGERS = [
 
 export default function BloodBankLookbackPage() {
   const { toast } = useToast();
-  const { selectedBranch } = useBranchContext();
-  const branchId = selectedBranch?.id;
+  const { branchId } = useBranchContext();
 
   const [cases, setCases] = useState<LookbackCase[]>([]);
   const [loading, setLoading] = useState(false);
@@ -208,7 +207,7 @@ export default function BloodBankLookbackPage() {
   }, [selected]);
 
   return (
-    <AppShell>
+    <AppShell title="Blood Bank Lookback">
       <div className="space-y-6">
         <div className="flex items-start justify-between gap-4">
           <div>

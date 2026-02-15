@@ -9,7 +9,7 @@ import type {
 
 @Injectable()
 export class IssueService {
-  constructor(private readonly ctx: BBContextService) {}
+  constructor(private readonly ctx: BBContextService) { }
 
   /**
    * Mandatory TTI tests for release / issue.
@@ -40,8 +40,8 @@ export class IssueService {
   private normalizeTestName(name: string): string {
     return String(name ?? "").trim().toLowerCase();
   }
-  
-    private ttiGateFailures(unit: any): string[] {
+
+  private ttiGateFailures(unit: any): string[] {
     const latestByName = new Map<string, any>();
     for (const t of unit?.ttiTests ?? []) {
       const k = this.normalizeTestName(t.testName);
@@ -172,7 +172,7 @@ export class IssueService {
       const sampleRejects = rejects.slice(0, 8);
       throw new BadRequestException(
         `Insufficient eligible units for emergency release. Need ${qty}, allocated ${picked.length} (short by ${shortage}). ` +
-          (sampleRejects.length ? `Sample rejects: ${sampleRejects.map((r) => `${r.unitId}:${r.reasons.join("|")}`).join(", ")}` : ""),
+        (sampleRejects.length ? `Sample rejects: ${sampleRejects.map((r) => `${r.unitId}:${r.reasons.join("|")}`).join(", ")}` : ""),
       );
     }
 
@@ -294,7 +294,7 @@ export class IssueService {
     if (breach) {
       throw new BadRequestException(
         `Temperature breach pending acknowledgement for equipment ${eq.equipmentId}. ` +
-          `Breach log ${breach.id} at ${breach.recordedAt.toISOString()} (temp: ${String(breach.temperatureC)}°C).`,
+        `Breach log ${breach.id} at ${breach.recordedAt.toISOString()} (temp: ${String(breach.temperatureC)}°C).`,
       );
     }
 
@@ -323,6 +323,35 @@ export class IssueService {
     if (!existing) return entry;
     if (Array.isArray(existing)) return [...existing, entry];
     return [existing, entry];
+  }
+
+  private vitalsUpdateForInterval(
+    transfusion: any,
+    intervalIndex: number,
+    dto: RecordVitalsDto,
+    principal: Principal,
+  ): Record<string, unknown> {
+    const intervalRaw = String(dto?.interval ?? "").trim().toUpperCase();
+    let bucket: "preVitals" | "vitals15Min" | "vitals30Min" | "vitals1Hr";
+
+    if (intervalRaw === "PRE") bucket = "preVitals";
+    else if (intervalRaw === "15MIN") bucket = "vitals15Min";
+    else if (intervalRaw === "30MIN") bucket = "vitals30Min";
+    else if (intervalRaw === "1HR" || intervalRaw === "END") bucket = "vitals1Hr";
+    else if (intervalIndex <= 0) bucket = "vitals15Min";
+    else if (intervalIndex === 1) bucket = "vitals30Min";
+    else bucket = "vitals1Hr";
+
+    const entry = this.buildVitals(dto, principal);
+    const data: Record<string, unknown> = {
+      [bucket]: this.appendVitals((transfusion as any)[bucket], entry),
+    };
+
+    if (dto.volumeTransfused !== undefined && dto.volumeTransfused !== null) {
+      data.totalVolumeMl = dto.volumeTransfused;
+    }
+
+    return data;
   }
 
   async listIssues(
@@ -411,8 +440,10 @@ export class IssueService {
     });
 
     if (opts.transfusing) {
-      rows = rows.filter((r) => r.status === "ACTIVE" || r.status === "IN_PROGRESS");
+      // Include hard-stop reaction cases in the monitor so they don't disappear.
+      rows = rows.filter((r) => r.status === "ACTIVE" || r.status === "IN_PROGRESS" || r.status === "REACTION");
     }
+
 
     if (opts.transfusedToday) {
       const today = new Date().toISOString().slice(0, 10);
@@ -526,53 +557,102 @@ export class IssueService {
     return result;
   }
 
- async bedsideVerify(principal: Principal, issueId: string, dto: BedsideVerifyDto) {
-  const issue = await this.ctx.prisma.bloodIssue.findUnique({
-    where: { id: issueId },
-    include: { bloodUnit: true, request: { include: { patient: true } } },
-  });
-  if (!issue) throw new NotFoundException("Issue record not found");
-  const bid = this.ctx.resolveBranchId(principal, issue.branchId);
+  async bedsideVerify(principal: Principal, issueId: string, dto: BedsideVerifyDto) {
+    const issue = await this.ctx.prisma.bloodIssue.findUnique({
+      where: { id: issueId },
+      include: { bloodUnit: true, request: { include: { patient: true } } },
+    });
+    if (!issue) throw new NotFoundException("Issue record not found");
+    const bid = this.ctx.resolveBranchId(principal, issue.branchId);
 
-  const existing = await this.ctx.prisma.transfusionRecord.findUnique({ where: { issueId } });
-  if (existing?.startedAt) {
-    throw new BadRequestException("Bedside verification cannot be modified after transfusion has started");
-  }
+    const existing = await this.ctx.prisma.transfusionRecord.findUnique({ where: { issueId } });
+    if (existing?.startedAt) {
+      throw new BadRequestException("Bedside verification cannot be modified after transfusion has started");
+    }
 
-  const isEmergency = !!issue.isEmergencyIssue || issue.request.urgency === "EMERGENCY";
+    const isEmergency = !!issue.isEmergencyIssue || issue.request.urgency === "EMERGENCY";
 
-  const scannedPatient = String(dto.scannedPatientId ?? "").trim();
-  const scannedUnit = String(dto.scannedUnitBarcode ?? "").trim();
-  const verifier2 = String((dto as any).verifier2StaffId ?? "").trim();
+    const scannedPatient = String(dto.scannedPatientId ?? "").trim();
+    const scannedUnit = String(dto.scannedUnitBarcode ?? "").trim();
+    const verifier2 = String((dto as any).verifier2StaffId ?? "").trim();
 
-  // Non-emergency bedside verification requires scans + two-person check.
-  if (!isEmergency) {
-    if (!scannedPatient) throw new BadRequestException("Wristband scan is required for bedside verification");
-    if (!scannedUnit) throw new BadRequestException("Unit barcode scan is required for bedside verification");
-    if (!verifier2) throw new BadRequestException("Second verifier is required for bedside verification");
-  }
+    // Non-emergency bedside verification requires scans + two-person check.
+    if (!isEmergency) {
+      if (!scannedPatient) throw new BadRequestException("Wristband scan is required for bedside verification");
+      if (!scannedUnit) throw new BadRequestException("Unit barcode scan is required for bedside verification");
+      if (!verifier2) throw new BadRequestException("Second verifier is required for bedside verification");
+    }
 
-  const reasons: string[] = [];
-  const patientMatches = !scannedPatient
-    ? false
-    : (scannedPatient === issue.request.patientId || scannedPatient === issue.request.patient.uhid);
-  const unitMatches = !scannedUnit
-    ? false
-    : (scannedUnit === issue.bloodUnit.barcode || scannedUnit === issue.bloodUnit.unitNumber);
+    const reasons: string[] = [];
+    const patientMatches = !scannedPatient
+      ? false
+      : (scannedPatient === issue.request.patientId || scannedPatient === issue.request.patient.uhid);
+    const unitMatches = !scannedUnit
+      ? false
+      : (scannedUnit === issue.bloodUnit.barcode || scannedUnit === issue.bloodUnit.unitNumber);
 
-  if (scannedPatient && !patientMatches) reasons.push("PATIENT_MISMATCH");
-  if (scannedUnit && !unitMatches) reasons.push("UNIT_MISMATCH");
+    if (scannedPatient && !patientMatches) reasons.push("PATIENT_MISMATCH");
+    if (scannedUnit && !unitMatches) reasons.push("UNIT_MISMATCH");
 
-  // Safety: ABO/Rh compatibility (strict). Uses sample blood group if available.
-  const sample = await this.ctx.prisma.patientBloodSample.findUnique({ where: { requestId: issue.requestId } });
-  if (sample?.patientBloodGroup && issue.bloodUnit.bloodGroup) {
-    const ok = this.isABOCompatible(sample.patientBloodGroup as any, issue.bloodUnit.bloodGroup as any);
-    if (!ok) reasons.push("ABO_INCOMPATIBLE");
-  }
+    // Safety: ABO/Rh compatibility (strict). Uses sample blood group if available.
+    const sample = await this.ctx.prisma.patientBloodSample.findUnique({ where: { requestId: issue.requestId } });
+    if (sample?.patientBloodGroup && issue.bloodUnit.bloodGroup) {
+      const ok = this.isABOCompatible(sample.patientBloodGroup as any, issue.bloodUnit.bloodGroup as any);
+      if (!ok) reasons.push("ABO_INCOMPATIBLE");
+    }
 
-  // Near-miss workflow: record event + hard block.
-  if (reasons.length > 0) {
-    await this.ctx.prisma.transfusionRecord.upsert({
+    // Near-miss workflow: record event + hard block.
+    if (reasons.length > 0) {
+      await this.ctx.prisma.transfusionRecord.upsert({
+        where: { issueId },
+        create: {
+          branchId: bid,
+          issueId,
+          patientId: issue.request.patientId,
+          bedsideVerifier1StaffId: this.actorStaffId(principal),
+          bedsideVerifier2StaffId: verifier2 || null,
+          bedsideVerifiedAt: new Date(),
+          patientWristbandScan: !!scannedPatient,
+          unitBarcodeScan: !!scannedUnit,
+          bedsideVerificationOk: false,
+        },
+        update: {
+          bedsideVerifier1StaffId: this.actorStaffId(principal),
+          bedsideVerifier2StaffId: verifier2 || undefined,
+          bedsideVerifiedAt: new Date(),
+          patientWristbandScan: !!scannedPatient,
+          unitBarcodeScan: !!scannedUnit,
+          bedsideVerificationOk: false,
+        },
+      });
+
+      await this.ctx.audit.log({
+        branchId: bid,
+        actorUserId: principal.userId,
+        action: "BB_BEDSIDE_NEAR_MISS",
+        entity: "BloodIssue",
+        entityId: issueId,
+        meta: {
+          reasons,
+          scannedPatient,
+          scannedUnit,
+          expectedPatientId: issue.request.patientId,
+          expectedUhid: issue.request.patient.uhid,
+          expectedUnitBarcode: issue.bloodUnit.barcode,
+          expectedUnitNumber: issue.bloodUnit.unitNumber,
+          patientBloodGroup: sample?.patientBloodGroup ?? null,
+          unitBloodGroup: issue.bloodUnit.bloodGroup ?? null,
+          verifier1: this.actorStaffId(principal),
+          verifier2: verifier2 || null,
+        },
+      });
+
+      throw new BadRequestException(
+        `Near-miss recorded (${reasons.join(", ")}). Bedside verification failed; transfusion is blocked until re-verified.`
+      );
+    }
+
+    const result = await this.ctx.prisma.transfusionRecord.upsert({
       where: { issueId },
       create: {
         branchId: bid,
@@ -583,7 +663,7 @@ export class IssueService {
         bedsideVerifiedAt: new Date(),
         patientWristbandScan: !!scannedPatient,
         unitBarcodeScan: !!scannedUnit,
-        bedsideVerificationOk: false,
+        bedsideVerificationOk: true,
       },
       update: {
         bedsideVerifier1StaffId: this.actorStaffId(principal),
@@ -591,101 +671,96 @@ export class IssueService {
         bedsideVerifiedAt: new Date(),
         patientWristbandScan: !!scannedPatient,
         unitBarcodeScan: !!scannedUnit,
-        bedsideVerificationOk: false,
+        bedsideVerificationOk: true,
       },
     });
 
     await this.ctx.audit.log({
       branchId: bid,
       actorUserId: principal.userId,
-      action: "BB_BEDSIDE_NEAR_MISS",
+      action: "BB_BEDSIDE_VERIFIED",
       entity: "BloodIssue",
       entityId: issueId,
-      meta: {
-        reasons,
-        scannedPatient,
-        scannedUnit,
-        expectedPatientId: issue.request.patientId,
-        expectedUhid: issue.request.patient.uhid,
-        expectedUnitBarcode: issue.bloodUnit.barcode,
-        expectedUnitNumber: issue.bloodUnit.unitNumber,
-        patientBloodGroup: sample?.patientBloodGroup ?? null,
-        unitBloodGroup: issue.bloodUnit.bloodGroup ?? null,
-        verifier1: this.actorStaffId(principal),
-        verifier2: verifier2 || null,
-      },
+      meta: { scannedPatient, scannedUnit, verifier2: verifier2 || null },
     });
 
-    throw new BadRequestException(
-      `Near-miss recorded (${reasons.join(", ")}). Bedside verification failed; transfusion is blocked until re-verified.`
-    );
+    return result;
   }
 
-  const result = await this.ctx.prisma.transfusionRecord.upsert({
-    where: { issueId },
-    create: {
-      branchId: bid,
-      issueId,
-      patientId: issue.request.patientId,
-      bedsideVerifier1StaffId: this.actorStaffId(principal),
-      bedsideVerifier2StaffId: verifier2 || null,
-      bedsideVerifiedAt: new Date(),
-      patientWristbandScan: !!scannedPatient,
-      unitBarcodeScan: !!scannedUnit,
-      bedsideVerificationOk: true,
-    },
-    update: {
-      bedsideVerifier1StaffId: this.actorStaffId(principal),
-      bedsideVerifier2StaffId: verifier2 || undefined,
-      bedsideVerifiedAt: new Date(),
-      patientWristbandScan: !!scannedPatient,
-      unitBarcodeScan: !!scannedUnit,
-      bedsideVerificationOk: true,
-    },
-  });
 
-  await this.ctx.audit.log({
-    branchId: bid,
-    actorUserId: principal.userId,
-    action: "BB_BEDSIDE_VERIFIED",
-    entity: "BloodIssue",
-    entityId: issueId,
-    meta: { scannedPatient, scannedUnit, verifier2: verifier2 || null },
-  });
-
-  return result;
-}
-
-
- async startTransfusion(principal: Principal, issueId: string, dto: StartTransfusionDto) {
+  async startTransfusion(principal: Principal, issueId: string, dto: StartTransfusionDto) {
   const issue = await this.ctx.prisma.bloodIssue.findUnique({
     where: { id: issueId },
-    include: { request: true },
+    include: {
+      request: { select: { id: true, patientId: true, urgency: true } },
+    },
   });
   if (!issue) throw new NotFoundException("Issue record not found");
   const bid = this.ctx.resolveBranchId(principal, issue.branchId);
 
-  // Hard gate: bedside verification must exist and be OK before starting.
-  const existingRecord = await this.ctx.prisma.transfusionRecord.findUnique({ where: { issueId } });
-  if (!existingRecord) {
-    throw new BadRequestException("Bedside verification is required before starting transfusion");
-  }
-  if (existingRecord.bedsideVerificationOk === false) {
-    throw new BadRequestException(
-      "Bedside verification previously failed (near-miss). Re-verify successfully before starting transfusion"
-    );
-  }
+  const existingRecord = await this.ctx.prisma.transfusionRecord.findFirst({ where: { issueId } });
+  if (!existingRecord) throw new NotFoundException("Transfusion record not found");
+
   if (!existingRecord.bedsideVerifiedAt) {
     throw new BadRequestException("Bedside verification timestamp missing. Re-verify before starting transfusion");
   }
 
+  // PRD S9: Allergy/Reaction hard-stop gate
+  // If patient has serious reaction history, starting requires explicit override (except emergency/MTP).
+  const urgency = String(issue.request?.urgency ?? "").toUpperCase();
+  const isEmergency = urgency === "EMERGENCY" || urgency === "MTP" || issue.isEmergencyIssue === true;
+  if (!isEmergency) {
+    const recentSerious = await this.ctx.prisma.transfusionReaction.findFirst({
+      where: {
+        transfusionRecord: { patientId: issue.request.patientId },
+        OR: [
+          { severity: { in: ["SEVERE", "LIFE_THREATENING", "FATAL"] } },
+          { reactionType: "ANAPHYLAXIS" },
+          { reactionType: "HEMOLYTIC_ACUTE" },
+          { reactionType: "BACTERIAL" },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, severity: true, reactionType: true, createdAt: true },
+    });
+
+    if (recentSerious && !dto.highRiskOverride) {
+      throw new BadRequestException(
+        `HIGH_RISK_OVERRIDE_REQUIRED: Patient has history of serious transfusion reaction ` +
+          `(${recentSerious.reactionType}/${recentSerious.severity ?? "UNKNOWN"}) recorded on ` +
+          `${recentSerious.createdAt.toISOString()}. Doctor override is required to start transfusion.`,
+      );
+    }
+
+    if (recentSerious && dto.highRiskOverride) {
+      await this.ctx.audit.log({
+        branchId: bid,
+        actorUserId: principal.userId,
+        action: "BB_TRANSFUSION_HIGH_RISK_OVERRIDE",
+        entity: "BloodIssue",
+        entityId: issueId,
+        meta: {
+          patientId: issue.request.patientId,
+          priorReactionId: recentSerious.id,
+          priorReactionType: recentSerious.reactionType,
+          priorSeverity: recentSerious.severity,
+          overrideReason: dto.highRiskOverrideReason ?? null,
+        },
+      });
+    }
+  }
+
   const now = new Date();
+  const preVitals = this.buildVitals(dto, principal);
+  if (dto.startNotes) {
+    (preVitals as any).startNotes = dto.startNotes;
+  }
 
   const result = await this.ctx.prisma.transfusionRecord.update({
-    where: { issueId },
+    where: { id: existingRecord.id },
     data: {
-      startedAt: existingRecord.startedAt ?? now,
-      preVitals: { ...(dto.vitals ?? {}), startNotes: (dto as any).startNotes ?? null },
+      startedAt: now,
+      preVitals,
       administeredByStaffId: this.actorStaffId(principal),
     },
   });
@@ -696,115 +771,277 @@ export class IssueService {
     action: "BB_TRANSFUSION_STARTED",
     entity: "TransfusionRecord",
     entityId: result.id,
-    meta: { issueId, bloodUnitId: issue.bloodUnitId },
+    meta: { issueId, startedAt: now.toISOString(), verifiedBy: dto.verifiedBy ?? null },
   });
 
   return result;
 }
 
 
+
   async recordVitals(principal: Principal, issueId: string, dto: RecordVitalsDto) {
-    const transfusion = await this.ctx.prisma.transfusionRecord.findFirst({ where: { issueId } });
-    if (!transfusion) throw new NotFoundException("Transfusion record not found");
-    const bid = this.ctx.resolveBranchId(principal, transfusion.branchId);
+  const transfusion = await this.ctx.prisma.transfusionRecord.findFirst({ where: { issueId } });
+  if (!transfusion) throw new NotFoundException("Transfusion record not found");
+  const bid = this.ctx.resolveBranchId(principal, transfusion.branchId);
 
-    const intervalRaw = String((dto as any).interval ?? "AUTO").trim().toUpperCase();
-    const entry = this.buildVitals(dto, principal);
-
-    let bucket: "vitals15Min" | "vitals30Min" | "vitals1Hr" = "vitals15Min";
-    if (intervalRaw === "15MIN") bucket = "vitals15Min";
-    else if (intervalRaw === "30MIN") bucket = "vitals30Min";
-    else if (intervalRaw === "1HR") bucket = "vitals1Hr";
-    else if (intervalRaw === "AUTO") {
-      bucket = !transfusion.vitals15Min ? "vitals15Min" : !transfusion.vitals30Min ? "vitals30Min" : "vitals1Hr";
-    }
-
-    const vitalsData: Record<string, unknown> = {
-      [bucket]: this.appendVitals((transfusion as any)[bucket], entry),
-    };
-
-    if ((dto as any).volumeTransfused !== undefined && (dto as any).volumeTransfused !== null) {
-      vitalsData.totalVolumeMl = (dto as any).volumeTransfused;
-    }
-
-    const result = await this.ctx.prisma.transfusionRecord.update({
-      where: { id: transfusion.id },
-      data: vitalsData,
-    });
-
-    await this.ctx.audit.log({
-      branchId: bid,
-      actorUserId: principal.userId,
-      action: "BB_VITALS_RECORDED",
-      entity: "TransfusionRecord",
-      entityId: transfusion.id,
-      meta: { issueId, bucket },
-    });
-    return result;
+  // PRD S9 hard-stop: once a reaction is reported (or transfusion stopped), vitals entry is blocked.
+  if (transfusion.hasReaction) {
+    throw new BadRequestException(
+      "HARD_STOP: A transfusion reaction has already been reported for this issue. Further vitals entry is blocked. Use the Reaction workflow.",
+    );
+  }
+  if (transfusion.endedAt) {
+    throw new BadRequestException("Transfusion already ended. Vitals entry is not allowed.");
+  }
+  if (!transfusion.startedAt) {
+    throw new BadRequestException("Transfusion has not started yet. Start transfusion before recording vitals.");
   }
 
-  async endTransfusion(principal: Principal, issueId: string, dto: EndTransfusionDto) {
-    const transfusion = await this.ctx.prisma.transfusionRecord.findFirst({ where: { issueId } });
-    if (!transfusion) throw new NotFoundException("Transfusion record not found");
-    const bid = this.ctx.resolveBranchId(principal, transfusion.branchId);
-
-    const result = await this.ctx.prisma.transfusionRecord.update({
-      where: { id: transfusion.id },
-      data: {
-        endedAt: new Date(),
-        postVitals: this.buildVitals(dto, principal),
-        totalVolumeMl: dto.volumeTransfused ?? transfusion.totalVolumeMl,
-        hasReaction: dto.hasReaction ?? false,
-      },
-    });
-
-    const issue = await this.ctx.prisma.bloodIssue.findUnique({
-      where: { id: issueId },
-      select: { bloodUnitId: true, requestId: true },
-    });
-    if (issue) {
-      await this.ctx.prisma.bloodUnit.update({ where: { id: issue.bloodUnitId }, data: { status: "TRANSFUSED" } });
-      await this.ctx.prisma.bloodRequest.update({ where: { id: issue.requestId }, data: { status: "COMPLETED" } });
-    }
-
-    await this.ctx.audit.log({
-      branchId: bid, actorUserId: principal.userId,
-      action: "BB_TRANSFUSION_ENDED", entity: "TransfusionRecord", entityId: transfusion.id,
-      meta: { volumeTransfused: dto.volumeTransfused, hasReaction: dto.hasReaction },
-    });
-    return result;
+  const lastReaction = await this.ctx.prisma.transfusionReaction.findFirst({
+    where: { transfusionId: transfusion.id },
+    orderBy: { createdAt: "desc" },
+    select: { transfusionStopped: true },
+  });
+  if (lastReaction?.transfusionStopped) {
+    throw new BadRequestException(
+      "HARD_STOP: Transfusion was stopped due to a reported reaction. Vitals entry is blocked until case is closed.",
+    );
   }
+
+  const now = new Date();
+  const startedAt = transfusion.startedAt;
+  const intervalIndex = startedAt ? Math.max(0, Math.floor((now.getTime() - startedAt.getTime()) / (15 * 60 * 1000))) : 0;
+
+  const vitalsData = this.vitalsUpdateForInterval(transfusion, intervalIndex, dto, principal);
+
+  const result = await this.ctx.prisma.transfusionRecord.update({
+    where: { id: transfusion.id },
+    data: vitalsData,
+  });
+
+  await this.ctx.audit.log({
+    branchId: bid,
+    actorUserId: principal.userId,
+    action: "BB_VITALS_RECORDED",
+    entity: "TransfusionRecord",
+    entityId: result.id,
+    meta: { issueId, intervalIndex, recordedAt: now.toISOString() },
+  });
+
+  return result;
+}
+
+
+ async endTransfusion(principal: Principal, issueId: string, dto: EndTransfusionDto) {
+  const transfusion = await this.ctx.prisma.transfusionRecord.findFirst({ where: { issueId } });
+  if (!transfusion) throw new NotFoundException("Transfusion record not found");
+  const bid = this.ctx.resolveBranchId(principal, transfusion.branchId);
+
+  // PRD S9 hard-stop: completion endpoint cannot be used once a reaction exists.
+  const reactionExists = await this.ctx.prisma.transfusionReaction.findFirst({
+    where: { transfusionId: transfusion.id },
+    select: { id: true },
+  });
+  if (transfusion.hasReaction || reactionExists) {
+    throw new BadRequestException(
+      "HARD_STOP: Reaction exists for this transfusion. Do not use End Transfusion. Use the Reaction workflow; it stops transfusion and quarantines the unit.",
+    );
+  }
+
+  const issue = await this.ctx.prisma.bloodIssue.findUnique({
+    where: { id: issueId },
+    include: { request: true },
+  });
+  if (!issue) throw new NotFoundException("Issue record not found");
+
+  // ensure branch scoping
+  this.ctx.resolveBranchId(principal, issue.branchId);
+
+  const result = await this.ctx.prisma.transfusionRecord.update({
+    where: { id: transfusion.id },
+    data: {
+      endedAt: new Date(),
+      postVitals: this.buildVitals(dto, principal),
+      totalVolumeMl: dto.volumeTransfused ?? transfusion.totalVolumeMl,
+      hasReaction: dto.hasReaction ?? false,
+    },
+  });
+
+  // mark unit transfused + request completed (existing behavior)
+  await this.ctx.prisma.bloodUnit.update({
+    where: { id: issue.bloodUnitId },
+    data: { status: "TRANSFUSED" },
+  });
+
+  await this.ctx.prisma.bloodRequest.update({
+    where: { id: issue.requestId },
+    data: { status: "COMPLETED" },
+  });
+
+  await this.ctx.audit.log({
+    branchId: bid,
+    actorUserId: principal.userId,
+    action: "BB_TRANSFUSION_ENDED",
+    entity: "TransfusionRecord",
+    entityId: result.id,
+    meta: { issueId, endedAt: result.endedAt?.toISOString() },
+  });
+
+  return result;
+}
 
   async reportReaction(principal: Principal, issueId: string, dto: ReportReactionDto) {
-    const transfusion = await this.ctx.prisma.transfusionRecord.findFirst({ where: { issueId } });
-    if (!transfusion) throw new NotFoundException("Transfusion record not found");
-    const bid = this.ctx.resolveBranchId(principal, transfusion.branchId);
+  const transfusion = await this.ctx.prisma.transfusionRecord.findFirst({ where: { issueId } });
+  if (!transfusion) throw new NotFoundException("Transfusion record not found");
+  const bid = this.ctx.resolveBranchId(principal, transfusion.branchId);
 
-    const result = await this.ctx.prisma.transfusionReaction.create({
+  if (!transfusion.startedAt) {
+    throw new BadRequestException("Transfusion has not started yet. Start transfusion before reporting an acute reaction.");
+  }
+
+  const issue = await this.ctx.prisma.bloodIssue.findUnique({
+    where: { id: issueId },
+    select: {
+      id: true,
+      branchId: true,
+      bloodUnitId: true,
+      requestId: true,
+      request: { select: { patientId: true, urgency: true } },
+      bloodUnit: { select: { id: true, status: true, unitNumber: true, donorId: true } },
+    },
+  });
+
+  // S9 hard-stop defaults
+  const stopTransfusion = dto.transfusionStopped !== false; // default true
+  const onsetAt = dto.onsetTime ? new Date(dto.onsetTime) : new Date();
+  const severityNorm = String(dto.severity ?? "UNKNOWN").trim().toUpperCase() || "UNKNOWN";
+  const actorStaffId = this.actorStaffId(principal);
+
+  const result = await this.ctx.prisma.$transaction(async (tx: any) => {
+    const reaction = await tx.transfusionReaction.create({
       data: {
         transfusionId: transfusion.id,
         reactionType: dto.reactionType as any,
-        severity: dto.severity ?? "UNKNOWN",
+        severity: severityNorm,
         description: dto.description,
-        onsetAt: dto.onsetTime ? new Date(dto.onsetTime) : new Date(),
+        onsetAt,
         managementNotes: dto.managementNotes,
         investigationResults: dto.investigationResults,
-        reportedByStaffId: this.actorStaffId(principal),
+        transfusionStopped: stopTransfusion,
+        reportedByStaffId: actorStaffId,
       },
     });
 
-    await this.ctx.prisma.transfusionRecord.update({
+    // Update transfusion record: mark reaction + (optionally) stop transfusion immediately.
+    const doctorNotifiedAt = dto.doctorNotified
+      ? (dto.doctorNotifiedAt ? new Date(dto.doctorNotifiedAt) : new Date())
+      : undefined;
+
+    const postVitalsExisting =
+      (transfusion.postVitals && typeof transfusion.postVitals === "object") ? transfusion.postVitals : {};
+
+    const reactionStopSnapshot =
+      dto.stopVitals && typeof dto.stopVitals === "object"
+        ? {
+            ...(dto.stopVitals as any),
+            recordedAt: new Date(),
+            recordedByStaffId: actorStaffId,
+            reactionId: reaction.id,
+            hardStop: stopTransfusion,
+          }
+        : {
+            recordedAt: new Date(),
+            recordedByStaffId: actorStaffId,
+            reactionId: reaction.id,
+            hardStop: stopTransfusion,
+          };
+
+    await tx.transfusionRecord.update({
       where: { id: transfusion.id },
-      data: { hasReaction: true },
+      data: {
+        hasReaction: true,
+        doctorNotifiedAt,
+        endedAt: stopTransfusion ? (transfusion.endedAt ?? new Date()) : undefined,
+        postVitals: stopTransfusion
+          ? { ...(postVitalsExisting as any), reactionStop: reactionStopSnapshot }
+          : undefined,
+      },
     });
 
+    // Unit quarantine (only if it's still in ISSUED state)
+    if (issue?.bloodUnitId && stopTransfusion) {
+      await tx.bloodUnit.updateMany({
+        where: { id: issue.bloodUnitId, status: "ISSUED" },
+        data: { status: "QUARANTINED" },
+      });
+    }
+
+    // Auto-open lookback case for severe/high-signal reactions (supports haemovigilance + traceability).
+    const isSevere =
+      ["SEVERE", "LIFE_THREATENING", "FATAL"].includes(severityNorm) ||
+      ["BACTERIAL", "HEMOLYTIC_ACUTE", "ANAPHYLAXIS"].includes(String(dto.reactionType).toUpperCase());
+
+    if (issue?.bloodUnitId && isSevere) {
+      const unitNo = issue.bloodUnit?.unitNumber ?? issue.bloodUnitId;
+      await tx.bloodLookbackCase.create({
+        data: {
+          branchId: bid,
+          triggerType: "MANUAL",
+          donorId: issue.bloodUnit?.donorId ?? null,
+          notes: `Auto-opened due to transfusion reaction (${dto.reactionType}/${severityNorm}) for unit ${unitNo}.`,
+          computedData: {
+            trigger: "TRANSFUSION_REACTION",
+            issueId,
+            transfusionId: transfusion.id,
+            reactionId: reaction.id,
+            patientId: issue.request?.patientId ?? transfusion.patientId,
+            bloodUnitId: issue.bloodUnitId,
+            unitNumber: issue.bloodUnit?.unitNumber ?? null,
+            reactionType: dto.reactionType,
+            severity: severityNorm,
+            onsetAt: onsetAt.toISOString(),
+            hardStop: stopTransfusion,
+            quarantineApplied: stopTransfusion && issue.bloodUnit?.status === "ISSUED",
+          },
+          createdByUserId: principal.userId,
+        },
+      });
+    }
+
+    return reaction;
+  });
+
+  await this.ctx.audit.log({
+    branchId: bid,
+    actorUserId: principal.userId,
+    action: "BB_REACTION_REPORTED",
+    entity: "TransfusionReaction",
+    entityId: result.id,
+    meta: {
+      transfusionId: transfusion.id,
+      issueId,
+      bloodUnitId: issue?.bloodUnitId ?? null,
+      reactionType: dto.reactionType,
+      severity: severityNorm,
+      hardStop: stopTransfusion,
+      doctorNotified: dto.doctorNotified ?? null,
+    },
+  });
+
+  if (stopTransfusion) {
     await this.ctx.audit.log({
-      branchId: bid, actorUserId: principal.userId,
-      action: "BB_REACTION_REPORTED", entity: "TransfusionReaction", entityId: result.id,
-      meta: { transfusionId: transfusion.id, reactionType: dto.reactionType, severity: dto.severity },
+      branchId: bid,
+      actorUserId: principal.userId,
+      action: "BB_TRANSFUSION_HARD_STOP",
+      entity: "TransfusionRecord",
+      entityId: transfusion.id,
+      meta: { issueId, reactionId: result.id },
     });
-    return result;
   }
+
+  return result;
+}
+
 
   async returnUnit(principal: Principal, issueId: string, dto: ReturnUnitDto) {
     const issue = await this.ctx.prisma.bloodIssue.findUnique({ where: { id: issueId }, include: { bloodUnit: true } });
@@ -843,9 +1080,9 @@ export class IssueService {
         summary:
           clinicalIndication || notes
             ? {
-                clinicalIndication,
-                notes,
-              }
+              clinicalIndication,
+              notes,
+            }
             : undefined,
         activatedByStaffId: this.actorStaffId(principal),
         activatedAt: new Date(),
@@ -860,10 +1097,10 @@ export class IssueService {
     });
     return result;
   }
-    /**
-   * PRD S8: Emergency uncrossmatched MTP pack release.
-   * Default: 4 O_NEG PRBC + 4 AB (POS/NEG) FFP.
-   */
+  /**
+ * PRD S8: Emergency uncrossmatched MTP pack release.
+ * Default: 4 O_NEG PRBC + 4 AB (POS/NEG) FFP.
+ */
   async releaseMtpEmergencyPack(principal: Principal, mtpSessionId: string, dto: ReleaseMtpPackDto) {
     const mtp = await this.ctx.prisma.mTPSession.findUnique({
       where: { id: mtpSessionId },
@@ -915,11 +1152,11 @@ export class IssueService {
         const rem = plateletUnits - sdp.length;
         const rdp = rem > 0
           ? await this.allocateEmergencyUnits(tx, {
-              branchId: bid,
-              componentType: "PLATELET_RDP",
-              bloodGroups: ["O_NEG", "O_POS", "A_NEG", "A_POS", "B_NEG", "B_POS", "AB_NEG", "AB_POS"],
-              quantity: rem,
-            })
+            branchId: bid,
+            componentType: "PLATELET_RDP",
+            bloodGroups: ["O_NEG", "O_POS", "A_NEG", "A_POS", "B_NEG", "B_POS", "AB_NEG", "AB_POS"],
+            quantity: rem,
+          })
           : [];
         plts = [...sdp, ...rdp];
       }
@@ -932,61 +1169,61 @@ export class IssueService {
 
       const prbcReq = prbc.length
         ? await tx.bloodRequest.create({
-            data: {
-              branchId: bid,
-              requestNumber: mkReqNo(),
-              patientId: mtp.patientId,
-              encounterId: mtp.encounterId,
-              requestedComponent: "PRBC",
-              quantityUnits: prbc.length,
-              urgency: "MTP",
-              status: "ISSUED",
-              slaTargetMinutes: 5,
-              notes: dto.notes ? String(dto.notes) : "MTP emergency uncrossmatched pack (PRBC)",
-              requestedByStaffId: this.actorStaffId(principal),
-            },
-            select: { id: true, requestNumber: true },
-          })
+          data: {
+            branchId: bid,
+            requestNumber: mkReqNo(),
+            patientId: mtp.patientId,
+            encounterId: mtp.encounterId,
+            requestedComponent: "PRBC",
+            quantityUnits: prbc.length,
+            urgency: "MTP",
+            status: "ISSUED",
+            slaTargetMinutes: 5,
+            notes: dto.notes ? String(dto.notes) : "MTP emergency uncrossmatched pack (PRBC)",
+            requestedByStaffId: this.actorStaffId(principal),
+          },
+          select: { id: true, requestNumber: true },
+        })
         : null;
       if (prbcReq) requests.push({ component: "PRBC", requestId: prbcReq.id, requestNumber: prbcReq.requestNumber, qty: prbc.length });
 
       const ffpReq = ffp.length
         ? await tx.bloodRequest.create({
-            data: {
-              branchId: bid,
-              requestNumber: mkReqNo(),
-              patientId: mtp.patientId,
-              encounterId: mtp.encounterId,
-              requestedComponent: "FFP",
-              quantityUnits: ffp.length,
-              urgency: "MTP",
-              status: "ISSUED",
-              slaTargetMinutes: 5,
-              notes: dto.notes ? String(dto.notes) : "MTP emergency uncrossmatched pack (FFP)",
-              requestedByStaffId: this.actorStaffId(principal),
-            },
-            select: { id: true, requestNumber: true },
-          })
+          data: {
+            branchId: bid,
+            requestNumber: mkReqNo(),
+            patientId: mtp.patientId,
+            encounterId: mtp.encounterId,
+            requestedComponent: "FFP",
+            quantityUnits: ffp.length,
+            urgency: "MTP",
+            status: "ISSUED",
+            slaTargetMinutes: 5,
+            notes: dto.notes ? String(dto.notes) : "MTP emergency uncrossmatched pack (FFP)",
+            requestedByStaffId: this.actorStaffId(principal),
+          },
+          select: { id: true, requestNumber: true },
+        })
         : null;
       if (ffpReq) requests.push({ component: "FFP", requestId: ffpReq.id, requestNumber: ffpReq.requestNumber, qty: ffp.length });
 
       const pltReq = plts.length
         ? await tx.bloodRequest.create({
-            data: {
-              branchId: bid,
-              requestNumber: mkReqNo(),
-              patientId: mtp.patientId,
-              encounterId: mtp.encounterId,
-              requestedComponent: plts[0]?.componentType ?? "PLATELET_SDP",
-              quantityUnits: plts.length,
-              urgency: "MTP",
-              status: "ISSUED",
-              slaTargetMinutes: 5,
-              notes: dto.notes ? String(dto.notes) : "MTP emergency uncrossmatched pack (PLT)",
-              requestedByStaffId: this.actorStaffId(principal),
-            },
-            select: { id: true, requestNumber: true },
-          })
+          data: {
+            branchId: bid,
+            requestNumber: mkReqNo(),
+            patientId: mtp.patientId,
+            encounterId: mtp.encounterId,
+            requestedComponent: plts[0]?.componentType ?? "PLATELET_SDP",
+            quantityUnits: plts.length,
+            urgency: "MTP",
+            status: "ISSUED",
+            slaTargetMinutes: 5,
+            notes: dto.notes ? String(dto.notes) : "MTP emergency uncrossmatched pack (PLT)",
+            requestedByStaffId: this.actorStaffId(principal),
+          },
+          select: { id: true, requestNumber: true },
+        })
         : null;
       if (pltReq) requests.push({ component: "PLT", requestId: pltReq.id, requestNumber: pltReq.requestNumber, qty: plts.length });
 
@@ -1109,19 +1346,21 @@ export class IssueService {
     return { ...mtp, issues };
   }
 
-  private deriveIssueStatus(issue: {
-    isReturned: boolean;
-    returnedAt: Date | null;
-    transfusionRecord: { startedAt: Date | null; endedAt: Date | null } | null;
-    bloodUnit: { status: string } | null;
-  }): string {
-    if (issue.isReturned || issue.returnedAt || issue.bloodUnit?.status === "RETURNED") return "RETURNED";
-    if (issue.transfusionRecord?.endedAt || issue.bloodUnit?.status === "TRANSFUSED") return "COMPLETED";
-    if (issue.transfusionRecord?.startedAt) return "ACTIVE";
-    if (issue.bloodUnit?.status === "DISCARDED") return "DISCARDED";
-    if (issue.bloodUnit?.status) return issue.bloodUnit.status;
-    return "ISSUED";
-  }
+private deriveIssueStatus(issue: {
+  isReturned: boolean;
+  returnedAt: Date | null;
+  transfusionRecord: { startedAt: Date | null; endedAt: Date | null; hasReaction?: boolean | null } | null;
+  bloodUnit: { status: string } | null;
+}): string {
+  if (issue.isReturned || issue.returnedAt || issue.bloodUnit?.status === "RETURNED") return "RETURNED";
+  if (issue.transfusionRecord?.hasReaction) return "REACTION";
+  if (issue.transfusionRecord?.endedAt || issue.bloodUnit?.status === "TRANSFUSED") return "COMPLETED";
+  if (issue.transfusionRecord?.startedAt) return "ACTIVE";
+  if (issue.bloodUnit?.status === "DISCARDED") return "DISCARDED";
+  if (issue.bloodUnit?.status) return issue.bloodUnit.status;
+  return "ISSUED";
+}
+
 
   private normalizeDecimal(value: unknown): number | string | null {
     if (value == null) return null;

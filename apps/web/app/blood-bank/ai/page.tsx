@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { apiFetch } from "@/lib/api";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
 import { cn } from "@/lib/utils";
@@ -33,8 +33,8 @@ function sevBadge(sev: string) {
 
 export default function BloodBankAiPage() {
   const { toast } = useToast();
-  const { selectedBranch } = useBranchContext();
-  const branchId = selectedBranch?.id;
+  //const { selectedBranch } = useBranchContext();
+  const branchId = useBranchContext();
 
   const [data, setData] = useState<Insight | null>(null);
   const [loading, setLoading] = useState(false);
@@ -63,7 +63,7 @@ export default function BloodBankAiPage() {
   }, [data]);
 
   return (
-    <AppShell>
+    <AppShell title="AI Insights">
       <div className="space-y-6">
         <div className="flex items-start justify-between gap-4">
           <div>

@@ -257,189 +257,236 @@ function RecordVitalsDialog({
 
 function StartTransfusionDialog({
   open,
-  issue,
   onClose,
-  onSaved,
+  issue,
+  onStarted,
   canSubmit,
   deniedMessage,
 }: {
   open: boolean;
-  issue: any;
   onClose: () => void;
-  onSaved: () => Promise<void> | void;
+  issue: any | null;
+  onStarted: () => void;
   canSubmit: boolean;
   deniedMessage: string;
 }) {
   const { toast } = useToast();
   const [busy, setBusy] = React.useState(false);
-  const [err, setErr] = React.useState<string | null>(null);
-
-  const [scannedPatientId, setScannedPatientId] = React.useState("");
-  const [scannedUnitBarcode, setScannedUnitBarcode] = React.useState("");
+  const [step, setStep] = React.useState<"verify" | "start">("verify");
+  const [verifier1, setVerifier1] = React.useState("");
   const [verifier2, setVerifier2] = React.useState("");
 
-  // Optional note (kept for UX; backend uses authenticated principal as the administering staff)
+  // Optional start capture
   const [verifiedBy, setVerifiedBy] = React.useState("");
   const [startNotes, setStartNotes] = React.useState("");
 
+  // PRD S9: explicit override when patient has serious prior transfusion reaction history
+  const [highRiskOverride, setHighRiskOverride] = React.useState(false);
+  const [highRiskOverrideReason, setHighRiskOverrideReason] = React.useState("");
+
   React.useEffect(() => {
     if (open) {
-      setErr(null);
       setBusy(false);
-      setScannedPatientId("");
-      setScannedUnitBarcode("");
+      setStep("verify");
+      setVerifier1("");
       setVerifier2("");
       setVerifiedBy("");
       setStartNotes("");
+      setHighRiskOverride(false);
+      setHighRiskOverrideReason("");
     }
   }, [open]);
 
-  async function onSubmit() {
-    setErr(null);
-    if (!canSubmit) return setErr(deniedMessage);
-    if (!issue?.id) return setErr("No issue selected");
-    if (!scannedPatientId.trim()) return setErr("Wristband scan (Patient ID / UHID) is required");
-    if (!scannedUnitBarcode.trim()) return setErr("Unit scan (barcode / unit number) is required");
-    if (!verifier2.trim()) return setErr("Second verifier is required");
+  const canProceedVerify = verifier1.trim().length >= 2 && verifier2.trim().length >= 2 && verifier1.trim() !== verifier2.trim();
 
+  async function doBedsideVerify() {
+    if (!issue) return;
+    if (!canSubmit) {
+      toast({ variant: "destructive", title: "Not allowed", description: deniedMessage });
+      return;
+    }
+    if (!canProceedVerify) {
+      toast({
+        variant: "destructive",
+        title: "Bedside verification required",
+        description: "Enter two different staff identifiers (minimum 2 chars each).",
+      });
+      return;
+    }
     setBusy(true);
     try {
-      // Mandatory bedside verification BEFORE starting transfusion.
       await apiFetch(`/api/blood-bank/issue/${issue.id}/bedside-verify`, {
         method: "POST",
         body: JSON.stringify({
-          scannedPatientId: scannedPatientId.trim(),
-          scannedUnitBarcode: scannedUnitBarcode.trim(),
-          verifier2StaffId: verifier2.trim(),
+          verifier1: verifier1.trim(),
+          verifier2: verifier2.trim(),
         }),
       });
+      toast({ title: "Bedside verified", description: "Verification recorded. You can now start transfusion." });
+      setStep("start");
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Verification failed", description: e?.message ?? "Unable to verify" });
+    } finally {
+      setBusy(false);
+    }
+  }
 
+  async function doStartTransfusion() {
+    if (!issue) return;
+    if (!canSubmit) {
+      toast({ variant: "destructive", title: "Not allowed", description: deniedMessage });
+      return;
+    }
+    setBusy(true);
+    try {
       await apiFetch(`/api/blood-bank/issue/${issue.id}/transfusion/start`, {
         method: "POST",
         body: JSON.stringify({
           // Optional free-text note (kept for UX)
           verifiedBy: verifiedBy.trim() || null,
           startNotes: startNotes.trim() || null,
+
+          // S9 high-risk override (only used when backend demands it)
+          highRiskOverride: highRiskOverride || undefined,
+          highRiskOverrideReason: highRiskOverrideReason.trim() || null,
         }),
       });
-
-      await onSaved();
-      toast({
-        title: "Transfusion Started",
-        description: `Started transfusion for unit ${issue.unitNumber ?? issue.id}`,
-        variant: "success",
-      });
+      toast({ title: "Transfusion started", description: "Start recorded successfully." });
+      onStarted();
       onClose();
     } catch (e: any) {
-      setErr(e?.message || "Failed to start transfusion");
-      toast({ variant: "destructive", title: "Start failed", description: e?.message || "Failed to start transfusion" });
+      toast({ variant: "destructive", title: "Start failed", description: e?.message ?? "Unable to start transfusion" });
     } finally {
       setBusy(false);
     }
   }
 
-  if (!open || !issue) return null;
-
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) { setErr(null); onClose(); } }}>
-      <DialogContent className={drawerClassName()} onInteractOutside={(e) => e.preventDefault()}>
+    <Dialog open={open} onOpenChange={(v) => (!v ? onClose() : null)}>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3 text-indigo-700 dark:text-indigo-400">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
-              <Activity className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-            </div>
-            Start Transfusion
-          </DialogTitle>
+          <DialogTitle>Start Transfusion</DialogTitle>
           <DialogDescription>
-            Begin blood transfusion for unit {issue.unitNumber ?? issue.id}. Bedside verification is mandatory and will be recorded.
+            Bedside verification is mandatory before starting transfusion.
           </DialogDescription>
         </DialogHeader>
 
-        <Separator className="my-4" />
-
-        {err ? (
-          <div className="mb-3 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
-            <AlertTriangle className="mt-0.5 h-4 w-4" />
-            <div className="min-w-0">{err}</div>
-          </div>
-        ) : null}
-
         <div className="grid gap-6">
-          <div className="grid gap-3">
-            <div className="text-sm font-semibold text-zc-text">Bedside Verification (Mandatory)</div>
-
-            <div className="grid gap-2">
-              <Label>Wristband Scan (Patient ID / UHID)</Label>
-              <Input
-                value={scannedPatientId}
-                onChange={(e) => setScannedPatientId(e.target.value)}
-                placeholder="Scan / enter Patient ID or UHID"
-              />
-              <p className="text-[11px] text-zc-muted">
-                Accepts either internal Patient ID or UHID, depending on wristband encoding.
-              </p>
-            </div>
-
-            <div className="grid gap-2">
-              <Label>Unit Scan (Barcode / Unit Number)</Label>
-              <Input
-                value={scannedUnitBarcode}
-                onChange={(e) => setScannedUnitBarcode(e.target.value)}
-                placeholder="Scan / enter unit barcode or unit number"
-              />
-              <p className="text-[11px] text-zc-muted">
-                System blocks mismatches and records near-miss events.
-              </p>
-            </div>
-
-            <div className="grid gap-2">
-              <Label>Second Verifier</Label>
-              <Input
-                value={verifier2}
-                onChange={(e) => setVerifier2(e.target.value)}
-                placeholder="Enter staff ID / name of second verifier"
-              />
-              <p className="text-[11px] text-zc-muted">
-                Two-person verification is required for non-emergency transfusions.
-              </p>
-            </div>
-
-            <div className="grid gap-2">
-              <Label>Admin / Notes (Optional)</Label>
-              <Input
-                value={verifiedBy}
-                onChange={(e) => setVerifiedBy(e.target.value)}
-                placeholder="Optional note (e.g., verifying nurse/doctor name)"
-              />
-              <p className="text-[11px] text-zc-muted">
-                The system records authenticated staff automatically; this is an optional free-text note.
-              </p>
-            </div>
-
-            <div className="grid gap-2">
-              <Label>Start Notes</Label>
-              <Input value={startNotes} onChange={(e) => setStartNotes(e.target.value)} placeholder="Any pre-transfusion notes (optional)" />
+          {/* Summary */}
+          <div className="rounded-2xl border border-zc-border bg-zc-panel/20 p-4">
+            <div className="grid gap-1 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-zc-muted">Issue ID</div>
+                <div className="font-mono text-xs text-zc-text">{issue?.id ?? "-"}</div>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-zc-muted">Unit #</div>
+                <div className="font-mono text-xs text-zc-text">{issue?.unitNumber ?? "-"}</div>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-zc-muted">Patient</div>
+                <div className="font-semibold text-zc-text">{issue?.patientName ?? "-"}</div>
+              </div>
             </div>
           </div>
+
+          {/* Stepper */}
+          <div className="flex items-center gap-2 text-sm">
+            <span
+              className={cn(
+                "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                step === "verify" ? "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/40 dark:bg-blue-900/20 dark:text-blue-200" : "border-zc-border bg-zc-panel/30 text-zc-muted",
+              )}
+            >
+              1) Bedside Verify
+            </span>
+            <span className="text-zc-muted">→</span>
+            <span
+              className={cn(
+                "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                step === "start" ? "border-green-200 bg-green-50 text-green-700 dark:border-green-900/40 dark:bg-green-900/20 dark:text-green-200" : "border-zc-border bg-zc-panel/30 text-zc-muted",
+              )}
+            >
+              2) Start
+            </span>
+          </div>
+
+          {step === "verify" ? (
+            <div className="grid gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Verifier 1</Label>
+                  <Input value={verifier1} onChange={(e) => setVerifier1(e.target.value)} placeholder="e.g. STAFF-001" />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Verifier 2</Label>
+                  <Input value={verifier2} onChange={(e) => setVerifier2(e.target.value)} placeholder="e.g. STAFF-002" />
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50/70 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200">
+                <AlertTriangle className="mt-0.5 h-4 w-4" />
+                <div className="min-w-0">
+                  Both verifiers must be different. This is required for compliance and patient safety.
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="grid gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Verified By (optional)</Label>
+                  <Input value={verifiedBy} onChange={(e) => setVerifiedBy(e.target.value)} placeholder="Person who confirmed (optional)" />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Start Notes</Label>
+                  <Input value={startNotes} onChange={(e) => setStartNotes(e.target.value)} placeholder="Any pre-transfusion notes (optional)" />
+                </div>
+              </div>
+
+              <Separator className="my-2" />
+
+              <div className="grid gap-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    id="highRiskOverride"
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-zc-border"
+                    checked={highRiskOverride}
+                    onChange={(e) => setHighRiskOverride(e.target.checked)}
+                  />
+                  <Label htmlFor="highRiskOverride" className="text-sm font-semibold">
+                    Doctor override (only if flagged high-risk)
+                  </Label>
+                </div>
+                <Input
+                  value={highRiskOverrideReason}
+                  onChange={(e) => setHighRiskOverrideReason(e.target.value)}
+                  placeholder="Override reason (required when high-risk)"
+                  disabled={!highRiskOverride}
+                />
+                <p className="text-[11px] text-zc-muted">
+                  If the patient has a history of severe transfusion reactions, the backend requires an explicit override + reason.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
-        <DialogFooter>
-          <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
-            <Button variant="outline" onClick={onClose} disabled={busy}>
-              Cancel
-            </Button>
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={onClose} disabled={busy}>
+            Cancel
+          </Button>
 
-            <Button
-              variant="primary"
-              onClick={() => void onSubmit()}
-              disabled={busy || !canSubmit}
-              title={!canSubmit ? deniedMessage : undefined}
-              className="gap-2"
-            >
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              Start Transfusion
+          {step === "verify" ? (
+            <Button variant="primary" onClick={doBedsideVerify} disabled={busy || !canSubmit}>
+              {busy ? "Verifying..." : "Verify"}
             </Button>
-          </div>
+          ) : (
+            <Button variant="success" onClick={doStartTransfusion} disabled={busy || !canSubmit}>
+              {busy ? "Starting..." : "Start Transfusion"}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -738,7 +785,7 @@ export default function TransfusionMonitorPage() {
                 {filtered.map((t: any) => {
                   const s = (t.status || "").toUpperCase();
                   const isActive = s === "ACTIVE" || s === "IN_PROGRESS";
-
+                  const isReaction = !!t.reactionFlagged || s === "REACTION";
                   return (
                     <tr key={t.id} className="border-t border-zc-border hover:bg-zc-panel/20">
                       <td className="px-4 py-3">
@@ -794,6 +841,7 @@ export default function TransfusionMonitorPage() {
                                 }}
                                 title="Record vitals"
                                 aria-label="Record vitals"
+                                disabled={isReaction}
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
@@ -807,13 +855,15 @@ export default function TransfusionMonitorPage() {
                                 }}
                                 title="End transfusion"
                                 aria-label="End transfusion"
+                                disabled={isReaction}
                               >
                                 <IconChevronRight className="h-4 w-4" />
                               </Button>
                             </>
                           ) : null}
 
-                          {!isActive && canCreate ? (
+/* Hide start button on this monitor list */
+                          {!isActive && canCreate && !["COMPLETED", "RETURNED", "REACTION", "DISCARDED"].includes(s) ? (
                             <Button
                               variant="success"
                               size="icon"
@@ -863,7 +913,7 @@ export default function TransfusionMonitorPage() {
         open={startOpen}
         issue={selected}
         onClose={() => setStartOpen(false)}
-        onSaved={() => refresh(false)}
+        onStarted={() => void refresh(false)}
         canSubmit={canCreate}
         deniedMessage="Missing permission: BB_TRANSFUSION_CREATE"
       />

@@ -292,7 +292,7 @@ export default function BloodRequestDetailsPage() {
   const sample = r?.patientSample ?? null;
 
   return (
-    <AppShell>
+    <AppShell title="Requests">
       <div className="mx-auto max-w-[1100px] space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

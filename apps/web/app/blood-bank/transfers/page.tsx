@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { apiFetch } from "@/lib/api";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
 import { cn } from "@/lib/utils";
@@ -67,8 +67,7 @@ function statusBadge(status: Transfer["status"]) {
 
 export default function BloodBankTransfersPage() {
   const { toast } = useToast();
-  const { selectedBranch } = useBranchContext();
-  const branchId = selectedBranch?.id;
+  const { branchId } = useBranchContext();
 
   const [dir, setDir] = useState<"all" | "in" | "out">("all");
   const [status, setStatus] = useState<string>("");
@@ -253,7 +252,7 @@ export default function BloodBankTransfersPage() {
   };
 
   return (
-    <AppShell>
+    <AppShell title="Blood Bank Transfers">
       <div className="space-y-6">
         <div className="flex items-start justify-between gap-4">
           <div>

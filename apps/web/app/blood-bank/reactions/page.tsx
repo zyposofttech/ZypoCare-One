@@ -1,35 +1,36 @@
 "use client";
+
 import * as React from "react";
 import { AppShell } from "@/components/AppShell";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { usePermissions } from "@/lib/auth/store";
 import { apiFetch } from "@/lib/api";
-import { cn } from "@/lib/cn";
-import { useAuthStore, hasPerm } from "@/lib/auth/store";
-import { useBranchContext } from "@/lib/branch/useBranchContext";
-import { IconSearch, IconPlus, IconChevronRight } from "@/components/icons";
-import { AlertTriangle, Loader2, RefreshCw, Pencil } from "lucide-react";
-
-/* ------------------------------------------------------------------ */
-/*  Constants                                                          */
-/* ------------------------------------------------------------------ */
+import { AlertTriangle, RefreshCw, Search as IconSearch, Plus as IconPlus, ChevronRight as IconChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const REACTION_TYPES = [
-  { value: "FEBRILE", label: "Febrile" },
+  { value: "FEBRILE", label: "Febrile Non-Hemolytic" },
   { value: "ALLERGIC", label: "Allergic" },
-  { value: "HEMOLYTIC_ACUTE", label: "Hemolytic (Acute)" },
-  { value: "HEMOLYTIC_DELAYED", label: "Hemolytic (Delayed)" },
+  { value: "ANAPHYLAXIS", label: "Anaphylaxis" },
+  { value: "HEMOLYTIC_ACUTE", label: "Acute Hemolytic" },
   { value: "TRALI", label: "TRALI" },
   { value: "TACO", label: "TACO" },
-  { value: "ANAPHYLAXIS", label: "Anaphylaxis" },
-  { value: "BACTERIAL", label: "Bacterial" },
+  { value: "BACTERIAL", label: "Bacterial/Sepsis" },
   { value: "OTHER", label: "Other" },
 ] as const;
 
@@ -37,19 +38,19 @@ const SEVERITY_OPTIONS = [
   { value: "MILD", label: "Mild" },
   { value: "MODERATE", label: "Moderate" },
   { value: "SEVERE", label: "Severe" },
+  { value: "LIFE_THREATENING", label: "Life threatening" },
   { value: "FATAL", label: "Fatal" },
 ] as const;
 
-const reactionTypeLabel: Record<string, string> = Object.fromEntries(
-  REACTION_TYPES.map((t) => [t.value, t.label]),
-);
+const reactionTypeLabel: Record<string, string> = Object.fromEntries(REACTION_TYPES.map((t) => [t.value, t.label]));
 
 function severityColor(severity: string) {
-  switch (severity) {
+  switch (String(severity ?? "").toUpperCase()) {
     case "MILD":
       return "border-green-200/70 bg-green-50/70 text-green-700 dark:border-green-900/40 dark:bg-green-900/20 dark:text-green-200";
     case "MODERATE":
       return "border-amber-200/70 bg-amber-50/70 text-amber-700 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200";
+    case "LIFE_THREATENING":
     case "SEVERE":
       return "border-red-200/70 bg-red-50/70 text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-200";
     case "FATAL":
@@ -59,32 +60,19 @@ function severityColor(severity: string) {
   }
 }
 
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
-/* ------------------------------------------------------------------ */
-
-function drawerClassName(extra?: string) {
-  return cn(
-    "left-auto right-0 top-0 h-screen w-[95vw] max-w-[980px] translate-x-0 translate-y-0",
-    "rounded-2xl",
-    "border border-indigo-200/50 dark:border-indigo-800/50 bg-zc-card",
-    "shadow-2xl shadow-indigo-500/10",
-    "overflow-y-auto",
-    extra,
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Report Reaction Dialog                                             */
-/* ------------------------------------------------------------------ */
-
 type ReactionForm = {
   issueId: string;
   reactionType: string;
   severity: string;
-  management: string;
+  onsetTime: string;
+  description: string;
+  managementNotes: string;
   investigationResults: string;
-  notes: string;
+  doctorNotified: boolean;
+  stopTemp: string;
+  stopPulse: string;
+  stopBP: string;
+  stopRR: string;
 };
 
 function ReportReactionDialog({
@@ -96,7 +84,7 @@ function ReportReactionDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  onSaved: () => Promise<void> | void;
+  onSaved: () => void;
   canSubmit: boolean;
   deniedMessage: string;
 }) {
@@ -108,10 +96,18 @@ function ReportReactionDialog({
     issueId: "",
     reactionType: "",
     severity: "",
-    management: "",
+    onsetTime: "",
+    description: "",
+    managementNotes: "",
     investigationResults: "",
-    notes: "",
+    doctorNotified: true,
+    stopTemp: "",
+    stopPulse: "",
+    stopBP: "",
+    stopRR: "",
   });
+
+  const set = <K extends keyof ReactionForm>(k: K, v: ReactionForm[K]) => setForm((p) => ({ ...p, [k]: v }));
 
   React.useEffect(() => {
     if (!open) return;
@@ -121,91 +117,89 @@ function ReportReactionDialog({
       issueId: "",
       reactionType: "",
       severity: "",
-      management: "",
+      onsetTime: "",
+      description: "",
+      managementNotes: "",
       investigationResults: "",
-      notes: "",
+      doctorNotified: true,
+      stopTemp: "",
+      stopPulse: "",
+      stopBP: "",
+      stopRR: "",
     });
   }, [open]);
 
-  function set<K extends keyof ReactionForm>(key: K, value: ReactionForm[K]) {
-    setForm((s) => ({ ...s, [key]: value }));
-  }
+  async function submit() {
+    if (!canSubmit) {
+      toast({ variant: "destructive", title: "Not allowed", description: deniedMessage });
+      return;
+    }
 
-  async function onSubmit() {
     setErr(null);
-    if (!canSubmit) return setErr(deniedMessage);
-
     if (!form.issueId.trim()) return setErr("Issue ID is required");
     if (!form.reactionType) return setErr("Reaction type is required");
     if (!form.severity) return setErr("Severity is required");
-    if (!form.management.trim()) return setErr("Management details are required");
+    if (!form.managementNotes.trim()) return setErr("Management notes are required");
 
     setBusy(true);
     try {
+      let investigationResults: any = undefined;
+      if (form.investigationResults.trim()) {
+        try {
+          investigationResults = JSON.parse(form.investigationResults.trim());
+        } catch {
+          investigationResults = { raw: form.investigationResults.trim() };
+        }
+      }
+
+      const stopVitals: any = {};
+      if (form.stopTemp.trim()) stopVitals.temperature = form.stopTemp.trim();
+      if (form.stopPulse.trim()) stopVitals.pulseRate = form.stopPulse.trim();
+      if (form.stopBP.trim()) stopVitals.bloodPressure = form.stopBP.trim();
+      if (form.stopRR.trim()) stopVitals.respiratoryRate = form.stopRR.trim();
+
       await apiFetch(`/api/blood-bank/issue/${form.issueId.trim()}/reaction`, {
         method: "POST",
         body: JSON.stringify({
           reactionType: form.reactionType,
           severity: form.severity,
-          management: form.management.trim(),
-          investigationResults: form.investigationResults.trim() || null,
-          notes: form.notes.trim() || null,
+          description: form.description.trim() || null,
+          onsetTime: form.onsetTime.trim() || null,
+          managementNotes: form.managementNotes.trim(),
+          investigationResults,
+
+          // PRD S9 hard-stop workflow
+          transfusionStopped: true,
+          doctorNotified: form.doctorNotified,
+          doctorNotifiedAt: form.doctorNotified ? new Date().toISOString() : null,
+          stopVitals: Object.keys(stopVitals).length ? stopVitals : undefined,
         }),
       });
 
-      await onSaved();
-
-      toast({
-        title: "Reaction Reported",
-        description: `Successfully reported ${reactionTypeLabel[form.reactionType] ?? form.reactionType} reaction`,
-        variant: "success",
-      });
-
+      toast({ title: "Reaction reported", description: `Saved reaction for ${form.issueId} (${form.reactionType})` });
+      onSaved();
       onClose();
     } catch (e: any) {
-      setErr(e?.message || "Save failed");
-      toast({ variant: "destructive", title: "Save failed", description: e?.message || "Save failed" });
+      const msg = e?.message || "Failed to report reaction";
+      setErr(msg);
+      toast({ variant: "destructive", title: "Save failed", description: msg });
     } finally {
       setBusy(false);
     }
   }
 
-  if (!open) return null;
-
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(v) => {
-        if (!v) {
-          setErr(null);
-          onClose();
-        }
-      }}
-    >
-      <DialogContent className={drawerClassName()} onInteractOutside={(e) => e.preventDefault()}>
+    <Dialog open={open} onOpenChange={(v) => (!v ? onClose() : null)}>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3 text-orange-700 dark:text-orange-400">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30">
-              <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-            </div>
-            Report Reaction
-          </DialogTitle>
+          <DialogTitle>Report Adverse Reaction</DialogTitle>
           <DialogDescription>
-            Report a transfusion adverse reaction. Provide the issue ID, reaction details and management actions taken.
+            PRD S9 hard-stop: This will stop transfusion immediately and quarantine the unit (if still ISSUED).
           </DialogDescription>
         </DialogHeader>
 
-        <Separator className="my-4" />
-
-        {err ? (
-          <div className="mb-3 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
-            <AlertTriangle className="mt-0.5 h-4 w-4" />
-            <div className="min-w-0">{err}</div>
-          </div>
-        ) : null}
-
         <div className="grid gap-6">
-          {/* Issue & Type */}
+          {/* Reaction Details */}
           <div className="grid gap-3">
             <div className="text-sm font-semibold text-zc-text">Reaction Details</div>
 
@@ -248,6 +242,36 @@ function ReportReactionDialog({
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="grid gap-2">
+                <Label>Onset Time (optional)</Label>
+                <Input
+                  value={form.onsetTime}
+                  onChange={(e) => set("onsetTime", e.target.value)}
+                  placeholder="ISO timestamp or leave blank"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50/70 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200">
+              <AlertTriangle className="mt-0.5 h-4 w-4" />
+              <div className="min-w-0">
+                <div className="font-semibold">Hard-stop workflow (S9)</div>
+                <div className="mt-0.5 text-[12px]">
+                  Submitting this form will <span className="font-semibold">stop the transfusion immediately</span> and
+                  quarantine the unit (if still in ISSUED state). Subsequent vitals entry and “End transfusion” are blocked.
+                </div>
+                <div className="mt-2 flex items-center gap-2">
+                  <input
+                    id="doctorNotified"
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-zc-border"
+                    checked={form.doctorNotified}
+                    onChange={(e) => set("doctorNotified", e.target.checked)}
+                  />
+                  <Label htmlFor="doctorNotified" className="text-sm font-semibold">Physician notified</Label>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -258,99 +282,102 @@ function ReportReactionDialog({
             <div className="text-sm font-semibold text-zc-text">Management & Investigation</div>
 
             <div className="grid gap-2">
-              <Label>Management</Label>
+              <Label>Immediate actions / management notes</Label>
               <Textarea
-                value={form.management}
-                onChange={(e) => set("management", e.target.value)}
-                placeholder="Describe management actions taken..."
-                className="min-h-[84px]"
+                value={form.managementNotes}
+                onChange={(e) => set("managementNotes", e.target.value)}
+                placeholder="Stop transfusion, maintain IV line, meds given, send sample, etc."
+                className="min-h-[110px]"
               />
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Description (optional)</Label>
+              <Textarea
+                value={form.description}
+                onChange={(e) => set("description", e.target.value)}
+                placeholder="Symptoms: fever/chills, rash, dyspnea, hypotension, hemoglobinuria, etc."
+                className="min-h-[90px]"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Vitals at stop (optional)</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input value={form.stopTemp} onChange={(e) => set("stopTemp", e.target.value)} placeholder="Temperature" />
+                <Input value={form.stopPulse} onChange={(e) => set("stopPulse", e.target.value)} placeholder="Pulse" />
+                <Input value={form.stopBP} onChange={(e) => set("stopBP", e.target.value)} placeholder="Blood Pressure" />
+                <Input value={form.stopRR} onChange={(e) => set("stopRR", e.target.value)} placeholder="Respiratory Rate" />
+              </div>
             </div>
 
             <div className="grid gap-2">
               <Label>Investigation Results (optional)</Label>
-              <Input
+              <Textarea
                 value={form.investigationResults}
                 onChange={(e) => set("investigationResults", e.target.value)}
-                placeholder="Lab findings, imaging results, etc."
+                placeholder='JSON recommended. Example: {"DAT":"POS","hemolysis":"YES"} or free-text.'
+                className="min-h-[90px]"
               />
             </div>
 
-            <div className="grid gap-2">
-              <Label>Notes (optional)</Label>
-              <Input
-                value={form.notes}
-                onChange={(e) => set("notes", e.target.value)}
-                placeholder="Additional notes or observations"
-              />
-            </div>
+            {err ? (
+              <div className="flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
+                <AlertTriangle className="mt-0.5 h-4 w-4" />
+                <div className="min-w-0">{err}</div>
+              </div>
+            ) : null}
           </div>
         </div>
 
-        <DialogFooter>
-          <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
-            <Button variant="outline" onClick={onClose} disabled={busy}>
-              Cancel
-            </Button>
-
-            <Button
-              variant="primary"
-              onClick={() => void onSubmit()}
-              disabled={busy || !canSubmit}
-              title={!canSubmit ? deniedMessage : undefined}
-              className="gap-2"
-            >
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              Report Reaction
-            </Button>
-          </div>
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={onClose} disabled={busy}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={submit} disabled={busy || !canSubmit}>
+            {busy ? "Saving..." : "Report Reaction"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Main Page                                                          */
-/* ------------------------------------------------------------------ */
-
 export default function ReactionsPage() {
   const { toast } = useToast();
-  const { branchId } = useBranchContext();
-  const user = useAuthStore((s) => s.user);
+  const perms = usePermissions();
+  const branchId = perms.user?.branchId ?? "";
 
-  const canRead = hasPerm(user, "BB_TRANSFUSION_READ");
-  const canReport = hasPerm(user, "BB_TRANSFUSION_REACTION");
+  const canReport = perms.canAny(["BB_TRANSFUSION_REACTION", "BB_ADMIN"]);
 
-  const [q, setQ] = React.useState("");
-  const [loading, setLoading] = React.useState(false);
   const [rows, setRows] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
-
+  const [q, setQ] = React.useState("");
   const [createOpen, setCreateOpen] = React.useState(false);
 
   const filtered = React.useMemo(() => {
     const s = q.trim().toLowerCase();
     if (!s) return rows;
-
     return (rows ?? []).filter((r: any) => {
-      const hay = `${r.patientName ?? r.patient ?? ""} ${r.unitNumber ?? ""} ${r.reactionType ?? ""} ${r.severity ?? ""} ${r.reportedBy ?? ""} ${r.management ?? ""}`.toLowerCase();
+      const hay = `${r.patientName ?? r.patient ?? ""} ${r.unitNumber ?? ""} ${r.reactionType ?? ""} ${r.severity ?? ""} ${r.reportedBy ?? ""} ${r.managementNotes ?? ""}`.toLowerCase();
       return hay.includes(s);
     });
   }, [rows, q]);
 
-  async function refresh(showToast = false) {
+  async function refresh(showToast: boolean) {
     if (!branchId) return;
-    setErr(null);
     setLoading(true);
+    setErr(null);
     try {
       const data: any = await apiFetch(`/api/blood-bank/reports/haemovigilance?branchId=${branchId}`);
-      const items = Array.isArray(data) ? data : [];
+      const items = Array.isArray(data?.reactions)
+        ? data.reactions
+        : Array.isArray(data)
+          ? data
+          : [];
       setRows(items);
-
-      if (showToast) {
-        toast({ title: "Reactions refreshed", description: `Loaded ${items.length} reactions.` });
-      }
+      if (showToast) toast({ title: "Refreshed", description: "Loaded haemovigilance reactions." });
     } catch (e: any) {
       const msg = e?.message || "Failed to load reactions";
       setErr(msg);
@@ -368,12 +395,13 @@ export default function ReactionsPage() {
 
   /* Stats */
   const totalReactions = rows.length;
-  const severeCritical = rows.filter((r: any) => r.severity === "SEVERE" || r.severity === "FATAL").length;
+  const severeCritical = rows.filter((r: any) => ["SEVERE", "LIFE_THREATENING", "FATAL"].includes(String(r.severity ?? "").toUpperCase())).length;
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const recent30Days = rows.filter((r: any) => {
-    if (!r.date) return false;
-    return new Date(r.date) >= thirtyDaysAgo;
+    const dt = r.createdAt ?? r.onsetAt ?? r.reportedAt ?? null;
+    if (!dt) return false;
+    return new Date(dt) >= thirtyDaysAgo;
   }).length;
 
   return (
@@ -499,7 +527,10 @@ export default function ReactionsPage() {
                 {filtered.map((r: any) => (
                   <tr key={r.id} className="border-t border-zc-border hover:bg-zc-panel/20">
                     <td className="px-4 py-3 text-zc-muted">
-                      {r.date ? new Date(r.date).toLocaleDateString() : "-"}
+                      {(() => {
+                        const dt = r.createdAt ?? r.onsetAt ?? r.reportedAt ?? null;
+                        return dt ? new Date(dt).toLocaleDateString() : "-";
+                      })()}
                     </td>
 
                     <td className="px-4 py-3">
@@ -527,8 +558,8 @@ export default function ReactionsPage() {
                       </span>
                     </td>
 
-                    <td className="px-4 py-3 text-zc-muted max-w-[200px] truncate" title={r.management ?? ""}>
-                      {r.management ?? "-"}
+                    <td className="px-4 py-3 text-zc-muted max-w-[200px] truncate" title={r.managementNotes ?? ""}>
+                      {r.managementNotes ?? "-"}
                     </td>
 
                     <td className="px-4 py-3 text-zc-muted">{r.reportedBy ?? "-"}</td>
