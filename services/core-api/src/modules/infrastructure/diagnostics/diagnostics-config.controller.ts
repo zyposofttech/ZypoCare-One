@@ -288,4 +288,13 @@ export class DiagnosticsConfigController {
     return this.svc.importBulk(this.principalFrom(req), branchId, body.data, body.dryRun ?? true);
   }
 
+  // ---------------------- Branch Cloning ----------------------
+  @Post("clone")
+  @Permissions(PERM.INFRA_DIAGNOSTICS_CREATE)
+  cloneBranch(
+    @Req() req: any,
+    @Body() body: { sourceBranchId: string; targetBranchId: string },
+  ) {
+    return this.svc.cloneBranch(this.principalFrom(req), body.sourceBranchId, body.targetBranchId);
+  }
 }

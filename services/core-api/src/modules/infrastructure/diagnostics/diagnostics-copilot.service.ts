@@ -455,4 +455,150 @@ export class DiagnosticsCopilotService {
 
     return { updated };
   }
+
+  // ==================== Panel Suggestions ====================
+
+  private static readonly PANEL_DICT: Record<string, string[]> = {
+    "Liver Function Test (LFT)": ["sgpt", "sgot", "bilirubin", "albumin", "total protein", "alkaline phosphatase", "ggt"],
+    "Renal Function Test (RFT)": ["urea", "creatinine", "uric acid", "sodium", "potassium", "calcium", "phosphorus"],
+    "Thyroid Profile": ["tsh", "t3", "t4", "free t3", "free t4"],
+    "Lipid Profile": ["cholesterol", "triglycerides", "hdl", "ldl", "vldl"],
+    "Complete Blood Count (CBC)": ["hemoglobin", "rbc", "wbc", "platelet count", "hematocrit", "mcv", "mch", "mchc"],
+    "Kidney Function Panel": ["urea", "creatinine", "sodium", "potassium", "chloride", "bicarbonate", "gfr"],
+    "Liver Panel": ["alt", "ast", "alp", "ggt", "bilirubin", "albumin"],
+    "Diabetes Panel": ["fasting glucose", "hba1c", "postprandial glucose"],
+    "Iron Studies": ["iron", "ferritin", "tibc", "transferrin saturation"],
+    "Coagulation Panel": ["pt", "inr", "aptt", "fibrinogen"],
+  };
+
+  suggestPanelMembers(
+    principal: Principal,
+    branchIdInput: string,
+    existingItems: { id: string; name: string }[],
+  ): { suggestions: { panelName: string; members: string[]; matchedExisting: string[]; missing: string[] }[] } {
+    const suggestions: { panelName: string; members: string[]; matchedExisting: string[]; missing: string[] }[] = [];
+    const existingNames = existingItems.map((i) => i.name.toLowerCase().trim());
+
+    for (const [panelName, members] of Object.entries(DiagnosticsCopilotService.PANEL_DICT)) {
+      const matched: string[] = [];
+      const missing: string[] = [];
+      for (const member of members) {
+        const found = existingNames.some((n) => n.includes(member) || member.includes(n));
+        if (found) matched.push(member);
+        else missing.push(member);
+      }
+      if (matched.length >= 2) {
+        suggestions.push({ panelName, members, matchedExisting: matched, missing });
+      }
+    }
+    return { suggestions };
+  }
+
+  // ==================== Tube Consolidation ====================
+
+  async suggestTubeConsolidation(
+    principal: Principal,
+    branchIdInput: string,
+  ): Promise<{ groups: { container: string; specimenName: string; tests: string[] }[] }> {
+    const branchId = resolveBranchId(principal, branchIdInput);
+    const items = await this.prisma.diagnosticItem.findMany({
+      where: { branchId, isActive: true, kind: "LAB", specimenId: { not: null } },
+      include: { specimen: true },
+    });
+
+    const containerGroups = new Map<string, { specimenName: string; tests: string[] }>();
+    for (const item of items) {
+      if (!item.specimen) continue;
+      const key = item.specimen.container ?? "Unknown";
+      if (!containerGroups.has(key)) {
+        containerGroups.set(key, { specimenName: item.specimen.name, tests: [] });
+      }
+      containerGroups.get(key)!.tests.push(item.name);
+    }
+
+    const groups = Array.from(containerGroups.entries()).map(([container, g]) => ({
+      container,
+      specimenName: g.specimenName,
+      tests: g.tests,
+    }));
+
+    return { groups };
+  }
+
+  // ==================== Readiness Score ====================
+
+  async readinessScore(
+    principal: Principal,
+    branchIdInput: string,
+  ): Promise<{
+    score: number;
+    maxScore: number;
+    percentage: number;
+    breakdown: { category: string; points: number; maxPoints: number; detail: string }[];
+  }> {
+    const branchId = resolveBranchId(principal, branchIdInput);
+
+    const [items, sections, specimens, servicePoints, templates, panels] = await Promise.all([
+      this.prisma.diagnosticItem.findMany({
+        where: { branchId, isActive: true },
+        include: { _count: { select: { parameters: true, templates: true } } },
+      }),
+      this.prisma.diagnosticSection.count({ where: { branchId, isActive: true } }),
+      this.prisma.specimenType.count({ where: { branchId, isActive: true } }),
+      this.prisma.diagnosticServicePoint.findMany({
+        where: { branchId, isActive: true },
+        include: { _count: { select: { staff: true, equipment: true } } },
+      }),
+      this.prisma.diagnosticTemplate.count({ where: { item: { branchId }, isActive: true } }),
+      this.prisma.diagnosticItem.count({ where: { branchId, isActive: true, isPanel: true } }),
+    ]);
+
+    const breakdown: { category: string; points: number; maxPoints: number; detail: string }[] = [];
+
+    // 1. Sections (10 pts)
+    const sectionPoints = sections > 0 ? Math.min(10, sections * 2) : 0;
+    breakdown.push({ category: "Sections", points: sectionPoints, maxPoints: 10, detail: `${sections} section(s) configured` });
+
+    // 2. Items (20 pts)
+    const itemPoints = items.length > 0 ? Math.min(20, Math.round((items.length / 50) * 20)) : 0;
+    breakdown.push({ category: "Test Items", points: itemPoints, maxPoints: 20, detail: `${items.length} test(s) configured` });
+
+    // 3. Parameters (15 pts)
+    const labItems = items.filter((i) => i.kind === "LAB");
+    const withParams = labItems.filter((i) => i._count.parameters > 0).length;
+    const paramPct = labItems.length > 0 ? withParams / labItems.length : 1;
+    const paramPoints = Math.round(paramPct * 15);
+    breakdown.push({ category: "Parameters", points: paramPoints, maxPoints: 15, detail: `${withParams}/${labItems.length} lab tests with parameters` });
+
+    // 4. LOINC (10 pts)
+    const withLoinc = items.filter((i) => i.loincCode).length;
+    const loincPct = items.length > 0 ? withLoinc / items.length : 0;
+    const loincPoints = Math.round(loincPct * 10);
+    breakdown.push({ category: "LOINC Mapping", points: loincPoints, maxPoints: 10, detail: `${Math.round(loincPct * 100)}% coverage` });
+
+    // 5. Templates (10 pts)
+    const withTemplates = items.filter((i) => i._count.templates > 0).length;
+    const tplPct = items.length > 0 ? withTemplates / items.length : 0;
+    const tplPoints = Math.round(tplPct * 10);
+    breakdown.push({ category: "Templates", points: tplPoints, maxPoints: 10, detail: `${withTemplates}/${items.length} items with templates` });
+
+    // 6. Service Points (15 pts)
+    const spPoints = servicePoints.length > 0 ? Math.min(15, servicePoints.length * 3) : 0;
+    breakdown.push({ category: "Service Points", points: spPoints, maxPoints: 15, detail: `${servicePoints.length} service point(s)` });
+
+    // 7. Staff (10 pts)
+    const spWithStaff = servicePoints.filter((sp) => sp._count.staff > 0).length;
+    const staffPct = servicePoints.length > 0 ? spWithStaff / servicePoints.length : 0;
+    const staffPoints = Math.round(staffPct * 10);
+    breakdown.push({ category: "Staff Assignment", points: staffPoints, maxPoints: 10, detail: `${spWithStaff}/${servicePoints.length} SPs with staff` });
+
+    // 8. Panels (10 pts)
+    const panelPoints = panels > 0 ? Math.min(10, panels * 2) : 0;
+    breakdown.push({ category: "Panels", points: panelPoints, maxPoints: 10, detail: `${panels} panel(s) configured` });
+
+    const score = breakdown.reduce((s, b) => s + b.points, 0);
+    const maxScore = breakdown.reduce((s, b) => s + b.maxPoints, 0);
+
+    return { score, maxScore, percentage: maxScore > 0 ? Math.round((score / maxScore) * 100) : 0, breakdown };
+  }
 }

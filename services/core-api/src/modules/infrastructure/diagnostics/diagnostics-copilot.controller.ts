@@ -88,4 +88,32 @@ export class DiagnosticsCopilotController {
     const b = this.branchIdFrom(p, branchId);
     return this.copilot.applyLoincMappings(p, b, body.mappings ?? []);
   }
+
+  @Post("suggest-panels")
+  @Permissions(PERM.INFRA_DIAGNOSTICS_READ)
+  suggestPanelMembers(
+    @Req() req: any,
+    @Query("branchId") branchId: string,
+    @Body() body: { items: { id: string; name: string }[] },
+  ) {
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.copilot.suggestPanelMembers(p, b, body.items ?? []);
+  }
+
+  @Get("tube-consolidation")
+  @Permissions(PERM.INFRA_DIAGNOSTICS_READ)
+  suggestTubeConsolidation(@Req() req: any, @Query("branchId") branchId: string) {
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.copilot.suggestTubeConsolidation(p, b);
+  }
+
+  @Get("readiness-score")
+  @Permissions(PERM.INFRA_DIAGNOSTICS_READ)
+  readinessScore(@Req() req: any, @Query("branchId") branchId: string) {
+    const p = this.principalFrom(req);
+    const b = this.branchIdFrom(p, branchId);
+    return this.copilot.readinessScore(p, b);
+  }
 }

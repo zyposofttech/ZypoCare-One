@@ -926,13 +926,26 @@ export class DiagnosticsConfigService {
       details: numericParamsWithoutRange > 0 ? `${numericParamsWithoutRange} parameter(s) without reference ranges` : undefined,
     });
 
-    // 4. Critical ranges do not overlap with normal ranges (checked at data entry)
+    // 4. Critical ranges do not overlap with normal ranges
+    const paramsWithBadCritical = await this.prisma.diagnosticParameter.findMany({
+      where: { test: { branchId: b, isActive: true }, isActive: true, OR: [{ criticalLow: { not: null } }, { criticalHigh: { not: null } }] },
+      include: { ranges: { where: { isActive: true } } },
+    });
+    let criticalOverlapCount = 0;
+    for (const p of paramsWithBadCritical) {
+      for (const r of p.ranges) {
+        if (r.low != null && r.high != null) {
+          if (p.criticalLow != null && p.criticalLow >= r.low) criticalOverlapCount++;
+          if (p.criticalHigh != null && p.criticalHigh <= r.high) criticalOverlapCount++;
+        }
+      }
+    }
     checks.push({
       id: 4,
       name: "Critical ranges do not overlap with normal ranges",
       severity: "BLOCKER",
-      status: "PASS",
-      details: "Validated at data entry",
+      status: criticalOverlapCount === 0 ? "PASS" : "FAIL",
+      details: criticalOverlapCount > 0 ? `${criticalOverlapCount} critical/normal range overlap(s) found` : undefined,
     });
 
     // 5. All lab tests have sample requirements configured
@@ -1077,12 +1090,33 @@ export class DiagnosticsConfigService {
     });
 
     // 15. No age-range gaps in reference ranges for pediatric-relevant tests
+    const paramsWithAgeRanges = await this.prisma.diagnosticParameter.findMany({
+      where: { test: { branchId: b, isActive: true }, isActive: true, dataType: "NUMERIC", ranges: { some: { isActive: true, ageMaxDays: { not: null } } } },
+      include: { ranges: { where: { isActive: true, ageMaxDays: { not: null } }, orderBy: { ageMinDays: "asc" } } },
+    });
+    let ageGapCount = 0;
+    for (const p of paramsWithAgeRanges) {
+      const sexGroups = new Map<string, typeof p.ranges>();
+      for (const r of p.ranges) {
+        const key = r.sex ?? "ALL";
+        if (!sexGroups.has(key)) sexGroups.set(key, []);
+        sexGroups.get(key)!.push(r);
+      }
+      for (const [, group] of sexGroups) {
+        const sorted = group.filter(r => r.ageMinDays != null && r.ageMaxDays != null).sort((a, b) => (a.ageMinDays ?? 0) - (b.ageMinDays ?? 0));
+        for (let i = 0; i < sorted.length - 1; i++) {
+          const gapStart = (sorted[i].ageMaxDays ?? 0) + 1;
+          const nextStart = sorted[i + 1].ageMinDays ?? 0;
+          if (gapStart < nextStart) ageGapCount++;
+        }
+      }
+    }
     checks.push({
       id: 15,
       name: "No age-range gaps in reference ranges for pediatric-relevant tests",
       severity: "WARNING",
-      status: "PASS",
-      details: "Manual review recommended",
+      status: ageGapCount === 0 ? "PASS" : "FAIL",
+      details: ageGapCount > 0 ? `${ageGapCount} age-range gap(s) detected across parameters` : undefined,
     });
 
     // 16. Signatory roles configured for report templates
@@ -1430,5 +1464,16 @@ export class DiagnosticsConfigService {
         templates: templatesCount,
       },
     };
+  }
+
+  // ==================== Branch Cloning ====================
+  async cloneBranch(principal: Principal, sourceBranchId: string, targetBranchId: string) {
+    const source = resolveBranchId(principal, sourceBranchId);
+    const target = resolveBranchId(principal, targetBranchId);
+    if (source === target) throw new BadRequestException("Source and target branches must be different");
+
+    const exported = await this.exportAll(principal, source);
+    const result = await this.importBulk(principal, target, exported, false);
+    return { ...result, clonedFrom: source, clonedTo: target };
   }
 }
