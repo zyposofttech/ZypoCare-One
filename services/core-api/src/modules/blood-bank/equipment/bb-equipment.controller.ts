@@ -3,7 +3,7 @@ import { ApiTags } from "@nestjs/swagger";
 import { Permissions } from "../../auth/permissions.decorator";
 import { PERM } from "../../iam/iam.constants";
 import { BBEquipmentService } from "./bb-equipment.service";
-import { CreateEquipmentDto, UpdateEquipmentDto, RecordTempLogDto } from "./dto";
+import { CreateEquipmentDto, UpdateEquipmentDto, RecordTempLogDto, ReviewTempBreachDto } from "./dto";
 
 @ApiTags("blood-bank/equipment")
 @Controller("blood-bank")
@@ -54,6 +54,13 @@ export class BBEquipmentController {
     return this.svc.recordTempLog(this.principal(req), equipmentId, dto);
   }
 
+  // IoT ingestion endpoint by iotSensorId
+  @Post("equipment/sensors/:sensorId/temp-logs")
+  @Permissions(PERM.BB_EQUIPMENT_UPDATE)
+  recordTempBySensor(@Req() req: any, @Param("sensorId") sensorId: string, @Body() dto: RecordTempLogDto) {
+    return this.svc.recordTempLogBySensor(this.principal(req), sensorId, dto);
+  }
+
   @Get("equipment/temp-alerts")
   @Permissions(PERM.BB_EQUIPMENT_READ)
   tempAlerts(@Req() req: any, @Query("branchId") branchId?: string) {
@@ -64,5 +71,12 @@ export class BBEquipmentController {
   @Permissions(PERM.BB_EQUIPMENT_UPDATE)
   acknowledgeTempBreach(@Req() req: any, @Param("logId") logId: string) {
     return this.svc.acknowledgeTempBreach(this.principal(req), logId);
+  }
+
+  // P10: breach review workflow (ack + release/discard)
+  @Post("equipment/temp-logs/:logId/review")
+  @Permissions(PERM.BB_EQUIPMENT_UPDATE)
+  reviewTempBreach(@Req() req: any, @Param("logId") logId: string, @Body() dto: ReviewTempBreachDto) {
+    return this.svc.reviewTempBreach(this.principal(req), logId, dto);
   }
 }

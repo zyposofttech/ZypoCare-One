@@ -22,13 +22,8 @@ export class TherapeuticSubstitutionService {
 
     const where: any = { branchId };
 
-    if (sourceDrugId) {
-      where.sourceDrugId = sourceDrugId;
-    }
-
-    if (isActive !== undefined) {
-      where.isActive = isActive;
-    }
+    if (sourceDrugId) where.sourceDrugId = sourceDrugId;
+    if (isActive !== undefined) where.isActive = isActive;
 
     if (q) {
       where.OR = [
@@ -50,22 +45,8 @@ export class TherapeuticSubstitutionService {
         skip,
         take,
         include: {
-          sourceDrug: {
-            select: {
-              id: true,
-              drugCode: true,
-              genericName: true,
-              brandName: true,
-            },
-          },
-          targetDrug: {
-            select: {
-              id: true,
-              drugCode: true,
-              genericName: true,
-              brandName: true,
-            },
-          },
+          sourceDrug: { select: { id: true, drugCode: true, genericName: true, brandName: true, therapeuticClass: true } },
+          targetDrug: { select: { id: true, drugCode: true, genericName: true, brandName: true, therapeuticClass: true } },
         },
         orderBy: [{ createdAt: "desc" }],
       }),
@@ -77,40 +58,19 @@ export class TherapeuticSubstitutionService {
 
   async getAlternatives(
     principal: any,
-    params: {
-      branchId?: string;
-      drugId: string;
-    }
+    params: { branchId?: string; drugId: string }
   ) {
     const { branchId: rawBranchId, drugId } = params;
     const branchId = await this.ctx.resolveBranchId(principal, rawBranchId);
 
-    // Verify drug exists and belongs to branch
-    const drug = await this.ctx.prisma.drugMaster.findFirst({
-      where: { id: drugId, branchId },
-    });
-
-    if (!drug) {
-      throw new NotFoundException("Drug not found in this branch");
-    }
+    const drug = await this.ctx.prisma.drugMaster.findFirst({ where: { id: drugId, branchId } });
+    if (!drug) throw new NotFoundException("Drug not found in this branch");
 
     const substitutions = await this.ctx.prisma.therapeuticSubstitution.findMany({
-      where: {
-        sourceDrugId: drugId,
-        isActive: true,
-        branchId,
-      },
+      where: { sourceDrugId: drugId, isActive: true, branchId },
       include: {
         targetDrug: {
-          select: {
-            id: true,
-            drugCode: true,
-            genericName: true,
-            brandName: true,
-            therapeuticClass: true,
-            dosageForm: true,
-            strength: true,
-          },
+          select: { id: true, drugCode: true, genericName: true, brandName: true, therapeuticClass: true, dosageForm: true, strength: true },
         },
       },
       orderBy: { targetDrug: { drugCode: "asc" } },
@@ -126,63 +86,55 @@ export class TherapeuticSubstitutionService {
     };
   }
 
-  async createSubstitution(
-    principal: any,
-    dto: CreateTherapeuticSubstitutionDto,
-    branchId?: string
-  ) {
+  async createSubstitution(principal: any, dto: CreateTherapeuticSubstitutionDto, branchId?: string) {
     const resolvedBranchId = await this.ctx.resolveBranchId(principal, branchId);
 
     if (dto.sourceDrugId === dto.targetDrugId) {
       throw new BadRequestException("Cannot create substitution to the same drug");
     }
 
-    // Verify both drugs exist and belong to the same branch
     const [sourceDrug, targetDrug] = await Promise.all([
       this.ctx.prisma.drugMaster.findFirst({
         where: { id: dto.sourceDrugId, branchId: resolvedBranchId },
+        select: { id: true, therapeuticClass: true, drugCode: true },
       }),
       this.ctx.prisma.drugMaster.findFirst({
         where: { id: dto.targetDrugId, branchId: resolvedBranchId },
+        select: { id: true, therapeuticClass: true, drugCode: true },
       }),
     ]);
 
-    if (!sourceDrug) {
-      throw new NotFoundException("Source drug not found in this branch");
+    if (!sourceDrug) throw new NotFoundException("Source drug not found in this branch");
+    if (!targetDrug) throw new NotFoundException("Target drug not found in this branch");
+
+    // Enforce: Alternative must be same therapeutic class
+    const srcClass = (sourceDrug.therapeuticClass ?? "").trim();
+    const tgtClass = (targetDrug.therapeuticClass ?? "").trim();
+    if (!srcClass || !tgtClass) {
+      throw new BadRequestException("Both source and target drugs must have therapeuticClass set to create substitution");
+    }
+    if (srcClass.toLowerCase() !== tgtClass.toLowerCase()) {
+      throw new BadRequestException(
+        `Therapeutic substitution must be within the same therapeutic class. Source(${sourceDrug.drugCode})=${srcClass}, Target(${targetDrug.drugCode})=${tgtClass}`,
+      );
     }
 
-    if (!targetDrug) {
-      throw new NotFoundException("Target drug not found in this branch");
-    }
-
-    // Check for duplicate
     const existing = await this.ctx.prisma.therapeuticSubstitution.findFirst({
-      where: {
-        sourceDrugId: dto.sourceDrugId,
-        targetDrugId: dto.targetDrugId,
-        branchId: resolvedBranchId,
-      },
+      where: { sourceDrugId: dto.sourceDrugId, targetDrugId: dto.targetDrugId, branchId: resolvedBranchId },
     });
-
-    if (existing) {
-      throw new ConflictException("This therapeutic substitution already exists");
-    }
+    if (existing) throw new ConflictException("This therapeutic substitution already exists");
 
     const substitution = await this.ctx.prisma.therapeuticSubstitution.create({
       data: {
         branchId: resolvedBranchId,
         sourceDrugId: dto.sourceDrugId,
         targetDrugId: dto.targetDrugId,
-        notes: dto.notes,
+        notes: dto.notes ?? null,
         isActive: dto.isActive ?? true,
       },
       include: {
-        sourceDrug: {
-          select: { id: true, drugCode: true, genericName: true, brandName: true },
-        },
-        targetDrug: {
-          select: { id: true, drugCode: true, genericName: true, brandName: true },
-        },
+        sourceDrug: { select: { id: true, drugCode: true, genericName: true, brandName: true, therapeuticClass: true } },
+        targetDrug: { select: { id: true, drugCode: true, genericName: true, brandName: true, therapeuticClass: true } },
       },
     });
 
@@ -192,29 +144,16 @@ export class TherapeuticSubstitutionService {
       entity: "TherapeuticSubstitution",
       entityId: substitution.id,
       branchId: resolvedBranchId,
-      meta: {
-        sourceDrugId: dto.sourceDrugId,
-        targetDrugId: dto.targetDrugId,
-      },
+      meta: { sourceDrugId: dto.sourceDrugId, targetDrugId: dto.targetDrugId },
     });
 
     return substitution;
   }
 
-  async updateSubstitution(
-    principal: any,
-    id: string,
-    dto: UpdateTherapeuticSubstitutionDto
-  ) {
-    const existing = await this.ctx.prisma.therapeuticSubstitution.findUnique({
-      where: { id },
-    });
+  async updateSubstitution(principal: any, id: string, dto: UpdateTherapeuticSubstitutionDto) {
+    const existing = await this.ctx.prisma.therapeuticSubstitution.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException("Therapeutic substitution not found");
 
-    if (!existing) {
-      throw new NotFoundException("Therapeutic substitution not found");
-    }
-
-    // Verify branch access
     await this.ctx.resolveBranchId(principal, existing.branchId);
 
     const updated = await this.ctx.prisma.therapeuticSubstitution.update({
@@ -224,12 +163,8 @@ export class TherapeuticSubstitutionService {
         isActive: dto.isActive !== undefined ? dto.isActive : undefined,
       },
       include: {
-        sourceDrug: {
-          select: { id: true, drugCode: true, genericName: true, brandName: true },
-        },
-        targetDrug: {
-          select: { id: true, drugCode: true, genericName: true, brandName: true },
-        },
+        sourceDrug: { select: { id: true, drugCode: true, genericName: true, brandName: true, therapeuticClass: true } },
+        targetDrug: { select: { id: true, drugCode: true, genericName: true, brandName: true, therapeuticClass: true } },
       },
     });
 
@@ -246,20 +181,12 @@ export class TherapeuticSubstitutionService {
   }
 
   async deleteSubstitution(principal: any, id: string) {
-    const existing = await this.ctx.prisma.therapeuticSubstitution.findUnique({
-      where: { id },
-    });
+    const existing = await this.ctx.prisma.therapeuticSubstitution.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException("Therapeutic substitution not found");
 
-    if (!existing) {
-      throw new NotFoundException("Therapeutic substitution not found");
-    }
-
-    // Verify branch access
     await this.ctx.resolveBranchId(principal, existing.branchId);
 
-    await this.ctx.prisma.therapeuticSubstitution.delete({
-      where: { id },
-    });
+    await this.ctx.prisma.therapeuticSubstitution.delete({ where: { id } });
 
     await this.ctx.audit.log({
       actorUserId: principal.userId,
@@ -267,10 +194,7 @@ export class TherapeuticSubstitutionService {
       entity: "TherapeuticSubstitution",
       entityId: id,
       branchId: existing.branchId,
-      meta: {
-        sourceDrugId: existing.sourceDrugId,
-        targetDrugId: existing.targetDrugId,
-      },
+      meta: { sourceDrugId: existing.sourceDrugId, targetDrugId: existing.targetDrugId },
     });
 
     return { success: true };

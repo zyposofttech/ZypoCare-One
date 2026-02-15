@@ -12,7 +12,7 @@ import { cn } from "@/lib/cn";
 import { useAuthStore, hasPerm } from "@/lib/auth/store";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
 import { IconSearch } from "@/components/icons";
-import { AlertTriangle, Droplets, Loader2, RefreshCw, Users, FlaskConical, PackageCheck, Activity, GitCompareArrows, Siren, TestTubes, Warehouse, ScrollText, ChevronRight } from "lucide-react";
+import { AlertTriangle, Droplets, Loader2, RefreshCw, Users, FlaskConical, PackageCheck, Activity, GitCompareArrows, Siren, TestTubes, Warehouse, ScrollText, ChevronRight, Thermometer } from "lucide-react";
 
 type NavItem = {
   title: string;
@@ -32,6 +32,7 @@ const NAV_ITEMS: NavItem[] = [
   { title: "Blood Requests", description: "Clinical blood requests", href: "/blood-bank/requests", icon: GitCompareArrows, color: "blue" },
   { title: "Cross-Match", description: "Cross-match workbench", href: "/blood-bank/cross-match", icon: GitCompareArrows, color: "indigo" },
   { title: "Issue Desk", description: "Issue blood units", href: "/blood-bank/issue", icon: PackageCheck, color: "teal" },
+  { title: "Equipment & Cold Chain", description: "Equipment setup, calibration and temperature monitoring", href: "/blood-bank/equipment", icon: Thermometer, color: "amber" },
   { title: "Transfusion", description: "Monitor active transfusions", href: "/blood-bank/transfusion", icon: Activity, color: "green" },
   { title: "MTP Dashboard", description: "Massive Transfusion Protocol", href: "/blood-bank/mtp", icon: Siren, color: "red" },
   { title: "Quality Control", description: "IQC, EQAS, and calibration", href: "/blood-bank/qc", icon: TestTubes, color: "violet" },

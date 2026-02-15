@@ -2765,6 +2765,7 @@ exports.Prisma.DrugMasterScalarFieldEnum = {
   isPsychotropic: 'isPsychotropic',
   isControlled: 'isControlled',
   isAntibiotic: 'isAntibiotic',
+  antibioticStewardshipLevel: 'antibioticStewardshipLevel',
   isHighAlert: 'isHighAlert',
   isLasa: 'isLasa',
   mrp: 'mrp',
@@ -2824,6 +2825,35 @@ exports.Prisma.TherapeuticSubstitutionScalarFieldEnum = {
   targetDrugId: 'targetDrugId',
   notes: 'notes',
   isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PharmFormularyCommitteeScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  name: 'name',
+  description: 'description',
+  isActive: 'isActive',
+  createdByUserId: 'createdByUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PharmFormularyCommitteeMemberScalarFieldEnum = {
+  id: 'id',
+  committeeId: 'committeeId',
+  userId: 'userId',
+  role: 'role',
+  isActive: 'isActive',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PharmFormularyPolicyScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  committeeId: 'committeeId',
+  config: 'config',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -5245,6 +5275,12 @@ exports.DrugScheduleClass = exports.$Enums.DrugScheduleClass = {
   G: 'G'
 };
 
+exports.AntibioticStewardshipLevel = exports.$Enums.AntibioticStewardshipLevel = {
+  UNRESTRICTED: 'UNRESTRICTED',
+  RESTRICTED: 'RESTRICTED',
+  RESERVE: 'RESERVE'
+};
+
 exports.DrugFormularyStatus = exports.$Enums.DrugFormularyStatus = {
   APPROVED: 'APPROVED',
   RESTRICTED: 'RESTRICTED',
@@ -5272,6 +5308,12 @@ exports.FormularyVersionStatus = exports.$Enums.FormularyVersionStatus = {
   DRAFT: 'DRAFT',
   PUBLISHED: 'PUBLISHED',
   ARCHIVED: 'ARCHIVED'
+};
+
+exports.PharmCommitteeRole = exports.$Enums.PharmCommitteeRole = {
+  CHAIR: 'CHAIR',
+  MEMBER: 'MEMBER',
+  SECRETARY: 'SECRETARY'
 };
 
 exports.PharmSupplierStatus = exports.$Enums.PharmSupplierStatus = {
@@ -5907,6 +5949,9 @@ exports.Prisma.ModelName = {
   Formulary: 'Formulary',
   FormularyItem: 'FormularyItem',
   TherapeuticSubstitution: 'TherapeuticSubstitution',
+  PharmFormularyCommittee: 'PharmFormularyCommittee',
+  PharmFormularyCommitteeMember: 'PharmFormularyCommitteeMember',
+  PharmFormularyPolicy: 'PharmFormularyPolicy',
   PharmSupplier: 'PharmSupplier',
   SupplierStoreMapping: 'SupplierStoreMapping',
   SupplierDrugMapping: 'SupplierDrugMapping',

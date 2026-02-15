@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, Req } from "@nestjs/common";
+import { Controller, Get, Param, Post, Query, Req, Body } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { Permissions } from "../../auth/permissions.decorator";
 import { PERM } from "../../iam/iam.constants";
@@ -18,6 +18,32 @@ export class FormularyController {
   @Permissions(PERM.INFRA_PHARMACY_FORMULARY_READ)
   async listFormularies(@Req() req: any, @Query("branchId") branchId?: string) {
     return this.svc.listFormularies(this.principal(req), branchId);
+  }
+
+  @Get("pharmacy/formulary/active")
+  @Permissions(PERM.INFRA_PHARMACY_FORMULARY_READ)
+  async getActive(
+    @Req() req: any,
+    @Query("branchId") branchId?: string,
+    @Query("at") at?: string,
+  ) {
+    return this.svc.getActiveFormulary(this.principal(req), branchId ?? null, at ?? null);
+  }
+
+  @Get("pharmacy/formulary/:id")
+  @Permissions(PERM.INFRA_PHARMACY_FORMULARY_READ)
+  async getFormulary(@Req() req: any, @Param("id") id: string) {
+    return this.svc.getFormulary(this.principal(req), id);
+  }
+
+  @Get("pharmacy/formulary/:id/diff")
+  @Permissions(PERM.INFRA_PHARMACY_FORMULARY_READ)
+  async diff(
+    @Req() req: any,
+    @Param("id") id: string,
+    @Query("compareToId") compareToId?: string,
+  ) {
+    return this.svc.diffFormulary(this.principal(req), id, compareToId ?? null);
   }
 
   @Post("pharmacy/formulary")

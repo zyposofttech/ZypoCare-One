@@ -79,6 +79,8 @@ import { DrugInteractionController } from "./pharmacy/drug-interaction.controlle
 import { DrugInteractionService } from "./pharmacy/drug-interaction.service";
 import { TherapeuticSubstitutionController } from "./pharmacy/therapeutic-substitution.controller";
 import { TherapeuticSubstitutionService } from "./pharmacy/therapeutic-substitution.service";
+import { FormularyGovernanceController } from "./pharmacy/formulary-governance.controller";
+import { FormularyGovernanceService } from "./pharmacy/formulary-governance.service";
 import { DrugCategoryController } from "./pharmacy/drug-category.controller";
 import { DrugCategoryService } from "./pharmacy/drug-category.service";
 
@@ -136,6 +138,7 @@ import { PriceHistoryService } from "./price-history/price-history.service";
     GovSchemeController,
     PricingTierController,
     PriceHistoryController,
+    FormularyGovernanceController
   ],
   providers: [
     LocationService,
@@ -171,6 +174,7 @@ import { PriceHistoryService } from "./price-history/price-history.service";
     GovSchemeService,
     PricingTierService,
     PriceHistoryService,
+    FormularyGovernanceService
   ],
 })
 export class InfrastructureModule {}

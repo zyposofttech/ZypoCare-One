@@ -10,6 +10,7 @@ import {
   Req,
   DefaultValuePipe,
   ParseIntPipe,
+  BadRequestException,
 } from "@nestjs/common";
 import { TherapeuticSubstitutionService } from "./therapeutic-substitution.service";
 import { CreateTherapeuticSubstitutionDto, UpdateTherapeuticSubstitutionDto } from "./dto/create-therapeutic-substitution.dto";
@@ -54,14 +55,9 @@ export class TherapeuticSubstitutionController {
     @Query("branchId") branchId?: string,
     @Query("drugId") drugId?: string
   ) {
-    if (!drugId) {
-      throw new Error("drugId query parameter is required");
-    }
+    if (!drugId) throw new BadRequestException("drugId query parameter is required");
 
-    return this.service.getAlternatives(this.principal(req), {
-      branchId,
-      drugId,
-    });
+    return this.service.getAlternatives(this.principal(req), { branchId, drugId });
   }
 
   @Post("substitutions")
@@ -76,11 +72,7 @@ export class TherapeuticSubstitutionController {
 
   @Patch("substitutions/:id")
   @Permissions(PERM.INFRA_PHARMACY_FORMULARY_UPDATE)
-  async updateSubstitution(
-    @Req() req: any,
-    @Param("id") id: string,
-    @Body() dto: UpdateTherapeuticSubstitutionDto
-  ) {
+  async updateSubstitution(@Req() req: any, @Param("id") id: string, @Body() dto: UpdateTherapeuticSubstitutionDto) {
     return this.service.updateSubstitution(this.principal(req), id, dto);
   }
 

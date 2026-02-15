@@ -84,6 +84,10 @@ export class UpdateDrugDto {
   isAntibiotic?: boolean;
 
   @IsOptional()
+  @IsIn(["UNRESTRICTED", "RESTRICTED", "RESERVE"])
+  antibioticStewardshipLevel?: string;
+
+  @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
   isHighAlert?: boolean;

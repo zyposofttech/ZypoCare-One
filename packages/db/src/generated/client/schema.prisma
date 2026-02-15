@@ -298,25 +298,27 @@ model Branch {
   complianceWorkspaces ComplianceWorkspace[]
 
   // Blood Bank Module
-  bloodBankFacility    BloodBankFacility?
-  bbComponentMasters   BloodComponentMaster[]
-  bbEquipment          BloodBankEquipment[]
-  bbReagents           BloodBankReagent[]
-  bbTariffConfigs      BBTariffConfig[]
-  bbDonors             Donor[]
-  bbBloodUnits         BloodUnit[]
-  bbBloodRequests      BloodRequest[]
-  bbBloodIssues        BloodIssue[]
-  bbTransfusionRecords TransfusionRecord[]
-  bbQCRecords          QualityControlRecord[]
-  bbDonationCamps      BloodDonationCamp[]
-  bbMTPSessions        MTPSession[]
-  bbMSBOSConfigs       MSBOSConfig[]
-  notifications        Notification[]
-  bbTransfersFrom      BloodUnitTransfer[]    @relation("BBTransferFromBranch")
-  bbTransfersTo        BloodUnitTransfer[]    @relation("BBTransferToBranch")
-  bbLookbackCases      BloodLookbackCase[]
-  bbReportRuns         BBReportRun[]
+  bloodBankFacility       BloodBankFacility?
+  bbComponentMasters      BloodComponentMaster[]
+  bbEquipment             BloodBankEquipment[]
+  bbReagents              BloodBankReagent[]
+  bbTariffConfigs         BBTariffConfig[]
+  bbDonors                Donor[]
+  bbBloodUnits            BloodUnit[]
+  bbBloodRequests         BloodRequest[]
+  bbBloodIssues           BloodIssue[]
+  bbTransfusionRecords    TransfusionRecord[]
+  bbQCRecords             QualityControlRecord[]
+  bbDonationCamps         BloodDonationCamp[]
+  bbMTPSessions           MTPSession[]
+  bbMSBOSConfigs          MSBOSConfig[]
+  notifications           Notification[]
+  bbTransfersFrom         BloodUnitTransfer[]       @relation("BBTransferFromBranch")
+  bbTransfersTo           BloodUnitTransfer[]       @relation("BBTransferToBranch")
+  bbLookbackCases         BloodLookbackCase[]
+  bbReportRuns            BBReportRun[]
+  PharmFormularyCommittee PharmFormularyCommittee[]
+  PharmFormularyPolicy    PharmFormularyPolicy?
 }
 
 model FacilityCatalog {
@@ -1916,9 +1918,11 @@ model User {
   StaffMergeLog                   StaffMergeLog[]
 
   // ---------------- Pharmacy Infrastructure ----------------
-  publishedFormularies Formulary[]          @relation("FormularyPublisher")
-  narcoticsPerformed   NarcoticsRegister[]  @relation("NarcoticsPerformedBy")
-  drugLicensesUploaded DrugLicenseHistory[] @relation("DrugLicenseUploader")
+  publishedFormularies          Formulary[]                     @relation("FormularyPublisher")
+  narcoticsPerformed            NarcoticsRegister[]             @relation("NarcoticsPerformedBy")
+  drugLicensesUploaded          DrugLicenseHistory[]            @relation("DrugLicenseUploader")
+  PharmFormularyCommittee       PharmFormularyCommittee[]       @relation("PharmFormularyCommitteeCreatedBy")
+  PharmFormularyCommitteeMember PharmFormularyCommitteeMember[]
 
   // ---------------- Financial Config (Module 3.13) ----------------
   approvedPriceChanges   ServicePriceHistory[] @relation("PriceHistoryApprovedBy")
@@ -6404,6 +6408,18 @@ enum DrugLifecycleStatus {
   RECALLED
 }
 
+enum AntibioticStewardshipLevel {
+  UNRESTRICTED
+  RESTRICTED
+  RESERVE
+}
+
+enum PharmCommitteeRole {
+  CHAIR
+  MEMBER
+  SECRETARY
+}
+
 enum FormularyVersionStatus {
   DRAFT
   PUBLISHED
@@ -6507,13 +6523,14 @@ model DrugMaster {
   pharmacologicalClass String?      @db.VarChar(160)
 
   // Indian regulatory classification
-  scheduleClass  DrugScheduleClass @default(GENERAL)
-  isNarcotic     Boolean           @default(false)
-  isPsychotropic Boolean           @default(false)
-  isControlled   Boolean           @default(false)
-  isAntibiotic   Boolean           @default(false)
-  isHighAlert    Boolean           @default(false)
-  isLasa         Boolean           @default(false)
+  scheduleClass              DrugScheduleClass          @default(GENERAL)
+  isNarcotic                 Boolean                    @default(false)
+  isPsychotropic             Boolean                    @default(false)
+  isControlled               Boolean                    @default(false)
+  isAntibiotic               Boolean                    @default(false)
+  antibioticStewardshipLevel AntibioticStewardshipLevel @default(UNRESTRICTED)
+  isHighAlert                Boolean                    @default(false)
+  isLasa                     Boolean                    @default(false)
 
   // Pricing & tax
   mrp           Decimal? @db.Decimal(12, 2)
@@ -6553,6 +6570,7 @@ model DrugMaster {
   @@index([branchId, genericName])
   @@index([branchId, category, status])
   @@index([branchId, scheduleClass])
+  @@index([branchId, isAntibiotic, antibioticStewardshipLevel])
 }
 
 // ---- Drug Interaction ----
@@ -6638,6 +6656,61 @@ model TherapeuticSubstitution {
   updatedAt DateTime @updatedAt
 
   @@index([branchId, sourceDrugId])
+}
+
+model PharmFormularyCommittee {
+  id       String @id @default(cuid())
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  name        String  @db.VarChar(120)
+  description String? @db.VarChar(500)
+  isActive    Boolean @default(true)
+
+  createdByUserId String?
+  createdByUser   User?   @relation("PharmFormularyCommitteeCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members PharmFormularyCommitteeMember[]
+  policy  PharmFormularyPolicy?
+
+  @@unique([branchId, name])
+  @@index([branchId, isActive])
+}
+
+model PharmFormularyCommitteeMember {
+  id String @id @default(cuid())
+
+  committeeId String
+  committee   PharmFormularyCommittee @relation(fields: [committeeId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role     PharmCommitteeRole @default(MEMBER)
+  isActive Boolean            @default(true)
+
+  createdAt DateTime @default(now())
+
+  @@unique([committeeId, userId])
+  @@index([userId])
+}
+
+model PharmFormularyPolicy {
+  id       String @id @default(cuid())
+  branchId String @unique
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  committeeId String?                  @unique
+  committee   PharmFormularyCommittee? @relation(fields: [committeeId], references: [id], onDelete: SetNull)
+
+  // flexible structure: tier rules, approver roles, stewardship enforcement toggles, etc.
+  config Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ---- Supplier ----

@@ -1,3 +1,4 @@
+// apps/web/app/blood-bank/inventory/page.tsx
 "use client";
 import * as React from "react";
 import { AppShell } from "@/components/AppShell";
@@ -7,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useAuthStore, hasPerm } from "@/lib/auth/store";
@@ -24,6 +28,29 @@ type UnitRow = {
   storageLoc?: string;
   collectionStartAt?: string;
   volumeCollectedMl?: number;
+};
+
+type TempAlert = {
+  id: string;
+  temperatureC: number;
+  recordedAt: string;
+  acknowledged?: boolean;
+  equipment?: {
+    id: string;
+    equipmentId?: string;
+    equipmentType?: string;
+    location?: string;
+    calibrationDueDate?: string;
+  };
+};
+
+type EquipmentRow = {
+  id: string;
+  equipmentId?: string;
+  equipmentType?: string;
+  location?: string;
+  calibrationDueDate?: string;
+  isActive?: boolean;
 };
 
 const STATUS_OPTIONS = ["ALL", "AVAILABLE", "RESERVED", "CROSS_MATCHED", "ISSUED", "QUARANTINED", "TESTING"] as const;
@@ -94,6 +121,12 @@ export default function InventoryDashboardPage() {
   const [rows, setRows] = React.useState<UnitRow[]>([]);
   const [err, setErr] = React.useState<string | null>(null);
 
+  const canEqRead = hasPerm(user, "BB_EQUIPMENT_READ");
+  const canEqUpdate = hasPerm(user, "BB_EQUIPMENT_UPDATE");
+  const [tempAlerts, setTempAlerts] = React.useState<TempAlert[]>([]);
+  const [equipment, setEquipment] = React.useState<EquipmentRow[]>([]);
+  const [alertsLoading, setAlertsLoading] = React.useState(false);
+
   const filtered = React.useMemo(() => {
     let list = rows;
 
@@ -125,9 +158,16 @@ export default function InventoryDashboardPage() {
     setErr(null);
     setLoading(true);
     try {
-      const data = await apiFetch<UnitRow[]>(`/api/blood-bank/inventory/units?branchId=${branchId}`);
-      const sorted = [...(data ?? [])].sort((a, b) => (a.unitNumber || "").localeCompare(b.unitNumber || ""));
+      const [units, alerts, eq] = await Promise.all([
+        apiFetch<UnitRow[]>(`/api/blood-bank/inventory/units?branchId=${branchId}`),
+        canEqRead ? apiFetch<TempAlert[]>(`/api/blood-bank/equipment/temp-alerts?branchId=${branchId}`) : Promise.resolve([]),
+        canEqRead ? apiFetch<EquipmentRow[]>(`/api/blood-bank/equipment?branchId=${branchId}`) : Promise.resolve([]),
+      ]);
+
+      const sorted = [...(units ?? [])].sort((a, b) => (a.unitNumber || "").localeCompare(b.unitNumber || ""));
       setRows(sorted);
+      setTempAlerts((alerts ?? []).filter((a) => !(a as any)?.acknowledged));
+      setEquipment(eq ?? []);
 
       if (showToast) {
         toast({ title: "Inventory refreshed", description: `Loaded ${sorted.length} units.` });
@@ -138,6 +178,92 @@ export default function InventoryDashboardPage() {
       toast({ variant: "destructive", title: "Refresh failed", description: msg });
     } finally {
       setLoading(false);
+    }
+  }
+
+  const overdueCalibration = React.useMemo(() => {
+    const now = Date.now();
+    return (equipment ?? []).filter((e) => {
+      if (e.isActive === false) return false;
+      if (!e.calibrationDueDate) return false;
+      const t = new Date(e.calibrationDueDate).getTime();
+      return Number.isFinite(t) && t < now;
+    });
+  }, [equipment]);
+
+  async function acknowledgeTempAlert(logId: string) {
+    if (!canEqUpdate) {
+      toast({ title: "Not permitted", description: "You don't have permission to acknowledge alerts.", variant: "destructive" });
+      return;
+    }
+    setAlertsLoading(true);
+    try {
+      await apiFetch(`/api/blood-bank/equipment/temp-logs/${logId}/acknowledge`, { method: "POST" });
+      setTempAlerts((prev) => prev.filter((a) => a.id !== logId));
+      toast({ title: "Alert acknowledged", description: "Temperature breach acknowledged and cleared." });
+    } catch (e: any) {
+      toast({ title: "Failed", description: e?.message ?? "Could not acknowledge", variant: "destructive" });
+    } finally {
+      setAlertsLoading(false);
+    }
+  }
+
+  // P10: Resolve temperature excursion (ack + release/discard quarantined units)
+  const [resolveOpen, setResolveOpen] = React.useState(false);
+  const [resolveAlert, setResolveAlert] = React.useState<TempAlert | null>(null);
+  const [resolveAction, setResolveAction] = React.useState<"RELEASE" | "DISCARD">("RELEASE");
+  const [resolveNote, setResolveNote] = React.useState("");
+  const [resolveBusy, setResolveBusy] = React.useState(false);
+  const [resolveErr, setResolveErr] = React.useState<string | null>(null);
+
+  function openResolve(a: TempAlert) {
+    setResolveErr(null);
+    setResolveAlert(a);
+    setResolveAction("RELEASE");
+    setResolveNote("");
+    setResolveOpen(true);
+  }
+
+  async function resolveTempBreach() {
+    if (!resolveAlert) return;
+    if (!canEqUpdate) {
+      toast({ title: "Not permitted", description: "You don't have permission to resolve cold-chain breaches.", variant: "destructive" });
+      return;
+    }
+    setResolveBusy(true);
+    setResolveErr(null);
+    try {
+      const res = await apiFetch<{ affectedUnits?: number; action?: string }>(
+        `/api/blood-bank/equipment/temp-logs/${resolveAlert.id}/review`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            action: resolveAction,
+            note: resolveNote?.trim() || undefined,
+            acknowledgeIfNeeded: true,
+            requireRecoveryLog: true,
+          }),
+        },
+      );
+
+      setResolveOpen(false);
+      setTempAlerts((prev) => prev.filter((a) => a.id !== resolveAlert.id));
+      toast({
+        title: "Breach resolved",
+        description:
+          resolveAction === "RELEASE"
+            ? `Released ${res?.affectedUnits ?? 0} quarantined unit(s).`
+            : `Discarded ${res?.affectedUnits ?? 0} quarantined unit(s).`,
+      });
+
+      // Refresh unit statuses on the dashboard
+      void refresh(false);
+    } catch (e: any) {
+      const msg = e?.message ?? "Could not resolve breach";
+      setResolveErr(msg);
+      toast({ title: "Resolve failed", description: msg, variant: "destructive" });
+    } finally {
+      setResolveBusy(false);
     }
   }
 
@@ -249,6 +375,112 @@ export default function InventoryDashboardPage() {
           </CardContent>
         </Card>
 
+        {/* Operational Safety Alerts */}
+        {canEqRead ? (
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Operational Safety Alerts</CardTitle>
+              <CardDescription className="text-sm">
+                Temperature breaches and equipment calibration issues that can block issuing.
+              </CardDescription>
+            </CardHeader>
+            <Separator />
+            <CardContent className="grid gap-4 pt-4">
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-3 dark:border-amber-900/50 dark:bg-amber-900/10">
+                  <div className="text-xs font-medium text-amber-700 dark:text-amber-300">Unacknowledged temperature breaches</div>
+                  <div className="mt-1 text-lg font-bold text-amber-800 dark:text-amber-200">{tempAlerts.length}</div>
+                  <div className="mt-1 text-xs text-zc-muted">Acknowledge breaches to clear safety gate blocks.</div>
+                </div>
+                <div className="rounded-xl border border-red-200 bg-red-50/50 p-3 dark:border-red-900/50 dark:bg-red-900/10">
+                  <div className="text-xs font-medium text-red-700 dark:text-red-300">Calibration overdue equipment</div>
+                  <div className="mt-1 text-lg font-bold text-red-800 dark:text-red-200">{overdueCalibration.length}</div>
+                  <div className="mt-1 text-xs text-zc-muted">Overdue calibration will block issue for units stored there.</div>
+                </div>
+              </div>
+
+              {/* Temp alerts list */}
+              <div className="rounded-xl border border-zc-border bg-zc-panel/20">
+                <div className="flex items-center justify-between gap-2 px-4 py-3">
+                  <div className="text-sm font-semibold">Temperature Breaches</div>
+                  {alertsLoading ? (
+                    <div className="flex items-center gap-2 text-xs text-zc-muted">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Working...
+                    </div>
+                  ) : null}
+                </div>
+                <Separator />
+                {tempAlerts.length === 0 ? (
+                  <div className="px-4 py-3 text-sm text-zc-muted">No active temperature breaches.</div>
+                ) : (
+                  <div className="divide-y divide-zc-border">
+                    {tempAlerts.slice(0, 20).map((a) => (
+                      <div key={a.id} className="flex flex-col gap-2 px-4 py-3 md:flex-row md:items-center md:justify-between">
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium">
+                            {(a.equipment?.equipmentId ?? "Equipment").toString()} <span className="text-zc-muted">•</span>{" "}
+                            <span className="text-zc-muted">{a.equipment?.equipmentType ?? ""}</span>
+                          </div>
+                          <div className="mt-1 text-xs text-zc-muted">
+                            {a.equipment?.location ? `${a.equipment.location} • ` : ""}
+                            {new Date(a.recordedAt).toLocaleString("en-IN")} • {String(a.temperatureC)}°C
+                          </div>
+                          <div className="mt-1 text-xs text-amber-700 dark:text-amber-300">
+                            Issuing is blocked for units stored in this equipment until acknowledged.
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={!canEqUpdate || alertsLoading}
+                            onClick={() => void acknowledgeTempAlert(a.id)}
+                          >
+                            Acknowledge
+                          </Button>
+                          <Button
+                            size="sm"
+                            disabled={!canEqUpdate || alertsLoading}
+                            onClick={() => openResolve(a)}
+                          >
+                            Resolve
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Calibration overdue list */}
+              <div className="rounded-xl border border-zc-border bg-zc-panel/20">
+                <div className="px-4 py-3 text-sm font-semibold">Calibration Overdue</div>
+                <Separator />
+                {overdueCalibration.length === 0 ? (
+                  <div className="px-4 py-3 text-sm text-zc-muted">No calibration overdue equipment.</div>
+                ) : (
+                  <div className="divide-y divide-zc-border">
+                    {overdueCalibration.slice(0, 20).map((e) => (
+                      <div key={e.id} className="px-4 py-3">
+                        <div className="text-sm font-medium">
+                          {(e.equipmentId ?? "Equipment").toString()} <span className="text-zc-muted">•</span>{" "}
+                          <span className="text-zc-muted">{e.equipmentType ?? ""}</span>
+                        </div>
+                        <div className="mt-1 text-xs text-zc-muted">
+                          {e.location ? `${e.location} • ` : ""}Due: {formatDate(e.calibrationDueDate)}
+                        </div>
+                        <div className="mt-1 text-xs text-red-700 dark:text-red-300">
+                          Update calibration dates in Equipment setup to unblock issue.
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ) : null}
+
         {/* Table */}
         <Card className="overflow-hidden">
           <CardHeader className="pb-3">
@@ -340,6 +572,99 @@ export default function InventoryDashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Resolve temperature breach dialog (P10) */}
+        <Dialog
+          open={resolveOpen}
+          onOpenChange={(v) => {
+            if (!v) {
+              setResolveOpen(false);
+              setResolveErr(null);
+            }
+          }}
+        >
+          <DialogContent className={drawerClassName()} onInteractOutside={(e) => e.preventDefault()}>
+            <DialogHeader>
+              <DialogTitle className="text-indigo-700 dark:text-indigo-400">Resolve Temperature Excursion</DialogTitle>
+              <DialogDescription>
+                This will acknowledge the breach and apply an action on quarantined units stored in the impacted equipment.
+                A normal (non-breaching) temperature reading must exist after the breach.
+              </DialogDescription>
+            </DialogHeader>
+
+            <Separator className="my-4" />
+
+            {resolveErr ? (
+              <div className="mb-3 flex items-start gap-2 rounded-xl border border-[rgb(var(--zc-danger-rgb)/0.35)] bg-[rgb(var(--zc-danger-rgb)/0.12)] px-3 py-2 text-sm text-[rgb(var(--zc-danger))]">
+                <AlertTriangle className="mt-0.5 h-4 w-4" />
+                <div className="min-w-0">{resolveErr}</div>
+              </div>
+            ) : null}
+
+            <div className="grid gap-4">
+              <div className="rounded-xl border border-zc-border bg-zc-panel/20 p-3">
+                <div className="text-sm font-semibold text-zc-text">Equipment</div>
+                <div className="mt-1 text-sm text-zc-muted">
+                  {(resolveAlert?.equipment?.equipmentId ?? "Equipment").toString()} • {resolveAlert?.equipment?.equipmentType ?? ""}
+                </div>
+                <div className="mt-1 text-xs text-zc-muted">
+                  {resolveAlert?.equipment?.location ? `${resolveAlert.equipment.location} • ` : ""}
+                  Breach: {resolveAlert ? new Date(resolveAlert.recordedAt).toLocaleString("en-IN") : "-"} • Temp: {resolveAlert ? `${resolveAlert.temperatureC}°C` : "-"}
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Action</Label>
+                <Select value={resolveAction} onValueChange={(v) => setResolveAction(v as any)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select action" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="RELEASE">Release quarantined units (set to AVAILABLE)</SelectItem>
+                    <SelectItem value="DISCARD">Discard quarantined units (set to DISCARDED)</SelectItem>
+                  </SelectContent>
+                </Select>
+                {resolveAction === "DISCARD" ? (
+                  <div className="text-xs text-red-700 dark:text-red-300">
+                    Discard is irreversible. Use only after investigation confirms units are unsafe.
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Investigation Note (optional)</Label>
+                <Textarea
+                  value={resolveNote}
+                  onChange={(e) => setResolveNote(e.target.value)}
+                  placeholder="e.g. Door left open for 2 minutes. Recovery verified. Units released after QA approval."
+                  rows={4}
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="mt-4 gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setResolveOpen(false);
+                  setResolveErr(null);
+                }}
+                disabled={resolveBusy}
+              >
+                Cancel
+              </Button>
+              <Button onClick={() => void resolveTempBreach()} disabled={resolveBusy || !resolveAlert}>
+                {resolveBusy ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" /> Resolving...
+                  </span>
+                ) : (
+                  "Resolve"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AppShell>
   );
