@@ -179,6 +179,37 @@ export const PERM = {
   OT_EQUIPMENT_UPDATE: "ot.equipment.update",
   OT_EQUIPMENT_DELETE: "ot.equipment.delete",
 
+  OT_THEATRE_READ: "ot.theatre.read",
+  OT_THEATRE_UPDATE: "ot.theatre.update",
+
+  OT_SCHEDULING_READ: "ot.scheduling.read",
+  OT_SCHEDULING_CREATE: "ot.scheduling.create",
+  OT_SCHEDULING_UPDATE: "ot.scheduling.update",
+  OT_SCHEDULING_DELETE: "ot.scheduling.delete",
+
+  OT_STAFF_READ: "ot.staff.read",
+  OT_STAFF_CREATE: "ot.staff.create",
+  OT_STAFF_UPDATE: "ot.staff.update",
+  OT_STAFF_DELETE: "ot.staff.delete",
+
+  OT_STORE_READ: "ot.store.read",
+  OT_STORE_CREATE: "ot.store.create",
+  OT_STORE_UPDATE: "ot.store.update",
+  OT_STORE_DELETE: "ot.store.delete",
+
+  OT_BILLING_READ: "ot.billing.read",
+  OT_BILLING_CREATE: "ot.billing.create",
+  OT_BILLING_UPDATE: "ot.billing.update",
+  OT_BILLING_DELETE: "ot.billing.delete",
+
+  OT_COMPLIANCE_READ: "ot.compliance.read",
+  OT_COMPLIANCE_CREATE: "ot.compliance.create",
+  OT_COMPLIANCE_UPDATE: "ot.compliance.update",
+  OT_COMPLIANCE_DELETE: "ot.compliance.delete",
+
+  OT_VALIDATION_READ: "ot.validation.read",
+  OT_VALIDATION_CREATE: "ot.validation.create",
+
   // Pharmacy Infrastructure
   INFRA_PHARMACY_STORE_READ: "INFRA_PHARMACY_STORE_READ",
   INFRA_PHARMACY_STORE_CREATE: "INFRA_PHARMACY_STORE_CREATE",

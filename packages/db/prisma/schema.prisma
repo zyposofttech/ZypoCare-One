@@ -298,20 +298,20 @@ model Branch {
   complianceWorkspaces ComplianceWorkspace[]
 
   // Blood Bank Module
-  bloodBankFacility      BloodBankFacility?
-  bbComponentMasters     BloodComponentMaster[]
-  bbEquipment            BloodBankEquipment[]
-  bbReagents             BloodBankReagent[]
-  bbTariffConfigs        BBTariffConfig[]
-  bbDonors               Donor[]
-  bbBloodUnits           BloodUnit[]
-  bbBloodRequests        BloodRequest[]
-  bbBloodIssues          BloodIssue[]
-  bbTransfusionRecords   TransfusionRecord[]
-  bbQCRecords            QualityControlRecord[]
-  bbDonationCamps        BloodDonationCamp[]
-  bbMTPSessions          MTPSession[]
-  bbMSBOSConfigs         MSBOSConfig[]
+  bloodBankFacility    BloodBankFacility?
+  bbComponentMasters   BloodComponentMaster[]
+  bbEquipment          BloodBankEquipment[]
+  bbReagents           BloodBankReagent[]
+  bbTariffConfigs      BBTariffConfig[]
+  bbDonors             Donor[]
+  bbBloodUnits         BloodUnit[]
+  bbBloodRequests      BloodRequest[]
+  bbBloodIssues        BloodIssue[]
+  bbTransfusionRecords TransfusionRecord[]
+  bbQCRecords          QualityControlRecord[]
+  bbDonationCamps      BloodDonationCamp[]
+  bbMTPSessions        MTPSession[]
+  bbMSBOSConfigs       MSBOSConfig[]
 }
 
 model FacilityCatalog {
@@ -4384,6 +4384,105 @@ enum OtEquipmentCategory {
   OTHER
 }
 
+enum OtStaffRole {
+  OT_IN_CHARGE
+  OT_TECHNICIAN
+  SCRUB_NURSE
+  CIRCULATING_NURSE
+  RECOVERY_NURSE
+  OT_ATTENDANT
+  HOUSEKEEPING
+  ANESTHESIA_TECHNICIAN
+}
+
+enum OtSessionType {
+  ELECTIVE
+  EMERGENCY
+  BOTH
+}
+
+enum OtSurgeryCategory {
+  MINOR
+  MAJOR
+  COMPLEX
+  DAYCARE
+}
+
+enum OtChargeComponentType {
+  THEATRE_CHARGE
+  ANESTHESIA_CHARGE
+  SURGEON_FEE
+  ASSISTANT_SURGEON_FEE
+  MATERIAL_CHARGE
+  IMPLANT_CHARGE
+  MONITORING_CHARGE
+}
+
+enum OtChargeModel {
+  PER_HOUR
+  PER_SLAB
+  FLAT
+}
+
+enum OtComplianceConfigType {
+  WHO_CHECKLIST
+  INFECTION_ZONE
+  FUMIGATION
+  BIOMEDICAL_WASTE
+  FIRE_SAFETY
+  SSI_SURVEILLANCE
+}
+
+enum OtChecklistPhase {
+  SIGN_IN
+  TIME_OUT
+  SIGN_OUT
+  PRE_OP
+  SPECIALTY
+}
+
+enum OtZoneType {
+  UNRESTRICTED
+  SEMI_RESTRICTED
+  RESTRICTED
+}
+
+enum OtBookingApprovalMode {
+  DIRECT
+  APPROVAL_REQUIRED
+  AUTO_APPROVE_NOTIFY
+}
+
+enum OtReviewAction {
+  APPROVED
+  REJECTED
+  CONDITIONAL
+}
+
+enum OtDecommissionType {
+  TEMPORARY
+  PERMANENT
+}
+
+enum OtImplantCategory {
+  ORTHOPEDIC
+  CARDIAC
+  OPHTHALMIC
+  GENERAL
+}
+
+enum OtEmergencyCategory {
+  IMMEDIATE
+  URGENT
+  EXPEDITED
+}
+
+enum OtCancellationAuthority {
+  SURGEON
+  OT_IN_CHARGE
+  ADMIN
+}
+
 model OtSuite {
   id       String @id @default(cuid())
   branchId String
@@ -4400,12 +4499,44 @@ model OtSuite {
   // Suite-level config (turnaround time, cleaning time, min recovery bays, etc.)
   config Json?
 
+  // Review & activation fields
+  activatedAt         DateTime?
+  activatedByUserId   String?
+  reviewStatus        String? // IN_REVIEW, VALIDATED
+  lastValidationScore Int?
+  lastValidationAt    DateTime?
+
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   spaces    OtSpace[]
   equipment OtEquipment[]
+
+  // New relations for sub-modules
+  schedulingRules       OtSchedulingRule[]
+  staffAssignments      OtStaffAssignment[]
+  surgeonPrivileges     OtSurgeonPrivilege[]
+  anesthetistPrivileges OtAnesthetistPrivilege[]
+  minStaffingRules      OtMinStaffingRule[]
+  zoneAccessRules       OtZoneAccessRule[]
+  storeLinks            OtStoreLink[]
+  consumableTemplates   OtConsumableTemplate[]
+  implantTrackingRules  OtImplantTrackingRule[]
+  parLevels             OtParLevel[]
+  surgeryTypeDefaults   OtSurgeryTypeDefault[]
+  checklistTemplates    OtChecklistTemplate[]
+  cancellationPolicy    OtCancellationPolicy?
+  bookingApprovalConfig OtBookingApprovalConfig?
+  utilizationTargets    OtUtilizationTarget[]
+  recoveryProtocols     OtRecoveryProtocol[]
+  notificationRules     OtNotificationRule[]
+  serviceLinks          OtServiceLink[]
+  chargeComponents      OtChargeComponent[]
+  complianceConfigs     OtComplianceConfig[]
+  emergencyPolicy       OtEmergencyPolicy?
+  goLiveValidations     OtGoLiveValidation[]
+  reviewRecords         OtReviewRecord[]
 
   @@unique([branchId, code])
   @@index([branchId])
@@ -4436,6 +4567,12 @@ model OtSpace {
   recoveryBay OtRecoveryBay?
   equipment   OtEquipment[]
 
+  zoneAccessRule        OtZoneAccessRule?
+  schedulingRules       OtSchedulingRule[]
+  surgeonPrivileges     OtSurgeonPrivilege[]
+  anesthetistPrivileges OtAnesthetistPrivilege[]
+  minStaffingRules      OtMinStaffingRule[]
+
   @@unique([suiteId, code])
   @@index([suiteId, type])
   @@index([locationNodeId])
@@ -4457,6 +4594,39 @@ model OtTheatre {
   // If your DB is Postgres, String[] is fine. Otherwise switch to Json.
   specialtyCodes String[] @default([])
 
+  // Engineering specs (OTS-014)
+  area                Float?
+  ceilingHeight       Float?
+  gasO2               Boolean @default(false)
+  gasO2Outlets        Int     @default(0)
+  gasN2O              Boolean @default(false)
+  gasN2OOutlets       Int     @default(0)
+  gasAir              Boolean @default(false)
+  gasAirOutlets       Int     @default(0)
+  gasVacuum           Boolean @default(false)
+  gasVacuumOutlets    Int     @default(0)
+  upsOutlets          Int     @default(0)
+  isolatedPowerSupply Boolean @default(false)
+  tempMin             Float?
+  tempMax             Float?
+  humidityMin         Float?
+  humidityMax         Float?
+  luxLevel            Int?
+  emergencyLighting   Boolean @default(false)
+
+  // Scheduling params (OTS-016)
+  turnaroundTimeMin  Int @default(30)
+  cleaningTimeMin    Int @default(15)
+  maxCasesPerDay     Int @default(8)
+  defaultSlotMinor   Int @default(60)
+  defaultSlotMajor   Int @default(120)
+  defaultSlotComplex Int @default(180)
+  bufferEmergencyMin Int @default(15)
+
+  // Emergency (OTS-019)
+  isEmergencyEligible Boolean @default(false)
+  is24x7Emergency     Boolean @default(false)
+
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -4474,6 +4644,14 @@ model OtRecoveryBay {
   bedCount     Int @default(1)
   monitorCount Int @default(0)
   oxygenPoints Int @default(0)
+
+  // Extended recovery detail fields (OTS-007)
+  suctionPoints          Int     @default(0)
+  defaultRecoveryMinor   Int     @default(30)
+  defaultRecoveryMajor   Int     @default(60)
+  defaultRecoveryComplex Int     @default(90)
+  nurseToPatientRatio    String?
+  monitoringStationCount Int     @default(0)
 
   meta Json?
 
@@ -4536,6 +4714,460 @@ model OtEquipment {
 
   @@index([suiteId, category])
   @@index([spaceId])
+}
+
+// OT Scheduling Rules — operating hours & specialty-day allocation (OTS-017, OTS-018)
+model OtSchedulingRule {
+  id             String   @id @default(cuid())
+  suiteId        String
+  suite          OtSuite  @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+  theatreSpaceId String?
+  theatreSpace   OtSpace? @relation(fields: [theatreSpaceId], references: [id], onDelete: SetNull)
+
+  dayOfWeek        Int // 0=Sun .. 6=Sat
+  startTime        String
+  endTime          String
+  sessionType      OtSessionType
+  lunchStart       String?
+  lunchEnd         String?
+  specialtyCode    String?
+  isEffectiveDated Boolean       @default(false)
+  effectiveFrom    DateTime?
+  effectiveTo      DateTime?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([suiteId, theatreSpaceId, dayOfWeek, startTime, specialtyCode])
+  @@index([suiteId])
+}
+
+// OT Staff Assignment — default OT staff (OTS-027)
+model OtStaffAssignment {
+  id      String  @id @default(cuid())
+  suiteId String
+  suite   OtSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+
+  staffId      String
+  role         OtStaffRole
+  defaultShift String?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([suiteId, staffId, role])
+  @@index([suiteId])
+}
+
+// OT Surgeon Privilege — surgeon→theatre mapping (OTS-028)
+model OtSurgeonPrivilege {
+  id             String   @id @default(cuid())
+  suiteId        String
+  suite          OtSuite  @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+  theatreSpaceId String?
+  theatreSpace   OtSpace? @relation(fields: [theatreSpaceId], references: [id], onDelete: SetNull)
+
+  staffId       String
+  specialtyCode String
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([suiteId, theatreSpaceId, staffId])
+  @@index([suiteId])
+}
+
+// OT Anesthetist Privilege — anesthetist→theatre mapping (OTS-029)
+model OtAnesthetistPrivilege {
+  id             String   @id @default(cuid())
+  suiteId        String
+  suite          OtSuite  @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+  theatreSpaceId String?
+  theatreSpace   OtSpace? @relation(fields: [theatreSpaceId], references: [id], onDelete: SetNull)
+
+  staffId             String
+  concurrentCaseLimit Int       @default(1)
+  effectiveFrom       DateTime
+  effectiveTo         DateTime?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([suiteId, theatreSpaceId, staffId])
+  @@index([suiteId])
+}
+
+// OT Min Staffing Rule — minimum staffing per surgery category (OTS-031)
+model OtMinStaffingRule {
+  id             String   @id @default(cuid())
+  suiteId        String
+  suite          OtSuite  @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+  theatreSpaceId String?
+  theatreSpace   OtSpace? @relation(fields: [theatreSpaceId], references: [id], onDelete: SetNull)
+
+  surgeryCategory          OtSurgeryCategory
+  minSurgeons              Int               @default(1)
+  minAnesthetists          Int               @default(1)
+  minScrubNurses           Int               @default(1)
+  minCirculatingNurses     Int               @default(1)
+  minOtTechnicians         Int               @default(0)
+  minAnesthesiaTechnicians Int               @default(0)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([suiteId, theatreSpaceId, surgeryCategory])
+  @@index([suiteId])
+}
+
+// OT Zone Access Rule — zone-based access control (OTS-030)
+model OtZoneAccessRule {
+  id      String  @id @default(cuid())
+  suiteId String
+  suite   OtSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+  spaceId String  @unique
+  space   OtSpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+
+  zone         OtZoneType
+  allowedRoles String[]
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([suiteId, spaceId])
+  @@index([suiteId])
+}
+
+// OT Store Link — OT pharmacy store linkage (OTS-034, OTS-038)
+model OtStoreLink {
+  id      String  @id @default(cuid())
+  suiteId String
+  suite   OtSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+
+  pharmacyStoreId String
+  linkType        String // OT_STORE, ANESTHESIA_STORE, NARCOTICS_VAULT
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([suiteId, linkType])
+  @@index([suiteId])
+}
+
+// OT Consumable Template — default consumable lists (OTS-035)
+model OtConsumableTemplate {
+  id      String  @id @default(cuid())
+  suiteId String
+  suite   OtSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+
+  name            String
+  surgeryCategory OtSurgeryCategory
+  specialtyCode   String?
+  items           Json // array of {name, qty, drugMasterId?}
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([suiteId])
+}
+
+// OT Implant Tracking Rule — implant tracking config (OTS-036)
+model OtImplantTrackingRule {
+  id      String  @id @default(cuid())
+  suiteId String
+  suite   OtSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+
+  category                OtImplantCategory
+  mandatoryBarcodeScan    Boolean           @default(true)
+  mandatoryBatchSerial    Boolean           @default(true)
+  mandatoryManufacturer   Boolean           @default(true)
+  mandatoryPatientConsent Boolean           @default(true)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([suiteId, category])
+  @@index([suiteId])
+}
+
+// OT Par Level — par levels for OT items (OTS-037)
+model OtParLevel {
+  id      String  @id @default(cuid())
+  suiteId String
+  suite   OtSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+
+  itemName          String
+  drugMasterId      String?
+  minStock          Int
+  reorderLevel      Int
+  reorderQty        Int
+  maxStock          Int
+  isNeverOutOfStock Boolean @default(false)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([suiteId])
+}
+
+// OT Surgery Type Default — surgery categories & durations (OTS-039)
+model OtSurgeryTypeDefault {
+  id      String  @id @default(cuid())
+  suiteId String
+  suite   OtSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+
+  category                 OtSurgeryCategory
+  minDurationMin           Int
+  defaultDurationMin       Int
+  maxDurationMin           Int
+  requiresIcuBooking       Boolean           @default(false)
+  requiresBloodReservation Boolean           @default(false)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([suiteId, category])
+  @@index([suiteId])
+}
+
+// OT Checklist Template — checklist templates (OTS-040, OTS-045, OTS-052)
+model OtChecklistTemplate {
+  id      String  @id @default(cuid())
+  suiteId String
+  suite   OtSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+
+  name         String
+  phase        OtChecklistPhase
+  templateType String // WHO, PRE_OP, CONSENT, SPECIALTY
+  items        Json // array of {label, type: YES_NO|TEXT|NUMERIC|SIGNATURE|PHOTO, required, responsibleRole}
+  version      Int              @default(1)
+  isSystem     Boolean          @default(false)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([suiteId])
+}
+
+// OT Cancellation Policy — cancellation rules (OTS-041)
+model OtCancellationPolicy {
+  id      String  @id @default(cuid())
+  suiteId String  @unique
+  suite   OtSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+
+  minNoticeHours            Int                       @default(24)
+  cancellationAuthority     OtCancellationAuthority[]
+  mandatoryReasonRequired   Boolean                   @default(true)
+  reasons                   Json? // dropdown options array
+  maxReschedulesPerCase     Int                       @default(3)
+  priorityBoostOnReschedule Boolean                   @default(false)
+  autoNotifyPatient         Boolean                   @default(true)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// OT Booking Approval Config — booking workflow (OTS-042)
+model OtBookingApprovalConfig {
+  id      String  @id @default(cuid())
+  suiteId String  @unique
+  suite   OtSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+
+  defaultMode          OtBookingApprovalMode @default(DIRECT)
+  minorMode            OtBookingApprovalMode @default(DIRECT)
+  majorMode            OtBookingApprovalMode @default(APPROVAL_REQUIRED)
+  complexMode          OtBookingApprovalMode @default(APPROVAL_REQUIRED)
+  emergencyMode        OtBookingApprovalMode @default(DIRECT)
+  approvalTimeoutHours Int                   @default(24)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// OT Utilization Target — utilization tracking (OTS-043)
+model OtUtilizationTarget {
+  id      String  @id @default(cuid())
+  suiteId String
+  suite   OtSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+
+  metricCode         String
+  targetValue        Float
+  alertThresholdLow  Float?
+  alertThresholdHigh Float?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([suiteId, metricCode])
+  @@index([suiteId])
+}
+
+// OT Recovery Protocol — post-op recovery (OTS-044)
+model OtRecoveryProtocol {
+  id      String  @id @default(cuid())
+  suiteId String
+  suite   OtSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+
+  surgeryCategory         OtSurgeryCategory
+  monitoringFrequencyMin  Int               @default(15)
+  mandatoryVitals         Json // array of vital types
+  minRecoveryDurationMin  Int               @default(30)
+  dischargeScoreThreshold Int               @default(9) // Modified Aldrete Score
+  escalationRules         Json?
+  dischargeSignOffRole    String            @default("RECOVERY_NURSE")
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([suiteId, surgeryCategory])
+  @@index([suiteId])
+}
+
+// OT Notification Rule — notification config (OTS-046)
+model OtNotificationRule {
+  id      String  @id @default(cuid())
+  suiteId String
+  suite   OtSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+
+  eventType      String
+  recipientRoles String[]
+  channels       String[]
+  timing         String
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([suiteId, eventType])
+  @@index([suiteId])
+}
+
+// OT Service Link — surgical service linkage (OTS-047)
+model OtServiceLink {
+  id      String  @id @default(cuid())
+  suiteId String
+  suite   OtSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+
+  serviceItemId               String
+  specialtyCode               String
+  surgeryCategory             OtSurgeryCategory
+  defaultTheatreType          OtTheatreType?
+  requiredEquipmentCategories String[]          @default([])
+  snomedCode                  String?
+  icd10PcsCode                String?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([suiteId, serviceItemId])
+  @@index([suiteId])
+}
+
+// OT Charge Component — OT billing components (OTS-048)
+model OtChargeComponent {
+  id      String  @id @default(cuid())
+  suiteId String
+  suite   OtSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+
+  componentType OtChargeComponentType
+  chargeModel   OtChargeModel
+  serviceItemId String?
+  glCode        String?
+  gstApplicable Boolean               @default(false)
+  defaultRate   Float?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([suiteId, componentType])
+  @@index([suiteId])
+}
+
+// OT Compliance Config — compliance settings (OTS-052 to OTS-058)
+model OtComplianceConfig {
+  id      String  @id @default(cuid())
+  suiteId String
+  suite   OtSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+
+  configType   OtComplianceConfigType
+  config       Json // type-specific settings
+  lastAuditAt  DateTime?
+  nextAuditDue DateTime?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([suiteId, configType])
+  @@index([suiteId])
+}
+
+// OT Emergency Policy — emergency OT policy (OTS-019)
+model OtEmergencyPolicy {
+  id      String  @id @default(cuid())
+  suiteId String  @unique
+  suite   OtSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+
+  hasDedicatedEmergencyOt Boolean @default(false)
+  dedicatedTheatreSpaceId String?
+  availability            String  @default("24x7")
+  escalationRule          String  @default("QUEUE_WITH_ETA")
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// OT Go-Live Validation — validation run records (OTS-059)
+model OtGoLiveValidation {
+  id      String  @id @default(cuid())
+  suiteId String
+  suite   OtSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+
+  runByUserId    String
+  runAt          DateTime @default(now())
+  score          Int
+  totalChecks    Int
+  passedChecks   Int
+  blockersFailed Int
+  warningsFailed Int
+  results        Json // detailed check results
+
+  @@index([suiteId])
+}
+
+// OT Review Record — review audit trail (OTS-060, OTS-061)
+model OtReviewRecord {
+  id      String  @id @default(cuid())
+  suiteId String
+  suite   OtSuite @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+
+  reviewerId String
+  action     OtReviewAction
+  comments   String?
+  reviewedAt DateTime       @default(now())
+
+  @@index([suiteId])
 }
 
 // ---------------- Diagnostics Facilities (Infrastructure) ----------------
@@ -4635,7 +5267,7 @@ enum DiagnosticPackVersionStatus {
 }
 
 model DiagnosticSection {
-  id        String   @id @default(cuid())
+  id        String                @id @default(cuid())
   branchId  String
   code      String
   name      String
@@ -4712,7 +5344,7 @@ model DiagnosticItem {
   // coding standards
   loincCode     String?
   snomedCode    String?
-  searchAliases Json?   // string[] — alternative names for search
+  searchAliases Json? // string[] — alternative names for search
 
   // care context
   careContext DiagnosticCareContext @default(ALL)
@@ -4841,12 +5473,12 @@ model DiagnosticReferenceRange {
 }
 
 model DiagnosticTemplate {
-  id        String                 @id @default(cuid())
-  itemId    String
-  kind      DiagnosticTemplateKind @default(IMAGING_REPORT)
-  name      String
-  body      String
-  isActive  Boolean                @default(true)
+  id       String                 @id @default(cuid())
+  itemId   String
+  kind     DiagnosticTemplateKind @default(IMAGING_REPORT)
+  name     String
+  body     String
+  isActive Boolean                @default(true)
 
   // structured config
   headerConfig    Json? // { logo, hospitalName, address, nablNumber, regNumber }
@@ -4883,7 +5515,7 @@ model DiagnosticServicePoint {
 
   // operational config
   operatingHours Json? // { start, end, days[], is24x7 }
-  capacity       Int?  // max samples/slots per day
+  capacity       Int? // max samples/slots per day
 
   isActive  Boolean @default(true)
   sortOrder Int     @default(0)
@@ -7669,9 +8301,9 @@ model BloodBankFacility {
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
   facilityType   BloodBankType
-  drugLicenseNo  String?  @db.VarChar(64)
-  sbtcRegNo      String?  @db.VarChar(64)
-  nacoId         String?  @db.VarChar(64)
+  drugLicenseNo  String?       @db.VarChar(64)
+  sbtcRegNo      String?       @db.VarChar(64)
+  nacoId         String?       @db.VarChar(64)
   licenseValidTo DateTime?
 
   operatingHours Json? // { weekday: { open, close }, emergency24x7: bool, onCallRoster: [...] }
@@ -7693,16 +8325,16 @@ model BloodComponentMaster {
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
   componentType ComponentType
-  name          String       @db.VarChar(120)
-  code          String       @db.VarChar(32)
+  name          String        @db.VarChar(120)
+  code          String        @db.VarChar(32)
 
-  shelfLifeDays      Int
-  storageMinTempC    Decimal  @db.Decimal(5, 2)
-  storageMaxTempC    Decimal  @db.Decimal(5, 2)
-  volumeMinMl        Int?
-  volumeMaxMl        Int?
-  preparationMethod  String?  @db.VarChar(200)
-  requiresAgitation  Boolean  @default(false)
+  shelfLifeDays     Int
+  storageMinTempC   Decimal @db.Decimal(5, 2)
+  storageMaxTempC   Decimal @db.Decimal(5, 2)
+  volumeMinMl       Int?
+  volumeMaxMl       Int?
+  preparationMethod String? @db.VarChar(200)
+  requiresAgitation Boolean @default(false)
 
   isActive Boolean @default(true)
 
@@ -7723,18 +8355,18 @@ model BloodBankEquipment {
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  equipmentType    BBEquipmentType
-  equipmentId      String  @db.VarChar(64)
-  make             String? @db.VarChar(120)
-  model            String? @db.VarChar(120)
-  serialNumber     String? @db.VarChar(120)
-  location         String? @db.VarChar(200)
-  capacityUnits    Int?
-  tempRangeMinC    Decimal? @db.Decimal(5, 2)
-  tempRangeMaxC    Decimal? @db.Decimal(5, 2)
-  alarmThresholdMinC Decimal? @db.Decimal(5, 2)
-  alarmThresholdMaxC Decimal? @db.Decimal(5, 2)
-  pollingIntervalSec Int     @default(300)
+  equipmentType      BBEquipmentType
+  equipmentId        String          @db.VarChar(64)
+  make               String?         @db.VarChar(120)
+  model              String?         @db.VarChar(120)
+  serialNumber       String?         @db.VarChar(120)
+  location           String?         @db.VarChar(200)
+  capacityUnits      Int?
+  tempRangeMinC      Decimal?        @db.Decimal(5, 2)
+  tempRangeMaxC      Decimal?        @db.Decimal(5, 2)
+  alarmThresholdMinC Decimal?        @db.Decimal(5, 2)
+  alarmThresholdMaxC Decimal?        @db.Decimal(5, 2)
+  pollingIntervalSec Int             @default(300)
 
   calibrationDueDate  DateTime?
   calibrationInterval Int? // days
@@ -7760,14 +8392,14 @@ model BloodBankEquipment {
 // ---- Equipment Temperature Log (IoT) ----
 
 model EquipmentTempLog {
-  id          String @id @default(cuid())
+  id          String             @id @default(cuid())
   equipmentId String
   equipment   BloodBankEquipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
 
-  temperatureC Decimal  @db.Decimal(5, 2)
-  recordedAt   DateTime @default(now())
-  isBreaching  Boolean  @default(false)
-  acknowledged Boolean  @default(false)
+  temperatureC          Decimal   @db.Decimal(5, 2)
+  recordedAt            DateTime  @default(now())
+  isBreaching           Boolean   @default(false)
+  acknowledged          Boolean   @default(false)
   acknowledgedByStaffId String?
   acknowledgedAt        DateTime?
 
@@ -7812,12 +8444,12 @@ model BBTariffConfig {
   componentMasterId String?
   componentMaster   BloodComponentMaster? @relation(fields: [componentMasterId], references: [id], onDelete: SetNull)
 
-  chargeType  String  @db.VarChar(48) // PROCESSING, CROSS_MATCH, IRRADIATION, LEUKO_REDUCTION, WASHING, VOLUME_REDUCTION
-  amount      Decimal @db.Decimal(12, 2)
-  currency    String  @default("INR") @db.VarChar(8)
-  gstPercent  Decimal @default(0) @db.Decimal(5, 2)
+  chargeType String  @db.VarChar(48) // PROCESSING, CROSS_MATCH, IRRADIATION, LEUKO_REDUCTION, WASHING, VOLUME_REDUCTION
+  amount     Decimal @db.Decimal(12, 2)
+  currency   String  @default("INR") @db.VarChar(8)
+  gstPercent Decimal @default(0) @db.Decimal(5, 2)
 
-  govSchemeCode String? @db.VarChar(48) // PMJAY, CGHS, STATE_SCHEME
+  govSchemeCode String?  @db.VarChar(48) // PMJAY, CGHS, STATE_SCHEME
   govSchemeRate Decimal? @db.Decimal(12, 2)
 
   isActive Boolean @default(true)
@@ -7839,19 +8471,19 @@ model Donor {
   donorNumber String    @db.VarChar(32)
   donorType   DonorType @default(VOLUNTARY)
 
-  name       String  @db.VarChar(160)
-  gender     String  @db.VarChar(16)
+  name        String    @db.VarChar(160)
+  gender      String    @db.VarChar(16)
   dateOfBirth DateTime?
-  age        Int?
-  mobile     String? @db.VarChar(20)
-  email      String? @db.VarChar(120)
-  aadhaarNo  String? @db.VarChar(16)
-  address    String? @db.VarChar(500)
-  photoUrl   String? @db.VarChar(500)
+  age         Int?
+  mobile      String?   @db.VarChar(20)
+  email       String?   @db.VarChar(120)
+  aadhaarNo   String?   @db.VarChar(16)
+  address     String?   @db.VarChar(500)
+  photoUrl    String?   @db.VarChar(500)
 
-  bloodGroup   BloodGroup?
-  donorStatus  DonorStatus @default(ELIGIBLE)
-  donationCount Int        @default(0)
+  bloodGroup       BloodGroup?
+  donorStatus      DonorStatus @default(ELIGIBLE)
+  donationCount    Int         @default(0)
   lastDonationDate DateTime?
   nextEligibleDate DateTime?
 
@@ -7882,9 +8514,9 @@ model DonorDeferral {
   donorId String
   donor   Donor  @relation(fields: [donorId], references: [id], onDelete: Cascade)
 
-  deferralType String   @db.VarChar(32) // TEMPORARY, PERMANENT
-  reason       String   @db.VarChar(500)
-  startDate    DateTime @default(now())
+  deferralType String    @db.VarChar(32) // TEMPORARY, PERMANENT
+  reason       String    @db.VarChar(500)
+  startDate    DateTime  @default(now())
   endDate      DateTime?
 
   deferredByStaffId String?
@@ -7918,13 +8550,13 @@ model DonorScreening {
   veinAssessment String?  @db.VarChar(200)
 
   // Decision
-  eligibilityDecision String @db.VarChar(32) // ELIGIBLE, DEFERRED_TEMP, DEFERRED_PERM
+  eligibilityDecision String  @db.VarChar(32) // ELIGIBLE, DEFERRED_TEMP, DEFERRED_PERM
   decisionNotes       String? @db.VarChar(500)
   decidedByStaffId    String?
 
   // Consent
-  consentGiven    Boolean   @default(false)
-  consentSignature String?  @db.VarChar(500) // base64 or URL
+  consentGiven     Boolean   @default(false)
+  consentSignature String?   @db.VarChar(500) // base64 or URL
   consentTimestamp DateTime?
 
   createdAt DateTime @default(now())
@@ -7949,7 +8581,7 @@ model BloodUnit {
   bagType        BagType
   collectionType CollectionType
   bloodGroup     BloodGroup?
-  rhFactor       String?      @db.VarChar(16)
+  rhFactor       String?        @db.VarChar(16)
 
   collectionStartAt DateTime?
   collectionEndAt   DateTime?
@@ -7968,12 +8600,12 @@ model BloodUnit {
   expiryDate    DateTime?
 
   // Donor adverse event during collection
-  donorAdverseEvent     String? @db.VarChar(200) // vasovagal, hematoma, nerve injury
-  donorAdverseSeverity  String? @db.VarChar(32)
+  donorAdverseEvent    String? @db.VarChar(200) // vasovagal, hematoma, nerve injury
+  donorAdverseSeverity String? @db.VarChar(32)
 
   // Staff tracking
-  collectedByStaffId    String?
-  pilotTubeLabels       Json? // [{ tubeId, purpose: "grouping"|"tti"|"serology" }]
+  collectedByStaffId String?
+  pilotTubeLabels    Json? // [{ tubeId, purpose: "grouping"|"tti"|"serology" }]
 
   isActive Boolean @default(true)
 
@@ -7996,7 +8628,7 @@ model BloodUnit {
 // ---- Blood Grouping Result ----
 
 model BloodGroupingResult {
-  id         String @id @default(cuid())
+  id          String    @id @default(cuid())
   bloodUnitId String
   bloodUnit   BloodUnit @relation(fields: [bloodUnitId], references: [id], onDelete: Cascade)
 
@@ -8005,21 +8637,21 @@ model BloodGroupingResult {
   // Reverse grouping (A1 cells, B cells reactions)
   reverseGrouping Json? // { a1Cells: "0", bCells: "4+" }
 
-  aboGroup       String?  @db.VarChar(8)  // A, B, AB, O
-  rhType         String?  @db.VarChar(16) // Positive, Negative
+  aboGroup       String?     @db.VarChar(8) // A, B, AB, O
+  rhType         String?     @db.VarChar(16) // Positive, Negative
   confirmedGroup BloodGroup?
 
   // Antibody screen
   antibodyScreenResult String? @db.VarChar(32) // POSITIVE, NEGATIVE
   antibodyIdentified   String? @db.VarChar(200)
 
-  hasDiscrepancy Boolean @default(false)
+  hasDiscrepancy   Boolean @default(false)
   discrepancyNotes String? @db.VarChar(500)
 
-  method       String? @db.VarChar(48) // TUBE, GEL_CARD, MICROPLATE
-  testedByStaffId  String?
+  method            String?   @db.VarChar(48) // TUBE, GEL_CARD, MICROPLATE
+  testedByStaffId   String?
   verifiedByStaffId String?
-  verifiedAt       DateTime?
+  verifiedAt        DateTime?
 
   createdAt DateTime @default(now())
 
@@ -8030,20 +8662,20 @@ model BloodGroupingResult {
 // ---- TTI Test Record ----
 
 model TTITestRecord {
-  id         String @id @default(cuid())
+  id          String    @id @default(cuid())
   bloodUnitId String
   bloodUnit   BloodUnit @relation(fields: [bloodUnitId], references: [id], onDelete: Cascade)
 
-  testName   String        @db.VarChar(48) // HIV, HBsAg, HCV, SYPHILIS, MALARIA
-  method     String?       @db.VarChar(48) // ELISA, CLIA, RAPID, RPR
-  kitName    String?       @db.VarChar(120)
-  kitLotNo   String?       @db.VarChar(64)
-  result     TTITestResult @default(PENDING)
-  rawValue   String?       @db.VarChar(120)
+  testName String        @db.VarChar(48) // HIV, HBsAg, HCV, SYPHILIS, MALARIA
+  method   String?       @db.VarChar(48) // ELISA, CLIA, RAPID, RPR
+  kitName  String?       @db.VarChar(120)
+  kitLotNo String?       @db.VarChar(64)
+  result   TTITestResult @default(PENDING)
+  rawValue String?       @db.VarChar(120)
 
-  testedByStaffId  String?
+  testedByStaffId   String?
   verifiedByStaffId String?
-  verifiedAt       DateTime?
+  verifiedAt        DateTime?
 
   createdAt DateTime @default(now())
 
@@ -8054,8 +8686,8 @@ model TTITestRecord {
 // ---- Blood Inventory Slot ----
 
 model BloodInventorySlot {
-  id         String @id @default(cuid())
-  bloodUnitId String @unique
+  id          String    @id @default(cuid())
+  bloodUnitId String    @unique
   bloodUnit   BloodUnit @relation(fields: [bloodUnitId], references: [id], onDelete: Cascade)
 
   equipmentId String
@@ -8064,8 +8696,8 @@ model BloodInventorySlot {
   shelf String? @db.VarChar(32)
   slot  String? @db.VarChar(32)
 
-  assignedAt  DateTime @default(now())
-  removedAt   DateTime?
+  assignedAt DateTime  @default(now())
+  removedAt  DateTime?
 
   @@index([equipmentId])
   @@map("bb_inventory_slots")
@@ -8116,12 +8748,12 @@ model BloodRequest {
 // ---- Patient Blood Sample ----
 
 model PatientBloodSample {
-  id        String @id @default(cuid())
-  requestId String @unique
+  id        String       @id @default(cuid())
+  requestId String       @unique
   request   BloodRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
-  sampleId        String   @db.VarChar(48)
-  collectedAt     DateTime @default(now())
+  sampleId           String   @db.VarChar(48)
+  collectedAt        DateTime @default(now())
   collectedByStaffId String?
 
   // Two-person verification for first sample
@@ -8129,8 +8761,8 @@ model PatientBloodSample {
   verificationMethod String? @db.VarChar(48) // WRISTBAND_SCAN, MANUAL
 
   // Patient grouping on this sample
-  patientBloodGroup BloodGroup?
-  patientAntibodies String? @db.VarChar(500)
+  patientBloodGroup      BloodGroup?
+  patientAntibodies      String?     @db.VarChar(500)
   groupHistoryConsistent Boolean?
 
   createdAt DateTime @default(now())
@@ -8143,7 +8775,7 @@ model PatientBloodSample {
 // ---- Cross-Match Test ----
 
 model CrossMatchTest {
-  id        String @id @default(cuid())
+  id        String       @id @default(cuid())
   requestId String
   request   BloodRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
@@ -8156,10 +8788,10 @@ model CrossMatchTest {
   method CrossMatchMethod
   result CrossMatchResult @default(PENDING)
 
-  certificateNumber String? @db.VarChar(48)
+  certificateNumber String?   @db.VarChar(48)
   validUntil        DateTime? // 72 hours from test
 
-  testedByStaffId  String?
+  testedByStaffId   String?
   verifiedByStaffId String?
 
   createdAt DateTime @default(now())
@@ -8181,17 +8813,17 @@ model BloodIssue {
 
   issueNumber String @db.VarChar(48)
 
-  bloodUnitId  String
-  bloodUnit    BloodUnit @relation(fields: [bloodUnitId], references: [id])
+  bloodUnitId String
+  bloodUnit   BloodUnit @relation(fields: [bloodUnitId], references: [id])
 
-  requestId    String
-  request      BloodRequest @relation(fields: [requestId], references: [id])
+  requestId String
+  request   BloodRequest @relation(fields: [requestId], references: [id])
 
   crossMatchId String?
   crossMatch   CrossMatchTest? @relation(fields: [crossMatchId], references: [id])
 
-  issuedToWard    String? @db.VarChar(120)
-  issuedToPerson  String? @db.VarChar(160)
+  issuedToWard     String?  @db.VarChar(120)
+  issuedToPerson   String?  @db.VarChar(160)
   transportBoxTemp Decimal? @db.Decimal(4, 1)
 
   // Visual inspection checklist
@@ -8208,7 +8840,7 @@ model BloodIssue {
   restockEligible Boolean?
 
   // Emergency/MTP flag
-  isEmergencyIssue Boolean @default(false)
+  isEmergencyIssue Boolean     @default(false)
   mtpSessionId     String?
   mtpSession       MTPSession? @relation(fields: [mtpSessionId], references: [id])
 
@@ -8231,31 +8863,31 @@ model TransfusionRecord {
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  issueId String @unique
+  issueId String     @unique
   issue   BloodIssue @relation(fields: [issueId], references: [id], onDelete: Cascade)
 
   patientId String
   patient   Patient @relation(fields: [patientId], references: [id])
 
   // Bedside verification
-  bedsideVerifiedAt     DateTime?
+  bedsideVerifiedAt       DateTime?
   bedsideVerifier1StaffId String?
   bedsideVerifier2StaffId String?
-  patientWristbandScan  Boolean @default(false)
-  unitBarcodeScan       Boolean @default(false)
-  bedsideVerificationOk Boolean?
+  patientWristbandScan    Boolean   @default(false)
+  unitBarcodeScan         Boolean   @default(false)
+  bedsideVerificationOk   Boolean?
 
   // Transfusion timing
-  startedAt   DateTime?
-  endedAt     DateTime?
+  startedAt     DateTime?
+  endedAt       DateTime?
   totalVolumeMl Int?
 
   // Vitals at intervals
-  preVitals       Json? // { temp, bp, pulse }
-  vitals15Min     Json?
-  vitals30Min     Json?
-  vitals1Hr       Json?
-  postVitals      Json?
+  preVitals   Json? // { temp, bp, pulse }
+  vitals15Min Json?
+  vitals30Min Json?
+  vitals1Hr   Json?
+  postVitals  Json?
 
   // Reaction flag
   hasReaction Boolean @default(false)
@@ -8275,14 +8907,14 @@ model TransfusionRecord {
 // ---- Transfusion Reaction ----
 
 model TransfusionReaction {
-  id               String @id @default(cuid())
-  transfusionId    String
+  id                String            @id @default(cuid())
+  transfusionId     String
   transfusionRecord TransfusionRecord @relation(fields: [transfusionId], references: [id], onDelete: Cascade)
 
-  reactionType     TransfusionReactionType
-  severity         String  @db.VarChar(32) // MILD, MODERATE, SEVERE, LIFE_THREATENING
-  onsetAt          DateTime?
-  description      String? @db.VarChar(1000)
+  reactionType TransfusionReactionType
+  severity     String                  @db.VarChar(32) // MILD, MODERATE, SEVERE, LIFE_THREATENING
+  onsetAt      DateTime?
+  description  String?                 @db.VarChar(1000)
 
   // Management
   transfusionStopped Boolean @default(true)
@@ -8293,7 +8925,7 @@ model TransfusionReaction {
   rootCause            String? @db.VarChar(500)
   correctiveAction     String? @db.VarChar(500)
 
-  reportedByStaffId String?
+  reportedByStaffId     String?
   investigatedByStaffId String?
 
   createdAt DateTime @default(now())
@@ -8310,32 +8942,32 @@ model QualityControlRecord {
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  recordType  String @db.VarChar(32) // IQC, EQAS, CALIBRATION
-  testSystem  String @db.VarChar(120) // e.g., "Blood Grouping Gel Card", "HIV ELISA"
+  recordType String @db.VarChar(32) // IQC, EQAS, CALIBRATION
+  testSystem String @db.VarChar(120) // e.g., "Blood Grouping Gel Card", "HIV ELISA"
 
   equipmentId String?
   equipment   BloodBankEquipment? @relation(fields: [equipmentId], references: [id])
 
   // IQC specific
-  qcLevel        String?  @db.VarChar(32) // LOW, NORMAL, HIGH
-  expectedValue  String?  @db.VarChar(64)
-  observedValue  String?  @db.VarChar(64)
-  westgardResult String?  @db.VarChar(32) // PASS, FAIL, WARNING
-  westgardRule   String?  @db.VarChar(32) // 1-2s, 1-3s, 2-2s, R4s, etc.
+  qcLevel        String? @db.VarChar(32) // LOW, NORMAL, HIGH
+  expectedValue  String? @db.VarChar(64)
+  observedValue  String? @db.VarChar(64)
+  westgardResult String? @db.VarChar(32) // PASS, FAIL, WARNING
+  westgardRule   String? @db.VarChar(32) // 1-2s, 1-3s, 2-2s, R4s, etc.
 
   // EQAS specific
-  eqasCycleId    String? @db.VarChar(64)
-  eqasProvider   String? @db.VarChar(120)
-  eqasResult     String? @db.VarChar(32) // SATISFACTORY, UNSATISFACTORY
+  eqasCycleId  String? @db.VarChar(64)
+  eqasProvider String? @db.VarChar(120)
+  eqasResult   String? @db.VarChar(32) // SATISFACTORY, UNSATISFACTORY
 
   // Calibration specific
-  calibrationValues Json?
+  calibrationValues   Json?
   calibrationPassFail String? @db.VarChar(16)
 
   correctiveAction String? @db.VarChar(500)
 
   performedByStaffId String?
-  performedAt        DateTime @default(now())
+  performedAt        DateTime  @default(now())
   reviewedByStaffId  String?
   reviewedAt         DateTime?
 
@@ -8352,19 +8984,19 @@ model BloodDonationCamp {
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  campCode     String   @db.VarChar(32)
-  campDate     DateTime
-  location     String   @db.VarChar(500)
-  organizer    String   @db.VarChar(200)
+  campCode  String   @db.VarChar(32)
+  campDate  DateTime
+  location  String   @db.VarChar(500)
+  organizer String   @db.VarChar(200)
 
   estimatedDonors Int?
   actualDonors    Int?
   unitsCollected  Int?
 
-  teamAllocation Json? // [{ staffId, role }]
+  teamAllocation     Json? // [{ staffId, role }]
   equipmentChecklist Json? // [{ item, packed: bool, returned: bool }]
 
-  status String @default("PLANNED") @db.VarChar(32) // PLANNED, IN_PROGRESS, COMPLETED, CANCELLED
+  status   String    @default("PLANNED") @db.VarChar(32) // PLANNED, IN_PROGRESS, COMPLETED, CANCELLED
   syncedAt DateTime?
   summary  Json? // post-camp summary data
 
@@ -8388,7 +9020,7 @@ model MTPSession {
   encounterId String?
 
   activatedByStaffId   String?
-  activatedAt          DateTime @default(now())
+  activatedAt          DateTime  @default(now())
   deactivatedByStaffId String?
   deactivatedAt        DateTime?
 
