@@ -192,7 +192,7 @@ function TheatresContent({ branchId, params }: { branchId: string; params: Promi
   async function deleteTable(theatre: OtTheatreRow, tableId: string) {
     try {
       await apiFetch(
-        `/api/infrastructure/ot/suites/${suiteId}/theatres/${theatre.id}/tables/${tableId}`,
+        `/api/infrastructure/ot/tables/${tableId}`,
         { method: "DELETE" },
       );
       toast({ title: "Table removed" });
@@ -206,9 +206,11 @@ function TheatresContent({ branchId, params }: { branchId: string; params: Promi
   async function addTable() {
     if (!addTableFor || !newTableName.trim()) return;
     try {
+      const existingTables = safeArray((addTableFor as any)?.tables);
+      const nextNum = String(existingTables.length + 1).padStart(2, "0");
       await apiFetch(
-        `/api/infrastructure/ot/suites/${suiteId}/theatres/${addTableFor.id}/tables`,
-        { method: "POST", body: JSON.stringify({ name: newTableName.trim() }) },
+        `/api/infrastructure/ot/theatres/${addTableFor.id}/tables`,
+        { method: "POST", body: JSON.stringify({ code: `T${nextNum}`, name: newTableName.trim() }) },
       );
       toast({ title: "Table added" });
       setAddTableFor(null);
@@ -690,7 +692,7 @@ function EngineeringDrawer({
     setErr(null);
     try {
       await apiFetch(
-        `/api/infrastructure/ot/theatres/suites/${suiteId}/theatres/${theatre.id}/engineering`,
+        `/api/infrastructure/ot/theatres/${theatre.id}/engineering-specs`,
         {
           method: "PATCH",
           body: JSON.stringify({
@@ -922,7 +924,7 @@ function SpecialtiesDrawer({
         .map((s) => s.trim())
         .filter(Boolean);
       await apiFetch(
-        `/api/infrastructure/ot/theatres/suites/${suiteId}/theatres/${theatre.id}/specialties`,
+        `/api/infrastructure/ot/theatres/${theatre.id}/specialties`,
         {
           method: "PATCH",
           body: JSON.stringify({ specialtyCodes }),
@@ -1051,7 +1053,7 @@ function SchedulingDrawer({
     setErr(null);
     try {
       await apiFetch(
-        `/api/infrastructure/ot/theatres/suites/${suiteId}/theatres/${theatre.id}/scheduling-params`,
+        `/api/infrastructure/ot/theatres/${theatre.id}/scheduling-params`,
         {
           method: "PATCH",
           body: JSON.stringify({

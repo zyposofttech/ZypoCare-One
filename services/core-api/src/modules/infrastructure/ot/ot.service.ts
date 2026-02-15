@@ -239,6 +239,22 @@ export class OtService {
   // Spaces
   // --------------------
 
+  async listSpaces(principal: Principal, suiteId: string) {
+    const suite = await this.prisma.otSuite.findUnique({ where: { id: suiteId }, select: { id: true, branchId: true, isActive: true } });
+    if (!suite || !suite.isActive) throw new NotFoundException("OT Suite not found");
+    this.resolveBranchId(principal, suite.branchId);
+
+    return this.prisma.otSpace.findMany({
+      where: { suiteId, isActive: true },
+      include: {
+        theatre: { include: { tables: { where: { isActive: true }, orderBy: [{ createdAt: "asc" }] } } },
+        recoveryBay: true,
+        equipment: { where: { isActive: true }, orderBy: [{ createdAt: "asc" }] },
+      },
+      orderBy: [{ createdAt: "asc" }],
+    });
+  }
+
   async createSpace(principal: Principal, suiteId: string, dto: CreateOtSpaceDto) {
     const suite = await this.prisma.otSuite.findUnique({ where: { id: suiteId }, select: { id: true, branchId: true, isActive: true } });
     if (!suite || !suite.isActive) throw new NotFoundException("OT Suite not found");
@@ -437,6 +453,18 @@ export class OtService {
   // --------------------
   // Equipment
   // --------------------
+
+  async listEquipment(principal: Principal, suiteId: string) {
+    const suite = await this.prisma.otSuite.findUnique({ where: { id: suiteId }, select: { id: true, branchId: true, isActive: true } });
+    if (!suite || !suite.isActive) throw new NotFoundException("OT Suite not found");
+    this.resolveBranchId(principal, suite.branchId);
+
+    return this.prisma.otEquipment.findMany({
+      where: { suiteId, isActive: true },
+      include: { space: { select: { id: true, code: true, name: true, type: true } } },
+      orderBy: [{ createdAt: "asc" }],
+    });
+  }
 
   async createEquipment(principal: Principal, suiteId: string, dto: CreateOtEquipmentDto) {
     const suite = await this.prisma.otSuite.findUnique({ where: { id: suiteId }, select: { branchId: true, isActive: true } });

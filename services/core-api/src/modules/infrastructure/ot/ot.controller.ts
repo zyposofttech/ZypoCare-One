@@ -71,6 +71,12 @@ export class OtController {
 
   // -------------------- Spaces --------------------
 
+  @Get("suites/:suiteId/spaces")
+  @Permissions(PERM.OT_SUITE_READ)
+  listSpaces(@Req() req: any, @Param("suiteId") suiteId: string) {
+    return this.svc.listSpaces(this.principal(req), suiteId);
+  }
+
   @Get("suites/:suiteId/spaces/suggest-code")
   @Permissions(PERM.OT_SPACE_CREATE)
   suggestSpaceCode(@Req() req: any, @Param("suiteId") suiteId: string, @Query("type") type: OtSpaceType) {
@@ -116,6 +122,12 @@ export class OtController {
   }
 
   // -------------------- Equipment --------------------
+
+  @Get("suites/:suiteId/equipment")
+  @Permissions(PERM.OT_SUITE_READ)
+  listEquipment(@Req() req: any, @Param("suiteId") suiteId: string) {
+    return this.svc.listEquipment(this.principal(req), suiteId);
+  }
 
   @Post("suites/:suiteId/equipment")
   @Permissions(PERM.OT_EQUIPMENT_CREATE)

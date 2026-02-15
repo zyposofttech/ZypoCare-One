@@ -309,7 +309,7 @@ function EquipmentContent({ branchId, params }: { branchId: string; params: Prom
         amcVendor: form.amcVendor.trim() || undefined,
         amcExpiry: form.amcExpiry || undefined,
       };
-      await apiFetch(`${apiBase}/equipment/${selected.id}`, { method: "PATCH", body: JSON.stringify(body) });
+      await apiFetch(`/api/infrastructure/ot/equipment/${selected.id}`, { method: "PATCH", body: JSON.stringify(body) });
       toast({ title: "Equipment updated", description: `${form.name} has been updated.` });
       setEditOpen(false);
       setSelected(null);
@@ -327,7 +327,7 @@ function EquipmentContent({ branchId, params }: { branchId: string; params: Prom
     if (!selected) return;
     setSaving(true);
     try {
-      await apiFetch(`${apiBase}/equipment/${selected.id}`, { method: "DELETE" });
+      await apiFetch(`/api/infrastructure/ot/equipment/${selected.id}`, { method: "DELETE" });
       toast({ title: "Equipment deleted", description: `${selected.name} has been removed.` });
       setDeleteOpen(false);
       setSelected(null);

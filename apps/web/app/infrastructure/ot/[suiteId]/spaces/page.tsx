@@ -524,7 +524,7 @@ function SpaceDrawer({
       };
 
       if (editing) {
-        await apiFetch(`/api/infrastructure/ot/suites/${suiteId}/spaces/${editing.id}${qs}`, {
+        await apiFetch(`/api/infrastructure/ot/spaces/${editing.id}${qs}`, {
           method: "PATCH",
           body: JSON.stringify(body),
         });
@@ -963,7 +963,7 @@ function DeleteSpaceDialog({
     setDeleting(true);
     try {
       const qs = `?branchId=${encodeURIComponent(branchId)}`;
-      await apiFetch(`/api/infrastructure/ot/suites/${suiteId}/spaces/${space.id}${qs}`, {
+      await apiFetch(`/api/infrastructure/ot/spaces/${space.id}${qs}`, {
         method: "DELETE",
       });
       toast({ title: "Space deleted", description: `${space.name} has been removed.` });
