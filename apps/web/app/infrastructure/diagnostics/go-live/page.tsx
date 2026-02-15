@@ -18,9 +18,19 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { apiFetch } from "@/lib/api";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
+import { useAuthStore, hasPerm } from "@/lib/auth/store";
+import { usePageInsights } from "@/lib/copilot/usePageInsights";
+import { PageInsightBanner } from "@/components/copilot/PageInsightBanner";
+import { IconShield } from "@/components/icons";
 import { cn } from "@/lib/cn";
 
-import { NoBranchGuard } from "../_shared/components";
+import {
+  NoBranchGuard,
+  PageHeader,
+  ErrorAlert,
+  StatBox,
+  OnboardingCallout,
+} from "../_shared/components";
 
 import {
   AlertTriangle,
@@ -28,7 +38,6 @@ import {
   ChevronRight,
   FileText,
   Printer,
-  RefreshCw,
   XCircle,
 } from "lucide-react";
 
@@ -63,7 +72,7 @@ type GoLiveFix =
   | { kind: "capability"; itemId: string; servicePointId?: string | null };
 
 // ---------------------------------------------------------------------------
-// Fix → route mapping
+// Fix -> route mapping
 // ---------------------------------------------------------------------------
 
 function fixRoute(fix: GoLiveFix): string {
@@ -140,10 +149,20 @@ function scoreLabel(score: number) {
 function GoLiveContent({ branchId }: { branchId: string }) {
   const router = useRouter();
   const { toast } = useToast();
+  const user = useAuthStore((s) => s.user);
+  const canUpdate = hasPerm(user, "INFRA_DIAGNOSTICS_UPDATE");
+
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
   const [result, setResult] = React.useState<GoLiveResult | null>(null);
   const [showReport, setShowReport] = React.useState(false);
+
+  // AI page insights
+  const {
+    insights,
+    loading: insightsLoading,
+    dismiss: dismissInsight,
+  } = usePageInsights({ module: "diagnostics-go-live" });
 
   async function load() {
     setLoading(true);
@@ -179,26 +198,43 @@ function GoLiveContent({ branchId }: { branchId: string }) {
   const ready = blockers === 0 && result != null;
 
   return (
-    <>
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">
-            Go-Live Validation (16 Checks)
-          </CardTitle>
-          <CardDescription>
-            Comprehensive readiness validation powered by backend engine.
+    <div className="grid gap-6">
+      {/* Header */}
+      <PageHeader
+        icon={<IconShield className="h-5 w-5 text-zc-accent" />}
+        title="Go-Live Readiness"
+        description="Validate diagnostic configuration and check readiness for production."
+        loading={loading}
+        onRefresh={() => {
+          void load();
+          toast({ title: "Re-running checks" });
+        }}
+      />
+
+      {/* AI Insights */}
+      <PageInsightBanner
+        insights={insights}
+        loading={insightsLoading}
+        onDismiss={dismissInsight}
+      />
+
+      {/* Overview Card */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Overview</CardTitle>
+          <CardDescription className="text-sm">
+            Comprehensive readiness validation powered by backend engine (16
+            checks).
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          {err ? (
-            <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
-              {err}
-            </div>
-          ) : null}
 
+        <CardContent className="grid gap-4">
+          <ErrorAlert message={err} />
+
+          {/* Readiness banner */}
           <div
             className={cn(
-              "mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4",
+              "flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4",
               ready
                 ? "border-emerald-200/70 bg-emerald-50/60 text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-100"
                 : "border-amber-200/70 bg-amber-50/70 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-100",
@@ -219,29 +255,12 @@ function GoLiveContent({ branchId }: { branchId: string }) {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  void load();
-                  toast({ title: "Re-running checks" });
-                }}
-                disabled={loading}
-                className="gap-2"
-              >
-                <RefreshCw
-                  className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"}
-                />{" "}
-                Re-run
-              </Button>
-            </div>
           </div>
 
           {result ? (
             <>
-              {/* ---- Prominent score + stats ---- */}
-              <div className="mb-4 grid gap-3 md:grid-cols-5">
+              {/* Score + stat boxes */}
+              <div className="grid gap-3 md:grid-cols-5">
                 {/* Large score card */}
                 <div
                   className={cn(
@@ -268,37 +287,33 @@ function GoLiveContent({ branchId }: { branchId: string }) {
                   </div>
                 </div>
 
-                {/* Stat cards */}
+                {/* Stat boxes */}
                 <div className="grid grid-cols-2 gap-3 md:col-span-4 md:grid-cols-4">
-                  <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-                    <div className="text-xs text-zc-muted">Total Checks</div>
-                    <div className="mt-1 text-2xl font-semibold">
-                      {result.summary.total}
-                    </div>
-                  </div>
-                  <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-                    <div className="text-xs text-zc-muted">Passed</div>
-                    <div className="mt-1 text-2xl font-semibold text-emerald-600">
-                      {result.summary.passed}
-                    </div>
-                  </div>
-                  <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-                    <div className="text-xs text-zc-muted">Blockers</div>
-                    <div className="mt-1 text-2xl font-semibold text-rose-600">
-                      {blockers}
-                    </div>
-                  </div>
-                  <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-                    <div className="text-xs text-zc-muted">Warnings</div>
-                    <div className="mt-1 text-2xl font-semibold text-amber-600">
-                      {warns}
-                    </div>
-                  </div>
+                  <StatBox
+                    label="Total Checks"
+                    value={result.summary.total}
+                    color="blue"
+                  />
+                  <StatBox
+                    label="Passed"
+                    value={result.summary.passed}
+                    color="emerald"
+                  />
+                  <StatBox
+                    label="Blockers"
+                    value={blockers}
+                    color="rose"
+                  />
+                  <StatBox
+                    label="Warnings"
+                    value={warns}
+                    color="amber"
+                  />
                 </div>
               </div>
 
               {/* Progress bar */}
-              <div className="mt-1 h-3 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+              <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
                 <div
                   className={cn(
                     "h-full rounded-full transition-all",
@@ -307,118 +322,135 @@ function GoLiveContent({ branchId }: { branchId: string }) {
                   style={{ width: `${score}%` }}
                 />
               </div>
-
-              <Separator className="my-4" />
-
-              {/* ---- Failed checks grouped by severity ---- */}
-
-              {/* Blockers */}
-              {failedBlockers.length > 0 ? (
-                <div className="mb-4">
-                  <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-rose-700 dark:text-rose-300">
-                    <XCircle className="h-4 w-4" />
-                    Blockers ({failedBlockers.length})
-                  </div>
-                  <div className="grid gap-2">
-                    {failedBlockers.map((check) => (
-                      <CheckRow
-                        key={check.id}
-                        check={check}
-                        router={router}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {/* Warnings */}
-              {failedWarnings.length > 0 ? (
-                <div className="mb-4">
-                  <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-amber-700 dark:text-amber-300">
-                    <AlertTriangle className="h-4 w-4" />
-                    Warnings ({failedWarnings.length})
-                  </div>
-                  <div className="grid gap-2">
-                    {failedWarnings.map((check) => (
-                      <CheckRow
-                        key={check.id}
-                        check={check}
-                        router={router}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {/* Passed checks */}
-              {passedChecks.length > 0 ? (
-                <div className="mb-4">
-                  <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Passed ({passedChecks.length})
-                  </div>
-                  <div className="grid gap-2">
-                    {passedChecks.map((check) => (
-                      <div
-                        key={check.id}
-                        className="flex items-center gap-3 rounded-xl border border-emerald-200/70 bg-emerald-50/40 p-3 dark:border-emerald-900/50 dark:bg-emerald-950/10"
-                      >
-                        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-                        <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-                          <span className="text-sm text-emerald-800 dark:text-emerald-200">
-                            {check.title}
-                          </span>
-                          <Badge variant="success" className="shrink-0">
-                            PASS
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              <Separator className="my-4" />
-
-              {/* ---- Generate Readiness Report ---- */}
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-sm font-semibold text-zc-text">
-                  <FileText className="h-4 w-4" />
-                  Readiness Report
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowReport((v) => !v)}
-                    className="gap-2"
-                  >
-                    <FileText className="h-4 w-4" />
-                    {showReport ? "Hide Report" : "Generate Readiness Report"}
-                  </Button>
-                  {showReport ? (
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => window.print()}
-                      className="gap-2"
-                    >
-                      <Printer className="h-4 w-4" />
-                      Print Report
-                    </Button>
-                  ) : null}
-                </div>
-              </div>
             </>
           ) : null}
         </CardContent>
       </Card>
 
-      {/* ---- Printable Readiness Report ---- */}
+      {/* Table Card: Check results */}
+      {result ? (
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Validation Results</CardTitle>
+            <CardDescription className="text-sm">
+              Go-live check results grouped by severity.
+            </CardDescription>
+          </CardHeader>
+          <Separator />
+
+          <CardContent className="pt-4">
+            {/* Blockers */}
+            {failedBlockers.length > 0 ? (
+              <div className="mb-4">
+                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-rose-700 dark:text-rose-300">
+                  <XCircle className="h-4 w-4" />
+                  Blockers ({failedBlockers.length})
+                </div>
+                <div className="grid gap-2">
+                  {failedBlockers.map((check) => (
+                    <CheckRow
+                      key={check.id}
+                      check={check}
+                      router={router}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {/* Warnings */}
+            {failedWarnings.length > 0 ? (
+              <div className="mb-4">
+                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-amber-700 dark:text-amber-300">
+                  <AlertTriangle className="h-4 w-4" />
+                  Warnings ({failedWarnings.length})
+                </div>
+                <div className="grid gap-2">
+                  {failedWarnings.map((check) => (
+                    <CheckRow
+                      key={check.id}
+                      check={check}
+                      router={router}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {/* Passed checks */}
+            {passedChecks.length > 0 ? (
+              <div className="mb-4">
+                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Passed ({passedChecks.length})
+                </div>
+                <div className="grid gap-2">
+                  {passedChecks.map((check) => (
+                    <div
+                      key={check.id}
+                      className="flex items-center gap-3 rounded-xl border border-emerald-200/70 bg-emerald-50/40 p-3 dark:border-emerald-900/50 dark:bg-emerald-950/10"
+                    >
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+                      <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                        <span className="text-sm text-emerald-800 dark:text-emerald-200">
+                          {check.title}
+                        </span>
+                        <Badge variant="success" className="shrink-0">
+                          PASS
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <Separator className="my-4" />
+
+            {/* Generate Readiness Report */}
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-sm font-semibold text-zc-text">
+                <FileText className="h-4 w-4" />
+                Readiness Report
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowReport((v) => !v)}
+                  className="gap-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  {showReport ? "Hide Report" : "Generate Readiness Report"}
+                </Button>
+                {showReport ? (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => window.print()}
+                    className="gap-2"
+                  >
+                    <Printer className="h-4 w-4" />
+                    Print Report
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {/* Printable Readiness Report */}
       {showReport && result ? (
         <ReadinessReport result={result} branchId={branchId} />
       ) : null}
-    </>
+
+      {/* Onboarding callout */}
+      <OnboardingCallout
+        title="Go-Live Checklist"
+        description="Ensure all blockers are resolved before going live. Warnings are non-blocking but recommended to fix for optimal configuration."
+      />
+    </div>
   );
 }
 
@@ -557,7 +589,7 @@ function ReadinessReport({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* ---- Summary card ---- */}
+          {/* Summary card */}
           <div
             className={cn(
               "mb-6 flex flex-wrap items-center gap-6 rounded-xl border p-5",
@@ -610,7 +642,7 @@ function ReadinessReport({
             </div>
           </div>
 
-          {/* ---- Validation results table ---- */}
+          {/* Validation results table */}
           <div className="overflow-x-auto rounded-lg border border-zc-border">
             <table className="w-full text-left text-sm">
               <thead>

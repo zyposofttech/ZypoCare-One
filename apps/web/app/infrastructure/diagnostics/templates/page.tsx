@@ -13,7 +13,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -27,20 +26,34 @@ import {
   DialogContent,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { apiFetch } from "@/lib/api";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
-import { cn } from "@/lib/cn";
-import { Plus, RefreshCw, Pencil, Search, Trash2 } from "lucide-react";
+import { useAuthStore, hasPerm } from "@/lib/auth/store";
+import { usePageInsights } from "@/lib/copilot/usePageInsights";
+import { PageInsightBanner } from "@/components/copilot/PageInsightBanner";
+import { IconClipboard } from "@/components/icons";
+import { Pencil, ToggleLeft, ToggleRight } from "lucide-react";
 
 import type { DiagnosticItemRow, TemplateRow, TemplateKind } from "../_shared/types";
 import { TEMPLATE_KINDS } from "../_shared/constants";
 import { safeArray, validateName } from "../_shared/utils";
-import { Field, ModalHeader, NoBranchGuard, modalClassName } from "../_shared/components";
+import {
+  Field,
+  ModalHeader,
+  NoBranchGuard,
+  modalClassName,
+  ToneBadge,
+  PageHeader,
+  ErrorAlert,
+  StatusPill,
+  StatBox,
+  SearchBar,
+  OnboardingCallout,
+} from "../_shared/components";
 
 /* =========================================================
    TemplateDialog
@@ -170,7 +183,7 @@ function TemplateDialog({
           onClose={() => onOpenChange(false)}
         />
         <div className="grid gap-4">
-          {err ? <div className="rounded-xl border border-rose-200 bg-rose-50 p-2 text-sm text-rose-800">{err}</div> : null}
+          <ErrorAlert message={err} />
           <div className="grid gap-4 md:grid-cols-2">
             <Field label="Name" required>
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Imaging report" />
@@ -259,18 +272,27 @@ function TemplateDialog({
 }
 
 /* =========================================================
-   TemplatesPage
+   TemplatesContent
    ========================================================= */
 
 function TemplatesContent({ branchId }: { branchId: string }) {
   const { toast } = useToast();
+  const user = useAuthStore((s) => s.user);
+  const canCreate = hasPerm(user, "INFRA_DIAGNOSTICS_CREATE");
+  const canUpdate = hasPerm(user, "INFRA_DIAGNOSTICS_UPDATE");
+  const canDelete = hasPerm(user, "INFRA_DIAGNOSTICS_DELETE");
+
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
   const [items, setItems] = React.useState<DiagnosticItemRow[]>([]);
   const [itemId, setItemId] = React.useState("");
   const [templates, setTemplates] = React.useState<TemplateRow[]>([]);
+  const [q, setQ] = React.useState("");
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingTemplate, setEditingTemplate] = React.useState<TemplateRow | null>(null);
+
+  // AI page insights
+  const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({ module: "diagnostics-templates" });
 
   async function loadItems() {
     setLoading(true);
@@ -303,6 +325,11 @@ function TemplatesContent({ branchId }: { branchId: string }) {
     }
   }
 
+  function refreshAll() {
+    void loadItems();
+    void loadTemplates(itemId);
+  }
+
   React.useEffect(() => {
     void loadItems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -313,19 +340,55 @@ function TemplatesContent({ branchId }: { branchId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itemId]);
 
+  const activeCount = templates.filter((t) => t.isActive ?? true).length;
+  const inactiveCount = templates.length - activeCount;
+
+  const filtered = React.useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return templates;
+    return templates.filter((t) => {
+      const hay = `${t.name} ${t.kind}`.toLowerCase();
+      return hay.includes(s);
+    });
+  }, [templates, q]);
+
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Templates</CardTitle>
-        <CardDescription>Report templates for lab or imaging items.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {err ? <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{err}</div> : null}
-        <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-          <div className="flex flex-wrap items-end gap-2">
+    <div className="grid gap-6">
+      {/* Header */}
+      <PageHeader
+        icon={<IconClipboard className="h-5 w-5 text-zc-accent" />}
+        title="Report Templates"
+        description="Manage report templates for lab and imaging diagnostic items."
+        loading={loading}
+        onRefresh={refreshAll}
+        canCreate={canCreate}
+        createLabel="Create Template"
+        onCreate={() => { setEditingTemplate(null); setDialogOpen(true); }}
+      />
+
+      {/* AI Insights */}
+      <PageInsightBanner insights={insights} loading={insightsLoading} onDismiss={dismissInsight} />
+
+      {/* Overview */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Overview</CardTitle>
+          <CardDescription className="text-sm">
+            Select a diagnostic item and manage its report templates. Create, edit and deactivate templates.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="grid gap-4">
+          <div className="grid gap-3 md:grid-cols-3">
+            <StatBox label="Total Templates" value={templates.length} color="blue" />
+            <StatBox label="Active" value={activeCount} color="emerald" />
+            <StatBox label="Inactive" value={inactiveCount} color="amber" />
+          </div>
+
+          <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
             <Field label="Item">
               <Select value={itemId} onValueChange={setItemId} disabled={loading}>
-                <SelectTrigger className="h-10 w-[320px]"><SelectValue placeholder="Select item" /></SelectTrigger>
+                <SelectTrigger className="h-10 w-full lg:w-[400px]"><SelectValue placeholder="Select item" /></SelectTrigger>
                 <SelectContent className="max-h-[280px] overflow-y-auto">
                   {items.map((i) => (
                     <SelectItem key={i.id} value={i.id}>{i.name} ({i.code})</SelectItem>
@@ -333,59 +396,140 @@ function TemplatesContent({ branchId }: { branchId: string }) {
                 </SelectContent>
               </Select>
             </Field>
-            <Button onClick={() => { setEditingTemplate(null); setDialogOpen(true); }} disabled={!itemId}>
-              <Plus className="mr-2 h-4 w-4" /> Template
-            </Button>
           </div>
+
+          <SearchBar
+            value={q}
+            onChange={setQ}
+            placeholder="Search templates by name or kind..."
+            filteredCount={filtered.length}
+            totalCount={templates.length}
+          />
+
+          <ErrorAlert message={err} />
+        </CardContent>
+      </Card>
+
+      {/* Table */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Templates</CardTitle>
+          <CardDescription className="text-sm">Report templates for the selected diagnostic item.</CardDescription>
+        </CardHeader>
+        <Separator />
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-zc-panel/20 text-xs text-zc-muted">
+              <tr>
+                <th className="px-4 py-3 text-left font-semibold">Name</th>
+                <th className="px-4 py-3 text-left font-semibold">Kind</th>
+                <th className="px-4 py-3 text-left font-semibold">Status</th>
+                <th className="px-4 py-3 text-right font-semibold">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {!filtered.length ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-10 text-center text-sm text-zc-muted">
+                    {loading ? "Loading templates..." : "No templates available."}
+                  </td>
+                </tr>
+              ) : null}
+
+              {filtered.map((t) => (
+                <tr key={t.id} className="border-t border-zc-border hover:bg-zc-panel/20">
+                  <td className="px-4 py-3">
+                    <div className="font-semibold text-zc-text">{t.name}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <ToneBadge tone="sky">{t.kind}</ToneBadge>
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusPill active={t.isActive ?? true} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-2">
+                      {canUpdate ? (
+                        <Button
+                          variant="info"
+                          size="icon"
+                          onClick={() => { setEditingTemplate(t); setDialogOpen(true); }}
+                          title="Edit template"
+                          aria-label="Edit template"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      ) : null}
+
+                      {canDelete ? (
+                        (t.isActive ?? true) ? (
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            onClick={async () => {
+                              try {
+                                await apiFetch(`/api/infrastructure/diagnostics/templates/${encodeURIComponent(t.id)}`, { method: "DELETE" });
+                                toast({ title: "Deactivated", description: "Template marked inactive." });
+                                await loadTemplates(itemId);
+                              } catch (e: any) {
+                                toast({ title: "Deactivate failed", description: e?.message || "Error", variant: "destructive" as any });
+                              }
+                            }}
+                            title="Deactivate template"
+                            aria-label="Deactivate template"
+                          >
+                            <ToggleLeft className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="success"
+                            size="icon"
+                            onClick={async () => {
+                              try {
+                                await apiFetch(`/api/infrastructure/diagnostics/templates/${encodeURIComponent(t.id)}`, {
+                                  method: "PUT",
+                                  body: JSON.stringify({ branchId, isActive: true }),
+                                });
+                                toast({ title: "Activated", description: "Template is active again." });
+                                await loadTemplates(itemId);
+                              } catch (e: any) {
+                                toast({ title: "Activate failed", description: e?.message || "Error", variant: "destructive" as any });
+                              }
+                            }}
+                            title="Reactivate template"
+                            aria-label="Reactivate template"
+                          >
+                            <ToggleRight className="h-4 w-4" />
+                          </Button>
+                        )
+                      ) : null}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <Separator className="my-4" />
-        <div className="grid gap-3">
-          {templates.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-zc-border p-4 text-sm text-zc-muted">No templates available.</div>
-          ) : (
-            templates.map((t) => (
-              <div key={t.id} className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div>
-                    <div className="text-sm font-semibold text-zc-text">{t.name}</div>
-                    <div className="text-xs text-zc-muted">{t.kind}</div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => { setEditingTemplate(t); setDialogOpen(true); }}>
-                      <Pencil className="mr-2 h-4 w-4" /> Edit
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={async () => {
-                        try {
-                          await apiFetch(`/api/infrastructure/diagnostics/templates/${encodeURIComponent(t.id)}`, { method: "DELETE" });
-                          toast({ title: "Template deactivated" });
-                          await loadTemplates(itemId);
-                        } catch (e: any) {
-                          toast({ title: "Deactivate failed", description: e?.message || "Error", variant: "destructive" as any });
-                        }
-                      }}
-                    >
-                      Deactivate
-                    </Button>
-                  </div>
-                </div>
-                <div className="mt-2 text-xs text-zc-muted whitespace-pre-wrap">{t.body}</div>
-              </div>
-            ))
-          )}
-        </div>
-        <TemplateDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          branchId={branchId}
-          itemId={itemId}
-          editing={editingTemplate}
-          onSaved={() => loadTemplates(itemId)}
-        />
-      </CardContent>
-    </Card>
+      </Card>
+
+      {/* Onboarding callout */}
+      <OnboardingCallout
+        title="Template setup guide"
+        description="1) Select a diagnostic item from the dropdown above, 2) Create report templates for lab results or imaging reports, 3) Configure header, footer, and parameter layout settings within each template."
+      />
+
+      {/* Dialog */}
+      <TemplateDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        branchId={branchId}
+        itemId={itemId}
+        editing={editingTemplate}
+        onSaved={() => loadTemplates(itemId)}
+      />
+    </div>
   );
 }
 

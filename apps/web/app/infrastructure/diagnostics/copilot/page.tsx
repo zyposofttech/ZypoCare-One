@@ -17,8 +17,18 @@ import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useToast } from "@/components/ui/use-toast";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
+import { useAuthStore, hasPerm } from "@/lib/auth/store";
+import { usePageInsights } from "@/lib/copilot/usePageInsights";
+import { PageInsightBanner } from "@/components/copilot/PageInsightBanner";
+import { IconBrain } from "@/components/icons";
 import { safeArray } from "../_shared/utils";
-import { NoBranchGuard } from "../_shared/components";
+import {
+  NoBranchGuard,
+  PageHeader,
+  ErrorAlert,
+  StatBox,
+  OnboardingCallout,
+} from "../_shared/components";
 
 import { RefreshCw } from "lucide-react";
 
@@ -88,9 +98,15 @@ export default function CopilotPage() {
 
 function CopilotContent({ branchId }: { branchId: string }) {
   const { toast } = useToast();
+  const user = useAuthStore((s) => s.user);
+  const canRead = hasPerm(user, "INFRA_DIAGNOSTICS_READ");
+
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
   const [activeSection, setActiveSection] = React.useState<SectionKey>("readiness");
+
+  // AI page insights
+  const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({ module: "diagnostics-copilot" });
 
   // Readiness score state
   const [readiness, setReadiness] = React.useState<ReadinessScore | null>(null);
@@ -141,14 +157,12 @@ function CopilotContent({ branchId }: { branchId: string }) {
     setLoading(true);
     setErr(null);
     try {
-      // First fetch the diagnostic items for this branch
       const itemsData = await apiFetch<any>(
         `/api/infrastructure/diagnostics/items?branchId=${encodeURIComponent(branchId)}`,
       );
       const items = safeArray<{ id: string; name: string }>(itemsData?.rows ?? itemsData);
       const body = items.map((it) => ({ id: it.id, name: it.name }));
 
-      // Then call the suggest-panels endpoint
       const data = await apiFetch<any>(
         `/api/infrastructure/diagnostics/copilot/suggest-panels?branchId=${encodeURIComponent(branchId)}`,
         {
@@ -182,7 +196,7 @@ function CopilotContent({ branchId }: { branchId: string }) {
     }
   }
 
-  /* ---- Existing functions ---- */
+  /* ---- Gap Analysis ---- */
 
   async function loadGaps() {
     setLoading(true);
@@ -199,6 +213,8 @@ function CopilotContent({ branchId }: { branchId: string }) {
       setLoading(false);
     }
   }
+
+  /* ---- LOINC Auto-Map ---- */
 
   async function loadLoincMappings() {
     setLoading(true);
@@ -230,7 +246,6 @@ function CopilotContent({ branchId }: { branchId: string }) {
         },
       );
       toast({ title: `Applied LOINC codes to ${result.updated} item(s)` });
-      // Remove applied from list
       setMappings((prev) => prev.filter((m) => !selectedMappings.has(m.itemId)));
       setSelectedMappings(new Set());
     } catch (e: any) {
@@ -239,6 +254,8 @@ function CopilotContent({ branchId }: { branchId: string }) {
       setApplying(false);
     }
   }
+
+  /* ---- Code Lookup ---- */
 
   async function runLookup() {
     if (!lookupName.trim()) return;
@@ -282,46 +299,68 @@ function CopilotContent({ branchId }: { branchId: string }) {
     return "bg-rose-500";
   }
 
+  function handleRefresh() {
+    if (activeSection === "readiness") void loadReadinessScore();
+    else if (activeSection === "panels") void loadPanelSuggestions();
+    else if (activeSection === "tubes") void loadTubeConsolidation();
+    else if (activeSection === "gaps") void loadGaps();
+    else if (activeSection === "loinc") void loadLoincMappings();
+  }
+
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">AI Copilot</CardTitle>
-        <CardDescription>Intelligent suggestions for LOINC/SNOMED mapping, gap analysis, and compliance checks.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {err ? <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{err}</div> : null}
+    <div className="grid gap-6">
+      {/* Header */}
+      <PageHeader
+        icon={<IconBrain className="h-5 w-5 text-zc-accent" />}
+        title="AI Copilot"
+        description="AI-assisted tools for LOINC/SNOMED suggestions, PCPNDT detection, and bulk operations."
+        loading={loading}
+        onRefresh={activeSection !== "lookup" ? handleRefresh : undefined}
+      />
 
-        {/* Section switcher */}
-        <div className="mb-4 flex flex-wrap gap-2">
-          {([
-            { key: "readiness" as const, label: "Readiness Score" },
-            { key: "panels" as const, label: "Panel Suggestions" },
-            { key: "tubes" as const, label: "Tube Consolidation" },
-            { key: "gaps" as const, label: "Gap Analysis" },
-            { key: "loinc" as const, label: "LOINC Auto-Map" },
-            { key: "lookup" as const, label: "Code Lookup" },
-          ]).map((s) => (
-            <Button
-              key={s.key}
-              variant={activeSection === s.key ? "primary" : "outline"}
-              size="sm"
-              onClick={() => setActiveSection(s.key)}
-            >
-              {s.label}
-            </Button>
-          ))}
-        </div>
+      {/* AI Insights */}
+      <PageInsightBanner insights={insights} loading={insightsLoading} onDismiss={dismissInsight} />
 
-        {/* Readiness Score */}
-        {activeSection === "readiness" ? (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-semibold">Readiness Score</div>
-              <Button variant="outline" size="sm" onClick={() => loadReadinessScore()} disabled={loading} className="gap-2">
-                <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} /> Refresh
+      {/* Error */}
+      <ErrorAlert message={err} />
+
+      {/* Section switcher */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Tools</CardTitle>
+          <CardDescription>Select a copilot tool to run against the current branch configuration.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {([
+              { key: "readiness" as const, label: "Readiness Score" },
+              { key: "panels" as const, label: "Panel Suggestions" },
+              { key: "tubes" as const, label: "Tube Consolidation" },
+              { key: "gaps" as const, label: "Gap Analysis" },
+              { key: "loinc" as const, label: "LOINC Auto-Map" },
+              { key: "lookup" as const, label: "Code Lookup" },
+            ]).map((s) => (
+              <Button
+                key={s.key}
+                variant={activeSection === s.key ? "primary" : "outline"}
+                size="sm"
+                onClick={() => setActiveSection(s.key)}
+              >
+                {s.label}
               </Button>
-            </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
+      {/* Readiness Score */}
+      {activeSection === "readiness" ? (
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Readiness Score</CardTitle>
+            <CardDescription>Overall configuration readiness for the current branch.</CardDescription>
+          </CardHeader>
+          <CardContent>
             {readiness ? (
               <div>
                 {/* Overall score display */}
@@ -376,19 +415,18 @@ function CopilotContent({ branchId }: { branchId: string }) {
                 Loading readiness score...
               </div>
             ) : null}
-          </div>
-        ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
 
-        {/* Panel Suggestions */}
-        {activeSection === "panels" ? (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-semibold">Panel Suggestions ({panelSuggestions.length})</div>
-              <Button variant="outline" size="sm" onClick={() => loadPanelSuggestions()} disabled={loading} className="gap-2">
-                <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} /> Refresh
-              </Button>
-            </div>
-
+      {/* Panel Suggestions */}
+      {activeSection === "panels" ? (
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Panel Suggestions ({panelSuggestions.length})</CardTitle>
+            <CardDescription>AI-suggested test panels based on your current catalog items.</CardDescription>
+          </CardHeader>
+          <CardContent>
             {panelSuggestions.length === 0 ? (
               <div className={cn(
                 "rounded-xl border border-dashed p-4 text-sm",
@@ -451,19 +489,18 @@ function CopilotContent({ branchId }: { branchId: string }) {
                 ))}
               </div>
             )}
-          </div>
-        ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
 
-        {/* Tube Consolidation */}
-        {activeSection === "tubes" ? (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-semibold">Tube Consolidation ({tubeGroups.length} groups)</div>
-              <Button variant="outline" size="sm" onClick={() => loadTubeConsolidation()} disabled={loading} className="gap-2">
-                <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} /> Refresh
-              </Button>
-            </div>
-
+      {/* Tube Consolidation */}
+      {activeSection === "tubes" ? (
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Tube Consolidation ({tubeGroups.length} groups)</CardTitle>
+            <CardDescription>Recommended specimen tube groupings to minimize blood draws.</CardDescription>
+          </CardHeader>
+          <CardContent>
             {tubeGroups.length === 0 ? (
               <div className={cn(
                 "rounded-xl border border-dashed p-4 text-sm",
@@ -499,41 +536,32 @@ function CopilotContent({ branchId }: { branchId: string }) {
                 ))}
               </div>
             )}
-          </div>
-        ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
 
-        {/* Gap Analysis */}
-        {activeSection === "gaps" ? (
-          <div>
+      {/* Gap Analysis */}
+      {activeSection === "gaps" ? (
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Gap Analysis</CardTitle>
+            <CardDescription>Configuration gaps and coverage statistics for the current branch.</CardDescription>
+          </CardHeader>
+          <CardContent>
             {stats ? (
               <div className="mb-4 grid gap-3 md:grid-cols-4">
-                <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-                  <div className="text-xs text-zc-muted">Total Items</div>
-                  <div className="mt-1 text-2xl font-semibold">{stats.totalItems}</div>
-                </div>
-                <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-                  <div className="text-xs text-zc-muted">LOINC Coverage</div>
-                  <div className={cn("mt-1 text-2xl font-semibold", stats.loincCoverage >= 80 ? "text-emerald-600" : "text-amber-600")}>
-                    {stats.loincCoverage}%
-                  </div>
-                </div>
-                <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-                  <div className="text-xs text-zc-muted">With LOINC</div>
-                  <div className="mt-1 text-2xl font-semibold">{stats.itemsWithLoinc}</div>
-                </div>
-                <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-                  <div className="text-xs text-zc-muted">With Templates</div>
-                  <div className="mt-1 text-2xl font-semibold">{stats.itemsWithTemplates}</div>
-                </div>
+                <StatBox label="Total Items" value={stats.totalItems} color="blue" />
+                <StatBox
+                  label="LOINC Coverage"
+                  value={`${stats.loincCoverage}%`}
+                  color={stats.loincCoverage >= 80 ? "emerald" : "amber"}
+                />
+                <StatBox label="With LOINC" value={stats.itemsWithLoinc} color="sky" />
+                <StatBox label="With Templates" value={stats.itemsWithTemplates} color="violet" />
               </div>
             ) : null}
 
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-semibold">Configuration Gaps ({gaps.length})</div>
-              <Button variant="outline" size="sm" onClick={() => loadGaps()} disabled={loading} className="gap-2">
-                <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} /> Refresh
-              </Button>
-            </div>
+            <div className="text-sm font-semibold mb-3">Configuration Gaps ({gaps.length})</div>
 
             <div className="grid gap-2">
               {gaps.length === 0 ? (
@@ -561,9 +589,7 @@ function CopilotContent({ branchId }: { branchId: string }) {
                       )}>
                         {g.severity}
                       </span>
-                      <span className={cn(
-                        "text-[10px] font-semibold uppercase rounded-full px-2 py-0.5 bg-gray-100 text-gray-600",
-                      )}>
+                      <span className="text-[10px] font-semibold uppercase rounded-full px-2 py-0.5 bg-gray-100 text-gray-600">
                         {g.category}
                       </span>
                       <span className="text-sm font-semibold">{g.title}</span>
@@ -573,30 +599,31 @@ function CopilotContent({ branchId }: { branchId: string }) {
                 ))
               )}
             </div>
-          </div>
-        ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
 
-        {/* LOINC Auto-Map */}
-        {activeSection === "loinc" ? (
-          <div>
-            <div className="mb-4 flex items-center justify-between">
-              <div className="text-sm text-zc-muted">
-                {mappings.length} items can be auto-mapped. {skipped.length} skipped (no match found).
+      {/* LOINC Auto-Map */}
+      {activeSection === "loinc" ? (
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base">LOINC Auto-Map</CardTitle>
+                <CardDescription className="mt-1">
+                  {mappings.length} items can be auto-mapped. {skipped.length} skipped (no match found).
+                </CardDescription>
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => loadLoincMappings()} disabled={loading} className="gap-2">
-                  <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} /> Refresh
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={applySelected}
-                  disabled={applying || selectedMappings.size === 0}
-                >
-                  Apply Selected ({selectedMappings.size})
-                </Button>
-              </div>
+              <Button
+                size="sm"
+                onClick={applySelected}
+                disabled={applying || selectedMappings.size === 0}
+              >
+                Apply Selected ({selectedMappings.size})
+              </Button>
             </div>
-
+          </CardHeader>
+          <CardContent>
             {mappings.length === 0 ? (
               <div className="rounded-xl border border-dashed border-emerald-300 bg-emerald-50/40 p-4 text-sm text-emerald-700">
                 All items already have LOINC codes or no matches found.
@@ -639,12 +666,18 @@ function CopilotContent({ branchId }: { branchId: string }) {
                 <div className="text-xs text-zc-muted">{skipped.join(", ")}</div>
               </div>
             ) : null}
-          </div>
-        ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
 
-        {/* Code Lookup */}
-        {activeSection === "lookup" ? (
-          <div>
+      {/* Code Lookup */}
+      {activeSection === "lookup" ? (
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Code Lookup</CardTitle>
+            <CardDescription>Search LOINC, SNOMED, and PCPNDT codes by test name.</CardDescription>
+          </CardHeader>
+          <CardContent>
             <div className="mb-4 flex gap-2">
               <Input
                 value={lookupName}
@@ -728,9 +761,15 @@ function CopilotContent({ branchId }: { branchId: string }) {
                 No results found. Try a different test name.
               </div>
             ) : null}
-          </div>
-        ) : null}
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {/* Onboarding callout */}
+      <OnboardingCallout
+        title="AI Copilot setup tips"
+        description="1) Run Readiness Score to assess your configuration, 2) Use Gap Analysis to find missing LOINC codes and templates, 3) Apply LOINC Auto-Map to bulk-assign codes, 4) Use Code Lookup for individual test lookups."
+      />
+    </div>
   );
 }

@@ -5,24 +5,55 @@ import * as React from "react";
 import { AppShell } from "@/components/AppShell";
 import { RequirePerm } from "@/components/RequirePerm";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 
 import { apiFetch } from "@/lib/api";
 import { useToast } from "@/components/ui/use-toast";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
+import { useAuthStore, hasPerm } from "@/lib/auth/store";
+import { usePageInsights } from "@/lib/copilot/usePageInsights";
+import { PageInsightBanner } from "@/components/copilot/PageInsightBanner";
+import { IconFlask } from "@/components/icons";
 
-import { ArrowUp, ArrowDown, Plus, X } from "lucide-react";
+import { ArrowUp, ArrowDown, Pencil, Trash2 } from "lucide-react";
 
 import type { DiagnosticItemRow, PanelItemRow, SectionRow } from "../_shared/types";
 import { safeArray, normalizeCode, validateCode, validateName } from "../_shared/utils";
-import { Field, ModalHeader, NoBranchGuard, modalClassName } from "../_shared/components";
+import {
+  Field,
+  ModalHeader,
+  NoBranchGuard,
+  modalClassName,
+  PageHeader,
+  ErrorAlert,
+  StatBox,
+  SearchBar,
+  OnboardingCallout,
+  CodeBadge,
+} from "../_shared/components";
 
 /* =========================================================
-   Panels page – compose panel items from the catalog
+   Panels page -- compose panel items from the catalog
    ========================================================= */
 
 export default function PanelsPage() {
@@ -39,6 +70,10 @@ export default function PanelsPage() {
 
 function PanelsContent({ branchId }: { branchId: string }) {
   const { toast } = useToast();
+  const user = useAuthStore((s) => s.user);
+  const canCreate = hasPerm(user, "INFRA_DIAGNOSTICS_CREATE");
+  const canUpdate = hasPerm(user, "INFRA_DIAGNOSTICS_UPDATE");
+  const canDelete = hasPerm(user, "INFRA_DIAGNOSTICS_DELETE");
 
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
@@ -49,6 +84,10 @@ function PanelsContent({ branchId }: { branchId: string }) {
   const [addItemId, setAddItemId] = React.useState("none");
   const [saving, setSaving] = React.useState(false);
   const [createPanelOpen, setCreatePanelOpen] = React.useState(false);
+  const [q, setQ] = React.useState("");
+
+  // AI page insights
+  const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({ module: "diagnostics-panels" });
 
   async function loadLists() {
     setLoading(true);
@@ -95,6 +134,7 @@ function PanelsContent({ branchId }: { branchId: string }) {
   }, [panelId]);
 
   function addItem() {
+    if (!canUpdate) return;
     if (!panelId || addItemId === "none") return;
     if (panelItems.some((p) => p.itemId === addItemId)) {
       toast({ title: "Item already added", description: "This item is already in the panel." });
@@ -106,6 +146,7 @@ function PanelsContent({ branchId }: { branchId: string }) {
   }
 
   function move(index: number, dir: -1 | 1) {
+    if (!canUpdate) return;
     setPanelItems((prev) => {
       const next = [...prev];
       const newIndex = index + dir;
@@ -118,10 +159,12 @@ function PanelsContent({ branchId }: { branchId: string }) {
   }
 
   function remove(index: number) {
+    if (!canDelete) return;
     setPanelItems((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function savePanel() {
+    if (!canUpdate) return;
     if (!panelId) return;
     setSaving(true);
     try {
@@ -140,32 +183,61 @@ function PanelsContent({ branchId }: { branchId: string }) {
     }
   }
 
+  const selectedPanel = panels.find((p) => p.id === panelId);
+
+  const filtered = React.useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return panelItems;
+    return panelItems.filter((p) => {
+      const hay = `${p.item?.name ?? ""} ${p.item?.code ?? ""} ${p.itemId}`.toLowerCase();
+      return hay.includes(s);
+    });
+  }, [panelItems, q]);
+
   return (
-    <>
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Panels</CardTitle>
-          <CardDescription>Compose panel items from the catalog.</CardDescription>
+    <div className="grid gap-6">
+      {/* Header */}
+      <PageHeader
+        icon={<IconFlask className="h-5 w-5 text-zc-accent" />}
+        title="Panels"
+        description="Compose panel items from the diagnostic catalog."
+        loading={loading}
+        onRefresh={() => { void loadLists(); void loadPanelItems(panelId); }}
+        canCreate={canCreate}
+        createLabel="Create Panel"
+        onCreate={() => setCreatePanelOpen(true)}
+      />
+
+      {/* AI Insights */}
+      <PageInsightBanner insights={insights} loading={insightsLoading} onDismiss={dismissInsight} />
+
+      {/* Overview */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Overview</CardTitle>
+          <CardDescription className="text-sm">
+            Select a panel to view and manage its constituent items.
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="mb-3 flex justify-end">
-            <Button onClick={() => setCreatePanelOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Create Panel
-            </Button>
+
+        <CardContent className="grid gap-4">
+          <div className="grid gap-3 md:grid-cols-2">
+            <StatBox label="Total Panels" value={panels.length} color="blue" />
+            <StatBox label="Panel Items" value={panelItems.length} color="emerald" detail={selectedPanel ? <>Panel: <span className="font-semibold">{selectedPanel.name}</span></> : undefined} />
           </div>
-          {err ? <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{err}</div> : null}
-          <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-            <div className="grid gap-3 md:grid-cols-2">
-              <Field label="Panel">
-                <Select value={panelId} onValueChange={setPanelId} disabled={loading}>
-                  <SelectTrigger className="h-10"><SelectValue placeholder="Select panel" /></SelectTrigger>
-                  <SelectContent className="max-h-[280px] overflow-y-auto">
-                    {panels.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>{p.name} ({p.code})</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <Field label="Panel">
+              <Select value={panelId} onValueChange={setPanelId} disabled={loading}>
+                <SelectTrigger className="h-10"><SelectValue placeholder="Select panel" /></SelectTrigger>
+                <SelectContent className="max-h-[280px] overflow-y-auto">
+                  {panels.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.name} ({p.code})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            {canUpdate ? (
               <Field label="Add item">
                 <div className="flex gap-2">
                   <Select value={addItemId} onValueChange={setAddItemId}>
@@ -182,35 +254,124 @@ function PanelsContent({ branchId }: { branchId: string }) {
                   </Button>
                 </div>
               </Field>
-            </div>
+            ) : null}
           </div>
-          <Separator className="my-4" />
-          <div className="grid gap-2">
-            {panelItems.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-zc-border p-4 text-sm text-zc-muted">No panel items added.</div>
-            ) : (
-              panelItems.map((p, idx) => (
-                <div key={`${p.itemId}-${idx}`} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold text-zc-text">{p.item?.name || p.itemId}</div>
-                    <div className="text-xs text-zc-muted">{p.item?.code || "ITEM"}</div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => move(idx, -1)}><ArrowUp className="h-4 w-4" /></Button>
-                    <Button variant="outline" size="sm" onClick={() => move(idx, 1)}><ArrowDown className="h-4 w-4" /></Button>
-                    <Button variant="destructive" size="sm" onClick={() => remove(idx)}><X className="h-4 w-4" /></Button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-          <div className="mt-4 flex justify-end">
+
+          <ErrorAlert message={err} />
+        </CardContent>
+      </Card>
+
+      {/* Table */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Panel Items</CardTitle>
+          <CardDescription className="text-sm">Items included in the selected panel, ordered by sort priority.</CardDescription>
+        </CardHeader>
+
+        <CardContent className="pb-2">
+          <SearchBar
+            value={q}
+            onChange={setQ}
+            placeholder="Search by item name or code..."
+            filteredCount={filtered.length}
+            totalCount={panelItems.length}
+          />
+        </CardContent>
+
+        <Separator />
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-zc-panel/20 text-xs text-zc-muted">
+              <tr>
+                <th className="px-4 py-3 text-left font-semibold">Code</th>
+                <th className="px-4 py-3 text-left font-semibold">Name</th>
+                <th className="px-4 py-3 text-left font-semibold">Sort Order</th>
+                <th className="px-4 py-3 text-right font-semibold">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {!filtered.length ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-10 text-center text-sm text-zc-muted">
+                    {loading ? "Loading panel items..." : "No panel items added."}
+                  </td>
+                </tr>
+              ) : null}
+
+              {filtered.map((p, idx) => (
+                <tr key={`${p.itemId}-${idx}`} className="border-t border-zc-border hover:bg-zc-panel/20">
+                  <td className="px-4 py-3">
+                    <CodeBadge>{p.item?.code || "ITEM"}</CodeBadge>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="font-semibold text-zc-text">{p.item?.name || p.itemId}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="font-mono text-xs text-zc-muted">{idx}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-2">
+                      {canUpdate ? (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => move(idx, -1)}
+                            disabled={idx === 0}
+                            title="Move up"
+                            aria-label="Move up"
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => move(idx, 1)}
+                            disabled={idx === filtered.length - 1}
+                            title="Move down"
+                            aria-label="Move down"
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
+                        </>
+                      ) : null}
+                      {canDelete ? (
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => remove(idx)}
+                          title="Remove item"
+                          aria-label="Remove item"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      ) : null}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {canUpdate && panelItems.length > 0 ? (
+          <div className="flex justify-end border-t border-zc-border px-4 py-3">
             <Button onClick={savePanel} disabled={!panelId || saving}>
               Save panel
             </Button>
           </div>
-        </CardContent>
+        ) : null}
       </Card>
+
+      {/* Onboarding callout */}
+      <OnboardingCallout
+        title="Recommended panel setup"
+        description="1) Create panels from the catalog (items marked as panel), 2) Add individual test items to each panel, 3) Arrange items in the desired sort order, 4) Save to persist the panel composition."
+      />
+
+      {/* Create Panel Dialog */}
       <CreatePanelDialog
         open={createPanelOpen}
         onOpenChange={setCreatePanelOpen}
@@ -220,7 +381,7 @@ function PanelsContent({ branchId }: { branchId: string }) {
           setPanelId(newId);
         }}
       />
-    </>
+    </div>
   );
 }
 
@@ -291,7 +452,7 @@ function CreatePanelDialog({
       <DialogContent className={modalClassName("w-[95vw] sm:max-w-[500px]")}>
         <ModalHeader title="Create Panel" description="Create a new panel to compose tests." onClose={() => onOpenChange(false)} />
         <div className="grid gap-4">
-          {err ? <div className="rounded-xl border border-rose-200 bg-rose-50 p-2 text-sm text-rose-800">{err}</div> : null}
+          <ErrorAlert message={err} />
           <Field label="Code" required>
             <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="LFT_PANEL" />
           </Field>

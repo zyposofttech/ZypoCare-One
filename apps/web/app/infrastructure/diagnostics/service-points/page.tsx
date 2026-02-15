@@ -18,7 +18,11 @@ import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useToast } from "@/components/ui/use-toast";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
-import { Pencil, Plus } from "lucide-react";
+import { useAuthStore, hasPerm } from "@/lib/auth/store";
+import { usePageInsights } from "@/lib/copilot/usePageInsights";
+import { PageInsightBanner } from "@/components/copilot/PageInsightBanner";
+import { IconBuilding } from "@/components/icons";
+import { Pencil, ToggleLeft, ToggleRight } from "lucide-react";
 
 import type {
   DiagnosticServicePointRow,
@@ -55,6 +59,13 @@ import {
   modalClassName,
   toneForServicePointType,
   NoBranchGuard,
+  PageHeader,
+  ErrorAlert,
+  StatusPill,
+  CodeBadge,
+  StatBox,
+  SearchBar,
+  OnboardingCallout,
 } from "../_shared/components";
 
 /* =========================================================
@@ -77,6 +88,11 @@ export default function ServicePointsPage() {
 
 function ServicePointsContent({ branchId }: { branchId: string }) {
   const { toast } = useToast();
+  const user = useAuthStore((s) => s.user);
+  const canCreate = hasPerm(user, "INFRA_DIAGNOSTICS_CREATE");
+  const canUpdate = hasPerm(user, "INFRA_DIAGNOSTICS_UPDATE");
+  const canDelete = hasPerm(user, "INFRA_DIAGNOSTICS_DELETE");
+
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
   const [servicePoints, setServicePoints] = React.useState<DiagnosticServicePointRow[]>([]);
@@ -85,6 +101,7 @@ function ServicePointsContent({ branchId }: { branchId: string }) {
   const [includeInactive, setIncludeInactive] = React.useState(false);
   const [typeFilter, setTypeFilter] = React.useState<ServicePointType | "all">("all");
   const [showFilters, setShowFilters] = React.useState(false);
+  const [q, setQ] = React.useState("");
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<DiagnosticServicePointRow | null>(null);
   const [roomsDialog, setRoomsDialog] = React.useState<DiagnosticServicePointRow | null>(null);
@@ -92,6 +109,9 @@ function ServicePointsContent({ branchId }: { branchId: string }) {
   const [equipmentDialog, setEquipmentDialog] = React.useState<DiagnosticServicePointRow | null>(null);
   const [staffDialog, setStaffDialog] = React.useState<DiagnosticServicePointRow | null>(null);
   const [sectionsDialog, setSectionsDialog] = React.useState<DiagnosticServicePointRow | null>(null);
+
+  // AI page-level insights
+  const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({ module: "diagnostics-service-points" });
 
   async function loadLists() {
     setLoading(true);
@@ -121,141 +141,272 @@ function ServicePointsContent({ branchId }: { branchId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [branchId, includeInactive, typeFilter]);
 
+  // Filtered rows for search
+  const rows = React.useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return servicePoints;
+    return servicePoints.filter((sp) => {
+      const hay = `${sp.code} ${sp.name} ${sp.type} ${sp.locationNode?.name ?? ""}`.toLowerCase();
+      return hay.includes(s);
+    });
+  }, [servicePoints, q]);
+
+  // Stats
+  const activeCount = servicePoints.filter((sp) => sp.isActive).length;
+  const inactiveCount = servicePoints.length - activeCount;
+  const typeCounts = React.useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const sp of servicePoints) {
+      map[sp.type] = (map[sp.type] || 0) + 1;
+    }
+    return map;
+  }, [servicePoints]);
+
+  async function handleToggleActive(sp: DiagnosticServicePointRow) {
+    try {
+      if (sp.isActive) {
+        await apiFetch(`/api/infrastructure/diagnostics/service-points/${encodeURIComponent(sp.id)}?branchId=${encodeURIComponent(branchId)}`, { method: "DELETE" });
+        toast({ title: "Service point deactivated" });
+      } else {
+        await apiFetch(`/api/infrastructure/diagnostics/service-points/${encodeURIComponent(sp.id)}`, {
+          method: "PUT",
+          body: JSON.stringify({ branchId, isActive: true }),
+        });
+        toast({ title: "Service point reactivated" });
+      }
+      await loadLists();
+    } catch (e: any) {
+      toast({ title: "Toggle failed", description: e?.message || "Error", variant: "destructive" as any });
+    }
+  }
+
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Service Points</CardTitle>
-        <CardDescription>Define diagnostic service points and map rooms/resources/equipment.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {err ? <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{err}</div> : null}
+    <div className="grid gap-6">
+      {/* Header */}
+      <PageHeader
+        icon={<IconBuilding className="h-5 w-5 text-zc-accent" />}
+        title="Service Points"
+        description="Configure diagnostic service points, rooms, resources and equipment."
+        loading={loading}
+        onRefresh={() => void loadLists()}
+        canCreate={canCreate}
+        createLabel="Create Service Point"
+        onCreate={() => { setEditing(null); setDialogOpen(true); }}
+      />
 
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <Button onClick={() => { setEditing(null); setDialogOpen(true); }} disabled={loading}>
-            <Plus className="mr-2 h-4 w-4" /> Service point
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setShowFilters((s) => !s)}>
-            {showFilters ? "Hide Filters" : "Show Filters"}
-          </Button>
-        </div>
+      {/* AI Insights */}
+      <PageInsightBanner insights={insights} loading={insightsLoading} onDismiss={dismissInsight} />
 
-        {showFilters ? (
-          <div className="mt-3 grid gap-3 rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-            <Field label="Type filter">
-              <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as any)}>
-                <SelectTrigger className="h-10 w-[220px]"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  {SERVICE_POINT_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </Field>
-            <div className="flex items-center gap-2">
-              <Checkbox checked={includeInactive} onCheckedChange={(v) => setIncludeInactive(Boolean(v))} />
-              <span className="text-sm text-zc-muted">Include Inactive</span>
-            </div>
+      {/* Overview */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Overview</CardTitle>
+          <CardDescription className="text-sm">
+            Search service points and manage rooms, resources, and equipment mappings.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="grid gap-4">
+          <div className="grid gap-3 md:grid-cols-4">
+            <StatBox label="Total Service Points" value={servicePoints.length} color="blue" detail={<>Active: <span className="font-semibold tabular-nums">{activeCount}</span> | Inactive: <span className="font-semibold tabular-nums">{inactiveCount}</span></>} />
+            <StatBox label="Active" value={activeCount} color="emerald" />
+            <StatBox label="LAB" value={typeCounts["LAB"] ?? 0} color="emerald" />
+            <StatBox label="RADIOLOGY" value={typeCounts["RADIOLOGY"] ?? 0} color="sky" />
           </div>
-        ) : null}
 
-        <Separator className="my-4" />
-        <div className="grid gap-3">
-          {servicePoints.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-zc-border p-4 text-sm text-zc-muted">No service points yet.</div>
-          ) : (
-            servicePoints.map((sp) => (
-              <div
-                key={sp.id}
-                id={`sp-${sp.id}`}
-                className="rounded-xl border border-zc-border bg-zc-panel/10 p-3"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <ToneBadge tone="violet" className="font-mono">{sp.code}</ToneBadge>
-                      <div className="text-sm font-semibold text-zc-text">{sp.name}</div>
-                      <ToneBadge tone={toneForServicePointType(sp.type)}>{sp.type}</ToneBadge>
-                      {!sp.isActive ? <ToneBadge tone="rose">INACTIVE</ToneBadge> : null}
-                    </div>
-                    <div className="mt-1 text-xs text-zc-muted">
-                      Location: <span className="font-mono">{sp.locationNode?.name || sp.locationNodeId}</span>
-                    </div>
-                    <div className="mt-1 text-xs text-zc-muted">
-                      Rooms: <span className="font-mono">{sp._count?.rooms ?? 0}</span> | Resources: <span className="font-mono">{sp._count?.resources ?? 0}</span> | Equipment: <span className="font-mono">{sp._count?.equipment ?? 0}</span> | Staff: <span className="font-mono">{sp._count?.staff ?? 0}</span> | Sections: <span className="font-mono">{sp._count?.sections ?? 0}</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button variant="outline" size="sm" onClick={() => { setEditing(sp); setDialogOpen(true); }}>
-                      <Pencil className="mr-2 h-4 w-4" /> Edit
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => setRoomsDialog(sp)}>Rooms</Button>
-                    <Button variant="outline" size="sm" onClick={() => setResourcesDialog(sp)}>Resources</Button>
-                    <Button variant="outline" size="sm" onClick={() => setEquipmentDialog(sp)}>Equipment</Button>
-                    <Button variant="outline" size="sm" onClick={() => setStaffDialog(sp)}>Staff</Button>
-                    <Button variant="outline" size="sm" onClick={() => setSectionsDialog(sp)}>Sections</Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={async () => {
-                        try {
-                          await apiFetch(`/api/infrastructure/diagnostics/service-points/${encodeURIComponent(sp.id)}?branchId=${encodeURIComponent(branchId)}`, { method: "DELETE" });
-                          toast({ title: "Service point deactivated" });
-                          await loadLists();
-                        } catch (e: any) {
-                          toast({ title: "Deactivate failed", description: e?.message || "Error", variant: "destructive" as any });
-                        }
-                      }}
-                    >
-                      Deactivate
-                    </Button>
-                  </div>
-                </div>
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowFilters((s) => !s)}>
+              {showFilters ? "Hide Filters" : "Show Filters"}
+            </Button>
+          </div>
+
+          {showFilters ? (
+            <div className="grid gap-3 rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+              <Field label="Type filter">
+                <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as any)}>
+                  <SelectTrigger className="h-10 w-[220px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    {SERVICE_POINT_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </Field>
+              <div className="flex items-center gap-2">
+                <Checkbox checked={includeInactive} onCheckedChange={(v) => setIncludeInactive(Boolean(v))} />
+                <span className="text-sm text-zc-muted">Include Inactive</span>
               </div>
-            ))
-          )}
+            </div>
+          ) : null}
+
+          <SearchBar
+            value={q}
+            onChange={setQ}
+            placeholder="Search by code, name, type, location..."
+            filteredCount={rows.length}
+            totalCount={servicePoints.length}
+          />
+
+          <ErrorAlert message={err} />
+        </CardContent>
+      </Card>
+
+      {/* Table */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Service Point Registry</CardTitle>
+          <CardDescription className="text-sm">Use the action buttons to edit service points or manage their room/resource/equipment mappings.</CardDescription>
+        </CardHeader>
+        <Separator />
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-zc-panel/20 text-xs text-zc-muted">
+              <tr>
+                <th className="px-4 py-3 text-left font-semibold">Code</th>
+                <th className="px-4 py-3 text-left font-semibold">Name</th>
+                <th className="px-4 py-3 text-left font-semibold">Type</th>
+                <th className="px-4 py-3 text-left font-semibold">Location</th>
+                <th className="px-4 py-3 text-left font-semibold">Status</th>
+                <th className="px-4 py-3 text-right font-semibold">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {!rows.length ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-10 text-center text-sm text-zc-muted">
+                    {loading ? "Loading service points..." : "No service points found."}
+                  </td>
+                </tr>
+              ) : null}
+
+              {rows.map((sp) => (
+                <tr key={sp.id} className="border-t border-zc-border hover:bg-zc-panel/20">
+                  <td className="px-4 py-3">
+                    <CodeBadge>{sp.code}</CodeBadge>
+                  </td>
+
+                  <td className="px-4 py-3">
+                    <div className="font-semibold text-zc-text">{sp.name}</div>
+                    <div className="mt-0.5 text-xs text-zc-muted">
+                      R: {sp._count?.rooms ?? 0} | Res: {sp._count?.resources ?? 0} | Eq: {sp._count?.equipment ?? 0} | Staff: {sp._count?.staff ?? 0} | Sec: {sp._count?.sections ?? 0}
+                    </div>
+                  </td>
+
+                  <td className="px-4 py-3">
+                    <ToneBadge tone={toneForServicePointType(sp.type)}>{sp.type}</ToneBadge>
+                  </td>
+
+                  <td className="px-4 py-3 text-zc-muted">{sp.locationNode?.name ?? "\u2014"}</td>
+
+                  <td className="px-4 py-3">
+                    <StatusPill active={sp.isActive} />
+                  </td>
+
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-2">
+                      {canUpdate ? (
+                        <Button
+                          variant="info"
+                          size="icon"
+                          onClick={() => { setEditing(sp); setDialogOpen(true); }}
+                          title="Edit service point"
+                          aria-label="Edit service point"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      ) : null}
+                      {canUpdate ? (
+                        <>
+                          <Button variant="outline" size="sm" onClick={() => setRoomsDialog(sp)} title="Rooms">Rooms</Button>
+                          <Button variant="outline" size="sm" onClick={() => setResourcesDialog(sp)} title="Resources">Res</Button>
+                          <Button variant="outline" size="sm" onClick={() => setEquipmentDialog(sp)} title="Equipment">Eq</Button>
+                          <Button variant="outline" size="sm" onClick={() => setStaffDialog(sp)} title="Staff">Staff</Button>
+                          <Button variant="outline" size="sm" onClick={() => setSectionsDialog(sp)} title="Sections">Sec</Button>
+                        </>
+                      ) : null}
+                      {canDelete ? (
+                        sp.isActive ? (
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            onClick={() => void handleToggleActive(sp)}
+                            title="Deactivate service point"
+                            aria-label="Deactivate service point"
+                          >
+                            <ToggleLeft className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="success"
+                            size="icon"
+                            onClick={() => void handleToggleActive(sp)}
+                            title="Reactivate service point"
+                            aria-label="Reactivate service point"
+                          >
+                            <ToggleRight className="h-4 w-4" />
+                          </Button>
+                        )
+                      ) : null}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <ServicePointDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          branchId={branchId}
-          editing={editing}
-          locations={locations}
-          units={units}
-          onSaved={loadLists}
-        />
-        <ServicePointRoomsDialog
-          open={!!roomsDialog}
-          onOpenChange={(v) => !v && setRoomsDialog(null)}
-          branchId={branchId}
-          servicePoint={roomsDialog}
-        />
-        <ServicePointResourcesDialog
-          open={!!resourcesDialog}
-          onOpenChange={(v) => !v && setResourcesDialog(null)}
-          branchId={branchId}
-          servicePoint={resourcesDialog}
-        />
-        <ServicePointEquipmentDialog
-          open={!!equipmentDialog}
-          onOpenChange={(v) => !v && setEquipmentDialog(null)}
-          branchId={branchId}
-          servicePoint={equipmentDialog}
-        />
-        <ServicePointStaffDialog
-          open={!!staffDialog}
-          onOpenChange={(v) => { if (!v) setStaffDialog(null); }}
-          branchId={branchId}
-          servicePoint={staffDialog}
-          onSaved={loadLists}
-        />
-        <ServicePointSectionsDialog
-          open={!!sectionsDialog}
-          onOpenChange={(v) => { if (!v) setSectionsDialog(null); }}
-          branchId={branchId}
-          servicePoint={sectionsDialog}
-          onSaved={loadLists}
-        />
-      </CardContent>
-    </Card>
+      </Card>
+
+      {/* Onboarding callout */}
+      <OnboardingCallout
+        title="Recommended setup order"
+        description="1) Create Service Points (Lab, Radiology, etc.), then 2) Map Rooms, Resources and Equipment to each point, then 3) Assign Staff and link Sections."
+      />
+
+      {/* Dialogs */}
+      <ServicePointDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        branchId={branchId}
+        editing={editing}
+        locations={locations}
+        units={units}
+        onSaved={loadLists}
+      />
+      <ServicePointRoomsDialog
+        open={!!roomsDialog}
+        onOpenChange={(v) => !v && setRoomsDialog(null)}
+        branchId={branchId}
+        servicePoint={roomsDialog}
+      />
+      <ServicePointResourcesDialog
+        open={!!resourcesDialog}
+        onOpenChange={(v) => !v && setResourcesDialog(null)}
+        branchId={branchId}
+        servicePoint={resourcesDialog}
+      />
+      <ServicePointEquipmentDialog
+        open={!!equipmentDialog}
+        onOpenChange={(v) => !v && setEquipmentDialog(null)}
+        branchId={branchId}
+        servicePoint={equipmentDialog}
+      />
+      <ServicePointStaffDialog
+        open={!!staffDialog}
+        onOpenChange={(v) => { if (!v) setStaffDialog(null); }}
+        branchId={branchId}
+        servicePoint={staffDialog}
+        onSaved={loadLists}
+      />
+      <ServicePointSectionsDialog
+        open={!!sectionsDialog}
+        onOpenChange={(v) => { if (!v) setSectionsDialog(null); }}
+        branchId={branchId}
+        servicePoint={sectionsDialog}
+        onSaved={loadLists}
+      />
+    </div>
   );
 }
 
@@ -371,7 +522,7 @@ function ServicePointDialog({
           onClose={() => onOpenChange(false)}
         />
         <div className="grid gap-4">
-          {err ? <div className="rounded-xl border border-rose-200 bg-rose-50 p-2 text-sm text-rose-800">{err}</div> : null}
+          <ErrorAlert message={err} />
           <div className="grid gap-4 md:grid-cols-2">
             <Field label="Code" required>
               <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="LAB" />

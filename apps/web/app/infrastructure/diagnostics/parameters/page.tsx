@@ -32,8 +32,16 @@ import {
 import { apiFetch } from "@/lib/api";
 import { useToast } from "@/components/ui/use-toast";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
+import { useAuthStore, hasPerm } from "@/lib/auth/store";
+import { usePageInsights } from "@/lib/copilot/usePageInsights";
+import { PageInsightBanner } from "@/components/copilot/PageInsightBanner";
+import { IconDroplet } from "@/components/icons";
 
-import { Pencil, Plus } from "lucide-react";
+import {
+  Pencil,
+  ToggleLeft,
+  ToggleRight,
+} from "lucide-react";
 
 import type {
   DiagnosticItemRow,
@@ -58,6 +66,13 @@ import {
   ModalHeader,
   modalClassName,
   toneForResultDataType,
+  PageHeader,
+  ErrorAlert,
+  StatusPill,
+  CodeBadge,
+  StatBox,
+  SearchBar,
+  OnboardingCallout,
 } from "../_shared/components";
 
 /* =========================================================
@@ -166,7 +181,7 @@ function ParameterDialog({
           onClose={() => onOpenChange(false)}
         />
         <div className="grid gap-4">
-          {err ? <div className="rounded-xl border border-rose-200 bg-rose-50 p-2 text-sm text-rose-800">{err}</div> : null}
+          <ErrorAlert message={err} />
           <div className="grid gap-4 md:grid-cols-2">
             <Field label="Code" required>
               <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="HGB" />
@@ -324,7 +339,7 @@ function RangeDialog({
           onClose={() => onOpenChange(false)}
         />
         <div className="grid gap-4">
-          {err ? <div className="rounded-xl border border-rose-200 bg-rose-50 p-2 text-sm text-rose-800">{err}</div> : null}
+          <ErrorAlert message={err} />
           <div className="grid gap-4 md:grid-cols-2">
             <Field label="Sex">
               <Input value={sex} onChange={(e) => setSex(e.target.value)} placeholder="M/F/Other" />
@@ -392,16 +407,25 @@ function RangeDialog({
 
 function LabParamsContent({ branchId }: { branchId: string }) {
   const { toast } = useToast();
+  const user = useAuthStore((s) => s.user);
+  const canCreate = hasPerm(user, "INFRA_DIAGNOSTICS_CREATE");
+  const canUpdate = hasPerm(user, "INFRA_DIAGNOSTICS_UPDATE");
+  const canDelete = hasPerm(user, "INFRA_DIAGNOSTICS_DELETE");
+
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
   const [tests, setTests] = React.useState<DiagnosticItemRow[]>([]);
   const [testId, setTestId] = React.useState("");
   const [parameters, setParameters] = React.useState<ParameterRow[]>([]);
+  const [q, setQ] = React.useState("");
   const [paramDialogOpen, setParamDialogOpen] = React.useState(false);
   const [rangeDialogOpen, setRangeDialogOpen] = React.useState(false);
   const [editingParam, setEditingParam] = React.useState<ParameterRow | null>(null);
   const [editingRange, setEditingRange] = React.useState<RangeRow | null>(null);
   const [rangeParamId, setRangeParamId] = React.useState("");
+
+  // AI page insights
+  const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({ module: "diagnostics-parameters" });
 
   async function loadTests() {
     setLoading(true);
@@ -444,115 +468,288 @@ function LabParamsContent({ branchId }: { branchId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [testId]);
 
+  const totalParams = parameters.length;
+  const totalRanges = parameters.reduce((sum, p) => sum + (p.ranges?.length ?? 0), 0);
+
+  const filtered = React.useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return parameters;
+    return parameters.filter((p) => {
+      const hay = `${p.code} ${p.name} ${p.dataType} ${p.unit ?? ""}`.toLowerCase();
+      return hay.includes(s);
+    });
+  }, [parameters, q]);
+
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Lab Parameters</CardTitle>
-        <CardDescription>Define parameters and reference ranges for lab tests.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {err ? <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{err}</div> : null}
-        <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-          <div className="flex flex-wrap items-end gap-2">
-            <Field label="Lab test">
-              <Select value={testId} onValueChange={setTestId} disabled={loading}>
-                <SelectTrigger className="h-10 w-[320px]"><SelectValue placeholder="Select test" /></SelectTrigger>
-                <SelectContent className="max-h-[280px] overflow-y-auto">
-                  {tests.map((t) => (
-                    <SelectItem key={t.id} value={t.id}>{t.name} ({t.code})</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-            <Button onClick={() => { setEditingParam(null); setParamDialogOpen(true); }} disabled={!testId}>
-              <Plus className="mr-2 h-4 w-4" /> Parameter
-            </Button>
-          </div>
-        </div>
-        <Separator className="my-4" />
-        <div className="grid gap-3">
-          {parameters.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-zc-border p-4 text-sm text-zc-muted">No parameters configured.</div>
-          ) : (
-            parameters.map((p) => (
-              <div key={p.id} className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <ToneBadge tone="violet" className="font-mono">{p.code}</ToneBadge>
-                      <div className="text-sm font-semibold text-zc-text">{p.name}</div>
-                      <ToneBadge tone={toneForResultDataType(p.dataType)}>{p.dataType}</ToneBadge>
-                      {!p.isActive ? <ToneBadge tone="rose">INACTIVE</ToneBadge> : null}
-                    </div>
-                    <div className="mt-1 text-xs text-zc-muted">
-                      Unit: <span className="font-mono">{p.unit || "-"}</span> | Precision: <span className="font-mono">{p.precision ?? "-"}</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button variant="outline" size="sm" onClick={() => { setEditingParam(p); setParamDialogOpen(true); }}>
-                      <Pencil className="mr-2 h-4 w-4" /> Edit
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => { setRangeParamId(p.id); setEditingRange(null); setRangeDialogOpen(true); }}>
-                      <Plus className="mr-2 h-4 w-4" /> Range
-                    </Button>
-                  </div>
-                </div>
-                {p.ranges?.length ? (
-                  <div className="mt-3 grid gap-2">
-                    {p.ranges.map((r) => (
-                      <div key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zc-border bg-white/50 p-2 text-xs">
-                        <div className="text-zc-muted">
-                          Sex: <span className="font-mono">{r.sex || "-"}</span> | Age: <span className="font-mono">{r.ageMinDays ?? "-"}</span> - <span className="font-mono">{r.ageMaxDays ?? "-"}</span> days
-                        </div>
-                        <div className="text-zc-muted">
-                          Low: <span className="font-mono">{r.low ?? "-"}</span> | High: <span className="font-mono">{r.high ?? "-"}</span> | Text: <span className="font-mono">{r.textRange || "-"}</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => { setRangeParamId(p.id); setEditingRange(r); setRangeDialogOpen(true); }}>
-                            Edit
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={async () => {
-                              try {
-                                await apiFetch(`/api/infrastructure/diagnostics/ranges/${encodeURIComponent(r.id)}?branchId=${encodeURIComponent(branchId)}`, { method: "DELETE" });
-                                toast({ title: "Range removed" });
-                                await loadParameters(testId);
-                              } catch (e: any) {
-                                toast({ title: "Remove failed", description: e?.message || "Error", variant: "destructive" as any });
-                              }
-                            }}
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      </div>
+    <div className="grid gap-6">
+      {/* Header */}
+      <PageHeader
+        icon={<IconDroplet className="h-5 w-5 text-zc-accent" />}
+        title="Lab Parameters"
+        description="Define parameters and reference ranges for lab tests."
+        loading={loading}
+        onRefresh={() => { void loadTests(); void loadParameters(testId); }}
+        canCreate={canCreate}
+        createLabel="Add Parameter"
+        onCreate={() => { setEditingParam(null); setParamDialogOpen(true); }}
+      />
+
+      {/* AI Insights */}
+      <PageInsightBanner insights={insights} loading={insightsLoading} onDismiss={dismissInsight} />
+
+      {/* Overview */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Overview</CardTitle>
+          <CardDescription className="text-sm">
+            Select a lab test and manage its parameters and reference ranges.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="grid gap-4">
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+              <Field label="Lab test">
+                <Select value={testId} onValueChange={setTestId} disabled={loading}>
+                  <SelectTrigger className="h-10"><SelectValue placeholder="Select test" /></SelectTrigger>
+                  <SelectContent className="max-h-[280px] overflow-y-auto">
+                    {tests.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>{t.name} ({t.code})</SelectItem>
                     ))}
-                  </div>
-                ) : null}
-              </div>
-            ))
-          )}
+                  </SelectContent>
+                </Select>
+              </Field>
+            </div>
+            <StatBox label="Total Parameters" value={totalParams} color="blue" />
+            <StatBox label="Ranges" value={totalRanges} color="violet" />
+          </div>
+
+          <SearchBar
+            value={q}
+            onChange={setQ}
+            placeholder="Search by code, name, data type, unit..."
+            filteredCount={filtered.length}
+            totalCount={parameters.length}
+          />
+
+          <ErrorAlert message={err} />
+        </CardContent>
+      </Card>
+
+      {/* Table */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Parameters</CardTitle>
+          <CardDescription className="text-sm">Result parameters and their reference ranges for the selected lab test.</CardDescription>
+        </CardHeader>
+        <Separator />
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-zc-panel/20 text-xs text-zc-muted">
+              <tr>
+                <th className="px-4 py-3 text-left font-semibold">Code</th>
+                <th className="px-4 py-3 text-left font-semibold">Name</th>
+                <th className="px-4 py-3 text-left font-semibold">Data Type</th>
+                <th className="px-4 py-3 text-left font-semibold">Unit</th>
+                <th className="px-4 py-3 text-left font-semibold">Status</th>
+                <th className="px-4 py-3 text-right font-semibold">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {!filtered.length ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-10 text-center text-sm text-zc-muted">
+                    {loading ? "Loading parameters..." : "No parameters configured."}
+                  </td>
+                </tr>
+              ) : null}
+
+              {filtered.map((p) => (
+                <React.Fragment key={p.id}>
+                  <tr className="border-t border-zc-border hover:bg-zc-panel/20">
+                    <td className="px-4 py-3">
+                      <CodeBadge>{p.code}</CodeBadge>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="font-semibold text-zc-text">{p.name}</div>
+                      <div className="mt-0.5 flex flex-wrap gap-1">
+                        {p.isDerived ? <ToneBadge tone="amber">DERIVED</ToneBadge> : null}
+                        {p.precision != null ? <ToneBadge tone="slate">Precision: {p.precision}</ToneBadge> : null}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <ToneBadge tone={toneForResultDataType(p.dataType)}>{p.dataType}</ToneBadge>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="font-mono text-sm text-zc-text">{p.unit || "\u2014"}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatusPill active={p.isActive} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-2">
+                        {canUpdate ? (
+                          <Button
+                            variant="info"
+                            size="icon"
+                            onClick={() => { setEditingParam(p); setParamDialogOpen(true); }}
+                            title="Edit parameter"
+                            aria-label="Edit parameter"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        ) : null}
+
+                        {canDelete ? (
+                          p.isActive ? (
+                            <Button
+                              variant="secondary"
+                              size="icon"
+                              onClick={async () => {
+                                try {
+                                  await apiFetch(`/api/infrastructure/diagnostics/parameters/${encodeURIComponent(p.id)}`, {
+                                    method: "PUT",
+                                    body: JSON.stringify({ branchId, isActive: false }),
+                                  });
+                                  toast({ title: "Deactivated", description: "Parameter marked inactive." });
+                                  await loadParameters(testId);
+                                } catch (e: any) {
+                                  toast({ title: "Deactivate failed", description: e?.message || "Error", variant: "destructive" as any });
+                                }
+                              }}
+                              title="Deactivate parameter"
+                              aria-label="Deactivate parameter"
+                            >
+                              <ToggleLeft className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="success"
+                              size="icon"
+                              onClick={async () => {
+                                try {
+                                  await apiFetch(`/api/infrastructure/diagnostics/parameters/${encodeURIComponent(p.id)}`, {
+                                    method: "PUT",
+                                    body: JSON.stringify({ branchId, isActive: true }),
+                                  });
+                                  toast({ title: "Activated", description: "Parameter is active again." });
+                                  await loadParameters(testId);
+                                } catch (e: any) {
+                                  toast({ title: "Activate failed", description: e?.message || "Error", variant: "destructive" as any });
+                                }
+                              }}
+                              title="Reactivate parameter"
+                              aria-label="Reactivate parameter"
+                            >
+                              <ToggleRight className="h-4 w-4" />
+                            </Button>
+                          )
+                        ) : null}
+
+                        {canCreate ? (
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => { setRangeParamId(p.id); setEditingRange(null); setRangeDialogOpen(true); }}
+                            title="Add range"
+                            aria-label="Add range"
+                          >
+                            +
+                          </Button>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+
+                  {/* Inline range rows */}
+                  {p.ranges?.length ? (
+                    p.ranges.map((r) => (
+                      <tr key={r.id} className="border-t border-zc-border/50 bg-zc-panel/10">
+                        <td className="px-4 py-2" />
+                        <td className="px-4 py-2" colSpan={2}>
+                          <div className="text-xs text-zc-muted">
+                            Sex: <span className="font-mono">{r.sex || "\u2014"}</span>
+                            {" | "}Age: <span className="font-mono">{r.ageMinDays ?? "\u2014"}</span> - <span className="font-mono">{r.ageMaxDays ?? "\u2014"}</span> days
+                          </div>
+                        </td>
+                        <td className="px-4 py-2" colSpan={2}>
+                          <div className="text-xs text-zc-muted">
+                            Low: <span className="font-mono">{r.low ?? "\u2014"}</span>
+                            {" | "}High: <span className="font-mono">{r.high ?? "\u2014"}</span>
+                            {" | "}Text: <span className="font-mono">{r.textRange || "\u2014"}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-2">
+                          <div className="flex items-center justify-end gap-2">
+                            {canUpdate ? (
+                              <Button
+                                variant="info"
+                                size="icon"
+                                onClick={() => { setRangeParamId(p.id); setEditingRange(r); setRangeDialogOpen(true); }}
+                                title="Edit range"
+                                aria-label="Edit range"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            ) : null}
+
+                            {canDelete ? (
+                              <Button
+                                variant="secondary"
+                                size="icon"
+                                onClick={async () => {
+                                  try {
+                                    await apiFetch(`/api/infrastructure/diagnostics/ranges/${encodeURIComponent(r.id)}?branchId=${encodeURIComponent(branchId)}`, { method: "DELETE" });
+                                    toast({ title: "Range removed" });
+                                    await loadParameters(testId);
+                                  } catch (e: any) {
+                                    toast({ title: "Remove failed", description: e?.message || "Error", variant: "destructive" as any });
+                                  }
+                                }}
+                                title="Remove range"
+                                aria-label="Remove range"
+                              >
+                                <ToggleLeft className="h-4 w-4" />
+                              </Button>
+                            ) : null}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : null}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <ParameterDialog
-          open={paramDialogOpen}
-          onOpenChange={setParamDialogOpen}
-          branchId={branchId}
-          testId={testId}
-          editing={editingParam}
-          onSaved={() => loadParameters(testId)}
-        />
-        <RangeDialog
-          open={rangeDialogOpen}
-          onOpenChange={setRangeDialogOpen}
-          branchId={branchId}
-          parameterId={rangeParamId}
-          editing={editingRange}
-          onSaved={() => loadParameters(testId)}
-        />
-      </CardContent>
-    </Card>
+      </Card>
+
+      {/* Onboarding callout */}
+      <OnboardingCallout
+        title="Recommended parameter setup"
+        description="1) Select a lab test from the dropdown, 2) Add parameters with result data types (Numeric, Choice, Boolean, Text), 3) Configure reference ranges per parameter with sex and age-specific values."
+      />
+
+      {/* Dialogs */}
+      <ParameterDialog
+        open={paramDialogOpen}
+        onOpenChange={setParamDialogOpen}
+        branchId={branchId}
+        testId={testId}
+        editing={editingParam}
+        onSaved={() => loadParameters(testId)}
+      />
+      <RangeDialog
+        open={rangeDialogOpen}
+        onOpenChange={setRangeDialogOpen}
+        branchId={branchId}
+        parameterId={rangeParamId}
+        editing={editingRange}
+        onSaved={() => loadParameters(testId)}
+      />
+    </div>
   );
 }
 

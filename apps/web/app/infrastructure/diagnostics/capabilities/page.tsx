@@ -13,7 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -23,23 +23,25 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 
 import { apiFetch } from "@/lib/api";
-import { cn } from "@/lib/cn";
 import { useToast } from "@/components/ui/use-toast";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
+import { useAuthStore, hasPerm } from "@/lib/auth/store";
+import { usePageInsights } from "@/lib/copilot/usePageInsights";
+import { PageInsightBanner } from "@/components/copilot/PageInsightBanner";
+import { IconStethoscope } from "@/components/icons";
 
-import { Plus, RefreshCw, Pencil, Trash2, Search } from "lucide-react";
+import {
+  Pencil,
+  ToggleLeft,
+  ToggleRight,
+} from "lucide-react";
 
 import type {
   CapabilityRow,
@@ -55,7 +57,20 @@ import type {
 } from "../_shared/types";
 import { MODALITIES } from "../_shared/constants";
 import { safeArray, normalizeEquipmentList, toInt } from "../_shared/utils";
-import { Field, ModalHeader, NoBranchGuard, modalClassName } from "../_shared/components";
+import {
+  Field,
+  ModalHeader,
+  NoBranchGuard,
+  ToneBadge,
+  modalClassName,
+  PageHeader,
+  ErrorAlert,
+  StatusPill,
+  CodeBadge,
+  StatBox,
+  SearchBar,
+  OnboardingCallout,
+} from "../_shared/components";
 
 /* =========================================================
    Capabilities (Routing Rules) Page
@@ -79,6 +94,11 @@ export default function CapabilitiesPage() {
 
 function CapabilitiesContent({ branchId }: { branchId: string }) {
   const { toast } = useToast();
+  const user = useAuthStore((s) => s.user);
+  const canCreate = hasPerm(user, "INFRA_DIAGNOSTICS_CREATE");
+  const canUpdate = hasPerm(user, "INFRA_DIAGNOSTICS_UPDATE");
+  const canDelete = hasPerm(user, "INFRA_DIAGNOSTICS_DELETE");
+
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
   const [caps, setCaps] = React.useState<CapabilityRow[]>([]);
@@ -86,11 +106,16 @@ function CapabilitiesContent({ branchId }: { branchId: string }) {
   const [items, setItems] = React.useState<DiagnosticItemRow[]>([]);
   const [includeInactive, setIncludeInactive] = React.useState(false);
   const [showFilters, setShowFilters] = React.useState(false);
+  const [q, setQ] = React.useState("");
+
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<CapabilityRow | null>(null);
   const [allowedRooms, setAllowedRooms] = React.useState<CapabilityRow | null>(null);
   const [allowedResources, setAllowedResources] = React.useState<CapabilityRow | null>(null);
   const [allowedEquipment, setAllowedEquipment] = React.useState<CapabilityRow | null>(null);
+
+  // AI page insights
+  const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({ module: "diagnostics-capabilities" });
 
   async function loadAll() {
     setLoading(true);
@@ -125,164 +150,275 @@ function CapabilitiesContent({ branchId }: { branchId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [branchId, includeInactive]);
 
+  /* ---- derived stats ---- */
+  const totalCaps = caps.length;
+  const activeCaps = caps.filter((c) => c.isActive).length;
+  const primaryCaps = caps.filter((c) => c.isPrimary).length;
+  const uniqueItems = new Set(caps.map((c) => c.diagnosticItemId)).size;
+
+  /* ---- search filter ---- */
+  const filtered = React.useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return caps;
+    return caps.filter((c) => {
+      const hay = `${c.diagnosticItem?.name ?? ""} ${c.diagnosticItem?.code ?? ""} ${c.servicePoint?.name ?? ""} ${c.servicePoint?.code ?? ""} ${c.modality ?? ""}`.toLowerCase();
+      return hay.includes(s);
+    });
+  }, [caps, q]);
+
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Capabilities</CardTitle>
-        <CardDescription>
-          Map diagnostic items to service points with modalities and constraints.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {err ? (
-          <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
-            {err}
+    <div className="grid gap-6">
+      {/* Header */}
+      <PageHeader
+        icon={<IconStethoscope className="h-5 w-5 text-zc-accent" />}
+        title="Capabilities"
+        description="Map diagnostic items to service points and configure allowed rooms, resources and equipment."
+        loading={loading}
+        onRefresh={() => void loadAll()}
+        canCreate={canCreate}
+        createLabel="Capability"
+        onCreate={() => { setEditing(null); setDialogOpen(true); }}
+      />
+
+      {/* AI Insights */}
+      <PageInsightBanner insights={insights} loading={insightsLoading} onDismiss={dismissInsight} />
+
+      {/* Overview */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Overview</CardTitle>
+          <CardDescription className="text-sm">
+            Search and filter capability mappings. Create, edit and toggle active state.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="grid gap-4">
+          <div className="grid gap-3 md:grid-cols-4">
+            <StatBox label="Total" value={totalCaps} color="blue" detail={<>Active: <span className="font-semibold tabular-nums">{activeCaps}</span></>} />
+            <StatBox label="Primary" value={primaryCaps} color="emerald" />
+            <StatBox label="Unique Items" value={uniqueItems} color="sky" />
+            <StatBox label="Service Points" value={servicePoints.length} color="violet" />
           </div>
-        ) : null}
 
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <Button
-            onClick={() => {
-              setEditing(null);
-              setDialogOpen(true);
-            }}
-            disabled={loading}
-          >
-            <Plus className="mr-2 h-4 w-4" /> Capability
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setShowFilters((s) => !s)}>
-            {showFilters ? "Hide Filters" : "Show Filters"}
-          </Button>
-        </div>
-
-        {showFilters ? (
-          <div className="mt-3 flex items-center gap-2 rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-            <Checkbox
-              checked={includeInactive}
-              onCheckedChange={(v) => setIncludeInactive(Boolean(v))}
-            />
-            <span className="text-sm text-zc-muted">Include Inactive</span>
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowFilters((s) => !s)}>
+              {showFilters ? "Hide Filters" : "Show Filters"}
+            </Button>
           </div>
-        ) : null}
 
-        <Separator className="my-4" />
-        <div className="grid gap-3">
-          {caps.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-zc-border p-4 text-sm text-zc-muted">
-              No capabilities configured.
-            </div>
-          ) : (
-            caps.map((c) => (
-              <div
-                key={c.id}
-                className="rounded-xl border border-zc-border bg-zc-panel/10 p-3"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div>
-                    <div className="text-sm font-semibold text-zc-text">
-                      {c.diagnosticItem?.name || "Item"} @{" "}
-                      {c.servicePoint?.name || "Service point"}
-                    </div>
-                    <div className="mt-1 text-xs text-zc-muted">
-                      Modality: <span className="font-mono">{c.modality || "-"}</span> |
-                      Duration:{" "}
-                      <span className="font-mono">{c.defaultDurationMins ?? "-"}</span> mins
-                    </div>
-                    <div className="mt-1 text-xs text-zc-muted">
-                      Rooms:{" "}
-                      <span className="font-mono">{c._count?.allowedRooms ?? 0}</span> |
-                      Resources:{" "}
-                      <span className="font-mono">{c._count?.allowedResources ?? 0}</span> |
-                      Equipment:{" "}
-                      <span className="font-mono">{c._count?.allowedEquipment ?? 0}</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setEditing(c);
-                        setDialogOpen(true);
-                      }}
-                    >
-                      <Pencil className="mr-2 h-4 w-4" /> Edit
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => setAllowedRooms(c)}>
-                      Rooms
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setAllowedResources(c)}
-                    >
-                      Resources
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setAllowedEquipment(c)}
-                    >
-                      Equipment
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={async () => {
-                        try {
-                          await apiFetch(
-                            `/api/infrastructure/diagnostics/capabilities/${encodeURIComponent(c.id)}?branchId=${encodeURIComponent(branchId)}`,
-                            { method: "DELETE" },
-                          );
-                          toast({ title: "Capability deactivated" });
-                          await loadAll();
-                        } catch (e: any) {
-                          toast({
-                            title: "Deactivate failed",
-                            description: e?.message || "Error",
-                            variant: "destructive" as any,
-                          });
-                        }
-                      }}
-                    >
-                      Deactivate
-                    </Button>
-                  </div>
+          {showFilters ? (
+            <div className="grid gap-3 rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Checkbox checked={includeInactive} onCheckedChange={(v) => setIncludeInactive(Boolean(v))} />
+                  <span className="text-sm text-zc-muted">Include Inactive</span>
                 </div>
               </div>
-            ))
-          )}
-        </div>
+            </div>
+          ) : null}
 
-        <CapabilityDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          branchId={branchId}
-          editing={editing}
-          servicePoints={servicePoints}
-          items={items}
-          onSaved={loadAll}
-        />
-        <CapabilityRoomsDialog
-          open={!!allowedRooms}
-          onOpenChange={(v) => !v && setAllowedRooms(null)}
-          branchId={branchId}
-          capability={allowedRooms}
-        />
-        <CapabilityResourcesDialog
-          open={!!allowedResources}
-          onOpenChange={(v) => !v && setAllowedResources(null)}
-          branchId={branchId}
-          capability={allowedResources}
-        />
-        <CapabilityEquipmentDialog
-          open={!!allowedEquipment}
-          onOpenChange={(v) => !v && setAllowedEquipment(null)}
-          branchId={branchId}
-          capability={allowedEquipment}
-        />
-      </CardContent>
-    </Card>
+          <SearchBar
+            value={q}
+            onChange={setQ}
+            placeholder="Search by item, service point, modality..."
+            filteredCount={filtered.length}
+            totalCount={caps.length}
+          />
+
+          <ErrorAlert message={err} />
+        </CardContent>
+      </Card>
+
+      {/* Table */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Capability Mappings</CardTitle>
+          <CardDescription className="text-sm">Items mapped to service points with modality and constraint configuration.</CardDescription>
+        </CardHeader>
+        <Separator />
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-zc-panel/20 text-xs text-zc-muted">
+              <tr>
+                <th className="px-4 py-3 text-left font-semibold">Item</th>
+                <th className="px-4 py-3 text-left font-semibold">Service Point</th>
+                <th className="px-4 py-3 text-left font-semibold">Modality</th>
+                <th className="px-4 py-3 text-left font-semibold">Duration</th>
+                <th className="px-4 py-3 text-left font-semibold">Constraints</th>
+                <th className="px-4 py-3 text-left font-semibold">Status</th>
+                <th className="px-4 py-3 text-right font-semibold">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {!filtered.length ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-10 text-center text-sm text-zc-muted">
+                    {loading ? "Loading capabilities..." : "No capabilities configured."}
+                  </td>
+                </tr>
+              ) : null}
+
+              {filtered.map((c) => (
+                <tr key={c.id} className="border-t border-zc-border hover:bg-zc-panel/20">
+                  <td className="px-4 py-3">
+                    <div className="font-semibold text-zc-text">{c.diagnosticItem?.name || "Item"}</div>
+                    <div className="mt-0.5 flex flex-wrap gap-1">
+                      {c.diagnosticItem?.code ? <CodeBadge>{c.diagnosticItem.code}</CodeBadge> : null}
+                      {c.isPrimary ? <ToneBadge tone="emerald">PRIMARY</ToneBadge> : null}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-sm text-zc-text">{c.servicePoint?.name || "Service point"}</div>
+                    {c.servicePoint?.code ? (
+                      <div className="text-xs text-zc-muted">{c.servicePoint.code}</div>
+                    ) : null}
+                  </td>
+                  <td className="px-4 py-3">
+                    {c.modality ? (
+                      <ToneBadge tone="sky">{c.modality}</ToneBadge>
+                    ) : (
+                      <span className="text-xs text-zc-muted">{"\u2014"}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-xs text-zc-muted">
+                      <span className="font-mono">{c.defaultDurationMins ?? "\u2014"}</span>
+                      <span className="ml-1">mins</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      <Button variant="outline" size="sm" className="h-6 px-2 text-[11px]" onClick={() => setAllowedRooms(c)}>
+                        Rooms <span className="ml-1 font-mono">{c._count?.allowedRooms ?? 0}</span>
+                      </Button>
+                      <Button variant="outline" size="sm" className="h-6 px-2 text-[11px]" onClick={() => setAllowedResources(c)}>
+                        Resources <span className="ml-1 font-mono">{c._count?.allowedResources ?? 0}</span>
+                      </Button>
+                      <Button variant="outline" size="sm" className="h-6 px-2 text-[11px]" onClick={() => setAllowedEquipment(c)}>
+                        Equipment <span className="ml-1 font-mono">{c._count?.allowedEquipment ?? 0}</span>
+                      </Button>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusPill active={c.isActive} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-2">
+                      {canUpdate ? (
+                        <Button
+                          variant="info"
+                          size="icon"
+                          onClick={() => { setEditing(c); setDialogOpen(true); }}
+                          title="Edit capability"
+                          aria-label="Edit capability"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      ) : null}
+
+                      {canDelete ? (
+                        c.isActive ? (
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            onClick={async () => {
+                              try {
+                                await apiFetch(
+                                  `/api/infrastructure/diagnostics/capabilities/${encodeURIComponent(c.id)}?branchId=${encodeURIComponent(branchId)}`,
+                                  { method: "DELETE" },
+                                );
+                                toast({ title: "Deactivated", description: "Capability marked inactive." });
+                                await loadAll();
+                              } catch (e: any) {
+                                toast({
+                                  title: "Deactivate failed",
+                                  description: e?.message || "Error",
+                                  variant: "destructive" as any,
+                                });
+                              }
+                            }}
+                            title="Deactivate capability"
+                            aria-label="Deactivate capability"
+                          >
+                            <ToggleLeft className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="success"
+                            size="icon"
+                            onClick={async () => {
+                              try {
+                                await apiFetch(
+                                  `/api/infrastructure/diagnostics/capabilities/${encodeURIComponent(c.id)}`,
+                                  {
+                                    method: "PUT",
+                                    body: JSON.stringify({ branchId, isActive: true }),
+                                  },
+                                );
+                                toast({ title: "Activated", description: "Capability is active again." });
+                                await loadAll();
+                              } catch (e: any) {
+                                toast({
+                                  title: "Activate failed",
+                                  description: e?.message || "Error",
+                                  variant: "destructive" as any,
+                                });
+                              }
+                            }}
+                            title="Reactivate capability"
+                            aria-label="Reactivate capability"
+                          >
+                            <ToggleRight className="h-4 w-4" />
+                          </Button>
+                        )
+                      ) : null}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* Onboarding callout */}
+      <OnboardingCallout
+        title="Recommended capabilities setup"
+        description="1) Ensure service points and diagnostic items exist, 2) Create capability mappings linking items to service points, 3) Configure allowed rooms, resources and equipment per capability."
+      />
+
+      {/* Dialogs */}
+      <CapabilityDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        branchId={branchId}
+        editing={editing}
+        servicePoints={servicePoints}
+        items={items}
+        onSaved={loadAll}
+      />
+      <CapabilityRoomsDialog
+        open={!!allowedRooms}
+        onOpenChange={(v) => !v && setAllowedRooms(null)}
+        branchId={branchId}
+        capability={allowedRooms}
+      />
+      <CapabilityResourcesDialog
+        open={!!allowedResources}
+        onOpenChange={(v) => !v && setAllowedResources(null)}
+        branchId={branchId}
+        capability={allowedResources}
+      />
+      <CapabilityEquipmentDialog
+        open={!!allowedEquipment}
+        onOpenChange={(v) => !v && setAllowedEquipment(null)}
+        branchId={branchId}
+        capability={allowedEquipment}
+      />
+    </div>
   );
 }
 
@@ -386,11 +522,7 @@ function CapabilityDialog({
           onClose={() => onOpenChange(false)}
         />
         <div className="grid gap-4">
-          {err ? (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-2 text-sm text-rose-800">
-              {err}
-            </div>
-          ) : null}
+          <ErrorAlert message={err} />
           <div className="grid gap-4 md:grid-cols-2">
             <Field label="Service point" required>
               <Select

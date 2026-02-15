@@ -17,9 +17,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { apiFetch } from "@/lib/api";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
+import { useAuthStore, hasPerm } from "@/lib/auth/store";
+import { usePageInsights } from "@/lib/copilot/usePageInsights";
+import { PageInsightBanner } from "@/components/copilot/PageInsightBanner";
+import { IconClipboard } from "@/components/icons";
 import { cn } from "@/lib/cn";
 
-import { Field, NoBranchGuard } from "../_shared/components";
+import {
+  Field,
+  NoBranchGuard,
+  PageHeader,
+  ErrorAlert,
+  OnboardingCallout,
+} from "../_shared/components";
 
 /* =========================================================
    Import / Export Page
@@ -43,6 +53,9 @@ export default function ImportExportPage() {
 
 function ImportExportContent({ branchId }: { branchId: string }) {
   const { toast } = useToast();
+  const user = useAuthStore((s) => s.user);
+  const canWrite = hasPerm(user, "INFRA_DIAGNOSTICS_CREATE");
+
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
   const [mode, setMode] = React.useState<"export" | "import">("export");
@@ -57,6 +70,9 @@ function ImportExportContent({ branchId }: { branchId: string }) {
   const [cloneTargetBranchId, setCloneTargetBranchId] = React.useState("");
   const [cloning, setCloning] = React.useState(false);
   const [cloneResult, setCloneResult] = React.useState<any>(null);
+
+  // AI page insights
+  const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({ module: "diagnostics-import-export" });
 
   async function handleExport() {
     setLoading(true);
@@ -182,16 +198,27 @@ function ImportExportContent({ branchId }: { branchId: string }) {
   }
 
   return (
-    <>
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Import / Export</CardTitle>
-          <CardDescription>Bulk import/export diagnostic configuration as JSON.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {err ? <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{err}</div> : null}
+    <div className="grid gap-6">
+      {/* Header */}
+      <PageHeader
+        icon={<IconClipboard className="h-5 w-5 text-zc-accent" />}
+        title="Import / Export"
+        description="Import and export diagnostic configuration data."
+      />
 
-          <div className="mb-4 flex gap-2">
+      {/* AI Insights */}
+      <PageInsightBanner insights={insights} loading={insightsLoading} onDismiss={dismissInsight} />
+
+      {/* Import / Export Card */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Import / Export</CardTitle>
+          <CardDescription className="text-sm">Bulk import/export diagnostic configuration as JSON.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <ErrorAlert message={err} />
+
+          <div className="flex gap-2">
             <Button variant={mode === "export" ? "primary" : "outline"} size="sm" onClick={() => setMode("export")}>
               Export
             </Button>
@@ -301,19 +328,17 @@ function ImportExportContent({ branchId }: { branchId: string }) {
         </CardContent>
       </Card>
 
-      {/* ── Branch Cloning ───────────────────────────── */}
-      <Card className="mt-6">
-        <CardHeader className="pb-2">
+      {/* Branch Cloning Card */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-4">
           <CardTitle className="text-base">Clone Branch</CardTitle>
-          <CardDescription>
+          <CardDescription className="text-sm">
             Clone all diagnostic configuration from one branch to another. This copies sections, categories, specimens, items, parameters, ranges, and templates.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="grid gap-4">
           {cloneResult && !cloneResult.success ? (
-            <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
-              Clone failed: {(cloneResult.errors ?? []).join(", ") || "Unknown error"}
-            </div>
+            <ErrorAlert message={`Clone failed: ${(cloneResult.errors ?? []).join(", ") || "Unknown error"}`} />
           ) : null}
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -333,7 +358,7 @@ function ImportExportContent({ branchId }: { branchId: string }) {
             </Field>
           </div>
 
-          <div className="mt-4">
+          <div>
             <Button
               onClick={handleClone}
               disabled={cloning || !cloneSourceBranchId.trim() || !cloneTargetBranchId.trim()}
@@ -343,7 +368,7 @@ function ImportExportContent({ branchId }: { branchId: string }) {
           </div>
 
           {cloneResult && cloneResult.success ? (
-            <div className="mt-4">
+            <div>
               <div className="rounded-xl border border-emerald-200/70 bg-emerald-50/40 p-3">
                 <div className="text-sm font-semibold text-emerald-800">Clone Successful</div>
                 {cloneResult.counts ? (
@@ -360,6 +385,12 @@ function ImportExportContent({ branchId }: { branchId: string }) {
           ) : null}
         </CardContent>
       </Card>
-    </>
+
+      {/* Onboarding callout */}
+      <OnboardingCallout
+        title="Import / Export tips"
+        description="Use Export to download a full JSON backup of the current branch configuration. Use Import to bulk-load configuration from a JSON file. Use Clone to copy all configuration from one branch to another."
+      />
+    </div>
   );
 }

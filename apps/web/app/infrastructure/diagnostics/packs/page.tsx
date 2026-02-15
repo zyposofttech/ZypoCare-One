@@ -13,7 +13,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -34,8 +33,17 @@ import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useToast } from "@/components/ui/use-toast";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
+import { useAuthStore, hasPerm } from "@/lib/auth/store";
+import { usePageInsights } from "@/lib/copilot/usePageInsights";
+import { PageInsightBanner } from "@/components/copilot/PageInsightBanner";
+import { IconReceipt } from "@/components/icons";
 
-import { Plus } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  ToggleLeft,
+  ToggleRight,
+} from "lucide-react";
 
 import type {
   DiagnosticPackRow,
@@ -70,6 +78,13 @@ import {
   ModalHeader,
   NoBranchGuard,
   drawerClassName,
+  PageHeader,
+  ErrorAlert,
+  StatusPill,
+  CodeBadge,
+  StatBox,
+  SearchBar,
+  OnboardingCallout,
 } from "../_shared/components";
 
 /* =========================================================
@@ -199,7 +214,7 @@ function PackDialog({
           onClose={() => onOpenChange(false)}
         />
         <div className="grid gap-4">
-          {err ? <div className="rounded-xl border border-rose-200 bg-rose-50 p-2 text-sm text-rose-800">{err}</div> : null}
+          <ErrorAlert message={err} />
           <Field label="Code" required>
             <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="BASIC_DIAGNOSTICS" disabled={!!editing} />
           </Field>
@@ -499,7 +514,7 @@ function PackVersionDialog({
           onClose={() => onOpenChange(false)}
         />
         <div className="grid gap-4">
-          {err ? <div className="rounded-xl border border-rose-200 bg-rose-50 p-2 text-sm text-rose-800">{err}</div> : null}
+          <ErrorAlert message={err} />
           <div className="grid gap-4 md:grid-cols-3">
             <Field label="Version">
               <Input value={version} onChange={(e) => setVersion(e.target.value)} placeholder="Auto" disabled={!!editing} />
@@ -586,7 +601,7 @@ function PackVersionDialog({
                 <div className="mb-3 flex items-center justify-between">
                   <div className="text-sm font-semibold text-zc-text">Service Points</div>
                   <Button size="sm" variant="outline" onClick={() => addRow("servicePoints", { code: "", name: "", type: "OTHER", requiresPlacement: true })}>
-                    <Plus className="mr-2 h-4 w-4" /> Add
+                    Add
                   </Button>
                 </div>
                 {builder.servicePoints.length === 0 ? (
@@ -620,7 +635,7 @@ function PackVersionDialog({
                 <div className="mb-3 flex items-center justify-between">
                   <div className="text-sm font-semibold text-zc-text">Sections</div>
                   <Button size="sm" variant="outline" onClick={() => addRow("sections", { code: "", name: "" })}>
-                    <Plus className="mr-2 h-4 w-4" /> Add
+                    Add
                   </Button>
                 </div>
                 {builder.sections.length === 0 ? (
@@ -640,7 +655,7 @@ function PackVersionDialog({
                 <div className="mb-3 flex items-center justify-between">
                   <div className="text-sm font-semibold text-zc-text">Categories</div>
                   <Button size="sm" variant="outline" onClick={() => addRow("categories", { code: "", name: "", sectionCode: "" })}>
-                    <Plus className="mr-2 h-4 w-4" /> Add
+                    Add
                   </Button>
                 </div>
                 {builder.categories.length === 0 ? (
@@ -661,7 +676,7 @@ function PackVersionDialog({
                 <div className="mb-3 flex items-center justify-between">
                   <div className="text-sm font-semibold text-zc-text">Specimens</div>
                   <Button size="sm" variant="outline" onClick={() => addRow("specimens", { code: "", name: "", container: "", minVolumeMl: "", handlingNotes: "" })}>
-                    <Plus className="mr-2 h-4 w-4" /> Add
+                    Add
                   </Button>
                 </div>
                 {builder.specimens.length === 0 ? (
@@ -686,7 +701,7 @@ function PackVersionDialog({
                 <div className="mb-3 flex items-center justify-between">
                   <div className="text-sm font-semibold text-zc-text">Items</div>
                   <Button size="sm" variant="outline" onClick={() => addRow("items", { code: "", name: "", kind: "LAB", sectionCode: "", categoryCode: "", specimenCode: "", isPanel: false, requiresAppointment: false, consentRequired: false, preparationText: "" })}>
-                    <Plus className="mr-2 h-4 w-4" /> Add
+                    Add
                   </Button>
                 </div>
                 {builder.items.length === 0 ? (
@@ -734,7 +749,7 @@ function PackVersionDialog({
                 <div className="mb-3 flex items-center justify-between">
                   <div className="text-sm font-semibold text-zc-text">Templates</div>
                   <Button size="sm" variant="outline" onClick={() => addRow("templates", { itemCode: "", kind: "IMAGING_REPORT", name: "", body: "" })}>
-                    <Plus className="mr-2 h-4 w-4" /> Add
+                    Add
                   </Button>
                 </div>
                 {builder.templates.length === 0 ? (
@@ -763,7 +778,7 @@ function PackVersionDialog({
                 <div className="mb-3 flex items-center justify-between">
                   <div className="text-sm font-semibold text-zc-text">Capabilities</div>
                   <Button size="sm" variant="outline" onClick={() => addRow("capabilities", { servicePointCode: "", itemCode: "", modality: "", defaultDurationMins: "", isPrimary: false })}>
-                    <Plus className="mr-2 h-4 w-4" /> Add
+                    Add
                   </Button>
                 </div>
                 {builder.capabilities.length === 0 ? (
@@ -813,11 +828,16 @@ function PackVersionDialog({
 }
 
 /* =========================================================
-   PacksContent (inner component, replaces old PacksTab)
+   PacksContent (inner component)
    ========================================================= */
 
 function PacksContent({ branchId }: { branchId: string }) {
   const { toast } = useToast();
+  const user = useAuthStore((s) => s.user);
+  const canCreate = hasPerm(user, "INFRA_DIAGNOSTICS_CREATE");
+  const canUpdate = hasPerm(user, "INFRA_DIAGNOSTICS_UPDATE");
+  const canDelete = hasPerm(user, "INFRA_DIAGNOSTICS_DELETE");
+
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
   const [packs, setPacks] = React.useState<DiagnosticPackRow[]>([]);
@@ -830,12 +850,16 @@ function PacksContent({ branchId }: { branchId: string }) {
   const [labType, setLabType] = React.useState<LabType>("LAB_CORE");
   const [quickLocationId, setQuickLocationId] = React.useState("");
   const [showQuickSetup, setShowQuickSetup] = React.useState(false);
+  const [q, setQ] = React.useState("");
 
   const [packDialogOpen, setPackDialogOpen] = React.useState(false);
   const [editingPack, setEditingPack] = React.useState<DiagnosticPackRow | null>(null);
 
   const [versionDialogOpen, setVersionDialogOpen] = React.useState(false);
   const [editingVersion, setEditingVersion] = React.useState<DiagnosticPackVersionRow | null>(null);
+
+  // AI page insights
+  const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({ module: "diagnostics-packs" });
 
   async function loadPacks() {
     setLoading(true);
@@ -910,6 +934,22 @@ function PacksContent({ branchId }: { branchId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [labType, packs]);
 
+  // Computed stats
+  const totalPacks = packs.length;
+  const activePacks = packs.filter((p) => p.isActive).length;
+  const totalVersions = versions.length;
+  const activeVersions = versions.filter((v) => v.status === "ACTIVE").length;
+
+  // Filtered packs for table
+  const filtered = React.useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return packs;
+    return packs.filter((p) => {
+      const hay = `${p.code} ${p.name} ${p.labType ?? ""} ${p.description ?? ""}`.toLowerCase();
+      return hay.includes(s);
+    });
+  }, [packs, q]);
+
   async function applyPack() {
     if (!selectedVersion) return;
     const missing = servicePoints.filter((sp) => sp.requiresPlacement && !placements[sp.code]);
@@ -978,195 +1018,341 @@ function PacksContent({ branchId }: { branchId: string }) {
     }
   }
 
+  async function deletePack(pack: DiagnosticPackRow) {
+    try {
+      await apiFetch(`/api/infrastructure/diagnostics/packs/${encodeURIComponent(pack.id)}`, {
+        method: "PUT",
+        branch: "none",
+        body: JSON.stringify({ name: pack.name, isActive: false }),
+      });
+      toast({ title: "Deactivated", description: "Pack marked inactive." });
+      await loadPacks();
+    } catch (e: any) {
+      toast({ title: "Deactivate failed", description: e?.message || "Error", variant: "destructive" as any });
+    }
+  }
+
+  async function reactivatePack(pack: DiagnosticPackRow) {
+    try {
+      await apiFetch(`/api/infrastructure/diagnostics/packs/${encodeURIComponent(pack.id)}`, {
+        method: "PUT",
+        branch: "none",
+        body: JSON.stringify({ name: pack.name, isActive: true }),
+      });
+      toast({ title: "Activated", description: "Pack is active again." });
+      await loadPacks();
+    } catch (e: any) {
+      toast({ title: "Activate failed", description: e?.message || "Error", variant: "destructive" as any });
+    }
+  }
+
   return (
-    <Card className="mt-4">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Diagnostic Packs</CardTitle>
-        <CardDescription>Backend-stored packs with versioning. Import, edit, and apply to a branch.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {err ? <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{err}</div> : null}
+    <div className="grid gap-6">
+      {/* Header */}
+      <PageHeader
+        icon={<IconReceipt className="h-5 w-5 text-zc-accent" />}
+        title="Configuration Packs"
+        description="Backend-stored packs with versioning. Import, edit, and apply to a branch."
+        loading={loading}
+        onRefresh={() => { void loadPacks(); }}
+        canCreate={canCreate}
+        createLabel="Create Pack"
+        onCreate={() => { setEditingPack(null); setPackDialogOpen(true); }}
+      />
 
-        <div className="flex items-center justify-between mb-2">
-          <div className="text-sm font-semibold text-zc-text">Quick setup</div>
-          <Button variant="outline" size="sm" onClick={() => setShowQuickSetup((s) => !s)}>
-            {showQuickSetup ? "Hide Quick Setup" : "Show Quick Setup"}
-          </Button>
-        </div>
+      {/* AI Insights */}
+      <PageInsightBanner insights={insights} loading={insightsLoading} onDismiss={dismissInsight} />
 
-        {showQuickSetup ? (
-          <div className="mb-4 rounded-xl border border-zc-border bg-zc-panel/10 p-4">
-            <div className="text-sm font-semibold text-zc-text">Lab Type Setup</div>
-            <div className="mt-1 text-xs text-zc-muted">
-              Step 1: choose a lab type and location. Step 2: select a predefined template. Step 3: apply.
-            </div>
-            <div className="mt-3 grid gap-3 md:grid-cols-3">
-              <Field label="Lab type" required>
-                <Select value={labType} onValueChange={(v) => setLabType(v as LabType)}>
-                  <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {LAB_TYPE_OPTIONS.map((t) => (
-                      <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field label="Location" required>
-                <Select value={quickLocationId} onValueChange={setQuickLocationId}>
-                  <SelectTrigger className="h-10"><SelectValue placeholder="Select location" /></SelectTrigger>
-                  <SelectContent className="max-h-[280px] overflow-y-auto">
-                    {locations.map((l) => (
-                      <SelectItem key={l.id} value={l.id}>{l.path}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field label="Template" required>
-                <Select value={packId} onValueChange={setPackId}>
-                  <SelectTrigger className="h-10"><SelectValue placeholder="Select template" /></SelectTrigger>
-                  <SelectContent className="max-h-[280px] overflow-y-auto">
-                    {labTypePacks.length === 0 ? (
-                      <SelectItem value="none" disabled>No templates for this lab type</SelectItem>
-                    ) : (
-                      labTypePacks.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </Field>
-            </div>
-            <div className="mt-3 flex items-center gap-2">
-              <Button onClick={applyQuickSetup} disabled={applying || !selectedVersion || !quickLocationId || !labTypePacks.length}>
-                Apply template
-              </Button>
-              <div className="text-xs text-zc-muted">Uses the active version of the selected template.</div>
-            </div>
-          </div>
-        ) : null}
+      {/* Overview */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Overview</CardTitle>
+          <CardDescription className="text-sm">
+            Browse packs, manage versions, and apply configuration templates to your branch.
+          </CardDescription>
+        </CardHeader>
 
-        <div className="grid gap-4 lg:grid-cols-[280px,1fr]">
-          <div className="rounded-xl border border-zc-border p-3">
-            <div className="mb-2 flex items-center justify-between">
-              <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Packs</div>
-              <Button size="sm" onClick={() => { setEditingPack(null); setPackDialogOpen(true); }}>
-                <Plus className="mr-2 h-4 w-4" /> New
-              </Button>
-            </div>
-            <div className="grid gap-2">
-              {packs.length === 0 ? (
-                <div className="text-sm text-zc-muted">No packs yet.</div>
-              ) : (
-                packs.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => setPackId(p.id)}
-                    className={cn(
-                      "w-full rounded-xl border px-3 py-2 text-left transition",
-                      packId === p.id
-                        ? "border-zc-accent bg-zc-accent shadow-sm"
-                        : "border-zc-border bg-zc-card hover:bg-zc-panel/20"
-                    )}
-                  >
-                    <div className={cn("text-sm font-semibold", packId === p.id ? "text-white" : "text-zc-text")}>{p.name}</div>
-                    <div className={cn("text-xs", packId === p.id ? "text-white/85" : "text-zc-muted")}>
-                      {p.code}{p.labType ? ` - ${p.labType}` : ""}
-                    </div>
-                  </button>
-                ))
-              )}
-            </div>
+        <CardContent className="grid gap-4">
+          <div className="grid gap-3 md:grid-cols-4">
+            <StatBox label="Total Packs" value={totalPacks} color="blue" detail={<>Active: <span className="font-semibold tabular-nums">{activePacks}</span></>} />
+            <StatBox label="Versions" value={totalVersions} color="sky" detail={selectedPack ? <>For: {selectedPack.name}</> : null} />
+            <StatBox label="Active Versions" value={activeVersions} color="emerald" />
+            <StatBox label="Shown" value={filtered.length} color="violet" detail={<>of <span className="font-semibold tabular-nums">{totalPacks}</span> packs</>} />
           </div>
 
-          <div className="grid gap-4">
-            <div className="rounded-xl border border-zc-border p-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <div className="text-sm font-semibold text-zc-text">{selectedPack?.name || "Select a pack"}</div>
-                  <div className="text-xs text-zc-muted">{selectedPack?.description || "Create or select a pack to manage versions."}</div>
-                </div>
-                {selectedPack ? (
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => { setEditingPack(selectedPack); setPackDialogOpen(true); }}>
-                      Edit pack
-                    </Button>
-                    <Button size="sm" onClick={() => { setEditingVersion(null); setVersionDialogOpen(true); }}>
-                      <Plus className="mr-2 h-4 w-4" /> Version
-                    </Button>
-                  </div>
-                ) : null}
+          {/* Quick setup toggle */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowQuickSetup((s) => !s)}>
+              {showQuickSetup ? "Hide Quick Setup" : "Show Quick Setup"}
+            </Button>
+          </div>
+
+          {showQuickSetup ? (
+            <div className="rounded-xl border border-zc-border bg-zc-panel/10 p-4">
+              <div className="text-sm font-semibold text-zc-text">Lab Type Setup</div>
+              <div className="mt-1 text-xs text-zc-muted">
+                Step 1: choose a lab type and location. Step 2: select a predefined template. Step 3: apply.
               </div>
-
-              <Separator className="my-3" />
-              <div className="grid gap-3 md:grid-cols-2">
-                <Field label="Version">
-                  <Select value={versionId} onValueChange={setVersionId} disabled={!selectedPack || loading}>
-                    <SelectTrigger className="h-10"><SelectValue placeholder="Select version" /></SelectTrigger>
-                    <SelectContent className="max-h-[280px] overflow-y-auto">
-                      {versions.map((v) => (
-                        <SelectItem key={v.id} value={v.id}>
-                          v{v.version} • {v.status}
-                        </SelectItem>
+              <div className="mt-3 grid gap-3 md:grid-cols-3">
+                <Field label="Lab type" required>
+                  <Select value={labType} onValueChange={(v) => setLabType(v as LabType)}>
+                    <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {LAB_TYPE_OPTIONS.map((t) => (
+                        <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </Field>
-                <div className="flex items-end gap-2">
+                <Field label="Location" required>
+                  <Select value={quickLocationId} onValueChange={setQuickLocationId}>
+                    <SelectTrigger className="h-10"><SelectValue placeholder="Select location" /></SelectTrigger>
+                    <SelectContent className="max-h-[280px] overflow-y-auto">
+                      {locations.map((l) => (
+                        <SelectItem key={l.id} value={l.id}>{l.path}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Template" required>
+                  <Select value={packId} onValueChange={setPackId}>
+                    <SelectTrigger className="h-10"><SelectValue placeholder="Select template" /></SelectTrigger>
+                    <SelectContent className="max-h-[280px] overflow-y-auto">
+                      {labTypePacks.length === 0 ? (
+                        <SelectItem value="none" disabled>No templates for this lab type</SelectItem>
+                      ) : (
+                        labTypePacks.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {p.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
+              <div className="mt-3 flex items-center gap-2">
+                <Button onClick={applyQuickSetup} disabled={applying || !selectedVersion || !quickLocationId || !labTypePacks.length}>
+                  Apply template
+                </Button>
+                <div className="text-xs text-zc-muted">Uses the active version of the selected template.</div>
+              </div>
+            </div>
+          ) : null}
+
+          <SearchBar
+            value={q}
+            onChange={setQ}
+            placeholder="Search by code, name, lab type..."
+            filteredCount={filtered.length}
+            totalCount={totalPacks}
+          />
+
+          <ErrorAlert message={err} />
+        </CardContent>
+      </Card>
+
+      {/* Pack detail panel */}
+      {selectedPack ? (
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <CardTitle className="text-base">{selectedPack.name}</CardTitle>
+                <CardDescription className="text-sm">{selectedPack.description || "Manage versions and apply this pack."}</CardDescription>
+              </div>
+              <div className="flex gap-2">
+                {canUpdate ? (
+                  <Button variant="outline" size="sm" onClick={() => { setEditingPack(selectedPack); setPackDialogOpen(true); }}>
+                    Edit pack
+                  </Button>
+                ) : null}
+                {canCreate ? (
+                  <Button size="sm" onClick={() => { setEditingVersion(null); setVersionDialogOpen(true); }}>
+                    New Version
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+          </CardHeader>
+          <Separator />
+          <CardContent className="pt-4">
+            <div className="grid gap-3 md:grid-cols-2">
+              <Field label="Version">
+                <Select value={versionId} onValueChange={setVersionId} disabled={!selectedPack || loading}>
+                  <SelectTrigger className="h-10"><SelectValue placeholder="Select version" /></SelectTrigger>
+                  <SelectContent className="max-h-[280px] overflow-y-auto">
+                    {versions.map((v) => (
+                      <SelectItem key={v.id} value={v.id}>
+                        v{v.version} - {v.status}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+              <div className="flex items-end gap-2">
+                {canUpdate ? (
                   <Button variant="outline" size="sm" onClick={() => { if (selectedVersion) { setEditingVersion(selectedVersion); setVersionDialogOpen(true); } }} disabled={!selectedVersion}>
                     Edit version
                   </Button>
-                  <Button onClick={applyPack} disabled={!selectedVersion || applying}>
-                    Apply pack
-                  </Button>
-                </div>
+                ) : null}
+                <Button onClick={applyPack} disabled={!selectedVersion || applying}>
+                  Apply pack
+                </Button>
               </div>
-
-              {selectedVersion ? (
-                <div className="mt-4 grid gap-3">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Placements</div>
-                  {servicePoints.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-zc-border p-3 text-sm text-zc-muted">No service points in payload.</div>
-                  ) : (
-                    servicePoints.map((sp) => (
-                      <Field key={sp.code} label={`Placement for ${sp.name} (${sp.code})`} required>
-                        <Select
-                          value={placements[sp.code] || ""}
-                          onValueChange={(v) => setPlacements((prev) => ({ ...prev, [sp.code]: v }))}
-                        >
-                          <SelectTrigger className="h-10"><SelectValue placeholder="Select location" /></SelectTrigger>
-                          <SelectContent className="max-h-[280px] overflow-y-auto">
-                            {locations.map((l) => (
-                              <SelectItem key={l.id} value={l.id}>{l.path}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                    ))
-                  )}
-                </div>
-              ) : null}
             </div>
-          </div>
-        </div>
 
-        <PackDialog
-          open={packDialogOpen}
-          onOpenChange={setPackDialogOpen}
-          editing={editingPack}
-          onSaved={() => { void loadPacks(); }}
-        />
-        <PackVersionDialog
-          open={versionDialogOpen}
-          onOpenChange={setVersionDialogOpen}
-          packId={packId}
-          editing={editingVersion}
-          onSaved={() => { if (packId) void loadVersions(packId); }}
-        />
-      </CardContent>
-    </Card>
+            {selectedVersion ? (
+              <div className="mt-4 grid gap-3">
+                <div className="text-xs font-semibold uppercase tracking-wide text-zc-muted">Placements</div>
+                {servicePoints.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-zc-border p-3 text-sm text-zc-muted">No service points in payload.</div>
+                ) : (
+                  servicePoints.map((sp) => (
+                    <Field key={sp.code} label={`Placement for ${sp.name} (${sp.code})`} required>
+                      <Select
+                        value={placements[sp.code] || ""}
+                        onValueChange={(v) => setPlacements((prev) => ({ ...prev, [sp.code]: v }))}
+                      >
+                        <SelectTrigger className="h-10"><SelectValue placeholder="Select location" /></SelectTrigger>
+                        <SelectContent className="max-h-[280px] overflow-y-auto">
+                          {locations.map((l) => (
+                            <SelectItem key={l.id} value={l.id}>{l.path}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                  ))
+                )}
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {/* Packs Table */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Packs</CardTitle>
+          <CardDescription className="text-sm">All configuration packs available in the system.</CardDescription>
+        </CardHeader>
+        <Separator />
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-zc-panel/20 text-xs text-zc-muted">
+              <tr>
+                <th className="px-4 py-3 text-left font-semibold">Code</th>
+                <th className="px-4 py-3 text-left font-semibold">Name</th>
+                <th className="px-4 py-3 text-left font-semibold">Lab Type</th>
+                <th className="px-4 py-3 text-left font-semibold">Description</th>
+                <th className="px-4 py-3 text-left font-semibold">Status</th>
+                <th className="px-4 py-3 text-right font-semibold">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {!filtered.length ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-10 text-center text-sm text-zc-muted">
+                    {loading ? "Loading packs..." : "No packs found."}
+                  </td>
+                </tr>
+              ) : null}
+
+              {filtered.map((p) => (
+                <tr
+                  key={p.id}
+                  onClick={() => setPackId(p.id)}
+                  className={cn(
+                    "border-t border-zc-border cursor-pointer transition",
+                    packId === p.id
+                      ? "bg-zc-accent/10"
+                      : "hover:bg-zc-panel/20",
+                  )}
+                >
+                  <td className="px-4 py-3">
+                    <CodeBadge>{p.code}</CodeBadge>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="font-semibold text-zc-text">{p.name}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-sm text-zc-text">{p.labType || "\u2014"}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-sm text-zc-muted truncate max-w-[240px]">{p.description || "\u2014"}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusPill active={p.isActive} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-2">
+                      {canUpdate ? (
+                        <Button
+                          variant="info"
+                          size="icon"
+                          onClick={(e) => { e.stopPropagation(); setEditingPack(p); setPackDialogOpen(true); }}
+                          title="Edit pack"
+                          aria-label="Edit pack"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      ) : null}
+
+                      {canDelete ? (
+                        p.isActive ? (
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            onClick={(e) => { e.stopPropagation(); void deletePack(p); }}
+                            title="Deactivate pack"
+                            aria-label="Deactivate pack"
+                          >
+                            <ToggleLeft className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="success"
+                            size="icon"
+                            onClick={(e) => { e.stopPropagation(); void reactivatePack(p); }}
+                            title="Reactivate pack"
+                            aria-label="Reactivate pack"
+                          >
+                            <ToggleRight className="h-4 w-4" />
+                          </Button>
+                        )
+                      ) : null}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* Onboarding callout */}
+      <OnboardingCallout
+        title="Recommended pack workflow"
+        description="1) Create a pack with a descriptive code and name, 2) Add versions with payload data using the guided builder or JSON, 3) Select a version and apply it to a branch with location placements."
+      />
+
+      {/* Dialogs */}
+      <PackDialog
+        open={packDialogOpen}
+        onOpenChange={setPackDialogOpen}
+        editing={editingPack}
+        onSaved={() => { void loadPacks(); }}
+      />
+      <PackVersionDialog
+        open={versionDialogOpen}
+        onOpenChange={setVersionDialogOpen}
+        packId={packId}
+        editing={editingVersion}
+        onSaved={() => { if (packId) void loadVersions(packId); }}
+      />
+    </div>
   );
 }
 
@@ -1178,7 +1364,7 @@ export default function DiagnosticsPacksPage() {
   const { branchId } = useBranchContext();
 
   return (
-    <AppShell title="Diagnostics - Quick Start">
+    <AppShell title="Diagnostics - Configuration Packs">
       <RequirePerm perm="INFRA_DIAGNOSTICS_READ">
         {branchId ? <PacksContent branchId={branchId} /> : <NoBranchGuard />}
       </RequirePerm>

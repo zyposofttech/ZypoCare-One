@@ -32,13 +32,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { apiFetch } from "@/lib/api";
 import { useBranchContext } from "@/lib/branch/useBranchContext";
+import { useAuthStore, hasPerm } from "@/lib/auth/store";
+import { usePageInsights } from "@/lib/copilot/usePageInsights";
+import { PageInsightBanner } from "@/components/copilot/PageInsightBanner";
+import { IconFlask } from "@/components/icons";
 
 import {
   Pencil,
-  Plus,
-  RefreshCw,
-  Search,
   Trash2,
+  ToggleLeft,
+  ToggleRight,
 } from "lucide-react";
 
 import type {
@@ -70,6 +73,13 @@ import {
   ModalHeader,
   drawerClassName,
   toneForDiagnosticKind,
+  PageHeader,
+  ErrorAlert,
+  StatusPill,
+  CodeBadge,
+  StatBox,
+  SearchBar,
+  OnboardingCallout,
 } from "../_shared/components";
 
 /* =========================================================
@@ -94,6 +104,11 @@ export default function CatalogPage() {
 
 function CatalogTab({ branchId }: { branchId: string }) {
   const { toast } = useToast();
+  const user = useAuthStore((s) => s.user);
+  const canCreate = hasPerm(user, "INFRA_DIAGNOSTICS_CREATE");
+  const canUpdate = hasPerm(user, "INFRA_DIAGNOSTICS_UPDATE");
+  const canDelete = hasPerm(user, "INFRA_DIAGNOSTICS_DELETE");
+
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
 
@@ -120,6 +135,9 @@ function CatalogTab({ branchId }: { branchId: string }) {
   const [editingCategory, setEditingCategory] = React.useState<CategoryRow | null>(null);
   const [editingSpecimen, setEditingSpecimen] = React.useState<SpecimenRow | null>(null);
   const [editingItem, setEditingItem] = React.useState<DiagnosticItemRow | null>(null);
+
+  // AI page insights
+  const { insights, loading: insightsLoading, dismiss: dismissInsight } = usePageInsights({ module: "diagnostics-catalog" });
 
   function qs(params: Record<string, any>) {
     const u = new URLSearchParams();
@@ -179,221 +197,315 @@ function CatalogTab({ branchId }: { branchId: string }) {
 
   const visibleCategories = categories.filter((c) => c.sectionId === sectionId && c.isActive);
 
+  const totalSections = sections.length;
+  const totalCategories = categories.length;
+  const totalSpecimens = specimens.length;
+  const activeSections = sections.filter((s) => s.isActive).length;
+  const activeItems = items.filter((i) => i.isActive).length;
+  const panelCount = items.filter((i) => i.isPanel).length;
+
+  const filtered = React.useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return items;
+    return items.filter((it) => {
+      const hay = `${it.code} ${it.name} ${it.loincCode ?? ""} ${it.snomedCode ?? ""}`.toLowerCase();
+      return hay.includes(s);
+    });
+  }, [items, q]);
+
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Catalog</CardTitle>
-        <CardDescription>Sections, categories, specimens and diagnostic items. Payloads match Create/Update DTOs.</CardDescription>
-      </CardHeader>
-
-      <CardContent>
-        {err ? <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{err}</div> : null}
-
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex w-full gap-2 lg:max-w-md">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-zc-muted" />
-              <Input className="h-10 pl-9" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search code/name" />
+    <div className="grid gap-6">
+      {/* Header */}
+      <PageHeader
+        icon={<IconFlask className="h-5 w-5 text-zc-accent" />}
+        title="Test Library"
+        description="Manage sections, categories, specimens and diagnostic items for the catalog."
+        loading={loading}
+        onRefresh={() => void loadAll()}
+        canCreate={canCreate}
+        createLabel="Create Item"
+        onCreate={() => { setEditingItem(null); setItemDialogOpen(true); }}
+        extra={
+          canCreate ? (
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" className="px-4 gap-2" onClick={() => { setEditingSection(null); setSectionDialogOpen(true); }}>
+                Section
+              </Button>
+              <Button variant="outline" className="px-4 gap-2" onClick={() => { setEditingCategory(null); setCategoryDialogOpen(true); }}>
+                Category
+              </Button>
+              <Button variant="outline" className="px-4 gap-2" onClick={() => { setEditingSpecimen(null); setSpecimenDialogOpen(true); }}>
+                Specimen
+              </Button>
             </div>
-            <Button variant="outline" className="h-10" onClick={loadAll} disabled={loading}>
-              <RefreshCw className="h-4 w-4" />
-            </Button>
+          ) : null
+        }
+      />
+
+      {/* AI Insights */}
+      <PageInsightBanner insights={insights} loading={insightsLoading} onDismiss={dismissInsight} />
+
+      {/* Overview */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Overview</CardTitle>
+          <CardDescription className="text-sm">
+            Search and filter the diagnostic catalog. Create, edit and deactivate items, sections, categories and specimens.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="grid gap-4">
+          <div className="grid gap-3 md:grid-cols-4">
+            <StatBox label="Sections" value={totalSections} color="blue" detail={<>Active: <span className="font-semibold tabular-nums">{activeSections}</span></>} />
+            <StatBox label="Categories" value={totalCategories} color="sky" />
+            <StatBox label="Specimens" value={totalSpecimens} color="violet" />
+            <StatBox label="Items Shown" value={filtered.length} color="emerald" detail={<>Panels: <span className="font-semibold tabular-nums">{panelCount}</span> | Active: <span className="font-semibold tabular-nums">{activeItems}</span></>} />
           </div>
 
+          {/* Filters */}
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFilters((s) => !s)}
-            >
+            <Button variant="outline" size="sm" onClick={() => setShowFilters((s) => !s)}>
               {showFilters ? "Hide Filters" : "Show Filters"}
             </Button>
           </div>
-        </div>
 
-        {showFilters ? (
-          <div className="mt-3 grid gap-3 rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-            <div className="grid gap-3 md:grid-cols-3">
-              <Field label="Kind">
-                <Select value={kind} onValueChange={(v) => setKind(v as DiagnosticKind)}>
-                  <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+          {showFilters ? (
+            <div className="grid gap-3 rounded-xl border border-zc-border bg-zc-panel/10 p-3">
+              <div className="grid gap-3 md:grid-cols-3">
+                <Field label="Kind">
+                  <Select value={kind} onValueChange={(v) => setKind(v as DiagnosticKind)}>
+                    <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {DIAG_KINDS.map((k) => <SelectItem key={k.value} value={k.value}>{k.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </Field>
+
+                <Field label="Section filter">
+                  <Select value={sectionId} onValueChange={setSectionId}>
+                    <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                    <SelectContent className="max-h-[320px] overflow-y-auto">
+                      <SelectItem value="all">All</SelectItem>
+                      {sections.filter((s) => s.isActive).map((s) => (
+                        <SelectItem key={s.id} value={s.id}>{s.name} ({s.code})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+
+                <Field label="Category filter">
+                  <Select value={categoryId} onValueChange={setCategoryId} disabled={sectionId === "all"}>
+                    <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                    <SelectContent className="max-h-[320px] overflow-y-auto">
+                      <SelectItem value="all">All</SelectItem>
+                      {visibleCategories.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name} ({c.code})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Checkbox checked={includeInactive} onCheckedChange={(v) => setIncludeInactive(Boolean(v))} />
+                  <span className="text-sm text-zc-muted">Include Inactive</span>
+                </div>
+                <Select value={panelFilter} onValueChange={(v) => setPanelFilter(v as any)}>
+                  <SelectTrigger className="h-9 w-[140px]"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {DIAG_KINDS.map((k) => <SelectItem key={k.value} value={k.value}>{k.label}</SelectItem>)}
+                    <SelectItem value="all">All items</SelectItem>
+                    <SelectItem value="panel">Panels only</SelectItem>
+                    <SelectItem value="test">Tests only</SelectItem>
                   </SelectContent>
                 </Select>
-              </Field>
-
-              <Field label="Section filter">
-                <Select value={sectionId} onValueChange={setSectionId}>
-                  <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
-                  <SelectContent className="max-h-[320px] overflow-y-auto">
-                    <SelectItem value="all">All</SelectItem>
-                    {sections.filter((s) => s.isActive).map((s) => (
-                      <SelectItem key={s.id} value={s.id}>{s.name} ({s.code})</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-
-              <Field label="Category filter">
-                <Select value={categoryId} onValueChange={setCategoryId} disabled={sectionId === "all"}>
-                  <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
-                  <SelectContent className="max-h-[320px] overflow-y-auto">
-                    <SelectItem value="all">All</SelectItem>
-                    {visibleCategories.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.name} ({c.code})</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <Checkbox checked={includeInactive} onCheckedChange={(v) => setIncludeInactive(Boolean(v))} />
-              <span className="text-sm text-zc-muted">Include Inactive</span>
-
-              <Select value={panelFilter} onValueChange={(v) => setPanelFilter(v as any)}>
-                <SelectTrigger className="h-9 w-[140px]"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All items</SelectItem>
-                  <SelectItem value="panel">Panels only</SelectItem>
-                  <SelectItem value="test">Tests only</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        ) : null}
-
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-          <div className="text-xs text-zc-muted">
-            Showing <span className="font-semibold tabular-nums text-zc-text">{items.length}</span>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => { setEditingSection(null); setSectionDialogOpen(true); }}>
-              <Plus className="mr-2 h-4 w-4" /> Section
-            </Button>
-            <Button variant="outline" onClick={() => { setEditingCategory(null); setCategoryDialogOpen(true); }}>
-              <Plus className="mr-2 h-4 w-4" /> Category
-            </Button>
-            <Button variant="outline" onClick={() => { setEditingSpecimen(null); setSpecimenDialogOpen(true); }}>
-              <Plus className="mr-2 h-4 w-4" /> Specimen
-            </Button>
-            <Button onClick={() => { setEditingItem(null); setItemDialogOpen(true); }}>
-              <Plus className="mr-2 h-4 w-4" /> Item
-            </Button>
-          </div>
-        </div>
-
-        <Separator className="my-4" />
-
-        <div className="grid gap-3">
-          {items.map((it) => (
-            <div key={it.id} className="rounded-xl border border-zc-border bg-zc-panel/10 p-3">
-              <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <ToneBadge tone="violet" className="font-mono">{it.code}</ToneBadge>
-                    <div className="text-sm font-semibold text-zc-text">{it.name}</div>
-                    <ToneBadge tone={toneForDiagnosticKind(it.kind)}>{it.kind}</ToneBadge>
-                    {it.isPanel ? <ToneBadge tone="amber">PANEL</ToneBadge> : null}
-                    {!it.isActive ? <ToneBadge tone="rose">INACTIVE</ToneBadge> : null}
-                    {it.specimen?.code ? <ToneBadge tone="sky">Specimen: {it.specimen.code}</ToneBadge> : null}
-                  </div>
-
-                  <div className="mt-1 text-xs text-zc-muted">
-                    Section: <span className="font-mono">{it.section?.code}</span> ·
-                    Category: <span className="font-mono">{it.category?.code ?? "\u2014"}</span> ·
-                    Routine TAT: <span className="font-mono">{it.tatMinsRoutine ?? "\u2014"}</span> mins ·
-                    Stat TAT: <span className="font-mono">{it.tatMinsStat ?? "\u2014"}</span> mins
-                  </div>
-                </div>
-
-                <div className="flex shrink-0 flex-wrap gap-2">
-                  <Button variant="outline" size="sm" onClick={() => { setEditingItem(it); setItemDialogOpen(true); }}>
-                    <Pencil className="mr-2 h-4 w-4" /> Edit
-                  </Button>
-
-                  {it.isActive ? (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={async () => {
-                        try {
-                          await apiFetch(`/api/infrastructure/diagnostics/items/${encodeURIComponent(it.id)}`, { method: "DELETE" });
-                          toast({ title: "Deactivated", description: "Item marked inactive." });
-                          await loadAll();
-                        } catch (e: any) {
-                          toast({ title: "Deactivate failed", description: e?.message || "Error", variant: "destructive" as any });
-                        }
-                      }}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" /> Deactivate
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={async () => {
-                        try {
-                          await apiFetch(`/api/infrastructure/diagnostics/items/${encodeURIComponent(it.id)}`, {
-                            method: "PUT",
-                            body: JSON.stringify({ branchId, isActive: true }),
-                          });
-                          toast({ title: "Activated", description: "Item is active again." });
-                          await loadAll();
-                        } catch (e: any) {
-                          toast({ title: "Activate failed", description: e?.message || "Error", variant: "destructive" as any });
-                        }
-                      }}
-                    >
-                      Activate
-                    </Button>
-                  )}
-                </div>
               </div>
             </div>
-          ))}
+          ) : null}
+
+          <SearchBar
+            value={q}
+            onChange={setQ}
+            placeholder="Search by code, name, LOINC, SNOMED..."
+            filteredCount={filtered.length}
+            totalCount={items.length}
+          />
+
+          <ErrorAlert message={err} />
+        </CardContent>
+      </Card>
+
+      {/* Table */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Diagnostic Items</CardTitle>
+          <CardDescription className="text-sm">Lab tests, imaging studies, and procedures in the catalog.</CardDescription>
+        </CardHeader>
+        <Separator />
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-zc-panel/20 text-xs text-zc-muted">
+              <tr>
+                <th className="px-4 py-3 text-left font-semibold">Code</th>
+                <th className="px-4 py-3 text-left font-semibold">Name</th>
+                <th className="px-4 py-3 text-left font-semibold">Kind</th>
+                <th className="px-4 py-3 text-left font-semibold">Section</th>
+                <th className="px-4 py-3 text-left font-semibold">TAT</th>
+                <th className="px-4 py-3 text-left font-semibold">Status</th>
+                <th className="px-4 py-3 text-right font-semibold">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {!filtered.length ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-10 text-center text-sm text-zc-muted">
+                    {loading ? "Loading items..." : "No items found."}
+                  </td>
+                </tr>
+              ) : null}
+
+              {filtered.map((it) => (
+                <tr key={it.id} className="border-t border-zc-border hover:bg-zc-panel/20">
+                  <td className="px-4 py-3">
+                    <CodeBadge>{it.code}</CodeBadge>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="font-semibold text-zc-text">{it.name}</div>
+                    <div className="mt-0.5 flex flex-wrap gap-1">
+                      {it.isPanel ? <ToneBadge tone="amber">PANEL</ToneBadge> : null}
+                      {it.specimen?.code ? <ToneBadge tone="sky">Specimen: {it.specimen.code}</ToneBadge> : null}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <ToneBadge tone={toneForDiagnosticKind(it.kind)}>{it.kind}</ToneBadge>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-sm text-zc-text">{it.section?.name ?? "\u2014"}</div>
+                    {it.category?.name ? (
+                      <div className="text-xs text-zc-muted">{it.category.name}</div>
+                    ) : null}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-xs text-zc-muted">
+                      <span className="font-mono">{it.tatMinsRoutine ?? "\u2014"}</span>
+                      <span className="mx-1">/</span>
+                      <span className="font-mono">{it.tatMinsStat ?? "\u2014"}</span>
+                      <span className="ml-1">mins</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusPill active={it.isActive} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-2">
+                      {canUpdate ? (
+                        <Button
+                          variant="info"
+                          size="icon"
+                          onClick={() => { setEditingItem(it); setItemDialogOpen(true); }}
+                          title="Edit item"
+                          aria-label="Edit item"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      ) : null}
+
+                      {canDelete ? (
+                        it.isActive ? (
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            onClick={async () => {
+                              try {
+                                await apiFetch(`/api/infrastructure/diagnostics/items/${encodeURIComponent(it.id)}`, { method: "DELETE" });
+                                toast({ title: "Deactivated", description: "Item marked inactive." });
+                                await loadAll();
+                              } catch (e: any) {
+                                toast({ title: "Deactivate failed", description: e?.message || "Error", variant: "destructive" as any });
+                              }
+                            }}
+                            title="Deactivate item"
+                            aria-label="Deactivate item"
+                          >
+                            <ToggleLeft className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="success"
+                            size="icon"
+                            onClick={async () => {
+                              try {
+                                await apiFetch(`/api/infrastructure/diagnostics/items/${encodeURIComponent(it.id)}`, {
+                                  method: "PUT",
+                                  body: JSON.stringify({ branchId, isActive: true }),
+                                });
+                                toast({ title: "Activated", description: "Item is active again." });
+                                await loadAll();
+                              } catch (e: any) {
+                                toast({ title: "Activate failed", description: e?.message || "Error", variant: "destructive" as any });
+                              }
+                            }}
+                            title="Reactivate item"
+                            aria-label="Reactivate item"
+                          >
+                            <ToggleRight className="h-4 w-4" />
+                          </Button>
+                        )
+                      ) : null}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+      </Card>
 
-        {/* Dialogs */}
-        <SectionDialog
-          open={sectionDialogOpen}
-          onOpenChange={setSectionDialogOpen}
-          branchId={branchId}
-          editing={editingSection}
-          onSaved={loadAll}
-        />
+      {/* Onboarding callout */}
+      <OnboardingCallout
+        title="Recommended catalog setup"
+        description="1) Create Sections (Lab, Imaging, etc.), 2) Add Categories within sections, 3) Define Specimens for lab tests, 4) Create diagnostic Items linked to sections/categories/specimens."
+      />
 
-        <CategoryDialog
-          open={categoryDialogOpen}
-          onOpenChange={setCategoryDialogOpen}
-          branchId={branchId}
-          editing={editingCategory}
-          sections={sections}
-          onSaved={loadAll}
-        />
+      {/* Dialogs */}
+      <SectionDialog
+        open={sectionDialogOpen}
+        onOpenChange={setSectionDialogOpen}
+        branchId={branchId}
+        editing={editingSection}
+        onSaved={loadAll}
+      />
 
-        <SpecimenDialog
-          open={specimenDialogOpen}
-          onOpenChange={setSpecimenDialogOpen}
-          branchId={branchId}
-          editing={editingSpecimen}
-          onSaved={loadAll}
-        />
+      <CategoryDialog
+        open={categoryDialogOpen}
+        onOpenChange={setCategoryDialogOpen}
+        branchId={branchId}
+        editing={editingCategory}
+        sections={sections}
+        onSaved={loadAll}
+      />
 
-        <ItemDialog
-          open={itemDialogOpen}
-          onOpenChange={setItemDialogOpen}
-          branchId={branchId}
-          editing={editingItem}
-          sections={sections}
-          categories={categories}
-          specimens={specimens}
-          onSaved={loadAll}
-        />
-      </CardContent>
-    </Card>
+      <SpecimenDialog
+        open={specimenDialogOpen}
+        onOpenChange={setSpecimenDialogOpen}
+        branchId={branchId}
+        editing={editingSpecimen}
+        onSaved={loadAll}
+      />
+
+      <ItemDialog
+        open={itemDialogOpen}
+        onOpenChange={setItemDialogOpen}
+        branchId={branchId}
+        editing={editingItem}
+        sections={sections}
+        categories={categories}
+        specimens={specimens}
+        onSaved={loadAll}
+      />
+    </div>
   );
 }
 
@@ -490,7 +602,7 @@ function SectionDialog({
           onClose={() => onOpenChange(false)}
         />
         <div className="grid gap-4">
-          {err ? <div className="rounded-xl border border-rose-200 bg-rose-50 p-2 text-sm text-rose-800">{err}</div> : null}
+          {err ? <ErrorAlert message={err} /> : null}
           <Field label="Code" required>
             <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="LAB, RADIOLOGY" />
           </Field>
@@ -621,7 +733,7 @@ function CategoryDialog({
           onClose={() => onOpenChange(false)}
         />
         <div className="grid gap-4">
-          {err ? <div className="rounded-xl border border-rose-200 bg-rose-50 p-2 text-sm text-rose-800">{err}</div> : null}
+          {err ? <ErrorAlert message={err} /> : null}
           <Field label="Section" required>
             <Select value={sectionId} onValueChange={setSectionId}>
               <SelectTrigger className="h-10"><SelectValue placeholder="Select section" /></SelectTrigger>
@@ -766,7 +878,7 @@ function SpecimenDialog({
           onClose={() => onOpenChange(false)}
         />
         <div className="grid gap-4">
-          {err ? <div className="rounded-xl border border-rose-200 bg-rose-50 p-2 text-sm text-rose-800">{err}</div> : null}
+          {err ? <ErrorAlert message={err} /> : null}
           <Field label="Code" required>
             <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="SERUM" />
           </Field>
@@ -954,7 +1066,7 @@ function ItemDialog({
           onClose={() => onOpenChange(false)}
         />
         <div className="grid gap-4">
-          {err ? <div className="rounded-xl border border-rose-200 bg-rose-50 p-2 text-sm text-rose-800">{err}</div> : null}
+          {err ? <ErrorAlert message={err} /> : null}
           <div className="grid gap-4 md:grid-cols-2">
             <Field label="Code" required>
               <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="CBC" />
